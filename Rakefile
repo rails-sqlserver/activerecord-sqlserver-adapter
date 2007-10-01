@@ -33,7 +33,7 @@ end
 desc "Publish the beta gem"
 task :pgem => :package do
   Rake::SshFilePublisher.new("wrath.rubyonrails.org", "public_html/gems/gems", "pkg", "#{PKG_NAME}-#{PKG_VERSION}.gem").upload
-  `ssh wrath.rubyonrails.org './gemupdate.sh'`
+  `ssh davidhh@wrath.rubyonrails.org './gemupdate.sh'`
 end
 
 desc "Publish the release files to RubyForge."
