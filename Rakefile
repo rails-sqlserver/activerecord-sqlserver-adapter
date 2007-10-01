@@ -4,8 +4,9 @@ require 'rake/packagetask'
 require 'rake/gempackagetask'
 require 'rake/contrib/rubyforgepublisher'
 
-PKG_NAME      = 'activerecord-sqlserver-adapter'
-PKG_VERSION   = '1.0.0'
+PKG_NAME = 'activerecord-sqlserver-adapter'
+PKG_BUILD = ".#{ENV['PKG_BUILD']}" if ENV['PKG_BUILD']
+PKG_VERSION = "1.0.0#{PKG_BUILD}"
 
 spec = Gem::Specification.new do |s|
   s.name = PKG_NAME
