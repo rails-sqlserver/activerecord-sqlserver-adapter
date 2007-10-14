@@ -13,7 +13,7 @@ spec = Gem::Specification.new do |s|
   s.summary = 'SQL Server adapter for Active Record'
   s.version = PKG_VERSION
 
-  s.add_dependency 'activerecord', '>= 1.15.4.7707'
+  s.add_dependency 'activerecord', '>= 1.15.5.7843'
   s.require_path = 'lib'
 
   s.files = %w(lib/active_record/connection_adapters/sqlserver_adapter.rb)
