@@ -394,7 +394,7 @@ module ActiveRecord
           sql.sub!(/^\s*SELECT(\s+DISTINCT)?/i, "SELECT * FROM (SELECT TOP #{options[:limit]} * FROM (SELECT#{$1} TOP #{options[:limit] + options[:offset]} ")
           sql << ") AS tmp1"
           if options[:order]
-            options[:order] = options[:order].split(',').map do |field|
+            order = options[:order].split(',').map do |field|
               parts = field.split(" ")
               tc = parts[0]
               if sql =~ /\.\[/ and tc =~ /\./ # if column quoting used in query
@@ -408,7 +408,7 @@ module ActiveRecord
               end
               parts.join(' ')
             end.join(', ')
-            sql << " ORDER BY #{change_order_direction(options[:order])}) AS tmp2 ORDER BY #{options[:order]}"
+            sql << " ORDER BY #{change_order_direction(order)}) AS tmp2 ORDER BY #{order}"
           else
             sql << " ) AS tmp2"
           end
