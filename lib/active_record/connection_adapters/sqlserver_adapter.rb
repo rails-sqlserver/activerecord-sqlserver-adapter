@@ -122,27 +122,13 @@ module ActiveRecord
 
       # These methods will only allow the adapter to insert binary data with a length of 7K or less
       # because of a SQL Server statement length policy.
-      def self.string_to_binary(value)
-        value.gsub(/(\r|\n|\0|\x1a)/) do
-          case $1
-            when "\r"   then  "%00"
-            when "\n"   then  "%01"
-            when "\0"   then  "%02"
-            when "\x1a" then  "%03"
-          end
-        end
-      end
-
-      def self.binary_to_string(value)
-        value.gsub(/(%00|%01|%02|%03)/) do
-          case $1
-            when "%00"    then  "\r"
-            when "%01"    then  "\n"
-            when "%02\0"  then  "\0"
-            when "%03"    then  "\x1a"
-          end
-        end
-      end
+      def self.string_to_binary(value) 
+ 	      Base64.encode64(value) 
+      end 
+ 	       
+ 	    def self.binary_to_string(value) 
+ 	      Base64.decode64(value) 
+ 	    end 
     end
 
     # In ADO mode, this adapter will ONLY work on Windows systems, 
