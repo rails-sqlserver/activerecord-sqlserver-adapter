@@ -304,10 +304,18 @@ module ActiveRecord
         super || select_value("SELECT @@IDENTITY AS Ident")
       end
 
-      def update_sql(sql, name = nil)
-        execute(sql, name) do |handle|
-          handle.rows
-        end || select_value("SELECT @@ROWCOUNT AS AffectedRows")
+      def update_sql(sql, name = nil)          
+        autoCommiting = @connection["AutoCommit"]
+        begin
+          begin_db_transaction if autoCommiting
+          execute(sql, name)
+          affectedRows = select_value("SELECT @@ROWCOUNT AS AffectedRows")
+          commit_db_transaction if autoCommiting
+          affectedRows
+        rescue
+          rollback_db_transaction if autoCommiting
+          raise
+        end                    
       end
 
       def execute(sql, name = nil)
