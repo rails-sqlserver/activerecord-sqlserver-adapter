@@ -299,6 +299,10 @@ module ActiveRecord
         end
         columns
       end
+      
+      def empty_insert_statement(table_name)
+        "INSERT INTO #{table_name} DEFAULT VALUES"
+      end      
 
       def insert_sql(sql, name = nil, pk = nil, id_value = nil, sequence_name = nil)
         super || select_value("SELECT @@IDENTITY AS Ident")
