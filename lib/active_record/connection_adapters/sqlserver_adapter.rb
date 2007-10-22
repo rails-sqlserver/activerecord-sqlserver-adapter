@@ -417,6 +417,11 @@ module ActiveRecord
         end
       end
 
+      def add_lock!(sql, options)
+        @logger.info "Warning: SQLServer :lock option '#{options[:lock].inspect}' not supported" if @logger && options.has_key?(:lock)
+        sql
+      end
+
       def recreate_database(name)
         drop_database(name)
         create_database(name)
