@@ -471,11 +471,9 @@ module ActiveRecord
       def rename_table(name, new_name)
         execute "EXEC sp_rename '#{name}', '#{new_name}'"
       end
-      
-      # Adds a new column to the named table.
-      # See TableDefinition#column for details of the options you can use.
+
       def add_column(table_name, column_name, type, options = {})
-        add_column_sql = "ALTER TABLE #{table_name} ADD #{quote_column_name(column_name)} #{type_to_sql(type, options[:limit], options[:precision], options[:scale])}"
+        add_column_sql = "ALTER TABLE #{table_name} ADD #{quote_column_name(column_name)} #{type_to_sql(type, options[:limit], options[:precision], options[:scale])}"      
         add_column_options!(add_column_sql, options)
         # TODO: Add support to mimic date columns, using constraints to mark them as such in the database
         # add_column_sql << " CONSTRAINT ck__#{table_name}__#{column_name}__date_only CHECK ( CONVERT(CHAR(12), #{quote_column_name(column_name)}, 14)='00:00:00:000' )" if type == :date       
@@ -487,7 +485,9 @@ module ActiveRecord
       end
       
       def change_column(table_name, column_name, type, options = {}) #:nodoc:
-        sql_commands = ["ALTER TABLE #{table_name} ALTER COLUMN #{quote_column_name(column_name)} #{type_to_sql(type, options[:limit], options[:precision], options[:scale])}"]
+        sql = "ALTER TABLE #{table_name} ALTER COLUMN #{quote_column_name(column_name)} #{type_to_sql(type, options[:limit], options[:precision], options[:scale])}"
+        sql << " NOT NULL" if options[:null] == false
+        sql_commands = [sql]        
         if options_include_default?(options)
           remove_default_constraint(table_name, column_name)
           sql_commands << "ALTER TABLE #{table_name} ADD CONSTRAINT DF_#{table_name}_#{column_name} DEFAULT #{quote(options[:default], options[:column])} FOR #{quote_column_name(column_name)}"
