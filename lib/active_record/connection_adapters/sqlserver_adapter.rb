@@ -287,7 +287,7 @@ module ActiveRecord
         #result = @connection.select_all(sql)
         columns = []
         result.each do |field|
-          default = field[:DefaultValue].to_s.gsub!(/[()\']/,"") =~ /null/ ? nil : field[:DefaultValue]
+          default = field[:DefaultValue].to_s.gsub!(/[()\']/,"") =~ /null/i ? nil : field[:DefaultValue]
           if field[:ColType] =~ /numeric|decimal/i
             type = "#{field[:ColType]}(#{field[:numeric_precision]},#{field[:numeric_scale]})"
           else
