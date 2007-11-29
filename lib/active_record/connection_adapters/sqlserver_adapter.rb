@@ -103,7 +103,8 @@ module ActiveRecord
         end
    
         if value.is_a?(DateTime)
-          return DateTime.new(value.year, value.mon, value.day, value.hour, value.min, value.sec)
+          return Time.mktime(value.year, value.mon, value.day, value.hour, value.min, value.sec)
+          #return DateTime.new(value.year, value.mon, value.day, value.hour, value.min, value.sec)
         end
         
         return cast_to_time(value) if value.is_a?(Date) or value.is_a?(String) rescue nil
