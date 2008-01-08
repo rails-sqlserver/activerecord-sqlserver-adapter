@@ -1,5 +1,6 @@
 require 'active_record/connection_adapters/abstract_adapter'
 
+require 'base64'
 require 'bigdecimal'
 require 'bigdecimal/util'
 
