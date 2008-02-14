@@ -1,8 +1,8 @@
-require 'abstract_unit'
-require 'fixtures/topic'
-require 'fixtures/reply'
+require 'cases/helper' 
+require 'models/topic' 
+require 'models/reply' 
 
-class AffectedRowsTestSqlserver < Test::Unit::TestCase
+class AffectedRowsTestSqlserver < ActiveRecord::TestCase
   self.use_transactional_fixtures = false
   fixtures :topics
 
