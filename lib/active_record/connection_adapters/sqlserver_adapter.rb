@@ -52,12 +52,13 @@ module ActiveRecord
 
   module ConnectionAdapters
     class SQLServerColumn < Column# :nodoc:
-      attr_reader :identity, :is_special
+      attr_reader :identity, :is_special, :is_utf8
 
       def initialize(name, default, sql_type = nil, identity = false, null = true) # TODO: check ok to remove scale_value = 0
         super(name, default, sql_type, null)
         @identity = identity
         @is_special = sql_type =~ /text|ntext|image/i
+        @is_utf8 = sql_type =~ /nvarchar|ntext/i
         # TODO: check ok to remove @scale = scale_value
         # SQL Server only supports limits on *char and float types
         @limit = nil unless @type == :float or @type == :string
@@ -307,10 +308,12 @@ module ActiveRecord
       end      
 
       def insert_sql(sql, name = nil, pk = nil, id_value = nil, sequence_name = nil)
+        set_utf8_values!(sql)
         super || select_value("SELECT @@IDENTITY AS Ident")
       end
 
-      def update_sql(sql, name = nil)          
+      def update_sql(sql, name = nil)
+        set_utf8_values!(sql)
         autoCommiting = @connection["AutoCommit"]
         begin
           begin_db_transaction if autoCommiting
@@ -569,7 +572,7 @@ module ActiveRecord
 
         def get_table_name(sql)
           if sql =~ /^\s*insert\s+into\s+([^\(\s]+)\s*|^\s*update\s+([^\(\s]+)\s*/i
-            $1
+            $1 || $2
           elsif sql =~ /from\s+([^\(\s]+)\s*/i
             $1
           else
@@ -620,6 +623,40 @@ module ActiveRecord
             sql.gsub!(/ORDER BY #{col.to_s}/i, '')
           end
           sql
+        end
+        
+        def get_utf8_columns(table_name)
+          utf8 = []
+          @table_columns ||= []
+          @table_columns[table_name] ||= columns(table_name)
+          @table_columns[table_name].each do |col|
+            utf8 << col.name if col.is_utf8
+          end
+          utf8
+        end
+        
+        def set_utf8_values!(sql)
+          utf8_cols = get_utf8_columns(get_table_name(sql))
+          if sql =~ /^\s*UPDATE/i            
+            utf8_cols.each do |col|
+              sql.gsub!("[#{col.to_s}] = '", "[#{col.to_s}] = N'")
+            end
+          elsif sql =~ /^\s*INSERT/i
+            # TODO This code should be simplified
+            # Get columns and values, split them into arrays, and store the original_values for when we need to replace them
+            columns_and_values = sql.scan(/\((.*?)\)/).flatten
+            columns = columns_and_values.first.split(',')
+            values =  columns_and_values[1].split(',')
+            original_values = values.dup
+            # Iterate columns that should be UTF8, and append an N to the value, if the value is not NULL
+            utf8_cols.each do |col|
+              columns.each_with_index do |column, idx|
+                values[idx] = " N#{values[idx].gsub(/^ /, '')}" if column =~ /\[#{col}\]/ and values[idx] !~ /^NULL$/
+              end
+            end
+            # Replace (in place) the SQL
+            sql.gsub!(original_values.join(','), values.join(','))
+          end
         end
 
     end #class SQLServerAdapter < AbstractAdapter
