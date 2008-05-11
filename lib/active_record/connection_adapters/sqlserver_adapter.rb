@@ -453,19 +453,7 @@ module ActiveRecord
 
       def indexes(table_name, name = nil)
         ActiveRecord::Base.connection.instance_variable_get("@connection")["AutoCommit"] = false
-        indexes = []        
-        execute("EXEC sp_helpindex '#{table_name}'", name) do |handle|
-          if handle.column_info.any?
-            handle.each do |index| 
-              unique = index[1] =~ /unique/
-              primary = index[1] =~ /primary key/
-              if !primary
-                indexes << IndexDefinition.new(table_name, index[0], unique, index[2].split(", ").map {|e| e.gsub('(-)','')})
-              end
-            end
-          end
-        end
-        indexes
+        __indexes(table_name, name)
       ensure
         ActiveRecord::Base.connection.instance_variable_get("@connection")["AutoCommit"] = true
       end
@@ -507,6 +495,7 @@ module ActiveRecord
       def remove_column(table_name, column_name)
         remove_check_constraints(table_name, column_name)
         remove_default_constraint(table_name, column_name)
+        remove_indexes(table_name, column_name)
         execute "ALTER TABLE [#{table_name}] DROP COLUMN #{quote_column_name(column_name)}"
       end
       
@@ -526,11 +515,33 @@ module ActiveRecord
         end
       end
       
+      def remove_indexes(table_name, column_name)
+        __indexes(table_name).select {|idx| idx.columns.include? column_name }.each do |idx|
+          remove_index(table_name, {:name => idx.name})
+        end
+      end
+      
       def remove_index(table_name, options = {})
         execute "DROP INDEX #{table_name}.#{quote_column_name(index_name(table_name, options))}"
       end
 
-      private 
+      private
+        def __indexes(table_name, name = nil)
+          indexes = []        
+          execute("EXEC sp_helpindex '#{table_name}'", name) do |handle|
+            if handle.column_info.any?
+              handle.each do |index| 
+                unique = index[1] =~ /unique/
+                primary = index[1] =~ /primary key/
+                if !primary
+                  indexes << IndexDefinition.new(table_name, index[0], unique, index[2].split(", ").map {|e| e.gsub('(-)','')})
+                end
+              end
+            end
+          end
+          indexes
+        end
+      
         def select(sql, name = nil)
           repair_special_columns(sql)
 
