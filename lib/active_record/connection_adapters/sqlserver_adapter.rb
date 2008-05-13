@@ -386,7 +386,7 @@ module ActiveRecord
       end
 
       def add_limit_offset!(sql, options)
-        if options[:limit] and options[:offset]
+        if options[:limit] and options[:offset] and options[:offset] > 0
           total_rows = @connection.select_all("SELECT count(*) as TotalRows from (#{sql.gsub(/\bSELECT(\s+DISTINCT)?\b/i, "SELECT#{$1} TOP 1000000000")}) tally")[0][:TotalRows].to_i
           if (options[:limit] + options[:offset]) >= total_rows
             options[:limit] = (total_rows - options[:offset] >= 0) ? (total_rows - options[:offset]) : 0
