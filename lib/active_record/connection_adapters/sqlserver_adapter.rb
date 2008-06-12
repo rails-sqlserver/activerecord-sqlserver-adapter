@@ -590,7 +590,7 @@ module ActiveRecord
         def query_requires_identity_insert?(sql)
           table_name = get_table_name(sql)
           id_column = identity_column(table_name)
-          sql =~ /\[#{id_column}\]/ ? table_name : nil
+          sql =~ /INSERT[^(]+\([^)]*\[#{id_column}\][^)]*\)/ ? table_name : nil
         end
 
         def change_order_direction(order)
