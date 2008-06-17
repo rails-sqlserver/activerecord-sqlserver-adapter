@@ -89,7 +89,8 @@ module ActiveRecord
       def cast_to_time(value)
         return value if value.is_a?(Time)
         time_array = ParseDate.parsedate(value)
-        Time.send(Base.default_timezone, *time_array) rescue nil
+        Time.time_with_datetime_fallback(Base.default_timezone, *time_array) rescue nil
+        #Time.send(Base.default_timezone, *time_array) rescue nil
       end
 
       def cast_to_datetime(value)
@@ -104,8 +105,7 @@ module ActiveRecord
         end
    
         if value.is_a?(DateTime)
-          return Time.mktime(value.year, value.mon, value.day, value.hour, value.min, value.sec)
-          #return DateTime.new(value.year, value.mon, value.day, value.hour, value.min, value.sec)
+          return Time.time_with_datetime_fallback(Base.default_timezone, value.year, value.mon, value.day, value.hour, value.min, value.sec)
         end
         
         return cast_to_time(value) if value.is_a?(Date) or value.is_a?(String) rescue nil
@@ -116,7 +116,7 @@ module ActiveRecord
       
       def self.string_to_time(value)
         if value.is_a?(DateTime)
-          return Time.mktime(value.year, value.mon, value.day, value.hour, value.min, value.sec)
+          return Time.time_with_datetime_fallback(Base.default_timezone, value.year, value.mon, value.day, value.hour, value.min, value.sec)
         else
           super
         end
