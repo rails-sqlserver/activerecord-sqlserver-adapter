@@ -5,7 +5,7 @@ class AAAACreateTablesTestSqlserver < ActiveRecord::TestCase
   self.use_transactional_fixtures = false
 
   def setup
-    @ar_path = "#{File.dirname(__FILE__)}/../schema"
+    @ar_path = File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', '..', '..', 'rails/activerecord/test/schema'))
     @base_path = "#{File.dirname(__FILE__)}/../fixtures/db_definitions"
   end
 
