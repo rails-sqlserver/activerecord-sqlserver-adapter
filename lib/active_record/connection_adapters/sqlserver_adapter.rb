@@ -386,12 +386,32 @@ module ActiveRecord
       end
 
       def add_limit_offset!(sql, options)
+        if options[:offset]
+          raise ArgumentError, "offset should have a limit" unless options[:limit]
+          unless options[:offset].kind_of?Integer
+            if options[:offset] =~ /^\d+$/
+              options[:offset] = options[:offset].to_i 
+            else
+              raise ArgumentError, "offset should be an integer"
+            end
+          end
+        end
+
+        unless options[:limit].kind_of?Integer
+          # is it just a string which should be an integer?
+          if options[:limit] =~ /^\d+$/
+            options[:limit] = options[:limit].to_i 
+          else
+            raise ArgumentError, "limit should be an integer"
+          end
+        end
+
         if options[:limit] and options[:offset]
           total_rows = @connection.select_all("SELECT count(*) as TotalRows from (#{sql.gsub(/\bSELECT(\s+DISTINCT)?\b/i, "SELECT#{$1} TOP 1000000000")}) tally")[0][:TotalRows].to_i
           if (options[:limit] + options[:offset]) >= total_rows
             options[:limit] = (total_rows - options[:offset] >= 0) ? (total_rows - options[:offset]) : 0
           end
-          sql.sub!(/^\s*SELECT(\s+DISTINCT)?/i, "SELECT * FROM (SELECT TOP #{options[:limit]} * FROM (SELECT#{$1} TOP #{options[:limit] + options[:offset]} ")
+          sql.sub!(/^\s*SELECT(\s+DISTINCT)?/i, "SELECT * FROM (SELECT TOP #{options[:limit]} * FROM (SELECT#{$1} TOP #{options[:limit] + options[:offset]}")
           sql << ") AS tmp1"
           if options[:order]
             order = options[:order].split(',').map do |field|
@@ -410,7 +430,7 @@ module ActiveRecord
             end.join(', ')
             sql << " ORDER BY #{change_order_direction(order)}) AS tmp2 ORDER BY #{order}"
           else
-            sql << " ) AS tmp2"
+            sql << ") AS tmp2"
           end
         elsif sql !~ /^\s*SELECT (@@|COUNT\()/i
           sql.sub!(/^\s*SELECT(\s+DISTINCT)?/i) do
