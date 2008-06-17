@@ -9,7 +9,7 @@ class AAAACreateTablesTestSqlserver < ActiveRecord::TestCase
     @base_path = "#{File.dirname(__FILE__)}/fixtures/db_definitions"
   end
 
-  def test_sqlserver_load_test_schema
+  def __test_sqlserver_load_test_schema
     execute_sql_file("#{@base_path}/sqlserver.drop.sql", ActiveRecord::Base.connection)
     execute_sql_file("#{@base_path}/sqlserver.sql", ActiveRecord::Base.connection)
     execute_sql_file("#{@base_path}/sqlserver2.drop.sql", Course.connection)
@@ -17,7 +17,7 @@ class AAAACreateTablesTestSqlserver < ActiveRecord::TestCase
     assert true
   end
 
-  def __test_activerecord_load_test_schema
+  def test_activerecord_load_test_schema
     eval(File.read("#{@ar_path}/schema.rb"))
     connection = ActiveRecord::Base.connection
     begin
