@@ -627,7 +627,7 @@ module ActiveRecord
         def repair_special_columns(sql)
           special_cols = get_special_columns(get_table_name(sql))
           for col in special_cols.to_a
-            sql.gsub!(Regexp.new(" #{col.to_s} = "), " #{col.to_s} LIKE ")
+            sql.gsub!(/((\.|\s|\()\[?#{col.to_s}\]?)\s?=\s?/, '\1 LIKE ')
             sql.gsub!(/ORDER BY #{col.to_s}/i, '')
           end
           sql
