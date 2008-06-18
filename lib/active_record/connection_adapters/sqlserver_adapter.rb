@@ -422,7 +422,7 @@ module ActiveRecord
           end
         end
 
-        unless options[:limit].kind_of?Integer
+        if options[:limit] && !(options[:limit].kind_of?Integer)
           # is it just a string which should be an integer?
           if options[:limit] =~ /^\d+$/
             options[:limit] = options[:limit].to_i 
