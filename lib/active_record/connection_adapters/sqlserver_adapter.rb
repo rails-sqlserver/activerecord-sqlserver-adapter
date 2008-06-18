@@ -89,7 +89,8 @@ module ActiveRecord
       def cast_to_time(value)
         return value if value.is_a?(Time)
         time_array = ParseDate.parsedate(value)
-        Time.send(Base.default_timezone, *time_array) rescue nil
+        Time.time_with_datetime_fallback(Base.default_timezone, *time_array) rescue nil
+        #Time.send(Base.default_timezone, *time_array) rescue nil
       end
 
       def cast_to_datetime(value)
@@ -104,8 +105,7 @@ module ActiveRecord
         end
    
         if value.is_a?(DateTime)
-          return Time.mktime(value.year, value.mon, value.day, value.hour, value.min, value.sec)
-          #return DateTime.new(value.year, value.mon, value.day, value.hour, value.min, value.sec)
+          return Time.time_with_datetime_fallback(Base.default_timezone, value.year, value.mon, value.day, value.hour, value.min, value.sec)
         end
         
         return cast_to_time(value) if value.is_a?(Date) or value.is_a?(String) rescue nil
@@ -116,7 +116,7 @@ module ActiveRecord
       
       def self.string_to_time(value)
         if value.is_a?(DateTime)
-          return Time.mktime(value.year, value.mon, value.day, value.hour, value.min, value.sec)
+          return Time.time_with_datetime_fallback(Base.default_timezone, value.year, value.mon, value.day, value.hour, value.min, value.sec)
         else
           super
         end
@@ -647,7 +647,7 @@ module ActiveRecord
         def repair_special_columns(sql)
           special_cols = get_special_columns(get_table_name(sql))
           for col in special_cols.to_a
-            sql.gsub!(Regexp.new(" #{col.to_s} = "), " #{col.to_s} LIKE ")
+            sql.gsub!(/((\.|\s|\()\[?#{col.to_s}\]?)\s?=\s?/, '\1 LIKE ')
             sql.gsub!(/ORDER BY #{col.to_s}/i, '')
           end
           sql
