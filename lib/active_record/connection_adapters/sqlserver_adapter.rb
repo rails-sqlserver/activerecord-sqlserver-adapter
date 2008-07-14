@@ -54,10 +54,15 @@ module ActiveRecord
     class SQLServerColumn < Column# :nodoc:
       attr_reader :identity, :is_special
 
-      def initialize(name, default, sql_type = nil, identity = false, null = true) # TODO: check ok to remove scale_value = 0
-        super(name, default, sql_type, null)
-        @identity = identity
-        @is_special = sql_type =~ /text|ntext|image/i
+      def initialize(info)
+        if info[:type] =~ /numeric|decimal/i
+          type = "#{info[:type]}(#{info[:numeric_precision]},#{info[:numeric_scale]})"
+        else
+          type = "#{info[:type]}(#{info[:length]})"
+        end
+        super(info[:name], info[:default_value], type, info[:is_nullable])
+        @identity = info[:is_identity]
+        @is_special = ["text", "ntext", "image"].include?(info[:type])
         # TODO: check ok to remove @scale = scale_value
         # SQL Server only supports limits on *char and float types
         @limit = nil unless @type == :float or @type == :string
@@ -102,10 +107,9 @@ module ActiveRecord
           Time.time_with_datetime_fallback(Base.default_timezone, *time_array) rescue nil
           #Time.send(Base.default_timezone, *time_array) rescue nil
         end
-        
+
         def cast_to_datetime(value)
           return value.to_time if value.is_a?(DBI::Timestamp)
-        
           if value.is_a?(Time)
             if value.year != 0 and value.month != 0 and value.day != 0
               return value
@@ -275,41 +279,52 @@ module ActiveRecord
 
       def columns(table_name, name = nil)
         return [] if table_name.blank?
-        table_name = table_name.to_s if table_name.is_a?(Symbol)
-        table_name = table_name.split('.')[-1] unless table_name.nil?
+        table_name = table_name.to_s.split('.')[-1]
         table_name = table_name.gsub(/[\[\]]/, '')
-        sql = %Q{
+        sql = %{
           SELECT 
-            cols.COLUMN_NAME as ColName,  
-            cols.COLUMN_DEFAULT as DefaultValue,
-            cols.NUMERIC_SCALE as numeric_scale,
-            cols.NUMERIC_PRECISION as numeric_precision, 
-            cols.DATA_TYPE as ColType, 
-            cols.IS_NULLABLE As IsNullable,  
-            COL_LENGTH(cols.TABLE_NAME, cols.COLUMN_NAME) as Length,  
-            COLUMNPROPERTY(OBJECT_ID(cols.TABLE_NAME), cols.COLUMN_NAME, 'IsIdentity') as IsIdentity,  
-            cols.NUMERIC_SCALE as Scale 
-          FROM INFORMATION_SCHEMA.COLUMNS cols 
-          WHERE cols.TABLE_NAME = '#{table_name}'   
+          columns.COLUMN_NAME as name,
+          columns.DATA_TYPE as type,  
+          CASE
+            WHEN columns.COLUMN_DEFAULT = '(null)' OR columns.COLUMN_DEFAULT = '(NULL)' THEN NULL
+            ELSE columns.COLUMN_DEFAULT
+          END default_value,
+          columns.NUMERIC_SCALE as numeric_scale,
+          columns.NUMERIC_PRECISION as numeric_precision,  
+          COL_LENGTH(columns.TABLE_NAME, columns.COLUMN_NAME) as length,  
+          CASE
+            WHEN constraint_column_usage.constraint_name IS NULL THEN NULL
+            ELSE 1
+          END is_primary_key,
+          CASE
+            WHEN columns.IS_NULLABLE = 'YES' THEN 1
+            ELSE NULL
+          end is_nullable,
+          CASE
+            WHEN COLUMNPROPERTY(OBJECT_ID(columns.TABLE_NAME), columns.COLUMN_NAME, 'IsIdentity') = 0 THEN NULL
+            ELSE 1
+          END is_identity
+          FROM INFORMATION_SCHEMA.COLUMNS columns
+          LEFT OUTER JOIN INFORMATION_SCHEMA.TABLE_CONSTRAINTS primary_key_constraints ON (
+            primary_key_constraints.table_name = columns.table_name 
+            AND primary_key_constraints.constraint_type = 'PRIMARY KEY'
+          )
+          LEFT OUTER JOIN INFORMATION_SCHEMA.CONSTRAINT_COLUMN_USAGE constraint_column_usage ON (
+            constraint_column_usage.table_name = primary_key_constraints.table_name 
+            AND constraint_column_usage.column_name = columns.column_name
+          )
+          WHERE columns.TABLE_NAME = '#{table_name}'
+          ORDER BY columns.ordinal_position
         }
-        # Comment out if you want to have the Columns select statment logged.
-        # Personally, I think it adds unnecessary bloat to the log. 
-        # If you do comment it out, make sure to un-comment the "result" line that follows
-        result = log(sql, name) { @connection.select_all(sql) }
-        #result = @connection.select_all(sql)
-        columns = []
-        result.each do |field|
-          default = field[:DefaultValue].to_s.gsub!(/[()\']/,"") =~ /null/i ? nil : field[:DefaultValue]
-          if field[:ColType] =~ /numeric|decimal/i
-            type = "#{field[:ColType]}(#{field[:numeric_precision]},#{field[:numeric_scale]})"
-          else
-            type = "#{field[:ColType]}(#{field[:Length]})"
-          end
-          is_identity = field[:IsIdentity] == 1
-          is_nullable = field[:IsNullable] == 'YES'
-          columns << SQLServerColumn.new(field[:ColName], default, type, is_identity, is_nullable)
+
+        result = select(sql, name, true)
+        result.collect do |column_info|
+          # Remove brackets and outer quotes (if quoted) of default value returned by db, i.e:
+          #   "(1)" => "1", "('1')" => "1", "((-1))" => "-1", "('(-1)')" => "(-1)"
+          column_info.symbolize_keys!
+          column_info[:default_value] = column_info[:default_value].match(/\A\(+'?(.*?)'?\)+\Z/)[1] if column_info[:default_value]
+          SQLServerColumn.new(column_info)
         end
-        columns
       end
       
       def empty_insert_statement(table_name)
@@ -552,8 +567,9 @@ module ActiveRecord
           indexes
         end
       
-        def select(sql, name = nil)
-          repair_special_columns(sql)
+      
+        def select(sql, name = nil, ignore_special_columns = false)
+          repair_special_columns(sql) unless ignore_special_columns
 
           result = []          
           execute(sql) do |handle|
