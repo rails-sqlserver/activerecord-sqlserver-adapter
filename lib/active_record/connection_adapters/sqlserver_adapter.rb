@@ -77,60 +77,70 @@ module ActiveRecord
       def type_cast(value)
         return nil if value.nil?
         case type
-        when :datetime  then cast_to_datetime(value)
-        when :timestamp then cast_to_time(value)
-        when :time      then cast_to_time(value)
-        when :date      then cast_to_datetime(value)
-        when :boolean   then value == true or (value =~ /^t(rue)?$/i) == 0 or value.to_s == '1'
+        when :datetime  then self.class.cast_to_datetime(value)
+        when :timestamp then self.class.cast_to_time(value)
+        when :time      then self.class.cast_to_time(value)
+        when :date      then self.class.cast_to_datetime(value)
         else super
         end
       end
       
-      def cast_to_time(value)
-        return value if value.is_a?(Time)
-        time_array = ParseDate.parsedate(value)
-        Time.time_with_datetime_fallback(Base.default_timezone, *time_array) rescue nil
-        #Time.send(Base.default_timezone, *time_array) rescue nil
+      def type_cast_code(var_name)
+        case type
+        when :datetime  then "#{self.class.name}.cast_to_datetime(#{var_name})"
+        when :timestamp then "#{self.class.name}.cast_to_time(#{var_name})"
+        when :time      then "#{self.class.name}.cast_to_time(#{var_name})"
+        when :date      then "#{self.class.name}.cast_to_datetime(#{var_name})"
+        else super
+        end
       end
-
-      def cast_to_datetime(value)
-        return value.to_time if value.is_a?(DBI::Timestamp)
+      
+      class << self
+        def cast_to_time(value)
+          return value if value.is_a?(Time)
+          time_array = ParseDate.parsedate(value)
+          Time.time_with_datetime_fallback(Base.default_timezone, *time_array) rescue nil
+          #Time.send(Base.default_timezone, *time_array) rescue nil
+        end
         
-        if value.is_a?(Time)
-          if value.year != 0 and value.month != 0 and value.day != 0
-            return value
+        def cast_to_datetime(value)
+          return value.to_time if value.is_a?(DBI::Timestamp)
+        
+          if value.is_a?(Time)
+            if value.year != 0 and value.month != 0 and value.day != 0
+              return value
+            else
+              return Time.mktime(2000, 1, 1, value.hour, value.min, value.sec) rescue nil
+            end
+          end
+   
+          if value.is_a?(DateTime)
+            return Time.time_with_datetime_fallback(Base.default_timezone, value.year, value.mon, value.day, value.hour, value.min, value.sec)
+          end
+        
+          return cast_to_time(value) if value.is_a?(Date) or value.is_a?(String) rescue nil
+          value
+        end
+        
+        # TODO: Find less hack way to convert DateTime objects into Times
+        def string_to_time(value)
+          if value.is_a?(DateTime)
+            return Time.time_with_datetime_fallback(Base.default_timezone, value.year, value.mon, value.day, value.hour, value.min, value.sec)
           else
-            return Time.mktime(2000, 1, 1, value.hour, value.min, value.sec) rescue nil
+            super
           end
         end
-   
-        if value.is_a?(DateTime)
-          return Time.time_with_datetime_fallback(Base.default_timezone, value.year, value.mon, value.day, value.hour, value.min, value.sec)
-        end
-        
-        return cast_to_time(value) if value.is_a?(Date) or value.is_a?(String) rescue nil
-        value
-      end
-      
-      # TODO: Find less hack way to convert DateTime objects into Times
-      
-      def self.string_to_time(value)
-        if value.is_a?(DateTime)
-          return Time.time_with_datetime_fallback(Base.default_timezone, value.year, value.mon, value.day, value.hour, value.min, value.sec)
-        else
-          super
-        end
-      end
 
-      # These methods will only allow the adapter to insert binary data with a length of 7K or less
-      # because of a SQL Server statement length policy.
-      def self.string_to_binary(value) 
- 	      Base64.encode64(value) 
-      end 
+        # These methods will only allow the adapter to insert binary data with a length of 7K or less
+        # because of a SQL Server statement length policy.
+        def string_to_binary(value) 
+   	      Base64.encode64(value) 
+        end 
  	       
- 	    def self.binary_to_string(value) 
- 	      Base64.decode64(value) 
- 	    end 
+   	    def binary_to_string(value) 
+   	      Base64.decode64(value) 
+   	    end
+   	  end
     end
 
     # In ADO mode, this adapter will ONLY work on Windows systems, 
