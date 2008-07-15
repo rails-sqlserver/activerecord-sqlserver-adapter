@@ -40,5 +40,20 @@ you can do so with:
    
 That'll run the base suite using the SQLServer-Ruby adapter.
 
+== Expected Errors
 
+Currently we expect the following errors from running the test suite:
 
+1. test_add_limit_offset_should_sanitize_sql_injection_for_limit_with_comas
+   from
+   activerecord/test/cases/adapter_test.rb
+   
+2. test_add_limit_offset_should_sanitize_sql_injection_for_limit_without_comas
+   from
+   activerecord/test/cases/adapter_test.rb
+   
+1. & 2. error because we treat the possible values for offset and limit much more 
+aggressively than the intention of the tests.  Rails expects that limit => '1,7 bad sql'
+would turn into ' limit 1,7' but that's not valid SQL Server syntax so why should we 
+bother?  So we just deny non-integer limit / offset params entirely rather than trying
+to sanitize them.  It's a hard-line to take on sql injection, but probably a safer one.
