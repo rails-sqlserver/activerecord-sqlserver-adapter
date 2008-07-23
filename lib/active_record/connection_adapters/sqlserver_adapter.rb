@@ -522,8 +522,12 @@ module ActiveRecord
         execute(add_column_sql)
       end
        
-      def rename_column(table, column, new_column_name)
-        execute "EXEC sp_rename '#{table}.#{column}', '#{new_column_name}'"
+      def rename_column(table_name, column_name, new_column_name)
+        if columns(table_name).find{|c| c.name.to_s == column_name.to_s}
+          execute "EXEC sp_rename '#{table_name}.#{column_name}', '#{new_column_name}'"
+        else
+          raise ActiveRecordError, "No such column: #{table_name}.#{column_name}"
+        end
       end
       
       def change_column(table_name, column_name, type, options = {}) #:nodoc:
