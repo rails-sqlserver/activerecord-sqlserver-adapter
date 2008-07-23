@@ -64,8 +64,13 @@ module ActiveRecord
         @identity = info[:is_identity]
         @is_special = ["text", "ntext", "image"].include?(info[:type])
         # TODO: check ok to remove @scale = scale_value
+        @limit = nil unless limitable?(type)
+      end
+
+      def limitable?(type)
         # SQL Server only supports limits on *char and float types
-        @limit = nil unless @type == :float or @type == :string
+        # although for schema dumping purposes it's useful to know that (big|small)int are 2|8 respectively.
+        @type == :float || @type == :string || (@type == :integer && type =~ /^(big|small)int/)
       end
 
       def simplified_type(field_type)
@@ -223,13 +228,15 @@ module ActiveRecord
 
       def type_to_sql(type, limit = nil, precision = nil, scale = nil) #:nodoc:
         return super unless type.to_s == 'integer'
-
-        if limit.nil? || limit == 4
+        
+        if limit.nil?
           'integer'
-        elsif limit < 4
+        elsif limit > 4
+          'bigint'
+        elsif limit < 3
           'smallint'
         else
-          'bigint'
+          'integer'
         end
       end
 

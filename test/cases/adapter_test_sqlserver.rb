@@ -94,6 +94,57 @@ class SqlServerAdapterTest < ActiveRecord::TestCase
   end
 end
 
+class TypeToSqlForIntegersTest < ActiveRecord::TestCase
+  
+  def setup
+    @connection = ActiveRecord::Base.connection
+  end
+  
+  # TODO - ugh these tests are pretty literal...
+  def test_should_create_integers_when_no_limit_supplied
+    assert_equal 'integer', @connection.type_to_sql(:integer)
+  end
+  
+  def test_should_create_integers_when_limit_is_4
+    assert_equal 'integer', @connection.type_to_sql(:integer, 4)
+  end
+  
+  def test_should_create_integers_when_limit_is_3
+    assert_equal 'integer', @connection.type_to_sql(:integer, 3)
+  end
+
+  def test_should_create_smallints_when_limit_is_less_than_3
+    assert_equal 'smallint', @connection.type_to_sql(:integer, 2)
+    assert_equal 'smallint', @connection.type_to_sql(:integer, 1)
+  end
+
+  def test_should_create_bigints_when_limit_is_greateer_than_4
+    assert_equal 'bigint', @connection.type_to_sql(:integer, 5)
+    assert_equal 'bigint', @connection.type_to_sql(:integer, 6)
+    assert_equal 'bigint', @connection.type_to_sql(:integer, 7)
+    assert_equal 'bigint', @connection.type_to_sql(:integer, 8)
+  end
+  
+end
+
+# NOTE: The existing schema_dumper_test doesn't test the limits of <4 limit things
+# for adapaters that aren't mysql, sqlite or postgres.  We should.
+class SchemaDumperForSqlServerTest < ActiveRecord::TestCase
+  def test_schema_dump_includes_limit_constraint_for_integer_columns
+    stream = StringIO.new
+
+    ActiveRecord::SchemaDumper.ignore_tables = [/^(?!integer_limits)/]
+    ActiveRecord::SchemaDumper.dump(ActiveRecord::Base.connection, stream)
+    output = stream.string
+    assert_match %r{c_int_1.*:limit => 2}, output
+    assert_match %r{c_int_2.*:limit => 2}, output
+    assert_match %r{c_int_3.*}, output
+    assert_match %r{c_int_4.*}, output
+    assert_no_match %r{c_int_3.*:limit}, output
+    assert_no_match %r{c_int_4.*:limit}, output
+  end  
+end
+
 class StringDefaultsTest < ActiveRecord::TestCase
   class StringDefaults < ActiveRecord::Base; end;
   
