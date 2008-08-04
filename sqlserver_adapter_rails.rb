@@ -47,6 +47,43 @@ module ActiveRecord
       conn["AutoCommit"] = autocommit
       ConnectionAdapters::SQLServerAdapter.new(conn, logger, [driver_url, username, password])
     end
+   # Overridden to include support for SQL server's lack of = operator on
+    # text/ntext/image columns LIKE operator is used instead
+    def self.sanitize_sql_hash(attrs)
+      conditions = attrs.map do |attr, value|
+        col = self.columns.find {|c| c.name == attr}
+        if col && col.respond_to?("is_special") && col.is_special
+          "#{table_name}.#{connection.quote_column_name(attr)} LIKE ?"
+        else
+          "#{table_name}.#{connection.quote_column_name(attr)} #{attribute_condition(value)}"
+        end
+      end.join(' AND ')
+      replace_bind_variables(conditions, expand_range_bind_variables(attrs.values))
+    end
+
+    # In the case of SQL server, the lock value must follow the FROM clause
+    def self.construct_finder_sql(options)
+      scope = scope(:find)
+      sql  = "SELECT #{(scope && scope[:select]) || options[:select] || '*'} "
+      sql << "FROM #{(scope && scope[:from]) || options[:from] || table_name} "
+      
+      if ActiveRecord::Base.connection.adapter_name == "SQLServer" && !options[:lock].blank? # SQLServer
+        add_lock!(sql, options, scope) 
+      end
+      
+      add_joins!(sql, options, scope)
+      add_conditions!(sql, options[:conditions], scope)
+      
+      sql << " GROUP BY #{options[:group]} " if options[:group]
+
+      add_order!(sql, options[:order], scope)
+      add_limit!(sql, options, scope)
+      add_lock!(sql, options, scope)  unless ActiveRecord::Base.connection.adapter_name == "SQLServer" #  SQLServer
+      #      $log.debug "database_helper: construct_finder_sql:  sql at end:  #{sql.inspect}"
+      sql
+    end 
+
+
   end # class Base
 
   module ConnectionAdapters
@@ -121,26 +158,18 @@ module ActiveRecord
 
       # These methods will only allow the adapter to insert binary data with a length of 7K or less
       # because of a SQL Server statement length policy.
+      # Convert strings to hex before storing in the database
       def self.string_to_binary(value)
-        value.gsub(/(\r|\n|\0|\x1a)/) do
-          case $1
-            when "\r"   then  "%00"
-            when "\n"   then  "%01"
-            when "\0"   then  "%02"
-            when "\x1a" then  "%03"
-          end
-        end
+        "0x#{value.unpack("H*")[0]}"
       end
 
       def self.binary_to_string(value)
-        value.gsub(/(%00|%01|%02|%03)/) do
-          case $1
-            when "%00"    then  "\r"
-            when "%01"    then  "\n"
-            when "%02\0"  then  "\0"
-            when "%03"    then  "\x1a"
-          end
-        end
+       # TODO: Need to remove conditional pack (should always have to pack hex characters into blob)
+        # Assigning a value to a binary column causes the string_to_binary to hexify it
+        # This hex value is stored in the DB but the original value is retained in the 
+        # cache.  By forcing reload, the value coming into binary_to_string will always
+        # be hex.  Need to force reload or update the cached column's value to match what is sent to the DB.
+        value =~ /[^[:xdigit:]]/ ? value : [value].pack('H*')
       end
     end
 
@@ -186,16 +215,20 @@ module ActiveRecord
     # [Linux strongmad 2.6.11-1.1369_FC4 #1 Thu Jun 2 22:55:56 EDT 2005 i686 i686 i386 GNU/Linux]
     class SQLServerAdapter < AbstractAdapter
     
+      # add synchronization to adapter to prevent 'invalid cursor state' error
+      require 'sync'
       def initialize(connection, logger, connection_options=nil)
         super(connection, logger)
         @connection_options = connection_options
+        @sql_connection_lock = Sync.new
       end
 
+      # change defaults for text and binary to use varchar(max) and varbinary(max) types
       def native_database_types
         {
           :primary_key => "int NOT NULL IDENTITY(1, 1) PRIMARY KEY",
           :string      => { :name => "varchar", :limit => 255  },
-          :text        => { :name => "text" },
+          :text        => { :name => "varchar(max)" },
           :integer     => { :name => "int" },
           :float       => { :name => "float", :limit => 8 },
           :decimal     => { :name => "decimal" },
@@ -203,7 +236,7 @@ module ActiveRecord
           :timestamp   => { :name => "datetime" },
           :time        => { :name => "datetime" },
           :date        => { :name => "datetime" },
-          :binary      => { :name => "image"},
+          :binary      => { :name => "varbinary(max)"},
           :boolean     => { :name => "bit"}
         }
       end
@@ -216,7 +249,10 @@ module ActiveRecord
         true
       end
 
+      # Set limit to nil if text or binary due to issues passing the limit on these types in SQL Server 
+      # SQL server complains about the data exceeding 8000 bytes
       def type_to_sql(type, limit = nil, precision = nil, scale = nil) #:nodoc:
+        limit = nil if %w{text binary}.include?(type.to_s)
         return super unless type.to_s == 'integer'
 
         if limit.nil? || limit == 4
@@ -250,14 +286,46 @@ module ActiveRecord
       # Disconnects from the database
       
       def disconnect!
-        @connection.disconnect rescue nil
+        @sql_connection_lock.synchronize(:EX) do        
+          begin
+            @connection.disconnect 
+          rescue nil
+          end
+        end
       end
 
+      # Add synchronization for the db connection to ensure no one else is using this one 
+      # prevents 'invalid cursor state' error
+      def select_rows(sql, name = nil)
+        rows = []
+        repair_special_columns(sql)
+        log(sql, name) do
+          @sql_connection_lock.synchronize(:EX) do 
+            @connection.select_all(sql) do |row|
+              record = []
+              row.each do |col|
+                if col.is_a? DBI::Timestamp
+                  record << col.to_time
+                else
+                  record << col
+                end
+              end
+              rows << record
+            end
+          end
+        end
+        rows
+      end
+      
+      # Add synchronization for the db connection to ensure no one else is using this one 
+      # prevents 'invalid cursor state' error
       def columns(table_name, name = nil)
         return [] if table_name.blank?
         table_name = table_name.to_s if table_name.is_a?(Symbol)
         table_name = table_name.split('.')[-1] unless table_name.nil?
         table_name = table_name.gsub(/[\[\]]/, '')
+        # Added code to handle varchar(max), varbinary(max), nvarchar(max) returning a length of -1
+        # this manifested itself in session data since Rails believed the column was too small
         sql = %Q{
           SELECT 
             cols.COLUMN_NAME as ColName,  
@@ -266,7 +334,10 @@ module ActiveRecord
             cols.NUMERIC_PRECISION as numeric_precision, 
             cols.DATA_TYPE as ColType, 
             cols.IS_NULLABLE As IsNullable,  
-            COL_LENGTH(cols.TABLE_NAME, cols.COLUMN_NAME) as Length,  
+            CASE
+              WHEN cols.DATA_TYPE IN ('varchar', 'nvarchar', 'varbinary') AND COL_LENGTH(cols.TABLE_NAME, cols.COLUMN_NAME) = -1 THEN 2147483648
+              ELSE COL_LENGTH(cols.TABLE_NAME, cols.COLUMN_NAME)
+            END as Length,  
             COLUMNPROPERTY(OBJECT_ID(cols.TABLE_NAME), cols.COLUMN_NAME, 'IsIdentity') as IsIdentity,  
             cols.NUMERIC_SCALE as Scale 
           FROM INFORMATION_SCHEMA.COLUMNS cols 
@@ -275,15 +346,18 @@ module ActiveRecord
         # Comment out if you want to have the Columns select statment logged.
         # Personally, I think it adds unnecessary bloat to the log. 
         # If you do comment it out, make sure to un-comment the "result" line that follows
-        result = log(sql, name) { @connection.select_all(sql) }
-        #result = @connection.select_all(sql)
-        columns = []
-        result.each do |field|
-          default = field[:DefaultValue].to_s.gsub!(/[()\']/,"") =~ /null/ ? nil : field[:DefaultValue]
-          if field[:ColType] =~ /numeric|decimal/i
-            type = "#{field[:ColType]}(#{field[:numeric_precision]},#{field[:numeric_scale]})"
-          else
-            type = "#{field[:ColType]}(#{field[:Length]})"
+          result = log(sql, name) do 
+            @sql_connection_lock.synchronize(:EX) do
+              @connection.select_all(sql)
+            end
+          end
+          columns = []
+          result.each do |field|
+            default = field[:DefaultValue].to_s.gsub!(/[()\']/,"") =~ /null/i ? nil : field[:DefaultValue]
+            if field[:ColType] =~ /numeric|decimal/i
+              type = "#{field[:ColType]}(#{field[:numeric_precision]},#{field[:numeric_scale]})"
+            else
+              type = "#{field[:ColType]}(#{field[:Length]})"
           end
           is_identity = field[:IsIdentity] == 1
           is_nullable = field[:IsNullable] == 'YES'
@@ -305,40 +379,59 @@ module ActiveRecord
       
       alias_method :delete, :update
 
+      # override execute to synchronize the connection
       def execute(sql, name = nil)
         if sql =~ /^\s*INSERT/i && (table_name = query_requires_identity_insert?(sql))
           log(sql, name) do
             with_identity_insert_enabled(table_name) do 
-              @connection.execute(sql) do |handle|
-                yield(handle) if block_given?
+              @sql_connection_lock.synchronize(:EX) do     
+                @connection.execute(sql) do |handle|
+                  yield(handle) if block_given?
+                end
               end
             end
           end
         else
           log(sql, name) do
-            @connection.execute(sql) do |handle|
-              yield(handle) if block_given?
+            @sql_connection_lock.synchronize(:EX) do     
+              @connection.execute(sql) do |handle|
+                yield(handle) if block_given?
+              end
             end
           end
         end
       end
 
-      def begin_db_transaction
-        @connection["AutoCommit"] = false
-      rescue Exception => e
-        @connection["AutoCommit"] = true
-      end
 
+      # Add synchronization for the db connection to ensure no one else is using this one 
+      # prevents 'Could not change transaction status' error      
+      def begin_db_transaction
+        @sql_connection_lock.synchronize(:EX) do
+          begin        
+            @connection["AutoCommit"] = false
+          rescue Exception => e
+            @connection["AutoCommit"] = true
+          end
+        end
+      end
       def commit_db_transaction
-        @connection.commit
-      ensure
-        @connection["AutoCommit"] = true
+        @sql_connection_lock.synchronize(:EX) do        
+          begin      
+            @connection.commit
+          ensure
+            @connection["AutoCommit"] = true
+          end
+        end
       end
 
       def rollback_db_transaction
-        @connection.rollback
-      ensure
-        @connection["AutoCommit"] = true
+        @sql_connection_lock.synchronize(:EX) do        
+          begin
+            @connection.rollback
+          ensure
+            @connection["AutoCommit"] = true
+          end
+        end
       end
 
       def quote(value, column = nil)
@@ -457,8 +550,59 @@ module ActiveRecord
         execute "EXEC sp_rename '#{table}.#{column}', '#{new_column_name}'"
       end
       
+      # database_statements line 108 Set the SQL specific rowlocking
+      # was previously generating invalid syntax for SQL server
+      def add_lock!(sql, options)
+        case lock = options[:lock]
+        when true then sql << "WITH(HOLDLOCK, ROWLOCK) "
+        when String then sql << "#{lock} "
+        end
+      end
+      
+
+      
+      # Delete the default options if it's nil. Adapter was adding default NULL contraints 
+      # to all columns which caused problems when trying to alter the column
+      def add_column_options!(sql, options) #:nodoc:
+        options.delete(:default) if options[:default].nil? 
+        super
+      end
+
+      # calculate column size to fix issue
+      # size XXXXX given to the column 'data' exceeds the maximum allowed for any data type (8000)
+      def column_total_size(table_name)
+        return nil if table_name.blank?
+        table_name = table_name.to_s if table_name.is_a?(Symbol)
+        table_name = table_name.split('.')[-1] unless table_name.nil?
+        table_name = table_name.gsub(/[\[\]]/, '')
+        sql = %Q{
+                SELECT SUM(COL_LENGTH(cols.TABLE_NAME, cols.COLUMN_NAME)) as Length
+                FROM INFORMATION_SCHEMA.COLUMNS cols 
+                WHERE cols.TABLE_NAME = '#{table_name}'   
+        }
+        # Comment out if you want to have the Columns select statment logged.
+        # Personally, I think it adds unnecessary bloat to the log. If you do
+        # comment it out, make sure to un-comment the "result" line that follows
+        result = log(sql, name) do 
+          @sql_connection_lock.synchronize(:EX) { @connection.select_all(sql) }
+        end
+        field[:Length].to_i
+      end
+      # if binary, calculate te the remaining amount for size
+      # issue: size XXXXX given to the column 'data' exceeds the maximum allowed for any data type (8000)
       def change_column(table_name, column_name, type, options = {}) #:nodoc:
-        sql_commands = ["ALTER TABLE #{table_name} ALTER COLUMN #{column_name} #{type_to_sql(type, options[:limit], options[:precision], options[:scale])}"]
+        # $log.debug "change_column"
+        sql_commands = []
+        
+        # Handle conversion of text columns to binary columns by first
+        # converting to varchar. We determine the amount of space left for the
+        # columns so we can get the most out of the conversion.
+        if type == :binary
+          col = self.columns(table_name, column_name)
+          sql_commands << "ALTER TABLE #{table_name} ALTER COLUMN #{column_name} #{type_to_sql(:string, 8000 - column_total_size(table_name))}" if col && col.type == :text
+        end
+        
+        sql_commands << "ALTER TABLE #{table_name} ALTER COLUMN #{column_name} #{type_to_sql(type, options[:limit], options[:precision], options[:scale])}"
         if options_include_default?(options)
           remove_default_constraint(table_name, column_name)
           sql_commands << "ALTER TABLE #{table_name} ADD CONSTRAINT DF_#{table_name}_#{column_name} DEFAULT #{quote(options[:default], options[:column])} FOR #{column_name}"
@@ -587,5 +731,36 @@ module ActiveRecord
         end
 
     end #class SQLServerAdapter < AbstractAdapter
+    # If value is a string and destination column is binary, don't quote the string for MS SQL
+    module Quoting
+      # Quotes the column value to help prevent
+      # {SQL injection attacks}[http://en.wikipedia.org/wiki/SQL_injection].
+      def quote(value, column = nil)
+        # records are quoted as their primary key
+        return value.quoted_id if value.respond_to?(:quoted_id)
+        #        puts "Type: #{column.type}  Name: #{column.name}" if column
+        case value
+        when String, ActiveSupport::Multibyte::Chars
+          value = value.to_s
+          if column && column.type == :binary && column.class.respond_to?(:string_to_binary) 
+            column.class.string_to_binary(value) 
+          elsif column && [:integer, :float].include?(column.type)
+            value = column.type == :integer ? value.to_i : value.to_f
+            value.to_s
+          else
+            "'#{quote_string(value)}'" # ' (for ruby-mode)
+          end
+        when NilClass                 then "NULL"
+        when TrueClass                then (column && column.type == :integer ? '1' : quoted_true)
+        when FalseClass               then (column && column.type == :integer ? '0' : quoted_false)
+        when Float, Fixnum, Bignum    then value.to_s
+          # BigDecimals need to be output in a non-normalized form and quoted.
+        when BigDecimal               then value.to_s('F')
+        when Date                     then "'#{value.to_s}'"
+        when Time, DateTime           then "'#{quoted_date(value)}'"
+        else                          "'#{quote_string(value.to_yaml)}'"
+        end
+      end    
+    end
   end #module ConnectionAdapters
 end #module ActiveRecord
