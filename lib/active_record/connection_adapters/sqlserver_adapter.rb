@@ -328,8 +328,9 @@ module ActiveRecord
         result.collect do |column_info|
           # Remove brackets and outer quotes (if quoted) of default value returned by db, i.e:
           #   "(1)" => "1", "('1')" => "1", "((-1))" => "-1", "('(-1)')" => "(-1)"
+          #   Unicode strings will be prefixed with an N. Remove that too.
           column_info.symbolize_keys!
-          column_info[:default_value] = column_info[:default_value].match(/\A\(+'?(.*?)'?\)+\Z/)[1] if column_info[:default_value]
+          column_info[:default_value] = column_info[:default_value].match(/\A\(+N?'?(.*?)'?\)+\Z/)[1] if column_info[:default_value]
           SQLServerColumn.new(column_info)
         end
       end
