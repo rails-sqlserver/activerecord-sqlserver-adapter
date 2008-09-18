@@ -470,12 +470,6 @@ module ActiveRecord
       end
 
       def add_limit_offset!(sql, options)
-<<<<<<< HEAD:lib/active_record/connection_adapters/sqlserver_adapter.rb
-        if options[:limit] and options[:offset] and options[:offset] > 0
-          total_rows = @connection.select_all(
-            "SELECT count(*) as TotalRows from (#{sql.gsub(/\bSELECT(\s+DISTINCT)?\b/i, "SELECT#{$1} TOP 1000000000")}) tally"
-          )[0][:TotalRows].to_i
-=======
         if options[:offset]
           raise ArgumentError, "offset should have a limit" unless options[:limit]
           unless options[:offset].kind_of?Integer
@@ -498,7 +492,6 @@ module ActiveRecord
 
         if options[:limit] and options[:offset]
           total_rows = @connection.select_all("SELECT count(*) as TotalRows from (#{sql.gsub(/\bSELECT(\s+DISTINCT)?\b/i, "SELECT#{$1} TOP 1000000000")}) tally")[0][:TotalRows].to_i
->>>>>>> neoryan/master:lib/active_record/connection_adapters/sqlserver_adapter.rb
           if (options[:limit] + options[:offset]) >= total_rows
             options[:limit] = (total_rows - options[:offset] >= 0) ? (total_rows - options[:offset]) : 0
           end
