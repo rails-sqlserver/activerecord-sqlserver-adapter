@@ -20,7 +20,7 @@ class AffectedRowsTestSqlserver < ActiveRecord::TestCase
     assert_equal "1 updated", Topic.find(1).content
     assert_equal "2 updated", Topic.find(2).content
   
-    assert_equal 2, Topic.delete_all        
+    assert_equal 2, Topic.delete([1, 2])        
   end
   
   def test_update_sql_statement_invalid
