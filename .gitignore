@@ -1,5 +1,4 @@
-<<<<<<< HEAD:.gitignore
 nbproject/
-=======
 debug.log
->>>>>>> neoryan/master:.gitignore
+.DS_Store
+pkg/
