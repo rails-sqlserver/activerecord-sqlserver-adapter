@@ -59,10 +59,10 @@ module ActiveRecord
       is_distinct = !options[:joins].blank? || include_eager_conditions?(options) || include_eager_order?(options)
 
       sql = "SELECT #{table_name}.#{connection.quote_column_name(primary_key)} FROM #{table_name} "
-
+      
       if is_distinct
         sql << join_dependency.join_associations.collect(&:association_join).join
-        add_joins!(sql, options, scope)
+        add_joins!(sql, options[:joins], scope)
       end
 
       add_conditions!(sql, options[:conditions], scope)
@@ -85,20 +85,6 @@ module ActiveRecord
       return sanitize_sql(sql)
     end
 
-
-    # Fix SQL Server    
-    def self.add_order!(sql, order, scope = :auto)
-      scope = scope(:find) if :auto == scope
-      scoped_order = scope[:order] if scope
-
-      order = [order, scoped_order].delete_if(&:nil?).join(', ')
-      included_fields = order.gsub(/\s(asc|desc)/i, '')
-
-      if order != ''
-        sql.gsub!(/(.+?) FROM/, "\\1, #{included_fields} FROM")
-        sql << " ORDER BY #{order}"
-      end
-    end # self.add_order
   end # class Base
 
   module ConnectionAdapters
@@ -395,15 +381,15 @@ module ActiveRecord
       end
 
       def update_sql(sql, name = nil)          
-        autoCommiting = @connection["AutoCommit"]
+        auto_commiting = @connection["AutoCommit"]
         begin
-          begin_db_transaction if autoCommiting
+          begin_db_transaction if auto_commiting
           execute(sql, name)
-          affectedRows = select_value("SELECT @@ROWCOUNT AS AffectedRows")
-          commit_db_transaction if autoCommiting
-          affectedRows
+          affected_rows = select_value("SELECT @@ROWCOUNT AS AffectedRows")
+          commit_db_transaction if auto_commiting
+          affected_rows
         rescue
-          rollback_db_transaction if autoCommiting
+          rollback_db_transaction if auto_commiting
           raise
         end                    
       end
