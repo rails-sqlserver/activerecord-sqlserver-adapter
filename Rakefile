@@ -7,11 +7,11 @@ require 'rake/contrib/rubyforgepublisher'
 
 PKG_NAME = 'activerecord-sqlserver-adapter'
 PKG_BUILD = (".#{ENV['PKG_BUILD']}" if ENV['PKG_BUILD'])
-PKG_VERSION = "1.0.0#{PKG_BUILD}"
+PKG_VERSION = "1.0.0.314#{PKG_BUILD}"
 
 spec = Gem::Specification.new do |s|
   s.name = PKG_NAME
-  s.summary = 'SQL Server adapter for Active Record'
+  s.summary = 'SQL Server adapter for Active Record - ABR'
   s.version = PKG_VERSION
 
   s.add_dependency 'activerecord', '>= 1.15.5.7843'
@@ -86,4 +86,11 @@ for adapter in %w( sqlserver sqlserver_odbc )
   namespace adapter do
     task :test => "test_#{adapter}"
   end
+end
+
+
+desc 'Clean existing gems out'
+task :clean do
+  packages = %w(gem tgz zip).collect{ |ext| "pkg/#{PKG_NAME}-#{PKG_VERSION}.#{ext}" }
+  FileUtils.rm(packages, :force => true)
 end

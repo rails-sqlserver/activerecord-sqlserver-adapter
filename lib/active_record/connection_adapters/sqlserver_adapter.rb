@@ -48,6 +48,43 @@ module ActiveRecord
       conn["AutoCommit"] = autocommit
       ConnectionAdapters::SQLServerAdapter.new(conn, logger, [driver_url, username, password])
     end
+    
+    
+    private
+
+    # Overwrite the ActiveRecord::Base method for SQL server.
+    # GROUP BY is necessary for distinct orderings
+    def self.construct_finder_sql_for_association_limiting(options, join_dependency)
+      scope       = scope(:find)
+      is_distinct = !options[:joins].blank? || include_eager_conditions?(options) || include_eager_order?(options)
+
+      sql = "SELECT #{table_name}.#{connection.quote_column_name(primary_key)} FROM #{table_name} "
+      
+      if is_distinct
+        sql << join_dependency.join_associations.collect(&:association_join).join
+        add_joins!(sql, options[:joins], scope)
+      end
+
+      add_conditions!(sql, options[:conditions], scope)
+      add_group!(sql, options[:group], scope)
+
+      if options[:order] && is_distinct
+        if sql =~ /GROUP\s+BY/i
+          sql << ", #{table_name}.#{connection.quote_column_name(primary_key)}"
+        else
+          sql << " GROUP BY #{table_name}.#{connection.quote_column_name(primary_key)}"  
+        end #if sql =~ /GROUP BY/i
+
+        connection.add_order_by_for_association_limiting!(sql, options)
+      else
+        add_order!(sql, options[:order], scope)
+      end
+
+      add_limit!(sql, options, scope)
+
+      return sanitize_sql(sql)
+    end
+
   end # class Base
 
   module ConnectionAdapters
@@ -349,19 +386,19 @@ module ActiveRecord
       end
 
       def insert_sql(sql, name = nil, pk = nil, id_value = nil, sequence_name = nil)
-        super || select_value("SELECT @@IDENTITY AS Ident")
+        super || select_value("SELECT SCOPE_IDENTITY() AS Ident")
       end
 
       def update_sql(sql, name = nil)
-        autoCommiting = @connection["AutoCommit"]
+        auto_commiting = @connection["AutoCommit"]
         begin
-          begin_db_transaction if autoCommiting
+          begin_db_transaction if auto_commiting
           execute(sql, name)
-          affectedRows = select_value("SELECT @@ROWCOUNT AS AffectedRows")
-          commit_db_transaction if autoCommiting
-          affectedRows
+          affected_rows = select_value("SELECT @@ROWCOUNT AS AffectedRows")
+          commit_db_transaction if auto_commiting
+          affected_rows
         rescue
-          rollback_db_transaction if autoCommiting
+          rollback_db_transaction if auto_commiting
           raise
         end
       end
@@ -456,16 +493,19 @@ module ActiveRecord
           sql.sub!(/^\s*SELECT(\s+DISTINCT)?/i, "SELECT * FROM (SELECT TOP #{options[:limit]} * FROM (SELECT#{$1} TOP #{options[:limit] + options[:offset]}")
           sql << ") AS tmp1"
           if options[:order]
+            # don't strip the table name, it is needed later on
+            #options[:order] = options[:order].split(',').map do |field|
             order = options[:order].split(',').map do |field|
               parts = field.split(" ")
+              # tc = column_name etc (not direction of sort)
               tc = parts[0]
-              if sql =~ /\.\[/ and tc =~ /\./ # if column quoting used in query
-                tc.gsub!(/\./, '\\.\\[')
-                tc << '\\]'
-              end
-              if sql =~ /#{tc} AS (t\d_r\d\d?)/
+              #if sql =~ /\.\[/ and tc =~ /\./ # if column quoting used in query
+              #  tc.gsub!(/\./, '\\.\\[')
+              #  tc << '\\]'
+              #end          
+              if sql =~ /#{Regexp.escape(tc)} AS (t\d_r\d\d?)/
                 parts[0] = $1
-              elsif parts[0] =~ /\w+\.(\w+)/
+              elsif parts[0] =~ /\w+\.\[?(\w+)\]?/
                 parts[0] = $1
               end
               parts.join(' ')
@@ -477,8 +517,32 @@ module ActiveRecord
         elsif sql !~ /^\s*SELECT (@@|COUNT\()/i
           sql.sub!(/^\s*SELECT(\s+DISTINCT)?/i) do
             "SELECT#{$1} TOP #{options[:limit]}"
-          end unless options[:limit].nil?
+          end unless options[:limit].nil? || options[:limit] < 1
         end
+      end #add_limit_offset!(sql, options)
+      
+      def add_order_by_for_association_limiting!(sql, options)
+        return sql if options[:order].blank?
+
+        # Strip any ASC or DESC from the orders for the select list
+        # Build fields and order arrays
+        # e.g.: options[:order] = 'table.[id], table2.[col2] desc'
+        # fields = ['min(table.[id]) AS id', 'min(table2.[col2]) AS col2']
+        # order = ['id', 'col2 desc']
+        fields = []
+        order = []
+        options[:order].split(/\s*,\s*/).each do |str|
+          # regex matches 'table_name.[column_name] asc' or 'column_name' ('table_name.', 'asc', '[', and ']' are optional)
+          # $1 = 'table_name.[column_name]'
+          # $2 = 'column_name'
+          # $3 = ' asc'
+          str =~ /((?:\w+\.)?\[?(\w+)\]?)(\s+asc|\s+desc)?/i
+          fields << "min(#{$1}) AS #{$2}"
+          order << "#{$2}#{$3}"
+        end
+
+        sql.gsub!(/(.+?) FROM/, "\\1, #{fields.join(',')} FROM")
+        sql << " ORDER BY #{order.join(',')}"
       end
 
       def add_lock!(sql, options)
@@ -494,6 +558,13 @@ module ActiveRecord
       def drop_database(name)
         execute "DROP DATABASE #{name}"
       end
+      
+      # Clear the given table and reset the table's id to 1
+      # Argument:
+      # +table_name+:: (String) Name of the table to be cleared and reset
+      def truncate(table_name)
+        execute("truncate table #{table_name};  DBCC CHECKIDENT ('#{table_name}', RESEED, 1)")
+      end #truncate
 
       def create_database(name)
         execute "CREATE DATABASE #{name}"
