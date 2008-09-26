@@ -95,20 +95,20 @@ class SqlServerAdapterTest < ActiveRecord::TestCase
 end
 
 class TypeToSqlForIntegersTest < ActiveRecord::TestCase
-  
+
   def setup
     @connection = ActiveRecord::Base.connection
   end
-  
+
   # TODO - ugh these tests are pretty literal...
   def test_should_create_integers_when_no_limit_supplied
     assert_equal 'integer', @connection.type_to_sql(:integer)
   end
-  
+
   def test_should_create_integers_when_limit_is_4
     assert_equal 'integer', @connection.type_to_sql(:integer, 4)
   end
-  
+
   def test_should_create_integers_when_limit_is_3
     assert_equal 'integer', @connection.type_to_sql(:integer, 3)
   end
@@ -124,7 +124,7 @@ class TypeToSqlForIntegersTest < ActiveRecord::TestCase
     assert_equal 'bigint', @connection.type_to_sql(:integer, 7)
     assert_equal 'bigint', @connection.type_to_sql(:integer, 8)
   end
-  
+
 end
 
 # NOTE: The existing schema_dumper_test doesn't test the limits of <4 limit things
@@ -142,17 +142,17 @@ class SchemaDumperForSqlServerTest < ActiveRecord::TestCase
     assert_match %r{c_int_4.*}, output
     assert_no_match %r{c_int_3.*:limit}, output
     assert_no_match %r{c_int_4.*:limit}, output
-  end  
+  end
 end
 
 class StringDefaultsTest < ActiveRecord::TestCase
   class StringDefaults < ActiveRecord::Base; end;
-  
+
   def test_sqlserver_default_strings_before_save
     default = StringDefaults.new
     assert_equal nil, default.string_with_null_default
     assert_equal 'null', default.string_with_pretend_null_one
-    assert_equal '(null)', default.string_with_pretend_null_two 
+    assert_equal '(null)', default.string_with_pretend_null_two
     assert_equal 'NULL', default.string_with_pretend_null_three
     assert_equal '(NULL)', default.string_with_pretend_null_four
   end
@@ -161,10 +161,9 @@ class StringDefaultsTest < ActiveRecord::TestCase
     default = StringDefaults.create
     assert_equal nil, default.string_with_null_default
     assert_equal 'null', default.string_with_pretend_null_one
-    assert_equal '(null)', default.string_with_pretend_null_two 
+    assert_equal '(null)', default.string_with_pretend_null_two
     assert_equal 'NULL', default.string_with_pretend_null_three
     assert_equal '(NULL)', default.string_with_pretend_null_four
   end
-
 
 end
