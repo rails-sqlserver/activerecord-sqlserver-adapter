@@ -540,7 +540,7 @@ module ActiveRecord
           # $2 = 'column_name'
           # $3 = ' asc'
           str =~ /((?:\w+\.)?\[?(\w+)\]?)(\s+asc|\s+desc)?/i
-          fields << "min(#{$1}) AS #{$2}"
+          fields << "MIN(#{$1}) AS #{$2}"
           order << "#{$2}#{$3}"
         end
 
@@ -566,7 +566,7 @@ module ActiveRecord
       # Argument:
       # +table_name+:: (String) Name of the table to be cleared and reset
       def truncate(table_name)
-        execute("truncate table #{table_name};  DBCC CHECKIDENT ('#{table_name}', RESEED, 1)")
+        execute("TRUNCATE TABLE #{table_name}; DBCC CHECKIDENT ('#{table_name}', RESEED, 1)")
       end #truncate
 
       def create_database(name)
@@ -574,7 +574,7 @@ module ActiveRecord
       end
 
       def current_database
-        @connection.select_one("select DB_NAME()")[0]
+        @connection.select_one("SELECT DB_NAME()")[0]
       end
 
       def tables(name = nil)
@@ -640,7 +640,7 @@ module ActiveRecord
       end
 
       def remove_default_constraint(table_name, column_name)
-        constraints = select "select def.name from sysobjects def, syscolumns col, sysobjects tab where col.cdefault = def.id and col.name = '#{column_name}' and tab.name = '#{table_name}' and col.id = tab.id"
+        constraints = select "SELECT def.name FROM sysobjects def, syscolumns col, sysobjects tab WHERE col.cdefault = def.id AND col.name = '#{column_name}' AND tab.name = '#{table_name}' AND col.id = tab.id"
 
         constraints.each do |constraint|
           execute "ALTER TABLE #{table_name} DROP CONSTRAINT #{constraint["name"]}"
