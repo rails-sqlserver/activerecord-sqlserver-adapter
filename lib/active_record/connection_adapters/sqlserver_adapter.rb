@@ -54,13 +54,23 @@ module ActiveRecord
     class SQLServerColumn < Column# :nodoc:
       attr_reader :identity, :is_special
 
-      def initialize(name, default, sql_type = nil, identity = false, null = true) # TODO: check ok to remove scale_value = 0
-        super(name, default, sql_type, null)
-        @identity = identity
-        @is_special = sql_type =~ /text|ntext|image/i
+      def initialize(info)
+        if info[:type] =~ /numeric|decimal/i
+          type = "#{info[:type]}(#{info[:numeric_precision]},#{info[:numeric_scale]})"
+        else
+          type = "#{info[:type]}(#{info[:length]})"
+        end
+        super(info[:name], info[:default_value], type, info[:is_nullable])
+        @identity = info[:is_identity]
+        @is_special = ["text", "ntext", "image"].include?(info[:type])
         # TODO: check ok to remove @scale = scale_value
+        @limit = nil unless limitable?(type)
+      end
+
+      def limitable?(type)
         # SQL Server only supports limits on *char and float types
-        @limit = nil unless @type == :float or @type == :string
+        # although for schema dumping purposes it's useful to know that (big|small)int are 2|8 respectively.
+        @type == :float || @type == :string || (@type == :integer && type =~ /^(big|small)int/)
       end
 
       def simplified_type(field_type)
@@ -77,65 +87,71 @@ module ActiveRecord
       def type_cast(value)
         return nil if value.nil?
         case type
-        when :datetime  then cast_to_datetime(value)
-        when :timestamp then cast_to_time(value)
-        when :time      then cast_to_time(value)
-        when :date      then cast_to_datetime(value)
-        when :boolean   then value == true or (value =~ /^t(rue)?$/i) == 0 or value.to_s == '1'
+        when :datetime  then self.class.cast_to_datetime(value)
+        when :timestamp then self.class.cast_to_time(value)
+        when :time      then self.class.cast_to_time(value)
+        when :date      then self.class.cast_to_datetime(value)
         else super
         end
       end
 
-      def cast_to_time(value)
-        return value if value.is_a?(Time)
-        time_array = ParseDate.parsedate(value)
-        Time.send(Base.default_timezone, *time_array) rescue nil
+      def type_cast_code(var_name)
+        case type
+        when :datetime  then "#{self.class.name}.cast_to_datetime(#{var_name})"
+        when :timestamp then "#{self.class.name}.cast_to_time(#{var_name})"
+        when :time      then "#{self.class.name}.cast_to_time(#{var_name})"
+        when :date      then "#{self.class.name}.cast_to_datetime(#{var_name})"
+        else super
+        end
       end
 
-      def cast_to_datetime(value)
-        return value.to_time if value.is_a?(DBI::Timestamp)
+      class << self
+        def cast_to_datetime(value)
+          return value.to_time if value.is_a?(DBI::Timestamp)
 
-        if value.is_a?(Time)
-          if value.year != 0 and value.month != 0 and value.day != 0
-            return value
+          if value.is_a?(Time)
+            if value.year != 0 and value.month != 0 and value.day != 0
+              return value
+            else
+              return new_time(2000, 1, 1, value.hour, value.min, value.sec) rescue nil
+            end
+          end
+
+          if value.is_a?(DateTime)
+            return new_time(value.year, value.mon, value.mday, value.hour, value.min, value.sec)
+            #return DateTime.new(value.year, value.mon, value.day, value.hour, value.min, value.sec)
+          end
+
+          return cast_to_time(value) if value.is_a?(String)
+
+          value
+        end
+
+        def cast_to_time(value)
+          return value if value.is_a?(Time)
+          time_hash = Date._parse(string)
+          time_hash[:sec_fraction] = 0 # REVISIT: microseconds(time_hash)
+          new_time(*time_hash.values_at(:year, :mon, :mday, :hour, :min, :sec, :sec_fraction)) rescue nil
+        end
+
+        # TODO: Find less hack way to convert DateTime objects into Times
+        def self.string_to_time(value)
+          if value.is_a?(DateTime)
+            return new_time(value.year, value.mon, value.day, value.hour, value.min, value.sec)
           else
-            return new_time(2000, 1, 1, value.hour, value.min, value.sec) rescue nil
+            super
           end
         end
 
-        if value.is_a?(DateTime)
-	  return new_time(value.year, value.mon, value.mday, value.hour, value.min, value.sec)
-          #return DateTime.new(value.year, value.mon, value.day, value.hour, value.min, value.sec)
+        # These methods will only allow the adapter to insert binary data with a length of 7K or less
+        # because of a SQL Server statement length policy.
+        def self.string_to_binary(value)
+          Base64.encode64(value)
         end
 
-        if value.is_a?(String)
-          time_hash = Date._parse(string)
-          time_hash[:sec_fraction] = 0 # REVISIT: microseconds(time_hash)
-          return new_time(*time_hash.values_at(:year, :mon, :mday, :hour, :min, :sec, :sec_fraction)) rescue nil
+        def self.binary_to_string(value)
+          Base64.decode64(value)
         end
-
-        value
-      end
-
-      # TODO: Find less hack way to convert DateTime objects into Times
-
-      def self.string_to_time(value)
-        if value.is_a?(DateTime)
-          return new_time(value.year, value.mon, value.day, value.hour, value.min, value.sec)
-        else
-          super
-        end
-      end
-
-      # These methods will only allow the adapter to insert binary data with a length of 7K or less
-      # because of a SQL Server statement length policy.
-      def self.string_to_binary(value)
-        Base64.encode64(value)
-      end
-
-      def self.binary_to_string(value)
-        Base64.decode64(value)
-      end
 
       protected
         def new_time(year, mon, mday, hour, min, sec, microsec = 0)
@@ -222,12 +238,14 @@ module ActiveRecord
       def type_to_sql(type, limit = nil, precision = nil, scale = nil) #:nodoc:
         return super unless type.to_s == 'integer'
 
-        if limit.nil? || limit == 4
+        if limit.nil?
           'integer'
-        elsif limit < 4
+        elsif limit > 4
+          'bigint'
+        elsif limit < 3
           'smallint'
         else
-          'bigint'
+          'integer'
         end
       end
 
@@ -277,42 +295,53 @@ module ActiveRecord
 
       def columns(table_name, name = nil)
         return [] if table_name.blank?
-        table_name = table_name.to_s if table_name.is_a?(Symbol)
-        table_name = table_name.split('.')[-1] unless table_name.nil?
+        table_name = table_name.to_s.split('.')[-1]
         table_name = table_name.gsub(/[\[\]]/, '')
-        sql = %Q{
+        sql = %{
           SELECT
-            cols.COLUMN_NAME as ColName,
-            cols.COLUMN_DEFAULT as DefaultValue,
-            cols.NUMERIC_SCALE as numeric_scale,
-            cols.NUMERIC_PRECISION as numeric_precision,
-            cols.DATA_TYPE as ColType,
-            cols.IS_NULLABLE As IsNullable,
-            COL_LENGTH(cols.TABLE_NAME, cols.COLUMN_NAME) as Length,
-            COLUMNPROPERTY(OBJECT_ID(cols.TABLE_NAME), cols.COLUMN_NAME, 'IsIdentity') as IsIdentity,
-            cols.NUMERIC_SCALE as Scale
-          FROM INFORMATION_SCHEMA.COLUMNS cols
-          WHERE cols.TABLE_NAME = '#{table_name}'
+          columns.COLUMN_NAME as name,
+          columns.DATA_TYPE as type,
+          CASE
+            WHEN columns.COLUMN_DEFAULT = '(null)' OR columns.COLUMN_DEFAULT = '(NULL)' THEN NULL
+            ELSE columns.COLUMN_DEFAULT
+          END default_value,
+          columns.NUMERIC_SCALE as numeric_scale,
+          columns.NUMERIC_PRECISION as numeric_precision,
+          COL_LENGTH(columns.TABLE_NAME, columns.COLUMN_NAME) as length,
+          CASE
+            WHEN constraint_column_usage.constraint_name IS NULL THEN NULL
+            ELSE 1
+          END is_primary_key,
+          CASE
+            WHEN columns.IS_NULLABLE = 'YES' THEN 1
+            ELSE NULL
+          end is_nullable,
+          CASE
+            WHEN COLUMNPROPERTY(OBJECT_ID(columns.TABLE_NAME), columns.COLUMN_NAME, 'IsIdentity') = 0 THEN NULL
+            ELSE 1
+          END is_identity
+          FROM INFORMATION_SCHEMA.COLUMNS columns
+          LEFT OUTER JOIN INFORMATION_SCHEMA.TABLE_CONSTRAINTS primary_key_constraints ON (
+            primary_key_constraints.table_name = columns.table_name
+            AND primary_key_constraints.constraint_type = 'PRIMARY KEY'
+          )
+          LEFT OUTER JOIN INFORMATION_SCHEMA.CONSTRAINT_COLUMN_USAGE constraint_column_usage ON (
+            constraint_column_usage.table_name = primary_key_constraints.table_name
+            AND constraint_column_usage.column_name = columns.column_name
+          )
+          WHERE columns.TABLE_NAME = '#{table_name}'
           ORDER BY cols.COLUMN_NAME
         }
-        # Comment out if you want to have the Columns select statment logged.
-        # Personally, I think it adds unnecessary bloat to the log.
-        # If you do comment it out, make sure to un-comment the "result" line that follows
-        result = log(sql, name) { @connection.select_all(sql) }
-        #result = @connection.select_all(sql)
-        columns = []
-        result.each do |field|
-          default = field[:DefaultValue].to_s.gsub!(/[()\']/,"") =~ /null/i ? nil : field[:DefaultValue]
-          if field[:ColType] =~ /numeric|decimal/i
-            type = "#{field[:ColType]}(#{field[:numeric_precision]},#{field[:numeric_scale]})"
-          else
-            type = "#{field[:ColType]}(#{field[:Length]})"
-          end
-          is_identity = field[:IsIdentity] == 1
-          is_nullable = field[:IsNullable] == 'YES'
-          columns << SQLServerColumn.new(field[:ColName], default, type, is_identity, is_nullable)
+        # ORDER BY columns.ordinal_position
+        result = select(sql, name, true)
+        result.collect do |column_info|
+          # Remove brackets and outer quotes (if quoted) of default value returned by db, i.e:
+          #   "(1)" => "1", "('1')" => "1", "((-1))" => "-1", "('(-1)')" => "(-1)"
+          #   Unicode strings will be prefixed with an N. Remove that too.
+          column_info.symbolize_keys!
+          column_info[:default_value] = column_info[:default_value].match(/\A\(+N?'?(.*?)'?\)+\Z/)[1] if column_info[:default_value]
+          SQLServerColumn.new(column_info)
         end
-        columns
       end
 
       def empty_insert_statement(table_name)
@@ -399,12 +428,32 @@ module ActiveRecord
       end
 
       def add_limit_offset!(sql, options)
+        if options[:offset]
+          raise ArgumentError, "offset should have a limit" unless options[:limit]
+          unless options[:offset].kind_of?Integer
+            if options[:offset] =~ /^\d+$/
+              options[:offset] = options[:offset].to_i
+            else
+              raise ArgumentError, "offset should be an integer"
+            end
+          end
+        end
+
+        if options[:limit] && !(options[:limit].kind_of?Integer)
+          # is it just a string which should be an integer?
+          if options[:limit] =~ /^\d+$/
+            options[:limit] = options[:limit].to_i
+          else
+            raise ArgumentError, "limit should be an integer"
+          end
+        end
+
         if options[:limit] and options[:offset]
           total_rows = @connection.select_all("SELECT count(*) as TotalRows from (#{sql.gsub(/\bSELECT(\s+DISTINCT)?\b/i, "SELECT#{$1} TOP 1000000000")}) tally")[0][:TotalRows].to_i
           if (options[:limit] + options[:offset]) >= total_rows
             options[:limit] = (total_rows - options[:offset] >= 0) ? (total_rows - options[:offset]) : 0
           end
-          sql.sub!(/^\s*SELECT(\s+DISTINCT)?/i, "SELECT * FROM (SELECT TOP #{options[:limit]} * FROM (SELECT#{$1} TOP #{options[:limit] + options[:offset]} ")
+          sql.sub!(/^\s*SELECT(\s+DISTINCT)?/i, "SELECT * FROM (SELECT TOP #{options[:limit]} * FROM (SELECT#{$1} TOP #{options[:limit] + options[:offset]}")
           sql << ") AS tmp1"
           if options[:order]
             order = options[:order].split(',').map do |field|
@@ -423,7 +472,7 @@ module ActiveRecord
             end.join(', ')
             sql << " ORDER BY #{change_order_direction(order)}) AS tmp2 ORDER BY #{order}"
           else
-            sql << " ) AS tmp2"
+            sql << ") AS tmp2"
           end
         elsif sql !~ /^\s*SELECT (@@|COUNT\()/i
           sql.sub!(/^\s*SELECT(\s+DISTINCT)?/i) do
@@ -466,19 +515,7 @@ module ActiveRecord
 
       def indexes(table_name, name = nil)
         ActiveRecord::Base.connection.instance_variable_get("@connection")["AutoCommit"] = false
-        indexes = []
-        execute("EXEC sp_helpindex '#{table_name}'", name) do |handle|
-          if handle.column_info.any?
-            handle.each do |index|
-              unique = index[1] =~ /unique/
-              primary = index[1] =~ /primary key/
-              if !primary
-                indexes << IndexDefinition.new(table_name, index[0], unique, index[2].split(", ").map {|e| e.gsub('(-)','')})
-              end
-            end
-          end
-        end
-        indexes
+        __indexes(table_name, name)
       ensure
         ActiveRecord::Base.connection.instance_variable_get("@connection")["AutoCommit"] = true
       end
@@ -495,8 +532,12 @@ module ActiveRecord
         execute(add_column_sql)
       end
 
-      def rename_column(table, column, new_column_name)
-        execute "EXEC sp_rename '#{table}.#{column}', '#{new_column_name}'"
+      def rename_column(table_name, column_name, new_column_name)
+        if columns(table_name).find{|c| c.name.to_s == column_name.to_s}
+          execute "EXEC sp_rename '#{table_name}.#{column_name}', '#{new_column_name}'"
+        else
+          raise ActiveRecordError, "No such column: #{table_name}.#{column_name}"
+        end
       end
 
       def change_column(table_name, column_name, type, options = {}) #:nodoc:
@@ -520,6 +561,7 @@ module ActiveRecord
       def remove_column(table_name, column_name)
         remove_check_constraints(table_name, column_name)
         remove_default_constraint(table_name, column_name)
+        remove_indexes(table_name, column_name)
         execute "ALTER TABLE [#{table_name}] DROP COLUMN #{quote_column_name(column_name)}"
       end
 
@@ -539,14 +581,35 @@ module ActiveRecord
         end
       end
 
+      def remove_indexes(table_name, column_name)
+        __indexes(table_name).select {|idx| idx.columns.include? column_name }.each do |idx|
+          remove_index(table_name, {:name => idx.name})
+        end
+      end
+
       def remove_index(table_name, options = {})
         execute "DROP INDEX #{table_name}.#{quote_column_name(index_name(table_name, options))}"
       end
 
       private
-        def select(sql, name = nil)
-          repair_special_columns(sql)
+        def __indexes(table_name, name = nil)
+          indexes = []
+          execute("EXEC sp_helpindex '#{table_name}'", name) do |handle|
+            if handle.column_info.any?
+              handle.each do |index|
+                unique = index[1] =~ /unique/
+                primary = index[1] =~ /primary key/
+                if !primary
+                  indexes << IndexDefinition.new(table_name, index[0], unique, index[2].split(", ").map {|e| e.gsub('(-)','')})
+                end
+              end
+            end
+          end
+          indexes
+        end
 
+        def select(sql, name = nil, ignore_special_columns = false)
+          repair_special_columns(sql) unless ignore_special_columns
           result = []
           execute(sql) do |handle|
             handle.each do |row|
@@ -629,7 +692,7 @@ module ActiveRecord
         def repair_special_columns(sql)
           special_cols = get_special_columns(get_table_name(sql))
           for col in special_cols.to_a
-            sql.gsub!(Regexp.new(" #{col.to_s} = "), " #{col.to_s} LIKE ")
+            sql.gsub!(/((\.|\s|\()\[?#{col.to_s}\]?)\s?=\s?/, '\1 LIKE ')
             sql.gsub!(/ORDER BY #{col.to_s}/i, '')
           end
           sql
