@@ -337,8 +337,10 @@ module ActiveRecord
 
       def columns(table_name, name = nil)
         return [] if table_name.blank?
-        table_name = table_name.to_s.split('.')[-1]
+        table_names = table_name.to_s.split('.')
+        table_name = table_names[-1]
         table_name = table_name.gsub(/[\[\]]/, '')
+        db_name = "#{table_names[0]}." if table_names.length==3
         sql = %{
           SELECT
           columns.COLUMN_NAME as name,
@@ -362,7 +364,7 @@ module ActiveRecord
             WHEN COLUMNPROPERTY(OBJECT_ID(columns.TABLE_NAME), columns.COLUMN_NAME, 'IsIdentity') = 0 THEN NULL
             ELSE 1
           END is_identity
-          FROM INFORMATION_SCHEMA.COLUMNS columns
+          FROM #{db_name}INFORMATION_SCHEMA.COLUMNS columns
           LEFT OUTER JOIN INFORMATION_SCHEMA.TABLE_CONSTRAINTS primary_key_constraints ON (
             primary_key_constraints.table_name = columns.table_name
             AND primary_key_constraints.constraint_type = 'PRIMARY KEY'
@@ -465,6 +467,16 @@ module ActiveRecord
 
       def quote_string(string)
         string.gsub(/\'/, "''")
+      end
+
+      def quote_table_name(name)
+        if name.split(".").length == 3
+          b=name.split(".")
+          "[#{b[0]}].[#{b[1]}].[#{b[2]}]"
+        else
+          super(name)
+        end
+
       end
 
       def quote_column_name(name)
