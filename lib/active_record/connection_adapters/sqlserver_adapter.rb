@@ -21,7 +21,10 @@ require 'bigdecimal/util'
 # Modifications (Numerous fixes as maintainer): Ryan Tomayko <rtomayko@gmail.com>
 # Date: Up to July 2006
 
-# Current maintainer: Tom Ward <tom@popdog.net>
+# Previous maintainer: Tom Ward <tom@popdog.net>
+#
+
+# Current maintainer: Shawn Balestracci <shawn@vegantech.com>
 
 module ActiveRecord
   class Base
@@ -197,7 +200,8 @@ module ActiveRecord
           return nil if year.nil? || year == 0
           Time.time_with_datetime_fallback(Base.default_timezone, year, mon, mday, hour, min, sec, microsec) rescue nil
         end
-    end
+    end #class << self
+  end #SQLServerColumn
 
     # In ADO mode, this adapter will ONLY work on Windows systems,
     # since it relies on Win32OLE, which, to my knowledge, is only
@@ -368,7 +372,7 @@ module ActiveRecord
             AND constraint_column_usage.column_name = columns.column_name
           )
           WHERE columns.TABLE_NAME = '#{table_name}'
-          ORDER BY cols.COLUMN_NAME
+          ORDER BY columns.COLUMN_NAME
         }
         # ORDER BY columns.ordinal_position
         result = select(sql, name, true)
@@ -809,3 +813,4 @@ module ActiveRecord
     end #class SQLServerAdapter < AbstractAdapter
   end #module ConnectionAdapters
 end #module ActiveRecord
+
