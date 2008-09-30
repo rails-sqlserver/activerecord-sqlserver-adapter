@@ -96,7 +96,7 @@ module ActiveRecord
         else
           type = "#{info[:type]}(#{info[:length]})"
         end
-        super(info[:name], info[:default_value], type, info[:is_nullable])
+        super(info[:name], info[:default_value], type, info[:is_nullable] == 1)
         @identity = info[:is_identity]
         @is_special = ["text", "ntext", "image"].include?(info[:type])
         @is_utf8 = type =~ /nvarchar|ntext/i
@@ -368,7 +368,7 @@ module ActiveRecord
             AND constraint_column_usage.column_name = columns.column_name
           )
           WHERE columns.TABLE_NAME = '#{table_name}'
-          ORDER BY cols.COLUMN_NAME
+          ORDER BY columns.COLUMN_NAME
         }
         # ORDER BY columns.ordinal_position
         result = select(sql, name, true)
