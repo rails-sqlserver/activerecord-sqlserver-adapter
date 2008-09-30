@@ -100,7 +100,7 @@ module ActiveRecord
         else
           type = "#{info[:type]}(#{info[:length]})"
         end
-        super(info[:name], info[:default_value], type, info[:is_nullable]) == 1
+        super(info[:name], info[:default_value], type, info[:is_nullable] == 1)
         @identity = info[:is_identity]
         @is_special = ["text", "ntext", "image"].include?(info[:type])
         @is_utf8 = type =~ /nvarchar|ntext/i
