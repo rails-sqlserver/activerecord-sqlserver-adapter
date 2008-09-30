@@ -170,7 +170,7 @@ module ActiveRecord
 
         def cast_to_time(value)
           return value if value.is_a?(Time)
-          time_hash = Date._parse(string)
+          time_hash = Date._parse(value)
           time_hash[:sec_fraction] = 0 # REVISIT: microseconds(time_hash)
           new_time(*time_hash.values_at(:year, :mon, :mday, :hour, :min, :sec, :sec_fraction)) rescue nil
         end
