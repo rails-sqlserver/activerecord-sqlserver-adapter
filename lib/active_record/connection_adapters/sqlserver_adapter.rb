@@ -790,7 +790,7 @@ module ActiveRecord
         
         def get_utf8_columns(table_name)
           utf8 = []
-          @table_columns ||= []
+          @table_columns ||= {}
           @table_columns[table_name] ||= columns(table_name)
           @table_columns[table_name].each do |col|
             utf8 << col.name if col.is_utf8
