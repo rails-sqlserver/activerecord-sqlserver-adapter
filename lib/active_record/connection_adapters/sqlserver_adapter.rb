@@ -374,9 +374,8 @@ module ActiveRecord
             AND constraint_column_usage.column_name = columns.column_name
           )
           WHERE columns.TABLE_NAME = '#{table_name}'
-          ORDER BY columns.COLUMN_NAME
+          ORDER BY columns.ordinal_position
         }
-        # ORDER BY columns.ordinal_position
         result = select(sql, name, true)
         result.collect do |column_info|
           # Remove brackets and outer quotes (if quoted) of default value returned by db, i.e:
