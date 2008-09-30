@@ -470,9 +470,9 @@ module ActiveRecord
       end
 
       def quote_table_name(name)
-        if name.split(".").length == 3
-          b=name.split(".")
-          "[#{b[0]}].[#{b[1]}].[#{b[2]}]"
+        name_split_on_dots = name.to_s.split('.')
+        if name_split_on_dots.length == 3
+          "[#{name_split_on_dots[0]}].[#{name_split_on_dots[1]}].[#{name_split_on_dots[2]}]"
         else
           super(name)
         end
