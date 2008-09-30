@@ -176,7 +176,7 @@ module ActiveRecord
         end
 
         # TODO: Find less hack way to convert DateTime objects into Times
-        def self.string_to_time(value)
+        def string_to_time(value)
           if value.is_a?(DateTime)
             return new_time(value.year, value.mon, value.day, value.hour, value.min, value.sec)
           else
