@@ -186,11 +186,11 @@ module ActiveRecord
 
         # These methods will only allow the adapter to insert binary data with a length of 7K or less
         # because of a SQL Server statement length policy.
-        def self.string_to_binary(value)
+        def string_to_binary(value)
           Base64.encode64(value)
         end
 
-        def self.binary_to_string(value)
+        def binary_to_string(value)
           Base64.decode64(value)
         end
 
@@ -200,8 +200,8 @@ module ActiveRecord
           return nil if year.nil? || year == 0
           Time.time_with_datetime_fallback(Base.default_timezone, year, mon, mday, hour, min, sec, microsec) rescue nil
         end
-    end #class << self
-  end #SQLServerColumn
+      end #class << self
+    end #SQLServerColumn
 
     # In ADO mode, this adapter will ONLY work on Windows systems,
     # since it relies on Win32OLE, which, to my knowledge, is only
