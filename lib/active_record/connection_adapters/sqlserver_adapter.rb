@@ -51,8 +51,8 @@ module ActiveRecord
       conn["AutoCommit"] = autocommit
       ConnectionAdapters::SQLServerAdapter.new(conn, logger, [driver_url, username, password])
     end
-    
-    
+
+
     private
 
     # Overwrite the ActiveRecord::Base method for SQL server.
@@ -62,7 +62,7 @@ module ActiveRecord
       is_distinct = !options[:joins].blank? || include_eager_conditions?(options) || include_eager_order?(options)
 
       sql = "SELECT #{table_name}.#{connection.quote_column_name(primary_key)} FROM #{table_name} "
-      
+
       if is_distinct
         sql << join_dependency.join_associations.collect(&:association_join).join
         add_joins!(sql, options[:joins], scope)
@@ -75,7 +75,7 @@ module ActiveRecord
         if sql =~ /GROUP\s+BY/i
           sql << ", #{table_name}.#{connection.quote_column_name(primary_key)}"
         else
-          sql << " GROUP BY #{table_name}.#{connection.quote_column_name(primary_key)}"  
+          sql << " GROUP BY #{table_name}.#{connection.quote_column_name(primary_key)}"
         end #if sql =~ /GROUP BY/i
 
         connection.add_order_by_for_association_limiting!(sql, options)
@@ -87,7 +87,6 @@ module ActiveRecord
 
       return sanitize_sql(sql)
     end
-
   end # class Base
 
   module ConnectionAdapters
@@ -100,7 +99,7 @@ module ActiveRecord
         else
           type = "#{info[:type]}(#{info[:length]})"
         end
-        super(info[:name], info[:default_value], type, info[:is_nullable]) == 1
+        super(info[:name], info[:default_value], type, info[:is_nullable] == 1)
         @identity = info[:is_identity]
         @is_special = ["text", "ntext", "image"].include?(info[:type])
         @is_utf8 = type =~ /nvarchar|ntext/i
@@ -200,8 +199,8 @@ module ActiveRecord
           return nil if year.nil? || year == 0
           Time.time_with_datetime_fallback(Base.default_timezone, year, mon, mday, hour, min, sec, microsec) rescue nil
         end
-    end #class << self
-  end #SQLServerColumn
+      end
+    end
 
     # In ADO mode, this adapter will ONLY work on Windows systems,
     # since it relies on Win32OLE, which, to my knowledge, is only
@@ -521,7 +520,7 @@ module ActiveRecord
               #if sql =~ /\.\[/ and tc =~ /\./ # if column quoting used in query
               #  tc.gsub!(/\./, '\\.\\[')
               #  tc << '\\]'
-              #end          
+              #end
               if sql =~ /#{Regexp.escape(tc)} AS (t\d_r\d\d?)/
                 parts[0] = $1
               elsif parts[0] =~ /\w+\.\[?(\w+)\]?/
@@ -539,7 +538,7 @@ module ActiveRecord
           end unless options[:limit].nil? || options[:limit] < 1
         end
       end #add_limit_offset!(sql, options)
-      
+
       def add_order_by_for_association_limiting!(sql, options)
         return sql if options[:order].blank?
 
@@ -577,7 +576,7 @@ module ActiveRecord
       def drop_database(name)
         execute "DROP DATABASE #{name}"
       end
-      
+
       # Clear the given table and reset the table's id to 1
       # Argument:
       # +table_name+:: (String) Name of the table to be cleared and reset
@@ -787,7 +786,7 @@ module ActiveRecord
           end
           sql
         end
-        
+
         def get_utf8_columns(table_name)
           utf8 = []
           @table_columns ||= []
@@ -797,10 +796,10 @@ module ActiveRecord
           end
           utf8
         end
-        
+
         def set_utf8_values!(sql)
           utf8_cols = get_utf8_columns(get_table_name(sql))
-          if sql =~ /^\s*UPDATE/i            
+          if sql =~ /^\s*UPDATE/i
             utf8_cols.each do |col|
               sql.gsub!("[#{col.to_s}] = '", "[#{col.to_s}] = N'")
             end
