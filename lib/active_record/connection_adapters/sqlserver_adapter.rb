@@ -169,13 +169,13 @@ module ActiveRecord
 
         def cast_to_time(value)
           return value if value.is_a?(Time)
-          time_hash = Date._parse(string)
+          time_hash = Date._parse(value)
           time_hash[:sec_fraction] = 0 # REVISIT: microseconds(time_hash)
           new_time(*time_hash.values_at(:year, :mon, :mday, :hour, :min, :sec, :sec_fraction)) rescue nil
         end
 
         # TODO: Find less hack way to convert DateTime objects into Times
-        def self.string_to_time(value)
+        def string_to_time(value)
           if value.is_a?(DateTime)
             return new_time(value.year, value.mon, value.day, value.hour, value.min, value.sec)
           else
@@ -185,11 +185,11 @@ module ActiveRecord
 
         # These methods will only allow the adapter to insert binary data with a length of 7K or less
         # because of a SQL Server statement length policy.
-        def self.string_to_binary(value)
+        def string_to_binary(value)
           Base64.encode64(value)
         end
 
-        def self.binary_to_string(value)
+        def binary_to_string(value)
           Base64.decode64(value)
         end
 
@@ -199,8 +199,8 @@ module ActiveRecord
           return nil if year.nil? || year == 0
           Time.time_with_datetime_fallback(Base.default_timezone, year, mon, mday, hour, min, sec, microsec) rescue nil
         end
-      end
-    end
+      end #class << self
+    end #SQLServerColumn
 
     # In ADO mode, this adapter will ONLY work on Windows systems,
     # since it relies on Win32OLE, which, to my knowledge, is only
@@ -373,9 +373,8 @@ module ActiveRecord
             AND constraint_column_usage.column_name = columns.column_name
           )
           WHERE columns.TABLE_NAME = '#{table_name}'
-          ORDER BY columns.COLUMN_NAME
+          ORDER BY columns.ordinal_position
         }
-        # ORDER BY columns.ordinal_position
         result = select(sql, name, true)
         result.collect do |column_info|
           # Remove brackets and outer quotes (if quoted) of default value returned by db, i.e:
@@ -469,9 +468,9 @@ module ActiveRecord
       end
 
       def quote_table_name(name)
-        if name.split(".").length == 3
-          b=name.split(".")
-          "[#{b[0]}].[#{b[1]}].[#{b[2]}]"
+        name_split_on_dots = name.to_s.split('.')
+        if name_split_on_dots.length == 3
+          "[#{name_split_on_dots[0]}].[#{name_split_on_dots[1]}].[#{name_split_on_dots[2]}]"
         else
           super(name)
         end
@@ -789,7 +788,7 @@ module ActiveRecord
 
         def get_utf8_columns(table_name)
           utf8 = []
-          @table_columns ||= []
+          @table_columns ||= {}
           @table_columns[table_name] ||= columns(table_name)
           @table_columns[table_name].each do |col|
             utf8 << col.name if col.is_utf8
@@ -806,7 +805,7 @@ module ActiveRecord
           elsif sql =~ /^\s*INSERT/i
             # TODO This code should be simplified
             # Get columns and values, split them into arrays, and store the original_values for when we need to replace them
-            columns_and_values = sql.scan(/\((.*?)\)/).flatten
+            columns_and_values = sql.scan(/\((.*?)\)/m).flatten
             columns = columns_and_values.first.split(',')
             values =  columns_and_values[1].split(',')
             original_values = values.dup
