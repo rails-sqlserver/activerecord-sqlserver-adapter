@@ -823,7 +823,7 @@ module ActiveRecord
           elsif sql =~ /^\s*INSERT/i
             # TODO This code should be simplified
             # Get columns and values, split them into arrays, and store the original_values for when we need to replace them
-            columns_and_values = sql.scan(/\((.*?)\)/).flatten
+            columns_and_values = sql.scan(/\((.*?)\)/m).flatten
             columns = columns_and_values.first.split(',')
             values =  columns_and_values[1].split(',')
             original_values = values.dup
