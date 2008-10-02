@@ -469,9 +469,10 @@ module ActiveRecord
         string.gsub(/\'/, "''")
       end
 
+      # If name is on the form "foo.bar.baz"
       def quote_table_name(name)
-        if name.split(".").length == 3
-          b=name.split(".")
+        if name.to_s.split(".").length == 3
+          b = name.to_s.split(".")
           "[#{b[0]}].[#{b[1]}].[#{b[2]}]"
         else
           super(name)
@@ -479,8 +480,17 @@ module ActiveRecord
 
       end
 
-      def quote_column_name(name)
-        "[#{name}]"
+      # Quotes the given column identifier.
+      # 
+      # Examples
+      # 
+      #   quote_column_name('foo') # => '[foo]'
+      #   quote_column_name(:foo) # => '[foo]'
+      #   quote_column_name('foo.bar') # => '[foo].[bar]'
+      def quote_column_name(identifier)
+        identifier.to_s.split('.').collect do |name|
+          "[#{name}]"          
+        end.join(".")
       end
 
       def add_limit_offset!(sql, options)
@@ -509,26 +519,32 @@ module ActiveRecord
           if (options[:limit] + options[:offset]) >= total_rows
             options[:limit] = (total_rows - options[:offset] >= 0) ? (total_rows - options[:offset]) : 0
           end
+
+          # Wrap the SQL query in a bunch of outer SQL queries that emulate proper LIMIT,OFFSET support.
           sql.sub!(/^\s*SELECT(\s+DISTINCT)?/i, "SELECT * FROM (SELECT TOP #{options[:limit]} * FROM (SELECT#{$1} TOP #{options[:limit] + options[:offset]}")
           sql << ") AS tmp1"
+
           if options[:order]
-            # don't strip the table name, it is needed later on
-            #options[:order] = options[:order].split(',').map do |field|
             order = options[:order].split(',').map do |field|
-              parts = field.split(" ")
-              # tc = column_name etc (not direction of sort)
-              tc = parts[0]
-              #if sql =~ /\.\[/ and tc =~ /\./ # if column quoting used in query
-              #  tc.gsub!(/\./, '\\.\\[')
-              #  tc << '\\]'
-              #end          
-              if sql =~ /#{Regexp.escape(tc)} AS (t\d_r\d\d?)/
-                parts[0] = $1
-              elsif parts[0] =~ /\w+\.\[?(\w+)\]?/
-                parts[0] = $1
+              order_by_column, order_direction = field.split(" ")
+              order_by_column = quote_column_name(order_by_column)
+
+              # Investigate the SQL query to figure out if the order_by_column has been renamed.
+              if sql =~ /#{Regexp.escape(order_by_column)} AS (t\d_r\d\d?)/
+                # Fx "[foo].[bar] AS t4_r2" was found in the SQL. Use the column alias (ie 't4_r2') for the subsequent orderings
+                order_by_column = $1
+              elsif order_by_column =~ /\w+\.\[?(\w+)\]?/
+                order_by_column = $1
+              else
+                # It doesn't appear that the column name has been renamed as part of the query. Use just the column
+                # name rather than the full identifier for the outer queries.
+                order_by_column = order_by_column.split('.').last
               end
-              parts.join(' ')
+
+              # Put the column name and eventual direction back together
+              [order_by_column, order_direction].join(' ').strip
             end.join(', ')
+
             sql << " ORDER BY #{change_order_direction(order)}) AS tmp2 ORDER BY #{order}"
           else
             sql << ") AS tmp2"
