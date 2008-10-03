@@ -374,7 +374,7 @@ module ActiveRecord
           )
           WHERE columns.TABLE_NAME = '#{table_name}'
           ORDER BY columns.COLUMN_NAME
-        }
+        }.gsub(/[ \t\r\n]+/,' ')
         result = select(sql, name, true)
         result.collect do |column_info|
           # Remove brackets and outer quotes (if quoted) of default value returned by db, i.e:
