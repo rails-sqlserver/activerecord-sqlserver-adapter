@@ -51,8 +51,8 @@ module ActiveRecord
       conn["AutoCommit"] = autocommit
       ConnectionAdapters::SQLServerAdapter.new(conn, logger, [driver_url, username, password])
     end
-    
-    
+
+
     private
 
     # Overwrite the ActiveRecord::Base method for SQL server.
@@ -62,7 +62,7 @@ module ActiveRecord
       is_distinct = !options[:joins].blank? || include_eager_conditions?(options) || include_eager_order?(options)
 
       sql = "SELECT #{table_name}.#{connection.quote_column_name(primary_key)} FROM #{table_name} "
-      
+
       if is_distinct
         sql << join_dependency.join_associations.collect(&:association_join).join
         add_joins!(sql, options[:joins], scope)
@@ -75,7 +75,7 @@ module ActiveRecord
         if sql =~ /GROUP\s+BY/i
           sql << ", #{table_name}.#{connection.quote_column_name(primary_key)}"
         else
-          sql << " GROUP BY #{table_name}.#{connection.quote_column_name(primary_key)}"  
+          sql << " GROUP BY #{table_name}.#{connection.quote_column_name(primary_key)}"
         end #if sql =~ /GROUP BY/i
 
         connection.add_order_by_for_association_limiting!(sql, options)
@@ -87,7 +87,6 @@ module ActiveRecord
 
       return sanitize_sql(sql)
     end
-
   end # class Base
 
   module ConnectionAdapters
@@ -100,7 +99,7 @@ module ActiveRecord
         else
           type = "#{info[:type]}(#{info[:length]})"
         end
-        super(info[:name], info[:default_value], type, info[:is_nullable]) == 1
+        super(info[:name], info[:default_value], type, info[:is_nullable] == 1)
         @identity = info[:is_identity]
         @is_special = ["text", "ntext", "image"].include?(info[:type])
         @is_utf8 = type =~ /nvarchar|ntext/i
@@ -176,7 +175,7 @@ module ActiveRecord
         end
 
         # TODO: Find less hack way to convert DateTime objects into Times
-        def self.string_to_time(value)
+        def string_to_time(value)
           if value.is_a?(DateTime)
             return new_time(value.year, value.mon, value.day, value.hour, value.min, value.sec)
           else
@@ -186,11 +185,11 @@ module ActiveRecord
 
         # These methods will only allow the adapter to insert binary data with a length of 7K or less
         # because of a SQL Server statement length policy.
-        def self.string_to_binary(value)
+        def string_to_binary(value)
           Base64.encode64(value)
         end
 
-        def self.binary_to_string(value)
+        def binary_to_string(value)
           Base64.decode64(value)
         end
 
@@ -200,8 +199,8 @@ module ActiveRecord
           return nil if year.nil? || year == 0
           Time.time_with_datetime_fallback(Base.default_timezone, year, mon, mday, hour, min, sec, microsec) rescue nil
         end
-    end #class << self
-  end #SQLServerColumn
+      end #class << self
+    end #SQLServerColumn
 
     # In ADO mode, this adapter will ONLY work on Windows systems,
     # since it relies on Win32OLE, which, to my knowledge, is only
@@ -375,8 +374,7 @@ module ActiveRecord
           )
           WHERE columns.TABLE_NAME = '#{table_name}'
           ORDER BY columns.COLUMN_NAME
-        }
-        # ORDER BY columns.ordinal_position
+        }.gsub(/[ \t\r\n]+/,' ')
         result = select(sql, name, true)
         result.collect do |column_info|
           # Remove brackets and outer quotes (if quoted) of default value returned by db, i.e:
@@ -469,11 +467,12 @@ module ActiveRecord
         string.gsub(/\'/, "''")
       end
 
-      # If name is on the form "foo.bar.baz"
       def quote_table_name(name)
-        if name.to_s.split(".").length == 3
-          b = name.to_s.split(".")
-          "[#{b[0]}].[#{b[1]}].[#{b[2]}]"
+        name_split_on_dots = name.to_s.split('.')
+
+        if name_split_on_dots.length == 3
+          # name is on the form "foo.bar.baz"
+          "[#{name_split_on_dots[0]}].[#{name_split_on_dots[1]}].[#{name_split_on_dots[2]}]"
         else
           super(name)
         end
@@ -555,7 +554,7 @@ module ActiveRecord
           end unless options[:limit].nil? || options[:limit] < 1
         end
       end #add_limit_offset!(sql, options)
-      
+
       def add_order_by_for_association_limiting!(sql, options)
         return sql if options[:order].blank?
 
@@ -593,7 +592,7 @@ module ActiveRecord
       def drop_database(name)
         execute "DROP DATABASE #{name}"
       end
-      
+
       # Clear the given table and reset the table's id to 1
       # Argument:
       # +table_name+:: (String) Name of the table to be cleared and reset
@@ -803,7 +802,7 @@ module ActiveRecord
           end
           sql
         end
-        
+
         def get_utf8_columns(table_name)
           utf8 = []
           @table_columns ||= {}
@@ -813,10 +812,10 @@ module ActiveRecord
           end
           utf8
         end
-        
+
         def set_utf8_values!(sql)
           utf8_cols = get_utf8_columns(get_table_name(sql))
-          if sql =~ /^\s*UPDATE/i            
+          if sql =~ /^\s*UPDATE/i
             utf8_cols.each do |col|
               sql.gsub!("[#{col.to_s}] = '", "[#{col.to_s}] = N'")
             end
