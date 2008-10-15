@@ -92,7 +92,7 @@ module ActiveRecord
   module ConnectionAdapters
     class SQLServerColumn < Column# :nodoc:
       attr_reader :identity, :is_special, :is_utf8
-
+      
       def initialize(info)
         if info[:type] =~ /numeric|decimal/i
           type = "#{info[:type]}(#{info[:numeric_precision]},#{info[:numeric_scale]})"
@@ -101,8 +101,13 @@ module ActiveRecord
         end
         super(info[:name], info[:default_value], type, info[:is_nullable] == 1)
         @identity = info[:is_identity]
+        
+        # TODO: Not sure if these should also be special: varbinary(max), nchar, nvarchar(max) 
         @is_special = ["text", "ntext", "image"].include?(info[:type])
-        @is_utf8 = type =~ /nvarchar|ntext/i
+
+        # Added nchar and nvarchar(max) for unicode types
+        #  http://www.teratrax.com/sql_guide/data_types/sql_server_data_types.html
+        @is_utf8 = type =~ /nvarchar|ntext|nchar|nvarchar(max)/i
         # TODO: check ok to remove @scale = scale_value
         @limit = nil unless limitable?(type)
       end
@@ -148,22 +153,9 @@ module ActiveRecord
       class << self
         def cast_to_datetime(value)
           return value.to_time if value.is_a?(DBI::Timestamp)
-
-          if value.is_a?(Time)
-            if value.year != 0 and value.month != 0 and value.day != 0
-              return value
-            else
-              return new_time(2000, 1, 1, value.hour, value.min, value.sec) rescue nil
-            end
-          end
-
-          if value.is_a?(DateTime)
-            return new_time(value.year, value.mon, value.mday, value.hour, value.min, value.sec)
-            #return DateTime.new(value.year, value.mon, value.day, value.hour, value.min, value.sec)
-          end
-
+          return string_to_time(value) if value.is_a?(Time)
+          return string_to_time(value) if value.is_a?(DateTime)
           return cast_to_time(value) if value.is_a?(String)
-
           value
         end
 
@@ -174,10 +166,14 @@ module ActiveRecord
           new_time(*time_hash.values_at(:year, :mon, :mday, :hour, :min, :sec, :sec_fraction)) rescue nil
         end
 
-        # TODO: Find less hack way to convert DateTime objects into Times
         def string_to_time(value)
-          if value.is_a?(DateTime)
-            return new_time(value.year, value.mon, value.day, value.hour, value.min, value.sec)
+          if value.is_a?(DateTime) || value.is_a?(Time)
+            # The DateTime comes in as '2008-08-08T17:57:28+00:00'
+            # Original code was taking a UTC DateTime, ignored the time zone by
+            # creating a localized Time object,  ex: 'FRI Aug 08 17:57:28 +04 2008'
+            # Instead, let Time.parse translate the DateTime string including it's timezone
+            # If Rails is UTC, call .utc, otherwise return a local time value
+            return Base.default_timezone == :utc ? Time.parse(value.to_s).utc : Time.parse(value.to_s)
           else
             super
           end
@@ -250,12 +246,15 @@ module ActiveRecord
         super(connection, logger)
         @connection_options = connection_options
       end
-
+      
       def native_database_types
+        # support for varchar(max) and varbinary(max) for text and binary cols if our version is 9 (2005)
+        txt = database_version_major >= 9 ? "varchar(max)"   : "text"
+        bin = database_version_major >= 9 ? "varbinary(max)" : "image"
         {
           :primary_key => "int NOT NULL IDENTITY(1, 1) PRIMARY KEY",
           :string      => { :name => "varchar", :limit => 255  },
-          :text        => { :name => "text" },
+          :text        => { :name =>  txt },
           :integer     => { :name => "int" },
           :float       => { :name => "float", :limit => 8 },
           :decimal     => { :name => "decimal" },
@@ -263,7 +262,7 @@ module ActiveRecord
           :timestamp   => { :name => "datetime" },
           :time        => { :name => "datetime" },
           :date        => { :name => "datetime" },
-          :binary      => { :name => "image"},
+          :binary      => { :name =>  bin },
           :boolean     => { :name => "bit"}
         }
       end
@@ -272,6 +271,23 @@ module ActiveRecord
         'SQLServer'
       end
 
+      def database_version
+        # returns string such as:
+        # "Microsoft SQL Server  2000 - 8.00.2039 (Intel X86) \n\tMay  3 2005 23:18:38 \n\tCopyright (c) 1988-2003 Microsoft Corporation\n\tEnterprise Edition on Windows NT 5.2 (Build 3790: )\n"
+        # "Microsoft SQL Server 2005 - 9.00.3215.00 (Intel X86) \n\tDec  8 2007 18:51:32 \n\tCopyright (c) 1988-2005 Microsoft Corporation\n\tStandard Edition on Windows NT 5.2 (Build 3790: Service Pack 2)\n"
+        return select_value("SELECT @@version")
+      end            
+      
+      def database_version_year
+        # returns 2000 or 2005
+        return $1.to_i if database_version =~ /(2000|2005) - (\d+)\./  
+      end
+
+      def database_version_major
+        # returns 8 or 9
+        return $2.to_i if database_version =~ /(2000|2005) - (\d+)\./
+      end
+      
       def supports_migrations? #:nodoc:
         true
       end
