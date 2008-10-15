@@ -149,22 +149,9 @@ module ActiveRecord
       class << self
         def cast_to_datetime(value)
           return value.to_time if value.is_a?(DBI::Timestamp)
-
-          if value.is_a?(Time)
-            if value.year != 0 and value.month != 0 and value.day != 0
-              return value
-            else
-              return new_time(2000, 1, 1, value.hour, value.min, value.sec) rescue nil
-            end
-          end
-
-          if value.is_a?(DateTime)
-            return new_time(value.year, value.mon, value.mday, value.hour, value.min, value.sec)
-            #return DateTime.new(value.year, value.mon, value.day, value.hour, value.min, value.sec)
-          end
-
+          return string_to_time(value) if value.is_a?(Time)
+          return string_to_time(value) if value.is_a?(DateTime)
           return cast_to_time(value) if value.is_a?(String)
-
           value
         end
 
@@ -175,10 +162,14 @@ module ActiveRecord
           new_time(*time_hash.values_at(:year, :mon, :mday, :hour, :min, :sec, :sec_fraction)) rescue nil
         end
 
-        # TODO: Find less hack way to convert DateTime objects into Times
         def string_to_time(value)
-          if value.is_a?(DateTime)
-            return new_time(value.year, value.mon, value.day, value.hour, value.min, value.sec)
+          if value.is_a?(DateTime) || value.is_a?(Time)
+            # The DateTime comes in as '2008-08-08T17:57:28+00:00'
+            # Original code was taking a UTC DateTime, ignored the time zone by
+            # creating a localized Time object,  ex: 'FRI Aug 08 17:57:28 +04 2008'
+            # Instead, let Time.parse translate the DateTime string including it's timezone
+            # If Rails is UTC, call .utc, otherwise return a local time value
+            return Base.default_timezone == :utc ? Time.parse(value.to_s).utc : Time.parse(value.to_s)
           else
             super
           end
