@@ -93,7 +93,7 @@ module ActiveRecord
   module ConnectionAdapters
     class SQLServerColumn < Column# :nodoc:
       attr_reader :identity, :is_special, :is_utf8
-
+      
       def initialize(info)
         if info[:type] =~ /numeric|decimal/i
           type = "#{info[:type]}(#{info[:numeric_precision]},#{info[:numeric_scale]})"
@@ -102,8 +102,13 @@ module ActiveRecord
         end
         super(info[:name], info[:default_value], type, info[:is_nullable] == 1)
         @identity = info[:is_identity]
+        
+        # TODO: Not sure if these should also be special: varbinary(max), nchar, nvarchar(max) 
         @is_special = ["text", "ntext", "image"].include?(info[:type])
-        @is_utf8 = type =~ /nvarchar|ntext/i
+
+        # Added nchar and nvarchar(max) for unicode types
+        #  http://www.teratrax.com/sql_guide/data_types/sql_server_data_types.html
+        @is_utf8 = type =~ /nvarchar|ntext|nchar|nvarchar(max)/i
         # TODO: check ok to remove @scale = scale_value
         @limit = nil unless limitable?(type)
       end
@@ -242,12 +247,15 @@ module ActiveRecord
         super(connection, logger)
         @connection_options = connection_options
       end
-
+      
       def native_database_types
+        # support for varchar(max) and varbinary(max) for text and binary cols if our version is 9 (2005)
+        txt = database_version_major >= 9 ? "varchar(max)"   : "text"
+        bin = database_version_major >= 9 ? "varbinary(max)" : "image"
         {
           :primary_key => "int NOT NULL IDENTITY(1, 1) PRIMARY KEY",
           :string      => { :name => "varchar", :limit => 255  },
-          :text        => { :name => "text" },
+          :text        => { :name =>  txt },
           :integer     => { :name => "int" },
           :float       => { :name => "float", :limit => 8 },
           :decimal     => { :name => "decimal" },
@@ -255,7 +263,7 @@ module ActiveRecord
           :timestamp   => { :name => "datetime" },
           :time        => { :name => "datetime" },
           :date        => { :name => "datetime" },
-          :binary      => { :name => "image"},
+          :binary      => { :name =>  bin },
           :boolean     => { :name => "bit"}
         }
       end
@@ -264,6 +272,23 @@ module ActiveRecord
         'SQLServer'
       end
 
+      def database_version
+        # returns string such as:
+        # "Microsoft SQL Server  2000 - 8.00.2039 (Intel X86) \n\tMay  3 2005 23:18:38 \n\tCopyright (c) 1988-2003 Microsoft Corporation\n\tEnterprise Edition on Windows NT 5.2 (Build 3790: )\n"
+        # "Microsoft SQL Server 2005 - 9.00.3215.00 (Intel X86) \n\tDec  8 2007 18:51:32 \n\tCopyright (c) 1988-2005 Microsoft Corporation\n\tStandard Edition on Windows NT 5.2 (Build 3790: Service Pack 2)\n"
+        return select_value("SELECT @@version")
+      end            
+      
+      def database_version_year
+        # returns 2000 or 2005
+        return $1.to_i if database_version =~ /(2000|2005) - (\d+)\./  
+      end
+
+      def database_version_major
+        # returns 8 or 9
+        return $2.to_i if database_version =~ /(2000|2005) - (\d+)\./
+      end
+      
       def supports_migrations? #:nodoc:
         true
       end
