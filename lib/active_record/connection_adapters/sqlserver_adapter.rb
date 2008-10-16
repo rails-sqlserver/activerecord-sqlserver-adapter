@@ -584,9 +584,20 @@ module ActiveRecord
         sql
       end
 
-      def recreate_database(name)
+      def recreate_database(name)      
+        # Switch to another database or we'll receive a "Database in use" error message.
+        existing_database = current_database.to_s
+        if name.to_s == existing_database
+          # The master database should be available on all SQL Server instances, use that
+          execute 'USE master' 
+        end
+
+        # Recreate the database
         drop_database(name)
         create_database(name)
+
+        # Switch back to the database if we switched away from it above
+        execute "USE #{existing_database}" if name.to_s == existing_database 
       end
 
       def drop_database(name)
