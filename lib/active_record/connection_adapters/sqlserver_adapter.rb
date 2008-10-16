@@ -55,6 +55,27 @@ module ActiveRecord
     
     private
 
+    # Add basic support for SQL server locking hints
+    # In the case of SQL server, the lock value must follow the FROM clause
+    # Mysql:     SELECT * FROM tst where testID = 10 LOCK IN share mode
+    # SQLServer: SELECT * from tst WITH (HOLDLOCK, ROWLOCK) where testID = 10
+    def self.construct_finder_sql(options)
+      scope = scope(:find)
+      sql  = "SELECT #{options[:select] || (scope && scope[:select]) || ((options[:joins] || (scope && scope[:joins])) && quoted_table_name + '.*') || '*'} "
+      sql << "FROM #{(scope && scope[:from]) || options[:from] || quoted_table_name} "
+      
+      add_lock!(sql, options, scope) if ActiveRecord::Base.connection.adapter_name == "SQLServer" && !options[:lock].blank? # SQLServer
+
+      add_joins!(sql, options, scope)
+      add_conditions!(sql, options[:conditions], scope)
+
+      add_group!(sql, options[:group], scope)
+      add_order!(sql, options[:order], scope)
+      add_limit!(sql, options, scope)
+      add_lock!(sql, options, scope) unless ActiveRecord::Base.connection.adapter_name == "SQLServer" #  Not SQLServer
+      sql
+    end
+    
     # Overwrite the ActiveRecord::Base method for SQL server.
     # GROUP BY is necessary for distinct orderings
     def self.construct_finder_sql_for_association_limiting(options, join_dependency)
@@ -576,9 +597,17 @@ module ActiveRecord
         sql << " ORDER BY #{order.join(',')}"
       end
 
+      # Appends a locking clause to an SQL statement.
+      # This method *modifies* the +sql+ parameter.
+      #   # SELECT * FROM suppliers FOR UPDATE
+      #   add_lock! 'SELECT * FROM suppliers', :lock => true
+      #   add_lock! 'SELECT * FROM suppliers', :lock => ' WITH(HOLDLOCK, ROWLOCK)'
+      # http://blog.sqlauthority.com/2007/04/27/sql-server-2005-locking-hints-and-examples/
       def add_lock!(sql, options)
-        @logger.info "Warning: SQLServer :lock option '#{options[:lock].inspect}' not supported" if @logger && options.has_key?(:lock)
-        sql
+        case lock = options[:lock]
+        when true then sql << "WITH(HOLDLOCK, ROWLOCK) "
+        when String then sql << "#{lock} "
+        end
       end
 
       def recreate_database(name)
