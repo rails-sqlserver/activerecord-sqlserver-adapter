@@ -246,12 +246,19 @@ module ActiveRecord
       def initialize(connection, logger, connection_options=nil)
         super(connection, logger)
         @connection_options = connection_options
+        if database_version =~ /(2000|2005) - (\d+)\./  
+          @database_version_year = $1.to_i
+          @database_version_major = $2.to_i
+        else
+          raise "Currently, only 2000 and 2005 are supported versions"
+        end
+
       end
       
       def native_database_types
         # support for varchar(max) and varbinary(max) for text and binary cols if our version is 9 (2005)
-        txt = database_version_major >= 9 ? "varchar(max)"   : "text"
-        bin = database_version_major >= 9 ? "varbinary(max)" : "image"
+        txt = @database_version_major >= 9 ? "varchar(max)"   : "text"
+        bin = @database_version_major >= 9 ? "varbinary(max)" : "image"
         {
           :primary_key => "int NOT NULL IDENTITY(1, 1) PRIMARY KEY",
           :string      => { :name => "varchar", :limit => 255  },
@@ -277,17 +284,7 @@ module ActiveRecord
         # "Microsoft SQL Server  2000 - 8.00.2039 (Intel X86) \n\tMay  3 2005 23:18:38 \n\tCopyright (c) 1988-2003 Microsoft Corporation\n\tEnterprise Edition on Windows NT 5.2 (Build 3790: )\n"
         # "Microsoft SQL Server 2005 - 9.00.3215.00 (Intel X86) \n\tDec  8 2007 18:51:32 \n\tCopyright (c) 1988-2005 Microsoft Corporation\n\tStandard Edition on Windows NT 5.2 (Build 3790: Service Pack 2)\n"
         return select_value("SELECT @@version")
-      end            
-      
-      def database_version_year
-        # returns 2000 or 2005
-        return $1.to_i if database_version =~ /(2000|2005) - (\d+)\./  
-      end
-
-      def database_version_major
-        # returns 8 or 9
-        return $2.to_i if database_version =~ /(2000|2005) - (\d+)\./
-      end
+      end    
       
       def supports_migrations? #:nodoc:
         true
