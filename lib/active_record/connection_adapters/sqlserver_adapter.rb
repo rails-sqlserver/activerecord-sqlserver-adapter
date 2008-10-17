@@ -642,8 +642,29 @@ module ActiveRecord
         execute "USE #{existing_database}" if name.to_s == existing_database 
       end
 
+      def remove_database_connections_and_rollback(name)
+        # This should disconnect all other users and rollback any transactions for SQL 2000 and 2005
+        # http://sqlserver2000.databases.aspfaq.com/how-do-i-drop-a-sql-server-database.html
+        execute "ALTER DATABASE #{name} SET SINGLE_USER WITH ROLLBACK IMMEDIATE"
+      end
+      
       def drop_database(name)
-        execute "DROP DATABASE #{name}"
+        retry_count = 0
+        max_retries = 1
+        begin
+          execute "DROP DATABASE #{name}"
+        rescue ActiveRecord::StatementInvalid => err
+          # Remove existing connections and rollback any transactions if we received the message
+          #  'Cannot drop the database 'test' because it is currently in use'
+          if err.message =~ /because it is currently in use/
+            raise if retry_count >= max_retries
+            retry_count += 1
+            remove_database_connections_and_rollback(name)
+            retry
+          else
+            raise
+          end
+        end
       end
 
       # Clear the given table and reset the table's id to 1
