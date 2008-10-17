@@ -51,8 +51,8 @@ module ActiveRecord
       conn["AutoCommit"] = autocommit
       ConnectionAdapters::SQLServerAdapter.new(conn, logger, [driver_url, username, password])
     end
-    
-    
+
+
     private
 
     # Add basic support for SQL server locking hints
@@ -83,7 +83,7 @@ module ActiveRecord
       is_distinct = !options[:joins].blank? || include_eager_conditions?(options) || include_eager_order?(options)
 
       sql = "SELECT #{table_name}.#{connection.quote_column_name(primary_key)} FROM #{table_name} "
-      
+
       if is_distinct
         sql << join_dependency.join_associations.collect(&:association_join).join
         add_joins!(sql, options[:joins], scope)
@@ -96,7 +96,7 @@ module ActiveRecord
         if sql =~ /GROUP\s+BY/i
           sql << ", #{table_name}.#{connection.quote_column_name(primary_key)}"
         else
-          sql << " GROUP BY #{table_name}.#{connection.quote_column_name(primary_key)}"  
+          sql << " GROUP BY #{table_name}.#{connection.quote_column_name(primary_key)}"
         end #if sql =~ /GROUP BY/i
 
         connection.add_order_by_for_association_limiting!(sql, options)
@@ -108,7 +108,6 @@ module ActiveRecord
 
       return sanitize_sql(sql)
     end
-
   end # class Base
 
   module ConnectionAdapters
@@ -408,8 +407,8 @@ module ActiveRecord
             AND constraint_column_usage.column_name = columns.column_name
           )
           WHERE columns.TABLE_NAME = '#{table_name}'
-          ORDER BY columns.ordinal_position
-        }
+          ORDER BY columns.COLUMN_NAME
+        }.gsub(/[ \t\r\n]+/,' ')
         result = select(sql, name, true)
         result.collect do |column_info|
           # Remove brackets and outer quotes (if quoted) of default value returned by db, i.e:
@@ -504,7 +503,9 @@ module ActiveRecord
 
       def quote_table_name(name)
         name_split_on_dots = name.to_s.split('.')
+
         if name_split_on_dots.length == 3
+          # name is on the form "foo.bar.baz"
           "[#{name_split_on_dots[0]}].[#{name_split_on_dots[1]}].[#{name_split_on_dots[2]}]"
         else
           super(name)
@@ -512,8 +513,17 @@ module ActiveRecord
 
       end
 
-      def quote_column_name(name)
-        "[#{name}]"
+      # Quotes the given column identifier.
+      # 
+      # Examples
+      # 
+      #   quote_column_name('foo') # => '[foo]'
+      #   quote_column_name(:foo) # => '[foo]'
+      #   quote_column_name('foo.bar') # => '[foo].[bar]'
+      def quote_column_name(identifier)
+        identifier.to_s.split('.').collect do |name|
+          "[#{name}]"          
+        end.join(".")
       end
 
       def add_limit_offset!(sql, options)
@@ -542,26 +552,32 @@ module ActiveRecord
           if (options[:limit] + options[:offset]) >= total_rows
             options[:limit] = (total_rows - options[:offset] >= 0) ? (total_rows - options[:offset]) : 0
           end
+
+          # Wrap the SQL query in a bunch of outer SQL queries that emulate proper LIMIT,OFFSET support.
           sql.sub!(/^\s*SELECT(\s+DISTINCT)?/i, "SELECT * FROM (SELECT TOP #{options[:limit]} * FROM (SELECT#{$1} TOP #{options[:limit] + options[:offset]}")
           sql << ") AS tmp1"
+
           if options[:order]
-            # don't strip the table name, it is needed later on
-            #options[:order] = options[:order].split(',').map do |field|
             order = options[:order].split(',').map do |field|
-              parts = field.split(" ")
-              # tc = column_name etc (not direction of sort)
-              tc = parts[0]
-              #if sql =~ /\.\[/ and tc =~ /\./ # if column quoting used in query
-              #  tc.gsub!(/\./, '\\.\\[')
-              #  tc << '\\]'
-              #end          
-              if sql =~ /#{Regexp.escape(tc)} AS (t\d_r\d\d?)/
-                parts[0] = $1
-              elsif parts[0] =~ /\w+\.\[?(\w+)\]?/
-                parts[0] = $1
+              order_by_column, order_direction = field.split(" ")
+              order_by_column = quote_column_name(order_by_column)
+
+              # Investigate the SQL query to figure out if the order_by_column has been renamed.
+              if sql =~ /#{Regexp.escape(order_by_column)} AS (t\d_r\d\d?)/
+                # Fx "[foo].[bar] AS t4_r2" was found in the SQL. Use the column alias (ie 't4_r2') for the subsequent orderings
+                order_by_column = $1
+              elsif order_by_column =~ /\w+\.\[?(\w+)\]?/
+                order_by_column = $1
+              else
+                # It doesn't appear that the column name has been renamed as part of the query. Use just the column
+                # name rather than the full identifier for the outer queries.
+                order_by_column = order_by_column.split('.').last
               end
-              parts.join(' ')
+
+              # Put the column name and eventual direction back together
+              [order_by_column, order_direction].join(' ').strip
             end.join(', ')
+
             sql << " ORDER BY #{change_order_direction(order)}) AS tmp2 ORDER BY #{order}"
           else
             sql << ") AS tmp2"
@@ -572,7 +588,7 @@ module ActiveRecord
           end unless options[:limit].nil? || options[:limit] < 1
         end
       end #add_limit_offset!(sql, options)
-      
+
       def add_order_by_for_association_limiting!(sql, options)
         return sql if options[:order].blank?
 
@@ -610,15 +626,26 @@ module ActiveRecord
         end
       end
 
-      def recreate_database(name)
+      def recreate_database(name)      
+        # Switch to another database or we'll receive a "Database in use" error message.
+        existing_database = current_database.to_s
+        if name.to_s == existing_database
+          # The master database should be available on all SQL Server instances, use that
+          execute 'USE master' 
+        end
+
+        # Recreate the database
         drop_database(name)
         create_database(name)
+
+        # Switch back to the database if we switched away from it above
+        execute "USE #{existing_database}" if name.to_s == existing_database 
       end
 
       def drop_database(name)
         execute "DROP DATABASE #{name}"
       end
-      
+
       # Clear the given table and reset the table's id to 1
       # Argument:
       # +table_name+:: (String) Name of the table to be cleared and reset
@@ -785,7 +812,7 @@ module ActiveRecord
         end
 
         def identity_column(table_name)
-          @table_columns = {} unless @table_columns
+          @table_columns ||= {}
           @table_columns[table_name] = columns(table_name) if @table_columns[table_name] == nil
           @table_columns[table_name].each do |col|
             return col.name if col.identity
@@ -828,7 +855,7 @@ module ActiveRecord
           end
           sql
         end
-        
+
         def get_utf8_columns(table_name)
           utf8 = []
           @table_columns ||= {}
@@ -838,10 +865,10 @@ module ActiveRecord
           end
           utf8
         end
-        
+
         def set_utf8_values!(sql)
           utf8_cols = get_utf8_columns(get_table_name(sql))
-          if sql =~ /^\s*UPDATE/i            
+          if sql =~ /^\s*UPDATE/i
             utf8_cols.each do |col|
               sql.gsub!("[#{col.to_s}] = '", "[#{col.to_s}] = N'")
             end
