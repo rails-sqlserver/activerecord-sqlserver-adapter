@@ -213,6 +213,7 @@ module ActiveRecord
           # Check if the value actually is hex output from the database
           # or an Active Record attribute that was just written.  If hex, pack the hex
           # characters into a string, otherwise return the value
+          # TODO: This conversion is asymmetrical, and could corrupt data if the original data looked like hex. We need to avoid the guesswork
           value =~ /[^[:xdigit:]]/ ? value : [value].pack('H*')
         end
 
