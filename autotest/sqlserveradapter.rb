@@ -1,4 +1,5 @@
 require 'autotest'
+require 'activesupport'
 
 class Autotest::Sqlserveradapter < Autotest
 
@@ -31,7 +32,7 @@ class Autotest::Sqlserveradapter < Autotest
   # Have to use a custom reorder method since the normal :alpha for Autotest would put the 
   # files with ../ in the path before others.
   def reorder(files_to_test)
-    ar_tests, sqlsvr_tests = files_to_test.partition { |k,v| k.start_with?('../../../') }
+    ar_tests, sqlsvr_tests = files_to_test.partition { |k,v| k.starts_with?('../../../') }
     ar_tests.sort! { |a,b| a[0] <=> b[0] }
     sqlsvr_tests.sort! { |a,b| a[0] <=> b[0] }
     sqlsvr_tests + ar_tests
