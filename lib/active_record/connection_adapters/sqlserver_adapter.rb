@@ -55,6 +55,27 @@ module ActiveRecord
 
     private
 
+    # Add basic support for SQL server locking hints
+    # In the case of SQL server, the lock value must follow the FROM clause
+    # Mysql:     SELECT * FROM tst where testID = 10 LOCK IN share mode
+    # SQLServer: SELECT * from tst WITH (HOLDLOCK, ROWLOCK) where testID = 10
+    def self.construct_finder_sql(options)
+      scope = scope(:find)
+      sql  = "SELECT #{options[:select] || (scope && scope[:select]) || ((options[:joins] || (scope && scope[:joins])) && quoted_table_name + '.*') || '*'} "
+      sql << "FROM #{(scope && scope[:from]) || options[:from] || quoted_table_name} "
+      
+      add_lock!(sql, options, scope) if ActiveRecord::Base.connection.adapter_name == "SQLServer" && !options[:lock].blank? # SQLServer
+
+      add_joins!(sql, options, scope)
+      add_conditions!(sql, options[:conditions], scope)
+
+      add_group!(sql, options[:group], scope)
+      add_order!(sql, options[:order], scope)
+      add_limit!(sql, options, scope)
+      add_lock!(sql, options, scope) unless ActiveRecord::Base.connection.adapter_name == "SQLServer" #  Not SQLServer
+      sql
+    end
+    
     # Overwrite the ActiveRecord::Base method for SQL server.
     # GROUP BY is necessary for distinct orderings
     def self.construct_finder_sql_for_association_limiting(options, join_dependency)
@@ -179,14 +200,20 @@ module ActiveRecord
           end
         end
 
-        # These methods will only allow the adapter to insert binary data with a length of 7K or less
-        # because of a SQL Server statement length policy.
+        # To insert into a SQL server binary column, the value must be 
+        # converted to hex characters and prepended with 0x
+        # Example: INSERT into varbinarytable values (0x0)
+        # See the output of the stored procedure: 'exec sp_datatype_info'
+        # and note the literal prefix value of 0x for binary types
         def string_to_binary(value)
-          Base64.encode64(value)
+         "0x#{value.unpack("H*")[0]}"
         end
 
         def binary_to_string(value)
-          Base64.decode64(value)
+          # Check if the value actually is hex output from the database
+          # or an Active Record attribute that was just written.  If hex, pack the hex
+          # characters into a string, otherwise return the value
+          value =~ /[^[:xdigit:]]/ ? value : [value].pack('H*')
         end
 
       protected
@@ -245,12 +272,21 @@ module ActiveRecord
       def initialize(connection, logger, connection_options=nil)
         super(connection, logger)
         @connection_options = connection_options
+        if database_version =~ /(2000|2005) - (\d+)\./  
+          @database_version_year = $1.to_i
+          @database_version_major = $2.to_i
+        else
+          raise "Currently, only 2000 and 2005 are supported versions"
+        end
+
       end
       
       def native_database_types
         # support for varchar(max) and varbinary(max) for text and binary cols if our version is 9 (2005)
-        txt = database_version_major >= 9 ? "varchar(max)"   : "text"
-        bin = database_version_major >= 9 ? "varbinary(max)" : "image"
+        txt = @database_version_major >= 9 ? "varchar(max)"   : "text"
+        
+        # TODO:  Need to verify image column works correctly with 2000 if string_to_binary stores a hex string
+        bin = @database_version_major >= 9 ? "varbinary(max)" : "image"
         {
           :primary_key => "int NOT NULL IDENTITY(1, 1) PRIMARY KEY",
           :string      => { :name => "varchar", :limit => 255  },
@@ -276,23 +312,18 @@ module ActiveRecord
         # "Microsoft SQL Server  2000 - 8.00.2039 (Intel X86) \n\tMay  3 2005 23:18:38 \n\tCopyright (c) 1988-2003 Microsoft Corporation\n\tEnterprise Edition on Windows NT 5.2 (Build 3790: )\n"
         # "Microsoft SQL Server 2005 - 9.00.3215.00 (Intel X86) \n\tDec  8 2007 18:51:32 \n\tCopyright (c) 1988-2005 Microsoft Corporation\n\tStandard Edition on Windows NT 5.2 (Build 3790: Service Pack 2)\n"
         return select_value("SELECT @@version")
-      end            
-      
-      def database_version_year
-        # returns 2000 or 2005
-        return $1.to_i if database_version =~ /(2000|2005) - (\d+)\./  
-      end
-
-      def database_version_major
-        # returns 8 or 9
-        return $2.to_i if database_version =~ /(2000|2005) - (\d+)\./
-      end
+      end    
       
       def supports_migrations? #:nodoc:
         true
       end
 
       def type_to_sql(type, limit = nil, precision = nil, scale = nil) #:nodoc:
+        # Remove limit for data types which do not require it
+        # Valid:   ALTER TABLE sessions ALTER COLUMN [data] varchar(max)
+        # Invalid: ALTER TABLE sessions ALTER COLUMN [data] varchar(max)(16777215)
+        limit = nil if %w{text varchar(max) nvarchar(max) ntext varbinary(max) image}.include?(native_database_types[type.to_sym][:name])
+
         return super unless type.to_s == 'integer'
 
         if limit.nil?
@@ -468,6 +499,13 @@ module ActiveRecord
         case value
           when TrueClass             then '1'
           when FalseClass            then '0'
+
+          when String, ActiveSupport::Multibyte::Chars
+            value = value.to_s
+
+            # for binary columns, don't quote the result of the string to binary
+            return column.class.string_to_binary(value) if column && column.type == :binary && column.class.respond_to?(:string_to_binary)
+            super
           else
             if value.acts_like?(:time)
               "'#{value.strftime("%Y%m%d %H:%M:%S")}'"
@@ -485,7 +523,9 @@ module ActiveRecord
 
       def quote_table_name(name)
         name_split_on_dots = name.to_s.split('.')
+
         if name_split_on_dots.length == 3
+          # name is on the form "foo.bar.baz"
           "[#{name_split_on_dots[0]}].[#{name_split_on_dots[1]}].[#{name_split_on_dots[2]}]"
         else
           super(name)
@@ -493,8 +533,17 @@ module ActiveRecord
 
       end
 
-      def quote_column_name(name)
-        "[#{name}]"
+      # Quotes the given column identifier.
+      # 
+      # Examples
+      # 
+      #   quote_column_name('foo') # => '[foo]'
+      #   quote_column_name(:foo) # => '[foo]'
+      #   quote_column_name('foo.bar') # => '[foo].[bar]'
+      def quote_column_name(identifier)
+        identifier.to_s.split('.').collect do |name|
+          "[#{name}]"          
+        end.join(".")
       end
 
       def add_limit_offset!(sql, options)
@@ -523,26 +572,32 @@ module ActiveRecord
           if (options[:limit] + options[:offset]) >= total_rows
             options[:limit] = (total_rows - options[:offset] >= 0) ? (total_rows - options[:offset]) : 0
           end
+
+          # Wrap the SQL query in a bunch of outer SQL queries that emulate proper LIMIT,OFFSET support.
           sql.sub!(/^\s*SELECT(\s+DISTINCT)?/i, "SELECT * FROM (SELECT TOP #{options[:limit]} * FROM (SELECT#{$1} TOP #{options[:limit] + options[:offset]}")
           sql << ") AS tmp1"
+
           if options[:order]
-            # don't strip the table name, it is needed later on
-            #options[:order] = options[:order].split(',').map do |field|
             order = options[:order].split(',').map do |field|
-              parts = field.split(" ")
-              # tc = column_name etc (not direction of sort)
-              tc = parts[0]
-              #if sql =~ /\.\[/ and tc =~ /\./ # if column quoting used in query
-              #  tc.gsub!(/\./, '\\.\\[')
-              #  tc << '\\]'
-              #end
-              if sql =~ /#{Regexp.escape(tc)} AS (t\d_r\d\d?)/
-                parts[0] = $1
-              elsif parts[0] =~ /\w+\.\[?(\w+)\]?/
-                parts[0] = $1
+              order_by_column, order_direction = field.split(" ")
+              order_by_column = quote_column_name(order_by_column)
+
+              # Investigate the SQL query to figure out if the order_by_column has been renamed.
+              if sql =~ /#{Regexp.escape(order_by_column)} AS (t\d_r\d\d?)/
+                # Fx "[foo].[bar] AS t4_r2" was found in the SQL. Use the column alias (ie 't4_r2') for the subsequent orderings
+                order_by_column = $1
+              elsif order_by_column =~ /\w+\.\[?(\w+)\]?/
+                order_by_column = $1
+              else
+                # It doesn't appear that the column name has been renamed as part of the query. Use just the column
+                # name rather than the full identifier for the outer queries.
+                order_by_column = order_by_column.split('.').last
               end
-              parts.join(' ')
+
+              # Put the column name and eventual direction back together
+              [order_by_column, order_direction].join(' ').strip
             end.join(', ')
+
             sql << " ORDER BY #{change_order_direction(order)}) AS tmp2 ORDER BY #{order}"
           else
             sql << ") AS tmp2"
@@ -578,18 +633,58 @@ module ActiveRecord
         sql << " ORDER BY #{order.join(',')}"
       end
 
+      # Appends a locking clause to an SQL statement.
+      # This method *modifies* the +sql+ parameter.
+      #   # SELECT * FROM suppliers FOR UPDATE
+      #   add_lock! 'SELECT * FROM suppliers', :lock => true
+      #   add_lock! 'SELECT * FROM suppliers', :lock => ' WITH(HOLDLOCK, ROWLOCK)'
+      # http://blog.sqlauthority.com/2007/04/27/sql-server-2005-locking-hints-and-examples/
       def add_lock!(sql, options)
-        @logger.info "Warning: SQLServer :lock option '#{options[:lock].inspect}' not supported" if @logger && options.has_key?(:lock)
-        sql
+        case lock = options[:lock]
+        when true then sql << "WITH(HOLDLOCK, ROWLOCK) "
+        when String then sql << "#{lock} "
+        end
       end
 
-      def recreate_database(name)
+      def recreate_database(name)      
+        # Switch to another database or we'll receive a "Database in use" error message.
+        existing_database = current_database.to_s
+        if name.to_s == existing_database
+          # The master database should be available on all SQL Server instances, use that
+          execute 'USE master' 
+        end
+
+        # Recreate the database
         drop_database(name)
         create_database(name)
+
+        # Switch back to the database if we switched away from it above
+        execute "USE #{existing_database}" if name.to_s == existing_database 
       end
 
+      def remove_database_connections_and_rollback(name)
+        # This should disconnect all other users and rollback any transactions for SQL 2000 and 2005
+        # http://sqlserver2000.databases.aspfaq.com/how-do-i-drop-a-sql-server-database.html
+        execute "ALTER DATABASE #{name} SET SINGLE_USER WITH ROLLBACK IMMEDIATE"
+      end
+      
       def drop_database(name)
-        execute "DROP DATABASE #{name}"
+        retry_count = 0
+        max_retries = 1
+        begin
+          execute "DROP DATABASE #{name}"
+        rescue ActiveRecord::StatementInvalid => err
+          # Remove existing connections and rollback any transactions if we received the message
+          #  'Cannot drop the database 'test' because it is currently in use'
+          if err.message =~ /because it is currently in use/
+            raise if retry_count >= max_retries
+            retry_count += 1
+            remove_database_connections_and_rollback(name)
+            retry
+          else
+            raise
+          end
+        end
       end
 
       # Clear the given table and reset the table's id to 1
@@ -758,7 +853,7 @@ module ActiveRecord
         end
 
         def identity_column(table_name)
-          @table_columns = {} unless @table_columns
+          @table_columns ||= {}
           @table_columns[table_name] = columns(table_name) if @table_columns[table_name] == nil
           @table_columns[table_name].each do |col|
             return col.name if col.identity
