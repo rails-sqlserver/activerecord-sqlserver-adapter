@@ -373,12 +373,8 @@ module ActiveRecord
             AND constraint_column_usage.column_name = columns.column_name
           )
           WHERE columns.TABLE_NAME = '#{table_name}'
+          ORDER BY columns.ordinal_position
         }
-        #Shawn Balestracci 2008-10-01 There's some debate in how the columns should be sorted.  I am choosing to leave them unsorted as that was done in the 
-        #Rails 1.x adapter
-        #add above the brace ORDER BY columns.ordinal_position 
-        #or ORDER BY columns.column_name
-        #if you want them sorted differently.       
         
         result = select(sql, name, true)
         result.collect do |column_info|
