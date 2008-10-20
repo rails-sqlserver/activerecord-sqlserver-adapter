@@ -200,14 +200,20 @@ module ActiveRecord
           end
         end
 
-        # These methods will only allow the adapter to insert binary data with a length of 7K or less
-        # because of a SQL Server statement length policy.
+        # To insert into a SQL server binary column, the value must be 
+        # converted to hex characters and prepended with 0x
+        # Example: INSERT into varbinarytable values (0x0)
+        # See the output of the stored procedure: 'exec sp_datatype_info'
+        # and note the literal prefix value of 0x for binary types
         def string_to_binary(value)
-          Base64.encode64(value)
+         "0x#{value.unpack("H*")[0]}"
         end
 
         def binary_to_string(value)
-          Base64.decode64(value)
+          # Check if the value actually is hex output from the database
+          # or an Active Record attribute that was just written.  If hex, pack the hex
+          # characters into a string, otherwise return the value
+          value =~ /[^[:xdigit:]]/ ? value : [value].pack('H*')
         end
 
       protected
@@ -278,6 +284,8 @@ module ActiveRecord
       def native_database_types
         # support for varchar(max) and varbinary(max) for text and binary cols if our version is 9 (2005)
         txt = @database_version_major >= 9 ? "varchar(max)"   : "text"
+        
+        # TODO:  Need to verify image column works correctly with 2000 if string_to_binary stores a hex string
         bin = @database_version_major >= 9 ? "varbinary(max)" : "image"
         {
           :primary_key => "int NOT NULL IDENTITY(1, 1) PRIMARY KEY",
@@ -491,6 +499,13 @@ module ActiveRecord
         case value
           when TrueClass             then '1'
           when FalseClass            then '0'
+
+          when String, ActiveSupport::Multibyte::Chars
+            value = value.to_s
+
+            # for binary columns, don't quote the result of the string to binary
+            return column.class.string_to_binary(value) if column && column.type == :binary && column.class.respond_to?(:string_to_binary)
+            super
           else
             if value.acts_like?(:time)
               "'#{value.strftime("%Y%m%d %H:%M:%S")}'"
