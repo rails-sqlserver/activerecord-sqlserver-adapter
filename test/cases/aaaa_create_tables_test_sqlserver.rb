@@ -19,14 +19,8 @@ class AAAACreateTablesTestSqlserver < ActiveRecord::TestCase
 
   def test_activerecord_load_test_schema
     eval(File.read("#{@ar_path}/schema.rb"))
-    connection = ActiveRecord::Base.connection
-    begin
-      ActiveRecord::Base.connection = Course.connection
-      eval(File.read("#{@ar_path}/schema2.rb"))
-    ensure
-      ActiveRecord::Base.connection = connection
-    end
-    assert true
+    eval(File.read("#{@ar_path}/schema2.rb"))
+    assert_equal ["courses"], Course.connection.tables, "Make sure schema2.rb creates table in Course.connection to arunit2."
   end
 
   private
