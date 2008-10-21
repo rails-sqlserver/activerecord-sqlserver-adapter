@@ -62,6 +62,9 @@ module ActiveRecord
     # In the case of SQL server, the lock value must follow the FROM clause
     # Mysql:     SELECT * FROM tst where testID = 10 LOCK IN share mode
     # SQLServer: SELECT * from tst WITH (HOLDLOCK, ROWLOCK) where testID = 10
+    # h-lame: OK, so these 2 methods should be a patch to rails ideally, so we don't
+    #         have to play catch up against rails itself should construct_finder_sql ever
+    #         change
     def self.construct_finder_sql(options)
       scope = scope(:find)
       sql  = "SELECT #{options[:select] || (scope && scope[:select]) || ((options[:joins] || (scope && scope[:joins])) && quoted_table_name + '.*') || '*'} "
@@ -69,7 +72,7 @@ module ActiveRecord
       
       add_lock!(sql, options, scope) if ActiveRecord::Base.connection.adapter_name == "SQLServer" && !options[:lock].blank? # SQLServer
 
-      add_joins!(sql, options, scope)
+      add_joins!(sql, options[:joins], scope)
       add_conditions!(sql, options[:conditions], scope)
 
       add_group!(sql, options[:group], scope)
