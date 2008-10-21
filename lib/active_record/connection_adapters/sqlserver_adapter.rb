@@ -719,6 +719,11 @@ module ActiveRecord
         end
       end
 
+      def table_exists?(table_name)
+        #If the table is external, see if it has columns
+        super(table_name) || (columns(table_name).size>0)
+      end
+
       def indexes(table_name, name = nil)
         ActiveRecord::Base.connection.instance_variable_get("@connection")["AutoCommit"] = false
         __indexes(table_name, name)
