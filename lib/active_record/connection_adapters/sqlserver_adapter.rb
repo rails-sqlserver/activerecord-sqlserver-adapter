@@ -394,6 +394,12 @@ module ActiveRecord
         table_name = table_names[-1]
         table_name = table_name.gsub(/[\[\]]/, '')
         db_name = "#{table_names[0]}." if table_names.length==3
+
+        # COL_LENGTH returns values that do not reflect how much data can be stored in certain data types.
+        # COL_LENGTH returns -1 for varchar(max), nvarchar(max), and varbinary(max)
+        # COL_LENGTH returns 16 for ntext, text, image types
+        # My sessions.data column was varchar(max) and resulted in the following error:
+        # Your session data is larger than the data column in which it is to be stored. You must increase the size of your data column if you intend to store large data.
         sql = %{
           SELECT
           columns.COLUMN_NAME as name,
@@ -404,7 +410,13 @@ module ActiveRecord
           END default_value,
           columns.NUMERIC_SCALE as numeric_scale,
           columns.NUMERIC_PRECISION as numeric_precision,
-          COL_LENGTH(columns.TABLE_NAME, columns.COLUMN_NAME) as length,
+          CASE
+            WHEN columns.DATA_TYPE IN ('nvarchar') AND COL_LENGTH(columns.TABLE_NAME, columns.COLUMN_NAME) = -1 THEN 1073741823
+            WHEN columns.DATA_TYPE IN ('varchar', 'varbinary') AND COL_LENGTH(columns.TABLE_NAME, columns.COLUMN_NAME) = -1 THEN 2147483647
+            WHEN columns.DATA_TYPE IN ('ntext') AND COL_LENGTH(columns.TABLE_NAME, columns.COLUMN_NAME) = 16 THEN 1073741823
+            WHEN columns.DATA_TYPE IN ('text', 'image') AND COL_LENGTH(columns.TABLE_NAME, columns.COLUMN_NAME) = 16 THEN 2147483647
+            ELSE COL_LENGTH(columns.TABLE_NAME, columns.COLUMN_NAME) 
+          END as length,
           CASE
             WHEN constraint_column_usage.constraint_name IS NULL THEN NULL
             ELSE 1
