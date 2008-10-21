@@ -72,6 +72,7 @@ module ActiveRecord
       
       add_lock!(sql, options, scope) if ActiveRecord::Base.connection.adapter_name == "SQLServer" && !options[:lock].blank? # SQLServer
 
+      # The next line may fail with a nil error under 2.1.1 or other non-edge rails versions - Use this instead: add_joins!(sql, options, scope)
       add_joins!(sql, options[:joins], scope)
       add_conditions!(sql, options[:conditions], scope)
 
