@@ -1,5 +1,5 @@
 # The filename begins with "aaaa" to ensure this is the first test.
-require 'cases/helper'
+require 'cases/sqlserver_helper'
 
 class AAAACreateTablesTestSqlserver < ActiveRecord::TestCase
   self.use_transactional_fixtures = false
