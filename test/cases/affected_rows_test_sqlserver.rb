@@ -1,4 +1,4 @@
-require 'cases/helper' 
+require 'cases/sqlserver_helper'
 require 'models/topic' 
 require 'models/reply' 
 

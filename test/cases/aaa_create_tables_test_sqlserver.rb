@@ -1,4 +1,4 @@
-require 'cases/helper'
+require 'cases/sqlserver_helper'
 require "cases/aaa_create_tables_test"
 
 # TODO Should this really be in the same test class as the "real" one in rails?

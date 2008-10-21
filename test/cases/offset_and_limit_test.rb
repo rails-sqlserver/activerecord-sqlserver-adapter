@@ -1,4 +1,4 @@
-require 'cases/helper'
+require 'cases/sqlserver_helper'
 # require File.dirname(__FILE__) + '/../../lib/shoulda'
 
 def uses_shoulda(&blk)

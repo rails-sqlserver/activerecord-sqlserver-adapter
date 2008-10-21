@@ -1,4 +1,4 @@
-require 'cases/helper'
+require 'cases/sqlserver_helper'
 require 'models/default'
 require 'models/post'
 require 'models/task'
