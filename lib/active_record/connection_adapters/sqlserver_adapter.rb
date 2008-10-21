@@ -24,7 +24,10 @@ require 'bigdecimal/util'
 # Previous maintainer: Tom Ward <tom@popdog.net>
 #
 
-# Current maintainer: Shawn Balestracci <shawn@vegantech.com>
+
+
+
+# Current (interim/unofficial) maintainer: Shawn Balestracci <shawn@vegantech.com>
 
 module ActiveRecord
   class Base
@@ -213,6 +216,7 @@ module ActiveRecord
           # Check if the value actually is hex output from the database
           # or an Active Record attribute that was just written.  If hex, pack the hex
           # characters into a string, otherwise return the value
+          # TODO: This conversion is asymmetrical, and could corrupt data if the original data looked like hex. We need to avoid the guesswork
           value =~ /[^[:xdigit:]]/ ? value : [value].pack('H*')
         end
 
@@ -420,7 +424,7 @@ module ActiveRecord
             AND constraint_column_usage.column_name = columns.column_name
           )
           WHERE columns.TABLE_NAME = '#{table_name}'
-          ORDER BY columns.COLUMN_NAME
+          ORDER BY columns.ordinal_position
         }.gsub(/[ \t\r\n]+/,' ')
         result = select(sql, name, true)
         result.collect do |column_info|
