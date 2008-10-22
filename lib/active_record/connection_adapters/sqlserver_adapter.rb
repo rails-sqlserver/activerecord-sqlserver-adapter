@@ -1,33 +1,5 @@
 require 'active_record/connection_adapters/abstract_adapter'
-
 require 'base64'
-require 'bigdecimal'
-require 'bigdecimal/util'
-
-# sqlserver_adapter.rb -- ActiveRecord adapter for Microsoft SQL Server
-#
-# Author: Joey Gibson <joey@joeygibson.com>
-# Date:   10/14/2004
-#
-# Modifications: DeLynn Berry <delynnb@megastarfinancial.com>
-# Date: 3/22/2005
-#
-# Modifications (ODBC): Mark Imbriaco <mark.imbriaco@pobox.com>
-# Date: 6/26/2005
-
-# Modifications (Migrations): Tom Ward <tom@popdog.net>
-# Date: 27/10/2005
-#
-# Modifications (Numerous fixes as maintainer): Ryan Tomayko <rtomayko@gmail.com>
-# Date: Up to July 2006
-
-# Previous maintainer: Tom Ward <tom@popdog.net>
-#
-
-
-
-
-# Current (interim/unofficial) maintainer: Shawn Balestracci <shawn@vegantech.com>
 
 module ActiveRecord
   class Base
@@ -290,7 +262,24 @@ module ActiveRecord
     # unixODBC 2.2.11, Ruby ODBC 0.996, Ruby DBI 0.0.23 and Ruby 1.8.2.
     # [Linux strongmad 2.6.11-1.1369_FC4 #1 Thu Jun 2 22:55:56 EDT 2005 i686 i686 i386 GNU/Linux]
     class SQLServerAdapter < AbstractAdapter
-
+      
+      ADAPTER_NAME = 'SQLServer'.freeze
+      
+      # NATIVE_DATABASE_TYPES = {
+      #   :primary_key => "int NOT NULL IDENTITY(1, 1) PRIMARY KEY",
+      #   :string      => { :name => "varchar", :limit => 255  },
+      #   :text        => { :name =>  txt },
+      #   :integer     => { :name => "int" },
+      #   :float       => { :name => "float", :limit => 8 },
+      #   :decimal     => { :name => "decimal" },
+      #   :datetime    => { :name => "datetime" },
+      #   :timestamp   => { :name => "datetime" },
+      #   :time        => { :name => "datetime" },
+      #   :date        => { :name => "datetime" },
+      #   :binary      => { :name =>  bin },
+      #   :boolean     => { :name => "bit"}
+      # }
+      
       def initialize(connection, logger, connection_options=nil)
         super(connection, logger)
         @connection_options = connection_options
@@ -300,7 +289,10 @@ module ActiveRecord
         else
           raise "Currently, only 2000 and 2005 are supported versions"
         end
-
+      end
+      
+      def adapter_name #:nodoc:
+        ADAPTER_NAME
       end
       
       def native_database_types
@@ -324,16 +316,12 @@ module ActiveRecord
           :boolean     => { :name => "bit"}
         }
       end
-
-      def adapter_name
-        'SQLServer'
-      end
-
+      
       def database_version
         # returns string such as:
         # "Microsoft SQL Server  2000 - 8.00.2039 (Intel X86) \n\tMay  3 2005 23:18:38 \n\tCopyright (c) 1988-2003 Microsoft Corporation\n\tEnterprise Edition on Windows NT 5.2 (Build 3790: )\n"
         # "Microsoft SQL Server 2005 - 9.00.3215.00 (Intel X86) \n\tDec  8 2007 18:51:32 \n\tCopyright (c) 1988-2005 Microsoft Corporation\n\tStandard Edition on Windows NT 5.2 (Build 3790: Service Pack 2)\n"
-        return select_value("SELECT @@version")
+        select_value("SELECT @@version")
       end    
       
       def supports_migrations? #:nodoc:
