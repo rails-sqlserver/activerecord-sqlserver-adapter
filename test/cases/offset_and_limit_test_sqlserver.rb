@@ -28,12 +28,11 @@ class WhenSelectingWithLimitOffsetAndLimitTest < ActiveRecord::TestCase
 end
 
 class WhenSelectingWithLimitAndOffsetOffsetAndLimitTest < ActiveRecord::TestCase
+  class Account < ActiveRecord::Base; end
   def setup
     @connection = ActiveRecord::Base.connection
     # we have to use a real table as we need the counts
     @select_sql = 'SELECT * FROM accounts'
-    class Account < ActiveRecord::Base; end
-
     # create 10 Accounts
     (1..10).each {|i| Account.create!}
   end
