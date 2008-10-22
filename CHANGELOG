@@ -1,0 +1,25 @@
+
+sqlserver_adapter.rb -- ActiveRecord adapter for Microsoft SQL Server
+
+Author: Joey Gibson <joey@joeygibson.com>
+Date:   10/14/2004
+
+Modifications: DeLynn Berry <delynnb@megastarfinancial.com>
+Date: 3/22/2005
+
+Modifications (ODBC): Mark Imbriaco <mark.imbriaco@pobox.com>
+Date: 6/26/2005
+
+Modifications (Migrations): Tom Ward <tom@popdog.net>
+Date: 27/10/2005
+
+Modifications (Numerous fixes as maintainer): Ryan Tomayko <rtomayko@gmail.com>
+Date: Up to July 2006
+
+Previous maintainer: Tom Ward <tom@popdog.net>
+
+
+
+
+
+Current (interim/unofficial) maintainer: Shawn Balestracci <shawn@vegantech.com>

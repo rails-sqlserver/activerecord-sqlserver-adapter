@@ -1,7 +1,7 @@
 require 'autotest'
 require 'activesupport'
 
-class Autotest::Sqlserveradapter < Autotest
+class Autotest::Sqlserver < Autotest
 
   def initialize
     super
@@ -17,13 +17,7 @@ class Autotest::Sqlserveradapter < Autotest
       "../../../rails/activerecord/test/"
     ].join(File::PATH_SEPARATOR)
     
-    self.extra_files = ['../../../rails/activerecord/test/']
-    
     self.add_mapping %r%^test/.*/.*_test_sqlserver.rb$% do |filename, _|
-      filename
-    end
-    
-    self.add_mapping %r%../../../rails/activerecord/test/.*/.*_test.rb$% do |filename, _|
       filename
     end
     
