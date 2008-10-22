@@ -148,7 +148,7 @@ class SchemaDumperForSqlServerTest < ActiveRecord::TestCase
     assert_no_match %r{c_int_4.*:limit}, output
   end
   
-  def test_mysql_schema_dump_should_honor_nonstandard_primary_keys
+  def test_sqlserver_schema_dump_should_honor_nonstandard_primary_keys
     output = standard_dump
     match = output.match(%r{create_table "movies"(.*)do})
     assert_not_nil(match, "nonstandardpk table not found")
