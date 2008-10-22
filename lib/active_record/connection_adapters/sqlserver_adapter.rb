@@ -940,7 +940,7 @@ module ActiveRecord
             utf8_cols.each do |col|
               sql.gsub!("[#{col.to_s}] = '", "[#{col.to_s}] = N'")
             end
-          elsif sql =~ /^\s*INSERT/i and sql !~ /DEFAULT VALUES\s*$/i
+          elsif sql =~ /^\s*INSERT(?!.*DEFAULT VALUES\s*$)/i
             # TODO This code should be simplified
             # Get columns and values, split them into arrays, and store the original_values for when we need to replace them
             columns_and_values = sql.scan(/\((.*?)\)/m).flatten
