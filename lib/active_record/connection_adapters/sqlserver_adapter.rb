@@ -442,10 +442,6 @@ module ActiveRecord
             ELSE COL_LENGTH(columns.TABLE_NAME, columns.COLUMN_NAME) 
           END as length,
           CASE
-            WHEN constraint_column_usage.constraint_name IS NULL THEN NULL
-            ELSE 1
-          END is_primary_key,
-          CASE
             WHEN columns.IS_NULLABLE = 'YES' THEN 1
             ELSE NULL
           end is_nullable,
@@ -454,14 +450,6 @@ module ActiveRecord
             ELSE 1
           END is_identity
           FROM #{db_name}INFORMATION_SCHEMA.COLUMNS columns
-          LEFT OUTER JOIN INFORMATION_SCHEMA.TABLE_CONSTRAINTS primary_key_constraints ON (
-            primary_key_constraints.table_name = columns.table_name
-            AND primary_key_constraints.constraint_type = 'PRIMARY KEY'
-          )
-          LEFT OUTER JOIN INFORMATION_SCHEMA.CONSTRAINT_COLUMN_USAGE constraint_column_usage ON (
-            constraint_column_usage.table_name = primary_key_constraints.table_name
-            AND constraint_column_usage.column_name = columns.column_name
-          )
           WHERE columns.TABLE_NAME = '#{table_name}'
           ORDER BY columns.ordinal_position
         }.gsub(/[ \t\r\n]+/,' ')
