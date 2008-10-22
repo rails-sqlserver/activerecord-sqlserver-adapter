@@ -99,7 +99,13 @@ module ActiveRecord
 
       if is_distinct
         sql << join_dependency.join_associations.collect(&:association_join).join
-        add_joins!(sql, options[:joins], scope)
+        # merge_joins isn't defined in 2.1.1, but appears in edge
+        if defined?(merge_joins)
+        # The next line may fail with a nil error under 2.1.1 or other non-edge rails versions - Use this instead: add_joins!(sql, options, scope)
+         add_joins!(sql, options[:joins], scope)
+        else
+         add_joins!(sql, options, scope)
+        end
       end
 
       add_conditions!(sql, options[:conditions], scope)
@@ -122,21 +128,6 @@ module ActiveRecord
       return sanitize_sql(sql)
     end
 
-    # Added to allow compatability with rails 2.1.1,   method is from rails 2.1.1
-    # The optional scope argument is for the current <tt>:find</tt> scope.
-    def add_joins!(sql, options, scope = :auto)
-      scope = scope(:find) if :auto == scope
-      [(scope && scope[:joins]), options[:joins]].each do |join|
-        case join
-        when Symbol, Hash, Array
-            join_dependency = ActiveRecord::Associations::ClassMethods::InnerJoinDependency.new(self, join, nil)
-           sql << " #{join_dependency.join_associations.collect { |assoc| assoc.association_join }.join} "
-        else
-            sql << " #{join} "
-        end
-      end
-    end
-    
    
   end # class Base
 
