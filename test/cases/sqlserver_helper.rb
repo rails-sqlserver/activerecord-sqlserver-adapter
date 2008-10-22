@@ -1,5 +1,7 @@
 require 'cases/helper'
 
+ActiveRecord::Migration.verbose = false
+
 class TableWithRealColumn < ActiveRecord::Base; end
 
 # See cases/helper in rails/activerecord. Tell assert_queries to ignore 
@@ -7,5 +9,4 @@ class TableWithRealColumn < ActiveRecord::Base; end
 ActiveRecord::Base.connection.class.class_eval do
   IGNORED_SQL << /SELECT SCOPE_IDENTITY/
 end
-
 
