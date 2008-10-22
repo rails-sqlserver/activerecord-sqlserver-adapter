@@ -784,6 +784,19 @@ module ActiveRecord
         execute "ALTER TABLE #{table_name} ADD CONSTRAINT DF_#{table_name}_#{column_name} DEFAULT #{quote(default, column_name)} FOR #{quote_column_name(column_name)}"
       end
 
+      def change_column_null(table_name, column_name, null, default = nil)
+        column = columns(table_name).find { |c| c.name == column_name.to_s }
+
+        unless null || default.nil?
+          execute("UPDATE #{quote_table_name(table_name)} SET #{quote_column_name(column_name)}=#{quote(default)} WHERE #{quote_column_name(column_name)} IS NULL")
+        end
+
+        # TODO - work out what the reason is for column.sql_type != type_to_sql(column.type, column.limit, column.precision, column.scale)
+        sql = "ALTER TABLE #{table_name} ALTER COLUMN #{quote_column_name(column_name)} #{type_to_sql column.type, column.limit, column.precision, column.scale}"
+        sql << " NOT NULL" unless null
+        execute sql
+      end
+
       def remove_column(table_name, column_name)
         remove_check_constraints(table_name, column_name)
         remove_default_constraint(table_name, column_name)
