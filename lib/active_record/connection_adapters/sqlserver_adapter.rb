@@ -265,21 +265,6 @@ module ActiveRecord
       
       ADAPTER_NAME = 'SQLServer'.freeze
       
-      # NATIVE_DATABASE_TYPES = {
-      #   :primary_key => "int NOT NULL IDENTITY(1, 1) PRIMARY KEY",
-      #   :string      => { :name => "varchar", :limit => 255  },
-      #   :text        => { :name =>  txt },
-      #   :integer     => { :name => "int" },
-      #   :float       => { :name => "float", :limit => 8 },
-      #   :decimal     => { :name => "decimal" },
-      #   :datetime    => { :name => "datetime" },
-      #   :timestamp   => { :name => "datetime" },
-      #   :time        => { :name => "datetime" },
-      #   :date        => { :name => "datetime" },
-      #   :binary      => { :name =>  bin },
-      #   :boolean     => { :name => "bit"}
-      # }
-      
       def initialize(connection, logger, connection_options=nil)
         super(connection, logger)
         @connection_options = connection_options
@@ -322,7 +307,7 @@ module ActiveRecord
         # "Microsoft SQL Server  2000 - 8.00.2039 (Intel X86) \n\tMay  3 2005 23:18:38 \n\tCopyright (c) 1988-2003 Microsoft Corporation\n\tEnterprise Edition on Windows NT 5.2 (Build 3790: )\n"
         # "Microsoft SQL Server 2005 - 9.00.3215.00 (Intel X86) \n\tDec  8 2007 18:51:32 \n\tCopyright (c) 1988-2005 Microsoft Corporation\n\tStandard Edition on Windows NT 5.2 (Build 3790: Service Pack 2)\n"
         select_value("SELECT @@version")
-      end    
+      end
       
       def supports_migrations? #:nodoc:
         true

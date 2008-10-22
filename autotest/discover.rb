@@ -1,6 +1,4 @@
 
 Autotest.add_discovery do
-  'sqlserveradapter'
+  ARGV.first || 'sqlserver'
 end
-
-
