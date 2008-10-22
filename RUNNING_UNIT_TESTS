@@ -40,20 +40,43 @@ you can do so with:
    
 That'll run the base suite using the SQLServer-Ruby adapter.
 
-== Expected Errors
+== Expected Errors and Failures
 
 Currently we expect the following errors from running the test suite:
 
-1. test_add_limit_offset_should_sanitize_sql_injection_for_limit_with_comas
+1. ERROR in test_add_limit_offset_should_sanitize_sql_injection_for_limit_with_comas
    from
    activerecord/test/cases/adapter_test.rb
    
-2. test_add_limit_offset_should_sanitize_sql_injection_for_limit_without_comas
+2. ERROR in test_add_limit_offset_should_sanitize_sql_injection_for_limit_without_comas
    from
    activerecord/test/cases/adapter_test.rb
+   
+3. FAILURE in test_update
+   from
+   activerecord/test/cases/mixin_test.rb
+
+4. FAILURE in test_create
+   from
+   activerecord/test/cases/mixin_test.rb
+   
+5. FAILURE in test_many_updates
+   from
+   activerecord/test/cases/mixin_test.rb
+   
    
 1. & 2. error because we treat the possible values for offset and limit much more 
 aggressively than the intention of the tests.  Rails expects that limit => '1,7 bad sql'
 would turn into ' limit 1,7' but that's not valid SQL Server syntax so why should we 
 bother?  So we just deny non-integer limit / offset params entirely rather than trying
 to sanitize them.  It's a hard-line to take on sql injection, but probably a safer one.
+
+We do however have our own offset and limit tests in test/cases/offset_and_limit_test that
+test our expected behaviour.
+
+3., 4., & 5. error because SQLServer datetimes (the only time data type available) does not
+store usec values so even storing a fixed Time value in the db and comparing the retrieved
+value to the know value will not work.  The retreived value will always have .usec = 0 (probably).
+
+We do however have re-implement the fixed time stuff for activerecord/test/cases/mixin_test.rb in 
+test/cases/mixin_for_sqlserver_test so that the fixed time is a time with 0 usecs.

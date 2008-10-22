@@ -79,7 +79,14 @@ for adapter in %w( sqlserver sqlserver_odbc )
     t.libs << "test" 
     t.libs << "test/connections/native_#{adapter}"
     t.libs << "../../../rails/activerecord/test/"
-    t.pattern = ["test/**/*_test_sqlserver.rb", "../../../rails/activerecord/test/**/*_test.rb"]
+    # Run our create_tables tests first, then the rails ones, then our other ones
+    # Mostly because we want mixin_test from rails to be included *BEFORE* our
+    # mixin_test_sqlserver and thus not have it be included twice and cause
+    # Time.now_with_forcing recursion.
+    # TODO raise a patch against rails to stop this sort of thing happening if
+    # someone includes mixin_test twice.
+    t.test_files = (FileList["test/**/*create_tables_test_sqlserver.rb", "../../../rails/activerecord/test/**/*_test.rb"].to_a +
+                     FileList["test/**/*_test_sqlserver.rb"].exclude('test/**/*create_tables_test_sqlserver.rb').to_a)
     t.verbose = true
   }
 
