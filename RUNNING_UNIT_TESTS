@@ -71,8 +71,8 @@ would turn into ' limit 1,7' but that's not valid SQL Server syntax so why shoul
 bother?  So we just deny non-integer limit / offset params entirely rather than trying
 to sanitize them.  It's a hard-line to take on sql injection, but probably a safer one.
 
-We do however have our own offset and limit tests in test/cases/offset_and_limit_test that
-test our expected behaviour.
+We do however have our own offset and limit tests in test/cases/offset_and_limit_test_sqlserver
+that test our expected behaviour.
 
 3., 4., & 5. error because SQLServer datetimes (the only time data type available) does not
 store usec values so even storing a fixed Time value in the db and comparing the retrieved
