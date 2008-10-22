@@ -29,6 +29,7 @@ class WhenSelectingWithLimitOffsetAndLimitTest < ActiveRecord::TestCase
 end
 
 class WhenSelectingWithLimitAndOffsetOffsetAndLimitTest < ActiveRecord::TestCase
+  class Account < ActiveRecord::Base; end
   def setup
     @connection = ActiveRecord::Base.connection
     # we have to use a real table as we need the counts
