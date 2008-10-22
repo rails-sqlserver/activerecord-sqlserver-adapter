@@ -8,7 +8,7 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
     @connection = ActiveRecord::Base.connection
   end
   
-    
+  
   def test_update_sql_statement_invalid
     assert_raise(ActiveRecord::StatementInvalid) { Topic.connection.update_sql("UPDATE XXX") }
   end

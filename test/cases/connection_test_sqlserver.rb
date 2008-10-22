@@ -6,7 +6,7 @@ class ConnectionTestSqlserver < ActiveRecord::TestCase
   
   self.use_transactional_fixtures = false
   
-  fixtures :topics
+  fixtures :topics, :accounts
   
   def setup
     @connection = ActiveRecord::Base.connection
