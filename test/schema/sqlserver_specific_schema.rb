@@ -1,4 +1,5 @@
 ActiveRecord::Schema.define do
+  
   create_table :table_with_real_columns, :force => true do |t|
     t.column :real_number, :real
   end
@@ -15,7 +16,6 @@ ActiveRecord::Schema.define do
     # char1 char(1) default 'Y',
     # char2 character varying(50) default 'a varchar field',
     # char3 text default 'a text field',
-    
     t.column :positive_integer, :integer, :default => 1
     t.column :negative_integer, :integer, :default => -1
     t.column :decimal_number, :decimal, :precision => 3, :scale => 2, :default => 2.78
@@ -28,4 +28,5 @@ ActiveRecord::Schema.define do
     t.column :string_with_pretend_null_three, :string, :default => 'NULL'
     t.column :string_with_pretend_null_four, :string, :default => '(NULL)'
   end
+  
 end
