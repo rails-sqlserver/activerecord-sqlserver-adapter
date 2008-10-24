@@ -9,6 +9,38 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
   end
   
   
+  context 'For abstract behavior' do
+
+    should 'be our adapter_name' do
+      assert_equal 'SQLServer', @connection.adapter_name
+    end
+    
+    should 'support migrations' do
+      assert @connection.supports_migrations?
+    end
+    
+    should 'support DDL in transactions' do
+      assert @connection.supports_ddl_transactions?
+    end
+    
+  end
+  
+  context 'For Quoting' do
+    
+  end
+  
+  context 'For DatabaseStatements' do
+    
+  end
+  
+  context 'For SchemaStatements' do
+    
+  end
+  
+  
+  
+  
+  
   should 'raise invalid statement error' do
     assert_raise(ActiveRecord::StatementInvalid) { Topic.connection.update_sql("UPDATE XXX") }
   end

@@ -2,7 +2,9 @@ require 'active_record/connection_adapters/abstract_adapter'
 require 'base64'
 
 module ActiveRecord
+  
   class Base
+    
     def self.sqlserver_connection(config) #:nodoc:
       require_library_or_gem 'dbi' unless self.class.const_defined?(:DBI)
 
@@ -26,10 +28,9 @@ module ActiveRecord
       conn["AutoCommit"] = autocommit
       ConnectionAdapters::SQLServerAdapter.new(conn, logger, [driver_url, username, password])
     end
-
-
+    
     private
-
+    
     # Add basic support for SQL server locking hints
     # In the case of SQL server, the lock value must follow the FROM clause
     # Mysql:     SELECT * FROM tst where testID = 10 LOCK IN share mode
@@ -99,12 +100,13 @@ module ActiveRecord
 
       return sanitize_sql(sql)
     end
-
    
-  end # class Base
-
+  end
+  
   module ConnectionAdapters
-    class SQLServerColumn < Column# :nodoc:
+    
+    class SQLServerColumn < Column #:nodoc:
+      
       attr_reader :identity, :is_special, :is_utf8
       
       def initialize(info)
@@ -115,10 +117,8 @@ module ActiveRecord
         end
         super(info[:name], info[:default_value], type, info[:is_nullable] == 1)
         @identity = info[:is_identity]
-        
         # TODO: Not sure if these should also be special: varbinary(max), nchar, nvarchar(max) 
         @is_special = ["text", "ntext", "image"].include?(info[:type])
-
         # Added nchar and nvarchar(max) for unicode types
         #  http://www.teratrax.com/sql_guide/data_types/sql_server_data_types.html
         @is_utf8 = type =~ /nvarchar|ntext|nchar|nvarchar(max)/i
@@ -163,8 +163,10 @@ module ActiveRecord
         else super
         end
       end
-
+      
+      
       class << self
+        
         def cast_to_datetime(value)
           return value.to_time if value.is_a?(DBI::Timestamp)
           return string_to_time(value) if value.is_a?(Time)
@@ -209,16 +211,19 @@ module ActiveRecord
           # TODO: This conversion is asymmetrical, and could corrupt data if the original data looked like hex. We need to avoid the guesswork
           value =~ /[^[:xdigit:]]/ ? value : [value].pack('H*')
         end
-
-      protected
+        
+        protected
+        
         def new_time(year, mon, mday, hour, min, sec, microsec = 0)
           # Treat 0000-00-00 00:00:00 as nil.
           return nil if year.nil? || year == 0
           Time.time_with_datetime_fallback(Base.default_timezone, year, mon, mday, hour, min, sec, microsec) rescue nil
         end
+        
       end #class << self
+      
     end #SQLServerColumn
-
+    
     # In ADO mode, this adapter will ONLY work on Windows systems,
     # since it relies on Win32OLE, which, to my knowledge, is only
     # available on Windows.
@@ -276,10 +281,24 @@ module ActiveRecord
         end
       end
       
-      def adapter_name #:nodoc:
+      # ABSTRACT ADAPTER =========================================#
+      
+      def adapter_name
         ADAPTER_NAME
       end
       
+      def supports_migrations?
+        true
+      end
+      
+      def supports_ddl_transactions?
+        true
+      end
+      
+      
+      
+      
+
       def native_database_types
         # support for varchar(max) and varbinary(max) for text and binary cols if our version is 9 (2005)
         txt = @database_version_major >= 9 ? "varchar(max)"   : "text"
@@ -309,9 +328,7 @@ module ActiveRecord
         select_value("SELECT @@version")
       end
       
-      def supports_migrations? #:nodoc:
-        true
-      end
+
 
       def type_to_sql(type, limit = nil, precision = nil, scale = nil) #:nodoc:
         # Remove limit for data types which do not require it
@@ -331,7 +348,8 @@ module ActiveRecord
           'integer'
         end
       end
-
+      
+      
       # CONNECTION MANAGEMENT ====================================#
 
       # Returns true if the connection is active.
@@ -352,7 +370,6 @@ module ActiveRecord
       end
 
       # Disconnects from the database
-
       def disconnect!
         @connection.disconnect rescue nil
       end
@@ -817,149 +834,151 @@ module ActiveRecord
       ensure
         @connection["AutoCommit"] = true
       end
-
+      
       private
-        def __indexes(table_name, name = nil)
-          indexes = []
-          execute("EXEC sp_helpindex '#{table_name}'", name) do |handle|
-            if handle.column_info.any?
-              handle.each do |index|
-                unique = index[1] =~ /unique/
-                primary = index[1] =~ /primary key/
-                if !primary
-                  indexes << IndexDefinition.new(table_name, index[0], unique, index[2].split(", ").map {|e| e.gsub('(-)','')})
-                end
+      
+      def __indexes(table_name, name = nil)
+        indexes = []
+        execute("EXEC sp_helpindex '#{table_name}'", name) do |handle|
+          if handle.column_info.any?
+            handle.each do |index|
+              unique = index[1] =~ /unique/
+              primary = index[1] =~ /primary key/
+              if !primary
+                indexes << IndexDefinition.new(table_name, index[0], unique, index[2].split(", ").map {|e| e.gsub('(-)','')})
               end
             end
           end
-          indexes
         end
+        indexes
+      end
 
-        def select(sql, name = nil, ignore_special_columns = false)
-          repair_special_columns(sql) unless ignore_special_columns
-          result = []
-          execute(sql) do |handle|
-            handle.each do |row|
-              row_hash = {}
-              row.each_with_index do |value, i|
-                if value.is_a? DBI::Timestamp
-                  value = DateTime.new(value.year, value.month, value.day, value.hour, value.minute, value.sec)
-                end
-                row_hash[handle.column_names[i]] = value
+      def select(sql, name = nil, ignore_special_columns = false)
+        repair_special_columns(sql) unless ignore_special_columns
+        result = []
+        execute(sql) do |handle|
+          handle.each do |row|
+            row_hash = {}
+            row.each_with_index do |value, i|
+              if value.is_a? DBI::Timestamp
+                value = DateTime.new(value.year, value.month, value.day, value.hour, value.minute, value.sec)
               end
-              result << row_hash
+              row_hash[handle.column_names[i]] = value
+            end
+            result << row_hash
+          end
+        end
+        result
+      end
+
+      # Turns IDENTITY_INSERT ON for table during execution of the block
+      # N.B. This sets the state of IDENTITY_INSERT to OFF after the
+      # block has been executed without regard to its previous state
+      def with_identity_insert_enabled(table_name, &block)
+        set_identity_insert(table_name, true)
+        yield
+      ensure
+        set_identity_insert(table_name, false)
+      end
+
+      def set_identity_insert(table_name, enable = true)
+        execute "SET IDENTITY_INSERT #{table_name} #{enable ? 'ON' : 'OFF'}"
+      rescue Exception => e
+        raise ActiveRecordError, "IDENTITY_INSERT could not be turned #{enable ? 'ON' : 'OFF'} for table #{table_name}"
+      end
+
+      def get_table_name(sql)
+        if sql =~ /^\s*insert\s+into\s+([^\(\s]+)\s*|^\s*update\s+([^\(\s]+)\s*/i
+          $1 || $2
+        elsif sql =~ /from\s+([^\(\s]+)\s*/i
+          $1
+        else
+          nil
+        end
+      end
+
+      def identity_column(table_name)
+        @table_columns ||= {}
+        @table_columns[table_name] = columns(table_name) if @table_columns[table_name] == nil
+        @table_columns[table_name].each do |col|
+          return col.name if col.identity
+        end
+
+        return nil
+      end
+
+      def query_requires_identity_insert?(sql)
+        table_name = get_table_name(sql)
+        id_column = identity_column(table_name)
+        sql =~ /INSERT[^(]+\([^)]*\[#{id_column}\][^)]*\)/ ? table_name : nil
+      end
+
+      def change_order_direction(order)
+        order.split(",").collect {|fragment|
+          case fragment
+            when  /\bDESC\b/i     then fragment.gsub(/\bDESC\b/i, "ASC")
+            when  /\bASC\b/i      then fragment.gsub(/\bASC\b/i, "DESC")
+            else                  String.new(fragment).split(',').join(' DESC,') + ' DESC'
+          end
+        }.join(",")
+      end
+
+      def get_special_columns(table_name)
+        special = []
+        @table_columns ||= {}
+        @table_columns[table_name] ||= columns(table_name)
+        @table_columns[table_name].each do |col|
+          special << col.name if col.is_special
+        end
+        special
+      end
+
+      def repair_special_columns(sql)
+        special_cols = get_special_columns(get_table_name(sql))
+        for col in special_cols.to_a
+          sql.gsub!(/((\.|\s|\()\[?#{col.to_s}\]?)\s?=\s?/, '\1 LIKE ')
+          sql.gsub!(/ORDER BY #{col.to_s}/i, '')
+        end
+        sql
+      end
+
+      def get_utf8_columns(table_name)
+        utf8 = []
+        @table_columns ||= {}
+        @table_columns[table_name] ||= columns(table_name)
+        @table_columns[table_name].each do |col|
+          utf8 << col.name if col.is_utf8
+        end
+        utf8
+      end
+
+      def set_utf8_values!(sql)
+        utf8_cols = get_utf8_columns(get_table_name(sql))
+        if sql =~ /^\s*UPDATE/i
+          utf8_cols.each do |col|
+            sql.gsub!("[#{col.to_s}] = '", "[#{col.to_s}] = N'")
+          end
+        elsif sql =~ /^\s*INSERT(?!.*DEFAULT VALUES\s*$)/i
+          # TODO This code should be simplified
+          # Get columns and values, split them into arrays, and store the original_values for when we need to replace them
+          columns_and_values = sql.scan(/\((.*?)\)/m).flatten
+          columns = columns_and_values.first.split(',')
+          values =  columns_and_values[1].split(',')
+          original_values = values.dup
+          # Iterate columns that should be UTF8, and append an N to the value, if the value is not NULL
+          utf8_cols.each do |col|
+            columns.each_with_index do |column, idx|
+              values[idx] = " N#{values[idx].gsub(/^ /, '')}" if column =~ /\[#{col}\]/ and values[idx] !~ /^NULL$/
             end
           end
-          result
+          # Replace (in place) the SQL
+          sql.gsub!(original_values.join(','), values.join(','))
         end
-
-        # Turns IDENTITY_INSERT ON for table during execution of the block
-        # N.B. This sets the state of IDENTITY_INSERT to OFF after the
-        # block has been executed without regard to its previous state
-
-        def with_identity_insert_enabled(table_name, &block)
-          set_identity_insert(table_name, true)
-          yield
-        ensure
-          set_identity_insert(table_name, false)
-        end
-
-        def set_identity_insert(table_name, enable = true)
-          execute "SET IDENTITY_INSERT #{table_name} #{enable ? 'ON' : 'OFF'}"
-        rescue Exception => e
-          raise ActiveRecordError, "IDENTITY_INSERT could not be turned #{enable ? 'ON' : 'OFF'} for table #{table_name}"
-        end
-
-        def get_table_name(sql)
-          if sql =~ /^\s*insert\s+into\s+([^\(\s]+)\s*|^\s*update\s+([^\(\s]+)\s*/i
-            $1 || $2
-          elsif sql =~ /from\s+([^\(\s]+)\s*/i
-            $1
-          else
-            nil
-          end
-        end
-
-        def identity_column(table_name)
-          @table_columns ||= {}
-          @table_columns[table_name] = columns(table_name) if @table_columns[table_name] == nil
-          @table_columns[table_name].each do |col|
-            return col.name if col.identity
-          end
-
-          return nil
-        end
-
-        def query_requires_identity_insert?(sql)
-          table_name = get_table_name(sql)
-          id_column = identity_column(table_name)
-          sql =~ /INSERT[^(]+\([^)]*\[#{id_column}\][^)]*\)/ ? table_name : nil
-        end
-
-        def change_order_direction(order)
-          order.split(",").collect {|fragment|
-            case fragment
-              when  /\bDESC\b/i     then fragment.gsub(/\bDESC\b/i, "ASC")
-              when  /\bASC\b/i      then fragment.gsub(/\bASC\b/i, "DESC")
-              else                  String.new(fragment).split(',').join(' DESC,') + ' DESC'
-            end
-          }.join(",")
-        end
-
-        def get_special_columns(table_name)
-          special = []
-          @table_columns ||= {}
-          @table_columns[table_name] ||= columns(table_name)
-          @table_columns[table_name].each do |col|
-            special << col.name if col.is_special
-          end
-          special
-        end
-
-        def repair_special_columns(sql)
-          special_cols = get_special_columns(get_table_name(sql))
-          for col in special_cols.to_a
-            sql.gsub!(/((\.|\s|\()\[?#{col.to_s}\]?)\s?=\s?/, '\1 LIKE ')
-            sql.gsub!(/ORDER BY #{col.to_s}/i, '')
-          end
-          sql
-        end
-
-        def get_utf8_columns(table_name)
-          utf8 = []
-          @table_columns ||= {}
-          @table_columns[table_name] ||= columns(table_name)
-          @table_columns[table_name].each do |col|
-            utf8 << col.name if col.is_utf8
-          end
-          utf8
-        end
-
-        def set_utf8_values!(sql)
-          utf8_cols = get_utf8_columns(get_table_name(sql))
-          if sql =~ /^\s*UPDATE/i
-            utf8_cols.each do |col|
-              sql.gsub!("[#{col.to_s}] = '", "[#{col.to_s}] = N'")
-            end
-          elsif sql =~ /^\s*INSERT(?!.*DEFAULT VALUES\s*$)/i
-            # TODO This code should be simplified
-            # Get columns and values, split them into arrays, and store the original_values for when we need to replace them
-            columns_and_values = sql.scan(/\((.*?)\)/m).flatten
-            columns = columns_and_values.first.split(',')
-            values =  columns_and_values[1].split(',')
-            original_values = values.dup
-            # Iterate columns that should be UTF8, and append an N to the value, if the value is not NULL
-            utf8_cols.each do |col|
-              columns.each_with_index do |column, idx|
-                values[idx] = " N#{values[idx].gsub(/^ /, '')}" if column =~ /\[#{col}\]/ and values[idx] !~ /^NULL$/
-              end
-            end
-            # Replace (in place) the SQL
-            sql.gsub!(original_values.join(','), values.join(','))
-          end
-        end
-
+      end
+      
     end #class SQLServerAdapter < AbstractAdapter
+    
   end #module ConnectionAdapters
+  
 end #module ActiveRecord
 

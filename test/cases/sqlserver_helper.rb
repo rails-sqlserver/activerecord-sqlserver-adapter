@@ -2,6 +2,12 @@ require 'rubygems'
 require 'shoulda'
 require 'cases/helper'
 
+SQLSERVER_TEST_ROOT       = File.expand_path(File.join('..',File.dirname(__FILE__)))
+SQLSERVER_ASSETS_ROOT     = SQLSERVER_TEST_ROOT + "/assets"
+SQLSERVER_FIXTURES_ROOT   = SQLSERVER_TEST_ROOT + "/fixtures"
+SQLSERVER_MIGRATIONS_ROOT = SQLSERVER_TEST_ROOT + "/migrations"
+SQLSERVER_SCHEMA_ROOT     = SQLSERVER_TEST_ROOT + "/schema"
+
 ActiveRecord::Migration.verbose = false
 
 class TableWithRealColumn < ActiveRecord::Base; end
