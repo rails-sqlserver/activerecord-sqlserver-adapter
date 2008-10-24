@@ -13,7 +13,7 @@ class ConnectionTestSqlserver < ActiveRecord::TestCase
   end
   
   
-  def test_affected_rows
+  should 'affecte rows' do
     assert Topic.connection.instance_variable_get("@connection")["AutoCommit"]
     topic_data = { 1 => { "content" => "1 updated" }, 2 => { "content" => "2 updated" } }
     updated = Topic.update(topic_data.keys, topic_data.values)
@@ -23,13 +23,13 @@ class ConnectionTestSqlserver < ActiveRecord::TestCase
     assert_equal 2, Topic.delete([1, 2])        
   end
   
-  def test_execute_without_block_closes_statement
+  should 'execute without block closes statement' do
     assert_all_statements_used_are_closed do
       @connection.execute("SELECT 1")
     end
   end
 
-  def test_execute_with_block_closes_statement
+  should 'execute with block closes statement' do
     assert_all_statements_used_are_closed do
       @connection.execute("SELECT 1") do |sth|
         assert !sth.finished?, "Statement should still be alive within block"
@@ -37,19 +37,19 @@ class ConnectionTestSqlserver < ActiveRecord::TestCase
     end
   end
 
-  def test_insert_with_identity_closes_statement
+  should 'insert with identity closes statement' do
     assert_all_statements_used_are_closed do
       @connection.insert("INSERT INTO accounts ([id], [firm_id],[credit_limit]) values (999, 1, 50)")
     end
   end
 
-  def test_insert_without_identity_closes_statement
+  should 'insert without identity closes statement' do
     assert_all_statements_used_are_closed do
       @connection.insert("INSERT INTO accounts ([firm_id],[credit_limit]) values (1, 50)")
     end
   end
 
-  def test_active_closes_statement
+  should 'active closes statement' do
     assert_all_statements_used_are_closed do
       @connection.active?
     end

@@ -1,3 +1,5 @@
+require 'rubygems'
+require 'shoulda'
 require 'cases/helper'
 
 ActiveRecord::Migration.verbose = false

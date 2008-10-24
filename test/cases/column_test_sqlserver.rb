@@ -6,7 +6,7 @@ class ColumnTestSqlserver < ActiveRecord::TestCase
     @column_klass = ActiveRecord::ConnectionAdapters::SQLServerColumn
   end
   
-  def test_placeholder
+  should 'be a placeholder' do
     assert true 
   end
   

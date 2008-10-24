@@ -2,8 +2,8 @@
 require 'cases/sqlserver_helper'
 
 class AAAACreateTablesTestSqlserver < ActiveRecord::TestCase
-
-  def test_load_sqlserver_specific_schema
+  
+  should 'load sqlserver specific schema' do
     sqlserver_specific_schema_file = File.expand_path(File.join(File.dirname(__FILE__), '..', 'schema', 'sqlserver_specific_schema.rb'))
     eval(File.read(sqlserver_specific_schema_file))
     assert true
