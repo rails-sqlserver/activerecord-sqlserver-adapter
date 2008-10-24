@@ -80,3 +80,7 @@ value to the know value will not work.  The retreived value will always have .us
 
 We do however have re-implement the fixed time stuff for activerecord/test/cases/mixin_test.rb in 
 test/cases/mixin_for_sqlserver_test so that the fixed time is a time with 0 usecs.
+
+  NOTE: Neither do quite a few other adapters. I found that our implementation if the 
+  reason for these failures. Have not debuged yet.
+

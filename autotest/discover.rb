@@ -1,4 +1,4 @@
 
 Autotest.add_discovery do
-  ARGV.first || 'sqlserver'
+  ARGV.first || 'railssqlserver'
 end
