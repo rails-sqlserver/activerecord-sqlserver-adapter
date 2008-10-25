@@ -332,24 +332,13 @@ module ActiveRecord
       # QUOTING ==================================================#
       
       def quote(value, column = nil)
-        return value.quoted_id if value.respond_to?(:quoted_id)
-        case value
-          when String, ActiveSupport::Multibyte::Chars
-            value = value.to_s
-            # for binary columns, don't quote the result of the string to binary
-            return column.class.string_to_binary(value) if column && column.type == :binary && column.class.respond_to?(:string_to_binary)
-            super
-          else
-            if value.acts_like?(:time)
-              "'#{value.strftime("%Y%m%d %H:%M:%S")}'"
-            elsif value.acts_like?(:date)
-              "'#{value.strftime("%Y%m%d")}'"
-            else
-              super
-            end
+        if value.kind_of?(String) && column && column.type == :binary
+          column.class.string_to_binary(value)
+        else
+          super
         end
       end
-
+      
       def quote_string(string)
         string.gsub(/\'/, "''")
       end
@@ -381,6 +370,17 @@ module ActiveRecord
 
       def quoted_false
         '0'
+      end
+      
+      # TODO: I get the feeling this needs to go and that it is patching something else wrong.
+      def quoted_date(value)
+        if value.acts_like?(:time)
+          value.strftime("%Y%m%d %H:%M:%S")
+        elsif value.acts_like?(:date)
+          value.strftime("%Y%m%d")
+        else
+          super
+        end
       end
       
       # REFERENTIAL INTEGRITY ====================================#
