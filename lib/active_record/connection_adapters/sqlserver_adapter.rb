@@ -268,16 +268,15 @@ module ActiveRecord
     # [Linux strongmad 2.6.11-1.1369_FC4 #1 Thu Jun 2 22:55:56 EDT 2005 i686 i686 i386 GNU/Linux]
     class SQLServerAdapter < AbstractAdapter
       
-      ADAPTER_NAME = 'SQLServer'.freeze
+      ADAPTER_NAME            = 'SQLServer'.freeze
+      DATABASE_VERSION_REGEXP = /Microsoft SQL Server\s+(\d{4})/
+      SUPPORTED_VERSIONS      = [2000,2005].freeze
       
       def initialize(connection, logger, connection_options=nil)
         super(connection, logger)
         @connection_options = connection_options
-        if database_version =~ /(2000|2005) - (\d+)\./  
-          @database_version_year = $1.to_i
-          @database_version_major = $2.to_i
-        else
-          raise "Currently, only 2000 and 2005 are supported versions"
+        unless SUPPORTED_VERSIONS.include?(database_year)
+          raise NotImplementedError, "Currently, only #{SUPPORTED_VERSIONS.to_sentence} are supported."
         end
       end
       
@@ -295,16 +294,32 @@ module ActiveRecord
         true
       end
       
+      def database_version
+        select_value "SELECT @@version"
+      end
+      
+      def database_year
+        DATABASE_VERSION_REGEXP.match(database_version)[1].to_i
+      end
+      
+      def sqlserver_2000?
+        database_year == 2000
+      end
+      
+      def sqlserver_2005?
+        database_year == 2005
+      end
+      
+      # QUOTING ==================================================#
       
       
       
-
+      
+      # SCHEMA STATEMENTS ========================================#
+      
       def native_database_types
-        # support for varchar(max) and varbinary(max) for text and binary cols if our version is 9 (2005)
-        txt = @database_version_major >= 9 ? "varchar(max)"   : "text"
-        
-        # TODO:  Need to verify image column works correctly with 2000 if string_to_binary stores a hex string
-        bin = @database_version_major >= 9 ? "varbinary(max)" : "image"
+        txt = sqlserver_2005? ? "varchar(max)"   : "text"
+        bin = sqlserver_2005? ? "varbinary(max)" : "image"
         {
           :primary_key => "int NOT NULL IDENTITY(1, 1) PRIMARY KEY",
           :string      => { :name => "varchar", :limit => 255  },
@@ -321,12 +336,7 @@ module ActiveRecord
         }
       end
       
-      def database_version
-        # returns string such as:
-        # "Microsoft SQL Server  2000 - 8.00.2039 (Intel X86) \n\tMay  3 2005 23:18:38 \n\tCopyright (c) 1988-2003 Microsoft Corporation\n\tEnterprise Edition on Windows NT 5.2 (Build 3790: )\n"
-        # "Microsoft SQL Server 2005 - 9.00.3215.00 (Intel X86) \n\tDec  8 2007 18:51:32 \n\tCopyright (c) 1988-2005 Microsoft Corporation\n\tStandard Edition on Windows NT 5.2 (Build 3790: Service Pack 2)\n"
-        select_value("SELECT @@version")
-      end
+
       
 
 

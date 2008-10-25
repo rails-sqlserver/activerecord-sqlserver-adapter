@@ -8,7 +8,6 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
     @connection = ActiveRecord::Base.connection
   end
   
-  
   context 'For abstract behavior' do
 
     should 'be our adapter_name' do
@@ -21,6 +20,36 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
     
     should 'support DDL in transactions' do
       assert @connection.supports_ddl_transactions?
+    end
+    
+    context 'for database version' do
+      
+      setup do
+        @version_regexp = ActiveRecord::ConnectionAdapters::SQLServerAdapter::DATABASE_VERSION_REGEXP
+        @supported_version = ActiveRecord::ConnectionAdapters::SQLServerAdapter::SUPPORTED_VERSIONS
+        @sqlserver_2000_string = "Microsoft SQL Server  2000 - 8.00.2039 (Intel X86)"
+        @sqlserver_2005_string = "Microsoft SQL Server 2005 - 9.00.3215.00 (Intel X86)"
+      end
+      
+      should 'return a string from #database_version that matches class regexp' do
+        assert_match @version_regexp, @connection.database_version
+      end
+      
+      should 'return a 4 digit year fixnum for #database_year' do
+        assert_instance_of Fixnum, @connection.database_year
+        assert_contains @supported_version, @connection.database_year
+      end
+      
+      should 'return true to #sqlserver_2000?' do
+        @connection.stubs(:database_version).returns(@sqlserver_2000_string)
+        assert @connection.sqlserver_2000?
+      end
+      
+      should 'return true to #sqlserver_2005?' do
+        @connection.stubs(:database_version).returns(@sqlserver_2005_string)
+        assert @connection.sqlserver_2005?
+      end
+      
     end
     
   end
@@ -38,9 +67,7 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
   end
   
   
-  
-  
-  
+    
   should 'raise invalid statement error' do
     assert_raise(ActiveRecord::StatementInvalid) { Topic.connection.update_sql("UPDATE XXX") }
   end

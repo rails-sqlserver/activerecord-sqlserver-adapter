@@ -1,5 +1,6 @@
 require 'rubygems'
 require 'shoulda'
+require 'mocha'
 require 'cases/helper'
 
 SQLSERVER_TEST_ROOT       = File.expand_path(File.join('..',File.dirname(__FILE__)))
