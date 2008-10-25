@@ -4,6 +4,8 @@ require 'models/topic'
 
 class AdapterTestSqlserver < ActiveRecord::TestCase
   
+  fixtures :binaries
+  
   def setup
     @connection = ActiveRecord::Base.connection
   end

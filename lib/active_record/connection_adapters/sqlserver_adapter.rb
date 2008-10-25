@@ -194,21 +194,12 @@ module ActiveRecord
             super
           end
         end
-
-        # To insert into a SQL server binary column, the value must be 
-        # converted to hex characters and prepended with 0x
-        # Example: INSERT into varbinarytable values (0x0)
-        # See the output of the stored procedure: 'exec sp_datatype_info'
-        # and note the literal prefix value of 0x for binary types
+        
         def string_to_binary(value)
          "0x#{value.unpack("H*")[0]}"
         end
-
+        
         def binary_to_string(value)
-          # Check if the value actually is hex output from the database
-          # or an Active Record attribute that was just written.  If hex, pack the hex
-          # characters into a string, otherwise return the value
-          # TODO: This conversion is asymmetrical, and could corrupt data if the original data looked like hex. We need to avoid the guesswork
           value =~ /[^[:xdigit:]]/ ? value : [value].pack('H*')
         end
         
