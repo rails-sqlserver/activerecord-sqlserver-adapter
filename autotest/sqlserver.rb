@@ -17,8 +17,26 @@ class Autotest::Sqlserver < Autotest
       "../../../rails/activerecord/test/"
     ].join(File::PATH_SEPARATOR)
     
-    self.add_mapping %r%^test/.*/.*_test_sqlserver.rb$% do |filename, _|
+    @test_sqlserver_file_match = %r%^test/cases/.*_test_sqlserver\.rb$%
+    
+    add_exception %r%^\./(?:autotest)%
+    add_exception %r%^\./(.*LICENSE|debug.log|README.*|CHANGELOG.*)$%i
+    
+    # Any *_test_sqlserver file saved runs that file
+    self.add_mapping @test_sqlserver_file_match do |filename, matchs|
       filename
+    end
+    
+    # If any the adapter changes
+    # the test directory, ofcourse having _test.rb at the end, will run that test. 
+    self.add_mapping(%r%^lib/(.*)\.rb$%) do |filename, matchs|
+      files_matching @test_sqlserver_file_match
+    end
+    
+    # If any core file like the test helper, connections, fixtures, migratinos,
+    # and other support files, then run all matching *_test_sqlserver files.
+    add_mapping %r%^test/(cases/(sqlserver_helper)\.rb|connections|fixtures|migrations|schema/.*)% do
+      files_matching @test_sqlserver_file_match
     end
     
   end
