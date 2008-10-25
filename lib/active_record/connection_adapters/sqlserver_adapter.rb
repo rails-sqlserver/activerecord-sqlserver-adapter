@@ -294,29 +294,6 @@ module ActiveRecord
         true
       end
       
-      def database_version
-        select_value "SELECT @@version"
-      end
-      
-      def database_year
-        DATABASE_VERSION_REGEXP.match(database_version)[1].to_i
-      end
-      
-      def sqlserver_2000?
-        database_year == 2000
-      end
-      
-      def sqlserver_2005?
-        database_year == 2005
-      end
-      
-      # QUOTING ==================================================#
-      
-      
-      
-      
-      # SCHEMA STATEMENTS ========================================#
-      
       def native_database_types
         txt = sqlserver_2005? ? "varchar(max)"   : "text"
         bin = sqlserver_2005? ? "varbinary(max)" : "image"
@@ -336,10 +313,81 @@ module ActiveRecord
         }
       end
       
-
+      def database_version
+        select_value "SELECT @@version"
+      end
       
+      def database_year
+        DATABASE_VERSION_REGEXP.match(database_version)[1].to_i
+      end
+      
+      def sqlserver_2000?
+        database_year == 2000
+      end
+      
+      def sqlserver_2005?
+        database_year == 2005
+      end
+      
+      # QUOTING ==================================================#
+      
+      def quote(value, column = nil)
+        return value.quoted_id if value.respond_to?(:quoted_id)
+        case value
+          when TrueClass             then '1'
+          when FalseClass            then '0'
+          when String, ActiveSupport::Multibyte::Chars
+            value = value.to_s
+            # for binary columns, don't quote the result of the string to binary
+            return column.class.string_to_binary(value) if column && column.type == :binary && column.class.respond_to?(:string_to_binary)
+            super
+          else
+            if value.acts_like?(:time)
+              "'#{value.strftime("%Y%m%d %H:%M:%S")}'"
+            elsif value.acts_like?(:date)
+              "'#{value.strftime("%Y%m%d")}'"
+            else
+              super
+            end
+        end
+      end
 
-
+      def quote_string(string)
+        string.gsub(/\'/, "''")
+      end
+      
+      # Quotes the given column identifier.
+      # 
+      #   quote_column_name('foo') # => '[foo]'
+      #   quote_column_name(:foo) # => '[foo]'
+      #   quote_column_name('foo.bar') # => '[foo].[bar]'
+      def quote_column_name(identifier)
+        identifier.to_s.split('.').collect do |name|
+          "[#{name}]"          
+        end.join(".")
+      end
+      
+      def quote_table_name(name)
+        name_split_on_dots = name.to_s.split('.')
+        if name_split_on_dots.length == 3
+          # name is on the form "foo.bar.baz"
+          "[#{name_split_on_dots[0]}].[#{name_split_on_dots[1]}].[#{name_split_on_dots[2]}]"
+        else
+          super(name)
+        end
+      end
+      
+      # REFERENTIAL INTEGRITY ====================================#
+      # TODO: Add #disable_referential_integrity if we can use it
+      
+      
+      # DATABASE STATEMENTS ======================================
+      
+      
+      # SCHEMA STATEMENTS ========================================#
+      
+      
+      
       def type_to_sql(type, limit = nil, precision = nil, scale = nil) #:nodoc:
         # Remove limit for data types which do not require it
         # Valid:   ALTER TABLE sessions ALTER COLUMN [data] varchar(max)
@@ -514,59 +562,9 @@ module ActiveRecord
       ensure
         @connection["AutoCommit"] = true
       end
+      
 
-      def quote(value, column = nil)
-        return value.quoted_id if value.respond_to?(:quoted_id)
 
-        case value
-          when TrueClass             then '1'
-          when FalseClass            then '0'
-
-          when String, ActiveSupport::Multibyte::Chars
-            value = value.to_s
-
-            # for binary columns, don't quote the result of the string to binary
-            return column.class.string_to_binary(value) if column && column.type == :binary && column.class.respond_to?(:string_to_binary)
-            super
-          else
-            if value.acts_like?(:time)
-              "'#{value.strftime("%Y%m%d %H:%M:%S")}'"
-            elsif value.acts_like?(:date)
-              "'#{value.strftime("%Y%m%d")}'"
-            else
-              super
-            end
-        end
-      end
-
-      def quote_string(string)
-        string.gsub(/\'/, "''")
-      end
-
-      def quote_table_name(name)
-        name_split_on_dots = name.to_s.split('.')
-
-        if name_split_on_dots.length == 3
-          # name is on the form "foo.bar.baz"
-          "[#{name_split_on_dots[0]}].[#{name_split_on_dots[1]}].[#{name_split_on_dots[2]}]"
-        else
-          super(name)
-        end
-
-      end
-
-      # Quotes the given column identifier.
-      # 
-      # Examples
-      # 
-      #   quote_column_name('foo') # => '[foo]'
-      #   quote_column_name(:foo) # => '[foo]'
-      #   quote_column_name('foo.bar') # => '[foo].[bar]'
-      def quote_column_name(identifier)
-        identifier.to_s.split('.').collect do |name|
-          "[#{name}]"          
-        end.join(".")
-      end
 
       def add_limit_offset!(sql, options)
         if options[:offset]
