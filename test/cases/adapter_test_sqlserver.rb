@@ -56,6 +56,14 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
   
   context 'For Quoting' do
     
+    should 'return 1 for #quoted_true' do
+      assert_equal '1', @connection.quoted_true
+    end
+    
+    should 'return 0 for #quoted_false' do
+      assert_equal '0', @connection.quoted_false
+    end
+    
   end
   
   context 'For DatabaseStatements' do

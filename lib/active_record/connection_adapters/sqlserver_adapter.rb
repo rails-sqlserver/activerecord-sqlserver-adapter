@@ -334,8 +334,6 @@ module ActiveRecord
       def quote(value, column = nil)
         return value.quoted_id if value.respond_to?(:quoted_id)
         case value
-          when TrueClass             then '1'
-          when FalseClass            then '0'
           when String, ActiveSupport::Multibyte::Chars
             value = value.to_s
             # for binary columns, don't quote the result of the string to binary
@@ -375,6 +373,14 @@ module ActiveRecord
         else
           super(name)
         end
+      end
+      
+      def quoted_true
+        '1'
+      end
+
+      def quoted_false
+        '0'
       end
       
       # REFERENTIAL INTEGRITY ====================================#
