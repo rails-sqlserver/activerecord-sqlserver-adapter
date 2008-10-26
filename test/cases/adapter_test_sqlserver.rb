@@ -3,9 +3,7 @@ require 'models/task'
 require 'models/topic'
 
 class AdapterTestSqlserver < ActiveRecord::TestCase
-  
-  fixtures :binaries
-  
+    
   def setup
     @connection = ActiveRecord::Base.connection
   end
@@ -64,6 +62,11 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
     
     should 'return 0 for #quoted_false' do
       assert_equal '0', @connection.quoted_false
+    end
+    
+    should 'not escape backslash characters like abstract adapter' do
+      string_with_backslashs = "\\n"
+      assert_equal string_with_backslashs, @connection.quote_string(string_with_backslashs)
     end
     
   end

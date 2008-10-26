@@ -13,7 +13,7 @@ class ConnectionTestSqlserver < ActiveRecord::TestCase
   end
   
   
-  should 'affecte rows' do
+  should 'affect rows' do
     assert Topic.connection.instance_variable_get("@connection")["AutoCommit"]
     topic_data = { 1 => { "content" => "1 updated" }, 2 => { "content" => "2 updated" } }
     updated = Topic.update(topic_data.keys, topic_data.values)

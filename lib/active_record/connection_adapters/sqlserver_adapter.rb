@@ -840,7 +840,40 @@ module ActiveRecord
         @connection["AutoCommit"] = true
       end
       
+      
       private
+      
+      # IDENTITY INSERTS =========================================#
+      
+      def with_identity_insert_enabled(table_name, &block)
+        set_identity_insert(table_name, true)
+        yield
+      ensure
+        set_identity_insert(table_name, false)
+      end
+      
+      def set_identity_insert(table_name, enable = true)
+        execute "SET IDENTITY_INSERT #{table_name} #{enable ? 'ON' : 'OFF'}"
+      rescue Exception => e
+        raise ActiveRecordError, "IDENTITY_INSERT could not be turned #{enable ? 'ON' : 'OFF'} for table #{table_name}"
+      end
+      
+      def query_requires_identity_insert?(sql)
+        table_name = get_table_name(sql)
+        id_column = identity_column(table_name)
+        sql =~ /INSERT[^(]+\([^)]*\[#{id_column}\][^)]*\)/ ? table_name : nil
+      end
+      
+      def identity_column(table_name)
+        @table_columns ||= {}
+        @table_columns[table_name] = columns(table_name) if @table_columns[table_name] == nil
+        @table_columns[table_name].each do |col|
+          return col.name if col.identity
+        end
+        return nil
+      end
+      
+      
       
       def __indexes(table_name, name = nil)
         indexes = []
@@ -875,23 +908,7 @@ module ActiveRecord
         end
         result
       end
-
-      # Turns IDENTITY_INSERT ON for table during execution of the block
-      # N.B. This sets the state of IDENTITY_INSERT to OFF after the
-      # block has been executed without regard to its previous state
-      def with_identity_insert_enabled(table_name, &block)
-        set_identity_insert(table_name, true)
-        yield
-      ensure
-        set_identity_insert(table_name, false)
-      end
-
-      def set_identity_insert(table_name, enable = true)
-        execute "SET IDENTITY_INSERT #{table_name} #{enable ? 'ON' : 'OFF'}"
-      rescue Exception => e
-        raise ActiveRecordError, "IDENTITY_INSERT could not be turned #{enable ? 'ON' : 'OFF'} for table #{table_name}"
-      end
-
+      
       def get_table_name(sql)
         if sql =~ /^\s*insert\s+into\s+([^\(\s]+)\s*|^\s*update\s+([^\(\s]+)\s*/i
           $1 || $2
@@ -901,23 +918,7 @@ module ActiveRecord
           nil
         end
       end
-
-      def identity_column(table_name)
-        @table_columns ||= {}
-        @table_columns[table_name] = columns(table_name) if @table_columns[table_name] == nil
-        @table_columns[table_name].each do |col|
-          return col.name if col.identity
-        end
-
-        return nil
-      end
-
-      def query_requires_identity_insert?(sql)
-        table_name = get_table_name(sql)
-        id_column = identity_column(table_name)
-        sql =~ /INSERT[^(]+\([^)]*\[#{id_column}\][^)]*\)/ ? table_name : nil
-      end
-
+      
       def change_order_direction(order)
         order.split(",").collect {|fragment|
           case fragment
