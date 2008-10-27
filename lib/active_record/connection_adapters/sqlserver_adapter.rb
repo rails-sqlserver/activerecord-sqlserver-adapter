@@ -125,7 +125,11 @@ module ActiveRecord
         # TODO: check ok to remove @scale = scale_value
         @limit = nil unless limitable?(type)
       end
-
+      
+      def identity?
+        @identity
+      end
+      
       def limitable?(type)
         # SQL Server only supports limits on *char and float types
         # although for schema dumping purposes it's useful to know that (big|small)int are 2|8 respectively.
@@ -868,9 +872,21 @@ module ActiveRecord
         @table_columns ||= {}
         @table_columns[table_name] = columns(table_name) if @table_columns[table_name] == nil
         @table_columns[table_name].each do |col|
-          return col.name if col.identity
+          return col.name if col.identity?
         end
         return nil
+      end
+      
+      # SQL UTILITY METHODS ======================================#
+      
+      def get_table_name(sql)
+        if sql =~ /^\s*insert\s+into\s+([^\(\s]+)\s*|^\s*update\s+([^\(\s]+)\s*/i
+          $1 || $2
+        elsif sql =~ /from\s+([^\(\s]+)\s*/i
+          $1
+        else
+          nil
+        end
       end
       
       
@@ -908,17 +924,7 @@ module ActiveRecord
         end
         result
       end
-      
-      def get_table_name(sql)
-        if sql =~ /^\s*insert\s+into\s+([^\(\s]+)\s*|^\s*update\s+([^\(\s]+)\s*/i
-          $1 || $2
-        elsif sql =~ /from\s+([^\(\s]+)\s*/i
-          $1
-        else
-          nil
-        end
-      end
-      
+            
       def change_order_direction(order)
         order.split(",").collect {|fragment|
           case fragment

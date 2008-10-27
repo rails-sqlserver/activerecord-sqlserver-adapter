@@ -54,6 +54,27 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
     
   end
   
+  context 'For identity inserts' do
+    
+    setup do
+      @identity_insert_sql = "INSERT INTO [funny_jokes] ([id],[name]) VALUES(420,'Knock knock')"
+    end
+    
+    should 'return true to #query_requires_identity_insert? when INSERT sql contains id_column ' do
+      assert @connection.send(:query_requires_identity_insert?,@identity_insert_sql)
+    end
+    
+    should 'return false to #query_requires_identity_insert? for normal SQL' do
+      insert_sql = "INSERT INTO [funny_jokes] ([name]) VALUES('Knock knock')"
+      update_sql = "UPDATE [customers] SET [address_street] = NULL WHERE [id] = 2"
+      select_sql = "SELECT * FROM [customers] WHERE ([customers].[id] = 1)"
+      [insert_sql,update_sql,select_sql].each do |sql|
+        assert !@connection.send(:query_requires_identity_insert?,sql), "SQL was #{sql}"
+      end
+    end
+    
+  end
+  
   context 'For Quoting' do
     
     should 'return 1 for #quoted_true' do
