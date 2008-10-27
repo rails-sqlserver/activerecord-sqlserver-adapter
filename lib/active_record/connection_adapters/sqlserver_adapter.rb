@@ -378,61 +378,13 @@ module ActiveRecord
         end
       end
       
+      
       # REFERENTIAL INTEGRITY ====================================#
       # TODO: Add #disable_referential_integrity if we can use it
       
       
       # DATABASE STATEMENTS ======================================
       
-      
-      # SCHEMA STATEMENTS ========================================#
-      
-      
-      
-      def type_to_sql(type, limit = nil, precision = nil, scale = nil) #:nodoc:
-        # Remove limit for data types which do not require it
-        # Valid:   ALTER TABLE sessions ALTER COLUMN [data] varchar(max)
-        # Invalid: ALTER TABLE sessions ALTER COLUMN [data] varchar(max)(16777215)
-        limit = nil if %w{text varchar(max) nvarchar(max) ntext varbinary(max) image}.include?(native_database_types[type.to_sym][:name])
-
-        return super unless type.to_s == 'integer'
-
-        if limit.nil?
-          'integer'
-        elsif limit > 4
-          'bigint'
-        elsif limit < 3
-          'smallint'
-        else
-          'integer'
-        end
-      end
-      
-      
-      # CONNECTION MANAGEMENT ====================================#
-
-      # Returns true if the connection is active.
-      def active?
-        @connection.execute("SELECT 1").finish
-        true
-      rescue DBI::DatabaseError, DBI::InterfaceError
-        false
-      end
-
-      # Reconnects to the database, returns false if no connection could be made.
-      def reconnect!
-        disconnect!
-        @connection = DBI.connect(*@connection_options)
-      rescue DBI::DatabaseError => e
-        @logger.warn "#{adapter_name} reconnection failed: #{e.message}" if @logger
-        false
-      end
-
-      # Disconnects from the database
-      def disconnect!
-        @connection.disconnect rescue nil
-      end
-
       def select_rows(sql, name = nil)
         rows = []
         repair_special_columns(sql)
@@ -451,83 +403,7 @@ module ActiveRecord
         end
         rows
       end
-
-      def columns(table_name, name = nil)
-        return [] if table_name.blank?
-        table_names = table_name.to_s.split('.')
-        table_name = table_names[-1]
-        table_name = table_name.gsub(/[\[\]]/, '')
-        db_name = "#{table_names[0]}." if table_names.length==3
-
-        # COL_LENGTH returns values that do not reflect how much data can be stored in certain data types.
-        # COL_LENGTH returns -1 for varchar(max), nvarchar(max), and varbinary(max)
-        # COL_LENGTH returns 16 for ntext, text, image types
-        # My sessions.data column was varchar(max) and resulted in the following error:
-        # Your session data is larger than the data column in which it is to be stored. You must increase the size of your data column if you intend to store large data.
-        sql = %{
-          SELECT
-          columns.COLUMN_NAME as name,
-          columns.DATA_TYPE as type,
-          CASE
-            WHEN columns.COLUMN_DEFAULT = '(null)' OR columns.COLUMN_DEFAULT = '(NULL)' THEN NULL
-            ELSE columns.COLUMN_DEFAULT
-          END default_value,
-          columns.NUMERIC_SCALE as numeric_scale,
-          columns.NUMERIC_PRECISION as numeric_precision,
-          CASE
-            WHEN columns.DATA_TYPE IN ('nvarchar') AND COL_LENGTH(columns.TABLE_NAME, columns.COLUMN_NAME) = -1 THEN 1073741823
-            WHEN columns.DATA_TYPE IN ('varchar', 'varbinary') AND COL_LENGTH(columns.TABLE_NAME, columns.COLUMN_NAME) = -1 THEN 2147483647
-            WHEN columns.DATA_TYPE IN ('ntext') AND COL_LENGTH(columns.TABLE_NAME, columns.COLUMN_NAME) = 16 THEN 1073741823
-            WHEN columns.DATA_TYPE IN ('text', 'image') AND COL_LENGTH(columns.TABLE_NAME, columns.COLUMN_NAME) = 16 THEN 2147483647
-            ELSE COL_LENGTH(columns.TABLE_NAME, columns.COLUMN_NAME) 
-          END as length,
-          CASE
-            WHEN columns.IS_NULLABLE = 'YES' THEN 1
-            ELSE NULL
-          end is_nullable,
-          CASE
-            WHEN COLUMNPROPERTY(OBJECT_ID(columns.TABLE_NAME), columns.COLUMN_NAME, 'IsIdentity') = 0 THEN NULL
-            ELSE 1
-          END is_identity
-          FROM #{db_name}INFORMATION_SCHEMA.COLUMNS columns
-          WHERE columns.TABLE_NAME = '#{table_name}'
-          ORDER BY columns.ordinal_position
-        }.gsub(/[ \t\r\n]+/,' ')
-        result = select(sql, name, true)
-        result.collect do |column_info|
-          # Remove brackets and outer quotes (if quoted) of default value returned by db, i.e:
-          #   "(1)" => "1", "('1')" => "1", "((-1))" => "-1", "('(-1)')" => "(-1)"
-          #   Unicode strings will be prefixed with an N. Remove that too.
-          column_info.symbolize_keys!
-          column_info[:default_value] = column_info[:default_value].match(/\A\(+N?'?(.*?)'?\)+\Z/)[1] if column_info[:default_value]
-          SQLServerColumn.new(column_info)
-        end
-      end
-
-      def empty_insert_statement(table_name)
-        "INSERT INTO #{table_name} DEFAULT VALUES"
-      end
-
-      def insert_sql(sql, name = nil, pk = nil, id_value = nil, sequence_name = nil)
-        set_utf8_values!(sql)
-        super || select_value("SELECT SCOPE_IDENTITY() AS Ident")
-      end
-
-      def update_sql(sql, name = nil)
-        set_utf8_values!(sql)
-        auto_commiting = @connection["AutoCommit"]
-        begin
-          begin_db_transaction if auto_commiting
-          execute(sql, name)
-          affected_rows = select_value("SELECT @@ROWCOUNT AS AffectedRows")
-          commit_db_transaction if auto_commiting
-          affected_rows
-        rescue
-          rollback_db_transaction if auto_commiting
-          raise
-        end
-      end
-
+      
       def execute(sql, name = nil)
         if sql =~ /^\s*INSERT/i && (table_name = query_requires_identity_insert?(sql))
           log(sql, name) do
@@ -545,28 +421,25 @@ module ActiveRecord
           end
         end
       end
-
+      
       def begin_db_transaction
         @connection["AutoCommit"] = false
       rescue Exception => e
         @connection["AutoCommit"] = true
       end
-
+      
       def commit_db_transaction
         @connection.commit
       ensure
         @connection["AutoCommit"] = true
       end
-
+      
       def rollback_db_transaction
         @connection.rollback
       ensure
         @connection["AutoCommit"] = true
       end
       
-
-
-
       def add_limit_offset!(sql, options)
         if options[:offset]
           raise ArgumentError, "offset should have a limit" unless options[:limit]
@@ -628,7 +501,210 @@ module ActiveRecord
             "SELECT#{$1} TOP #{options[:limit]}"
           end unless options[:limit].nil? || options[:limit] < 1
         end
-      end #add_limit_offset!(sql, options)
+      end
+      
+      # Appends a locking clause to an SQL statement.
+      # This method *modifies* the +sql+ parameter.
+      #   # SELECT * FROM suppliers FOR UPDATE
+      #   add_lock! 'SELECT * FROM suppliers', :lock => true
+      #   add_lock! 'SELECT * FROM suppliers', :lock => ' WITH(HOLDLOCK, ROWLOCK)'
+      # http://blog.sqlauthority.com/2007/04/27/sql-server-2005-locking-hints-and-examples/
+      def add_lock!(sql, options)
+        case lock = options[:lock]
+        when true then sql << "WITH(HOLDLOCK, ROWLOCK) "
+        when String then sql << "#{lock} "
+        end
+      end
+      
+      def empty_insert_statement(table_name)
+        "INSERT INTO #{table_name} DEFAULT VALUES"
+      end
+      
+      def select(sql, name = nil, ignore_special_columns = false)
+        repair_special_columns(sql) unless ignore_special_columns
+        result = []
+        execute(sql) do |handle|
+          handle.each do |row|
+            row_hash = {}
+            row.each_with_index do |value, i|
+              if value.is_a? DBI::Timestamp
+                value = DateTime.new(value.year, value.month, value.day, value.hour, value.minute, value.sec)
+              end
+              row_hash[handle.column_names[i]] = value
+            end
+            result << row_hash
+          end
+        end
+        result
+      end
+      
+      def insert_sql(sql, name = nil, pk = nil, id_value = nil, sequence_name = nil)
+        set_utf8_values!(sql)
+        super || select_value("SELECT SCOPE_IDENTITY() AS Ident")
+      end
+      
+      def update_sql(sql, name = nil)
+        set_utf8_values!(sql)
+        auto_commiting = @connection["AutoCommit"]
+        begin
+          begin_db_transaction if auto_commiting
+          execute(sql, name)
+          affected_rows = select_value("SELECT @@ROWCOUNT AS AffectedRows")
+          commit_db_transaction if auto_commiting
+          affected_rows
+        rescue
+          rollback_db_transaction if auto_commiting
+          raise
+        end
+      end
+      
+      
+      # SCHEMA STATEMENTS ========================================#
+      
+      def tables(name = nil)
+        execute("SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE'", name) do |sth|
+          result = sth.inject([]) do |tables, field|
+            table_name = field[0]
+            tables << table_name unless table_name == 'dtproperties'
+            tables
+          end
+        end
+      end
+      
+      def table_exists?(table_name)
+        #If the table is external, see if it has columns
+        super(table_name) || (columns(table_name).size>0)
+      end
+      
+      def columns(table_name, name = nil)
+        return [] if table_name.blank?
+        table_names = table_name.to_s.split('.')
+        table_name = table_names[-1]
+        table_name = table_name.gsub(/[\[\]]/, '')
+        db_name = "#{table_names[0]}." if table_names.length==3
+
+        # COL_LENGTH returns values that do not reflect how much data can be stored in certain data types.
+        # COL_LENGTH returns -1 for varchar(max), nvarchar(max), and varbinary(max)
+        # COL_LENGTH returns 16 for ntext, text, image types
+        # My sessions.data column was varchar(max) and resulted in the following error:
+        # Your session data is larger than the data column in which it is to be stored. You must increase the size of your data column if you intend to store large data.
+        sql = %{
+          SELECT
+          columns.COLUMN_NAME as name,
+          columns.DATA_TYPE as type,
+          CASE
+            WHEN columns.COLUMN_DEFAULT = '(null)' OR columns.COLUMN_DEFAULT = '(NULL)' THEN NULL
+            ELSE columns.COLUMN_DEFAULT
+          END default_value,
+          columns.NUMERIC_SCALE as numeric_scale,
+          columns.NUMERIC_PRECISION as numeric_precision,
+          CASE
+            WHEN columns.DATA_TYPE IN ('nvarchar') AND COL_LENGTH(columns.TABLE_NAME, columns.COLUMN_NAME) = -1 THEN 1073741823
+            WHEN columns.DATA_TYPE IN ('varchar', 'varbinary') AND COL_LENGTH(columns.TABLE_NAME, columns.COLUMN_NAME) = -1 THEN 2147483647
+            WHEN columns.DATA_TYPE IN ('ntext') AND COL_LENGTH(columns.TABLE_NAME, columns.COLUMN_NAME) = 16 THEN 1073741823
+            WHEN columns.DATA_TYPE IN ('text', 'image') AND COL_LENGTH(columns.TABLE_NAME, columns.COLUMN_NAME) = 16 THEN 2147483647
+            ELSE COL_LENGTH(columns.TABLE_NAME, columns.COLUMN_NAME) 
+          END as length,
+          CASE
+            WHEN columns.IS_NULLABLE = 'YES' THEN 1
+            ELSE NULL
+          end is_nullable,
+          CASE
+            WHEN COLUMNPROPERTY(OBJECT_ID(columns.TABLE_NAME), columns.COLUMN_NAME, 'IsIdentity') = 0 THEN NULL
+            ELSE 1
+          END is_identity
+          FROM #{db_name}INFORMATION_SCHEMA.COLUMNS columns
+          WHERE columns.TABLE_NAME = '#{table_name}'
+          ORDER BY columns.ordinal_position
+        }.gsub(/[ \t\r\n]+/,' ')
+        result = select(sql, name, true)
+        result.collect do |column_info|
+          # Remove brackets and outer quotes (if quoted) of default value returned by db, i.e:
+          #   "(1)" => "1", "('1')" => "1", "((-1))" => "-1", "('(-1)')" => "(-1)"
+          #   Unicode strings will be prefixed with an N. Remove that too.
+          column_info.symbolize_keys!
+          column_info[:default_value] = column_info[:default_value].match(/\A\(+N?'?(.*?)'?\)+\Z/)[1] if column_info[:default_value]
+          SQLServerColumn.new(column_info)
+        end
+      end
+      
+      def rename_table(name, new_name)
+        execute "EXEC sp_rename '#{name}', '#{new_name}'"
+      end
+      
+      def add_column(table_name, column_name, type, options = {})
+        add_column_sql = "ALTER TABLE #{table_name} ADD #{quote_column_name(column_name)} #{type_to_sql(type, options[:limit], options[:precision], options[:scale])}"
+        add_column_options!(add_column_sql, options)
+        # TODO: Add support to mimic date columns, using constraints to mark them as such in the database
+        # add_column_sql << " CONSTRAINT ck__#{table_name}__#{column_name}__date_only CHECK ( CONVERT(CHAR(12), #{quote_column_name(column_name)}, 14)='00:00:00:000' )" if type == :date
+        execute(add_column_sql)
+      end
+      
+      def remove_column(table_name, column_name)
+        remove_check_constraints(table_name, column_name)
+        remove_default_constraint(table_name, column_name)
+        remove_indexes(table_name, column_name)
+        execute "ALTER TABLE [#{table_name}] DROP COLUMN #{quote_column_name(column_name)}"
+      end
+      
+      def change_column(table_name, column_name, type, options = {}) #:nodoc:
+        sql = "ALTER TABLE #{table_name} ALTER COLUMN #{quote_column_name(column_name)} #{type_to_sql(type, options[:limit], options[:precision], options[:scale])}"
+        sql << " NOT NULL" if options[:null] == false
+        sql_commands = [sql]
+        if options_include_default?(options)
+          remove_default_constraint(table_name, column_name)
+          sql_commands << "ALTER TABLE #{table_name} ADD CONSTRAINT DF_#{table_name}_#{column_name} DEFAULT #{quote(options[:default], options[:column])} FOR #{quote_column_name(column_name)}"
+        end
+        sql_commands.each {|c|
+          execute(c)
+        }
+      end
+      
+      def change_column_default(table_name, column_name, default)
+        remove_default_constraint(table_name, column_name)
+        execute "ALTER TABLE #{table_name} ADD CONSTRAINT DF_#{table_name}_#{column_name} DEFAULT #{quote(default, column_name)} FOR #{quote_column_name(column_name)}"
+      end
+      
+      def rename_column(table_name, column_name, new_column_name)
+        if columns(table_name).find{|c| c.name.to_s == column_name.to_s}
+          execute "EXEC sp_rename '#{table_name}.#{column_name}', '#{new_column_name}'"
+        else
+          raise ActiveRecordError, "No such column: #{table_name}.#{column_name}"
+        end
+      end
+      
+      def remove_indexes(table_name, column_name)
+        __indexes(table_name).select {|idx| idx.columns.include? column_name }.each do |idx|
+          remove_index(table_name, {:name => idx.name})
+        end
+      end
+
+      def remove_index(table_name, options = {})
+        execute "DROP INDEX #{table_name}.#{quote_column_name(index_name(table_name, options))}"
+      end
+
+      def indexes(table_name, name = nil)
+        ActiveRecord::Base.connection.instance_variable_get("@connection")["AutoCommit"] = false
+        __indexes(table_name, name)
+      ensure
+        ActiveRecord::Base.connection.instance_variable_get("@connection")["AutoCommit"] = true
+      end
+      
+      def __indexes(table_name, name = nil)
+        indexes = []
+        execute("EXEC sp_helpindex '#{table_name}'", name) do |handle|
+          if handle.column_info.any?
+            handle.each do |index|
+              unique = index[1] =~ /unique/
+              primary = index[1] =~ /primary key/
+              if !primary
+                indexes << IndexDefinition.new(table_name, index[0], unique, index[2].split(", ").map {|e| e.gsub('(-)','')})
+              end
+            end
+          end
+        end
+        indexes
+      end
 
       def add_order_by_for_association_limiting!(sql, options)
         return sql if options[:order].blank?
@@ -653,42 +729,113 @@ module ActiveRecord
         sql.gsub!(/(.+?) FROM/, "\\1, #{fields.join(',')} FROM")
         sql << " ORDER BY #{order.join(',')}"
       end
+      
+      def type_to_sql(type, limit = nil, precision = nil, scale = nil) #:nodoc:
+        # Remove limit for data types which do not require it
+        # Valid:   ALTER TABLE sessions ALTER COLUMN [data] varchar(max)
+        # Invalid: ALTER TABLE sessions ALTER COLUMN [data] varchar(max)(16777215)
+        limit = nil if %w{text varchar(max) nvarchar(max) ntext varbinary(max) image}.include?(native_database_types[type.to_sym][:name])
 
-      # Appends a locking clause to an SQL statement.
-      # This method *modifies* the +sql+ parameter.
-      #   # SELECT * FROM suppliers FOR UPDATE
-      #   add_lock! 'SELECT * FROM suppliers', :lock => true
-      #   add_lock! 'SELECT * FROM suppliers', :lock => ' WITH(HOLDLOCK, ROWLOCK)'
-      # http://blog.sqlauthority.com/2007/04/27/sql-server-2005-locking-hints-and-examples/
-      def add_lock!(sql, options)
-        case lock = options[:lock]
-        when true then sql << "WITH(HOLDLOCK, ROWLOCK) "
-        when String then sql << "#{lock} "
+        return super unless type.to_s == 'integer'
+
+        if limit.nil?
+          'integer'
+        elsif limit > 4
+          'bigint'
+        elsif limit < 3
+          'smallint'
+        else
+          'integer'
+        end
+      end
+      
+      # Clear the given table and reset the table's id to 1
+      # Argument:
+      # +table_name+:: (String) Name of the table to be cleared and reset
+      def truncate(table_name)
+        execute("TRUNCATE TABLE #{table_name}; DBCC CHECKIDENT ('#{table_name}', RESEED, 1)")
+      end
+      
+      def change_column_null(table_name, column_name, null, default = nil)
+        column = columns(table_name).find { |c| c.name == column_name.to_s }
+
+        unless null || default.nil?
+          execute("UPDATE #{quote_table_name(table_name)} SET #{quote_column_name(column_name)}=#{quote(default)} WHERE #{quote_column_name(column_name)} IS NULL")
+        end
+
+        # TODO - work out what the reason is for column.sql_type != type_to_sql(column.type, column.limit, column.precision, column.scale)
+        sql = "ALTER TABLE #{table_name} ALTER COLUMN #{quote_column_name(column_name)} #{type_to_sql column.type, column.limit, column.precision, column.scale}"
+        sql << " NOT NULL" unless null
+        execute sql
+      end
+      
+      # Returns a table's primary key and belonging sequence (not applicable to SQL server).
+      def pk_and_sequence_for(table_name)
+        @connection["AutoCommit"] = false
+        keys = []
+        execute("EXEC sp_helpindex '#{table_name}'") do |handle|
+          if handle.column_info.any?
+            pk_index = handle.detect {|index| index[1] =~ /primary key/ }
+            keys << pk_index[2] if pk_index
+          end
+        end
+        keys.length == 1 ? [keys.first, nil] : nil
+      ensure
+        @connection["AutoCommit"] = true
+      end
+      
+      def remove_default_constraint(table_name, column_name)
+        constraints = select "SELECT def.name FROM sysobjects def, syscolumns col, sysobjects tab WHERE col.cdefault = def.id AND col.name = '#{column_name}' AND tab.name = '#{table_name}' AND col.id = tab.id"
+
+        constraints.each do |constraint|
+          execute "ALTER TABLE #{table_name} DROP CONSTRAINT #{constraint["name"]}"
         end
       end
 
+      def remove_check_constraints(table_name, column_name)
+        # TODO remove all constraints in single method
+        constraints = select "SELECT CONSTRAINT_NAME FROM INFORMATION_SCHEMA.CONSTRAINT_COLUMN_USAGE where TABLE_NAME = '#{table_name}' and COLUMN_NAME = '#{column_name}'"
+        constraints.each do |constraint|
+          execute "ALTER TABLE #{table_name} DROP CONSTRAINT #{constraint["CONSTRAINT_NAME"]}"
+        end
+      end
+      
+      
+      # CONNECTION MANAGEMENT ====================================#
+      
+      def active?
+        @connection.execute("SELECT 1").finish
+        true
+      rescue DBI::DatabaseError, DBI::InterfaceError
+        false
+      end
+
+      def reconnect!
+        disconnect!
+        @connection = DBI.connect(*@connection_options)
+      rescue DBI::DatabaseError => e
+        @logger.warn "#{adapter_name} reconnection failed: #{e.message}" if @logger
+        false
+      end
+
+      def disconnect!
+        @connection.disconnect rescue nil
+      end
+      
+
+      # RAKE UTILITY METHODS =====================================#
+
       def recreate_database(name)
-        # Switch to another database or we'll receive a "Database in use" error message.
         existing_database = current_database.to_s
         if name.to_s == existing_database
-          # The master database should be available on all SQL Server instances, use that
           execute 'USE master' 
         end
-
-        # Recreate the database
         drop_database(name)
         create_database(name)
-
-        # Switch back to the database if we switched away from it above
+      ensure
         execute "USE #{existing_database}" if name.to_s == existing_database 
       end
 
-      def remove_database_connections_and_rollback(name)
-        # This should disconnect all other users and rollback any transactions for SQL 2000 and 2005
-        # http://sqlserver2000.databases.aspfaq.com/how-do-i-drop-a-sql-server-database.html
-        execute "ALTER DATABASE #{name} SET SINGLE_USER WITH ROLLBACK IMMEDIATE"
-      end
-      
       def drop_database(name)
         retry_count = 0
         max_retries = 1
@@ -708,141 +855,20 @@ module ActiveRecord
         end
       end
 
-      # Clear the given table and reset the table's id to 1
-      # Argument:
-      # +table_name+:: (String) Name of the table to be cleared and reset
-      def truncate(table_name)
-        execute("TRUNCATE TABLE #{table_name}; DBCC CHECKIDENT ('#{table_name}', RESEED, 1)")
-      end #truncate
-
       def create_database(name)
         execute "CREATE DATABASE #{name}"
       end
-
+      
       def current_database
         @connection.select_one("SELECT DB_NAME()")[0]
       end
 
-      def tables(name = nil)
-        execute("SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE'", name) do |sth|
-          result = sth.inject([]) do |tables, field|
-            table_name = field[0]
-            tables << table_name unless table_name == 'dtproperties'
-            tables
-          end
-        end
+      def remove_database_connections_and_rollback(name)
+        # This should disconnect all other users and rollback any transactions for SQL 2000 and 2005
+        # http://sqlserver2000.databases.aspfaq.com/how-do-i-drop-a-sql-server-database.html
+        execute "ALTER DATABASE #{name} SET SINGLE_USER WITH ROLLBACK IMMEDIATE"
       end
-
-      def table_exists?(table_name)
-        #If the table is external, see if it has columns
-        super(table_name) || (columns(table_name).size>0)
-      end
-
-      def indexes(table_name, name = nil)
-        ActiveRecord::Base.connection.instance_variable_get("@connection")["AutoCommit"] = false
-        __indexes(table_name, name)
-      ensure
-        ActiveRecord::Base.connection.instance_variable_get("@connection")["AutoCommit"] = true
-      end
-
-      def rename_table(name, new_name)
-        execute "EXEC sp_rename '#{name}', '#{new_name}'"
-      end
-
-      def add_column(table_name, column_name, type, options = {})
-        add_column_sql = "ALTER TABLE #{table_name} ADD #{quote_column_name(column_name)} #{type_to_sql(type, options[:limit], options[:precision], options[:scale])}"
-        add_column_options!(add_column_sql, options)
-        # TODO: Add support to mimic date columns, using constraints to mark them as such in the database
-        # add_column_sql << " CONSTRAINT ck__#{table_name}__#{column_name}__date_only CHECK ( CONVERT(CHAR(12), #{quote_column_name(column_name)}, 14)='00:00:00:000' )" if type == :date
-        execute(add_column_sql)
-      end
-
-      def rename_column(table_name, column_name, new_column_name)
-        if columns(table_name).find{|c| c.name.to_s == column_name.to_s}
-          execute "EXEC sp_rename '#{table_name}.#{column_name}', '#{new_column_name}'"
-        else
-          raise ActiveRecordError, "No such column: #{table_name}.#{column_name}"
-        end
-      end
-
-      def change_column(table_name, column_name, type, options = {}) #:nodoc:
-        sql = "ALTER TABLE #{table_name} ALTER COLUMN #{quote_column_name(column_name)} #{type_to_sql(type, options[:limit], options[:precision], options[:scale])}"
-        sql << " NOT NULL" if options[:null] == false
-        sql_commands = [sql]
-        if options_include_default?(options)
-          remove_default_constraint(table_name, column_name)
-          sql_commands << "ALTER TABLE #{table_name} ADD CONSTRAINT DF_#{table_name}_#{column_name} DEFAULT #{quote(options[:default], options[:column])} FOR #{quote_column_name(column_name)}"
-        end
-        sql_commands.each {|c|
-          execute(c)
-        }
-      end
-
-      def change_column_default(table_name, column_name, default)
-        remove_default_constraint(table_name, column_name)
-        execute "ALTER TABLE #{table_name} ADD CONSTRAINT DF_#{table_name}_#{column_name} DEFAULT #{quote(default, column_name)} FOR #{quote_column_name(column_name)}"
-      end
-
-      def change_column_null(table_name, column_name, null, default = nil)
-        column = columns(table_name).find { |c| c.name == column_name.to_s }
-
-        unless null || default.nil?
-          execute("UPDATE #{quote_table_name(table_name)} SET #{quote_column_name(column_name)}=#{quote(default)} WHERE #{quote_column_name(column_name)} IS NULL")
-        end
-
-        # TODO - work out what the reason is for column.sql_type != type_to_sql(column.type, column.limit, column.precision, column.scale)
-        sql = "ALTER TABLE #{table_name} ALTER COLUMN #{quote_column_name(column_name)} #{type_to_sql column.type, column.limit, column.precision, column.scale}"
-        sql << " NOT NULL" unless null
-        execute sql
-      end
-
-      def remove_column(table_name, column_name)
-        remove_check_constraints(table_name, column_name)
-        remove_default_constraint(table_name, column_name)
-        remove_indexes(table_name, column_name)
-        execute "ALTER TABLE [#{table_name}] DROP COLUMN #{quote_column_name(column_name)}"
-      end
-
-      def remove_default_constraint(table_name, column_name)
-        constraints = select "SELECT def.name FROM sysobjects def, syscolumns col, sysobjects tab WHERE col.cdefault = def.id AND col.name = '#{column_name}' AND tab.name = '#{table_name}' AND col.id = tab.id"
-
-        constraints.each do |constraint|
-          execute "ALTER TABLE #{table_name} DROP CONSTRAINT #{constraint["name"]}"
-        end
-      end
-
-      def remove_check_constraints(table_name, column_name)
-        # TODO remove all constraints in single method
-        constraints = select "SELECT CONSTRAINT_NAME FROM INFORMATION_SCHEMA.CONSTRAINT_COLUMN_USAGE where TABLE_NAME = '#{table_name}' and COLUMN_NAME = '#{column_name}'"
-        constraints.each do |constraint|
-          execute "ALTER TABLE #{table_name} DROP CONSTRAINT #{constraint["CONSTRAINT_NAME"]}"
-        end
-      end
-
-      def remove_indexes(table_name, column_name)
-        __indexes(table_name).select {|idx| idx.columns.include? column_name }.each do |idx|
-          remove_index(table_name, {:name => idx.name})
-        end
-      end
-
-      def remove_index(table_name, options = {})
-        execute "DROP INDEX #{table_name}.#{quote_column_name(index_name(table_name, options))}"
-      end
-
-      # Returns a table's primary key and belonging sequence (not applicable to SQL server).
-      def pk_and_sequence_for(table_name)
-        @connection["AutoCommit"] = false
-        keys = []
-        execute("EXEC sp_helpindex '#{table_name}'") do |handle|
-          if handle.column_info.any?
-            pk_index = handle.detect {|index| index[1] =~ /primary key/ }
-            keys << pk_index[2] if pk_index
-          end
-        end
-        keys.length == 1 ? [keys.first, nil] : nil
-      ensure
-        @connection["AutoCommit"] = true
-      end
+      
       
       
       private
@@ -889,41 +915,7 @@ module ActiveRecord
         end
       end
       
-      
-      
-      def __indexes(table_name, name = nil)
-        indexes = []
-        execute("EXEC sp_helpindex '#{table_name}'", name) do |handle|
-          if handle.column_info.any?
-            handle.each do |index|
-              unique = index[1] =~ /unique/
-              primary = index[1] =~ /primary key/
-              if !primary
-                indexes << IndexDefinition.new(table_name, index[0], unique, index[2].split(", ").map {|e| e.gsub('(-)','')})
-              end
-            end
-          end
-        end
-        indexes
-      end
 
-      def select(sql, name = nil, ignore_special_columns = false)
-        repair_special_columns(sql) unless ignore_special_columns
-        result = []
-        execute(sql) do |handle|
-          handle.each do |row|
-            row_hash = {}
-            row.each_with_index do |value, i|
-              if value.is_a? DBI::Timestamp
-                value = DateTime.new(value.year, value.month, value.day, value.hour, value.minute, value.sec)
-              end
-              row_hash[handle.column_names[i]] = value
-            end
-            result << row_hash
-          end
-        end
-        result
-      end
             
       def change_order_direction(order)
         order.split(",").collect {|fragment|
