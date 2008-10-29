@@ -7,9 +7,7 @@ module ActiveRecord
     
     def self.sqlserver_connection(config) #:nodoc:
       require_library_or_gem 'dbi' unless self.class.const_defined?(:DBI)
-
       config = config.symbolize_keys
-
       mode        = config[:mode] ? config[:mode].to_s.upcase : 'ADO'
       username    = config[:username] ? config[:username].to_s : 'sa'
       password    = config[:password] ? config[:password].to_s : ''
@@ -107,44 +105,23 @@ module ActiveRecord
     
     class SQLServerColumn < Column #:nodoc:
       
-      attr_reader :identity, :is_special, :is_utf8
-      
-      def initialize(info)
-        if info[:type] =~ /numeric|decimal/i
-          type = "#{info[:type]}(#{info[:numeric_precision]},#{info[:numeric_scale]})"
-        else
-          type = "#{info[:type]}(#{info[:length]})"
-        end
-        super(info[:name], info[:default_value], type, info[:is_nullable] == 1)
-        @identity = info[:is_identity]
-        # TODO: Not sure if these should also be special: varbinary(max), nchar, nvarchar(max) 
-        @is_special = ["text", "ntext", "image"].include?(info[:type])
-        # Added nchar and nvarchar(max) for unicode types
-        #  http://www.teratrax.com/sql_guide/data_types/sql_server_data_types.html
-        @is_utf8 = type =~ /nvarchar|ntext|nchar|nvarchar(max)/i
-        # TODO: check ok to remove @scale = scale_value
-        @limit = nil unless limitable?(type)
+      def initialize(name, default, sql_type = nil, null = true, sqlserver_options = {})
+        super(name, default, sql_type, null)
+        @sqlserver_options = sqlserver_options
+        @limit = nil unless limitable?
       end
       
-      def identity?
-        @identity
+      def is_identity?
+        @sqlserver_options[:is_identity]
       end
       
-      def limitable?(type)
-        # SQL Server only supports limits on *char and float types
-        # although for schema dumping purposes it's useful to know that (big|small)int are 2|8 respectively.
-        @type == :float || @type == :string || (@type == :integer && type =~ /^(big|small)int/)
+      def is_special?
+        # TODO: Not sure if these should be added: varbinary(max), nchar, nvarchar(max)
+        sql_type =~ /^text|ntext|image$/
       end
-
-      def simplified_type(field_type)
-        case field_type
-          when /real/i              then :float
-          when /money/i             then :decimal
-          when /image/i             then :binary
-          when /bit/i               then :boolean
-          when /uniqueidentifier/i  then :string
-          else super
-        end
+      
+      def is_utf8?
+        sql_type =~ /nvarchar|ntext|nchar|nvarchar(max)/i
       end
 
       def type_cast(value)
@@ -167,7 +144,6 @@ module ActiveRecord
         else super
         end
       end
-      
       
       class << self
         
@@ -216,6 +192,25 @@ module ActiveRecord
         end
         
       end #class << self
+      
+      private
+      
+      def limitable?
+        # SQL Server only supports limits on *char and float types. Although for schema dumping purposes 
+        # it is useful to know what others are like bigint and smallint. So we trump #extract_limit.
+        [:float,:string].include?(type) || (type == :integer && sql_type =~ /^(big|small)int/i)
+      end
+      
+      def simplified_type(field_type)
+        case field_type
+          when /real/i              then :float
+          when /money/i             then :decimal
+          when /image/i             then :binary
+          when /bit/i               then :boolean
+          when /uniqueidentifier/i  then :string
+          else super
+        end
+      end
       
     end #SQLServerColumn
     
@@ -582,51 +577,13 @@ module ActiveRecord
         table_name = table_names[-1]
         table_name = table_name.gsub(/[\[\]]/, '')
         db_name = "#{table_names[0]}." if table_names.length==3
-
-        # COL_LENGTH returns values that do not reflect how much data can be stored in certain data types.
-        # COL_LENGTH returns -1 for varchar(max), nvarchar(max), and varbinary(max)
-        # COL_LENGTH returns 16 for ntext, text, image types
-        # My sessions.data column was varchar(max) and resulted in the following error:
-        # Your session data is larger than the data column in which it is to be stored. You must increase the size of your data column if you intend to store large data.
-        sql = %{
-          SELECT
-          columns.COLUMN_NAME as name,
-          columns.DATA_TYPE as type,
-          CASE
-            WHEN columns.COLUMN_DEFAULT = '(null)' OR columns.COLUMN_DEFAULT = '(NULL)' THEN NULL
-            ELSE columns.COLUMN_DEFAULT
-          END default_value,
-          columns.NUMERIC_SCALE as numeric_scale,
-          columns.NUMERIC_PRECISION as numeric_precision,
-          CASE
-            WHEN columns.DATA_TYPE IN ('nvarchar') AND COL_LENGTH(columns.TABLE_NAME, columns.COLUMN_NAME) = -1 THEN 1073741823
-            WHEN columns.DATA_TYPE IN ('varchar', 'varbinary') AND COL_LENGTH(columns.TABLE_NAME, columns.COLUMN_NAME) = -1 THEN 2147483647
-            WHEN columns.DATA_TYPE IN ('ntext') AND COL_LENGTH(columns.TABLE_NAME, columns.COLUMN_NAME) = 16 THEN 1073741823
-            WHEN columns.DATA_TYPE IN ('text', 'image') AND COL_LENGTH(columns.TABLE_NAME, columns.COLUMN_NAME) = 16 THEN 2147483647
-            ELSE COL_LENGTH(columns.TABLE_NAME, columns.COLUMN_NAME) 
-          END as length,
-          CASE
-            WHEN columns.IS_NULLABLE = 'YES' THEN 1
-            ELSE NULL
-          end is_nullable,
-          CASE
-            WHEN COLUMNPROPERTY(OBJECT_ID(columns.TABLE_NAME), columns.COLUMN_NAME, 'IsIdentity') = 0 THEN NULL
-            ELSE 1
-          END is_identity
-          FROM #{db_name}INFORMATION_SCHEMA.COLUMNS columns
-          WHERE columns.TABLE_NAME = '#{table_name}'
-          ORDER BY columns.ordinal_position
-        }.gsub(/[ \t\r\n]+/,' ')
-        result = select(sql, name, true)
-        result.collect do |column_info|
-          # Remove brackets and outer quotes (if quoted) of default value returned by db, i.e:
-          #   "(1)" => "1", "('1')" => "1", "((-1))" => "-1", "('(-1)')" => "(-1)"
-          #   Unicode strings will be prefixed with an N. Remove that too.
-          column_info.symbolize_keys!
-          column_info[:default_value] = column_info[:default_value].match(/\A\(+N?'?(.*?)'?\)+\Z/)[1] if column_info[:default_value]
-          SQLServerColumn.new(column_info)
+        column_definitions(table_name,db_name).collect do |ci|
+          sqlserver_options = ci.except(:name,:default_value,:type,:null)
+          SQLServerColumn.new ci[:name], ci[:default_value], ci[:type], ci[:null], sqlserver_options
         end
       end
+      
+
       
       def rename_table(name, new_name)
         execute "EXEC sp_rename '#{name}', '#{new_name}'"
@@ -898,12 +855,59 @@ module ActiveRecord
         @table_columns ||= {}
         @table_columns[table_name] = columns(table_name) if @table_columns[table_name] == nil
         @table_columns[table_name].each do |col|
-          return col.name if col.identity?
+          return col.name if col.is_identity?
         end
         return nil
       end
       
       # SQL UTILITY METHODS ======================================#
+      
+      def column_definitions(table_name, db_name = nil)
+        # COL_LENGTH returns values that do not reflect how much data can be stored in certain data types.
+        # COL_LENGTH returns -1 for varchar(max), nvarchar(max), and varbinary(max)
+        # COL_LENGTH returns 16 for ntext, text, image types
+        sql = %{
+          SELECT
+          columns.COLUMN_NAME as name,
+          columns.DATA_TYPE as type,
+          CASE
+            WHEN columns.COLUMN_DEFAULT = '(null)' OR columns.COLUMN_DEFAULT = '(NULL)' THEN NULL
+            ELSE columns.COLUMN_DEFAULT
+          END as default_value,
+          columns.NUMERIC_SCALE as numeric_scale,
+          columns.NUMERIC_PRECISION as numeric_precision,
+          CASE
+            WHEN columns.DATA_TYPE IN ('nvarchar') AND COL_LENGTH(columns.TABLE_NAME, columns.COLUMN_NAME) = -1 THEN 1073741823
+            WHEN columns.DATA_TYPE IN ('varchar', 'varbinary') AND COL_LENGTH(columns.TABLE_NAME, columns.COLUMN_NAME) = -1 THEN 2147483647
+            WHEN columns.DATA_TYPE IN ('ntext') AND COL_LENGTH(columns.TABLE_NAME, columns.COLUMN_NAME) = 16 THEN 1073741823
+            WHEN columns.DATA_TYPE IN ('text', 'image') AND COL_LENGTH(columns.TABLE_NAME, columns.COLUMN_NAME) = 16 THEN 2147483647
+            ELSE COL_LENGTH(columns.TABLE_NAME, columns.COLUMN_NAME) 
+          END as length,
+          CASE
+            WHEN columns.IS_NULLABLE = 'YES' THEN 1
+            ELSE NULL
+          end as is_nullable,
+          CASE
+            WHEN COLUMNPROPERTY(OBJECT_ID(columns.TABLE_NAME), columns.COLUMN_NAME, 'IsIdentity') = 0 THEN NULL
+            ELSE 1
+          END as is_identity
+          FROM #{db_name}INFORMATION_SCHEMA.COLUMNS columns
+          WHERE columns.TABLE_NAME = '#{table_name}'
+          ORDER BY columns.ordinal_position
+        }.gsub(/[ \t\r\n]+/,' ')
+        results = select(sql,nil,true)
+        results.collect do |ci|
+          ci.symbolize_keys!
+          ci[:type] = if ci[:type] =~ /numeric|decimal/i
+                        "#{ci[:type]}(#{ci[:numeric_precision]},#{ci[:numeric_scale]})"
+                      else
+                        "#{ci[:type]}(#{ci[:length]})"
+                      end
+          ci[:default_value] = ci[:default_value].match(/\A\(+N?'?(.*?)'?\)+\Z/)[1] if ci[:default_value]
+          ci[:null] = ci[:is_nullable] == 1 ; ci.delete(:is_nullable)
+          ci
+        end
+      end
       
       def get_table_name(sql)
         if sql =~ /^\s*insert\s+into\s+([^\(\s]+)\s*|^\s*update\s+([^\(\s]+)\s*/i
@@ -915,8 +919,10 @@ module ActiveRecord
         end
       end
       
+      
+      
 
-            
+      
       def change_order_direction(order)
         order.split(",").collect {|fragment|
           case fragment
@@ -932,7 +938,7 @@ module ActiveRecord
         @table_columns ||= {}
         @table_columns[table_name] ||= columns(table_name)
         @table_columns[table_name].each do |col|
-          special << col.name if col.is_special
+          special << col.name if col.is_special?
         end
         special
       end
@@ -951,7 +957,7 @@ module ActiveRecord
         @table_columns ||= {}
         @table_columns[table_name] ||= columns(table_name)
         @table_columns[table_name].each do |col|
-          utf8 << col.name if col.is_utf8
+          utf8 << col.name if col.is_utf8?
         end
         utf8
       end
