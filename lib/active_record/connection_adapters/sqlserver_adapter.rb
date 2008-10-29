@@ -27,6 +27,16 @@ module ActiveRecord
       ConnectionAdapters::SQLServerAdapter.new(conn, logger, [driver_url, username, password])
     end
     
+    class << self
+      
+      def reset_column_information_with_sqlserver_columns_cache_support
+        connection.instance_variable_set :@sqlserver_columns_cache, {}
+        reset_column_information_without_sqlserver_columns_cache_support
+      end
+      alias_method_chain :reset_column_information, :sqlserver_columns_cache_support
+      
+    end
+    
     private
     
     # Add basic support for SQL server locking hints
@@ -265,6 +275,7 @@ module ActiveRecord
       def initialize(connection, logger, connection_options=nil)
         super(connection, logger)
         @connection_options = connection_options
+        @sqlserver_columns_cache = {}
         unless SUPPORTED_VERSIONS.include?(database_year)
           raise NotImplementedError, "Currently, only #{SUPPORTED_VERSIONS.to_sentence} are supported."
         end
@@ -573,20 +584,25 @@ module ActiveRecord
       
       def columns(table_name, name = nil)
         return [] if table_name.blank?
-        table_names = table_name.to_s.split('.')
-        table_name = table_names[-1]
-        table_name = table_name.gsub(/[\[\]]/, '')
-        db_name = "#{table_names[0]}." if table_names.length==3
-        column_definitions(table_name,db_name).collect do |ci|
+        cache_key = unqualify_table_name(table_name)
+        @sqlserver_columns_cache[cache_key] ||= column_definitions(table_name).collect do |ci|
           sqlserver_options = ci.except(:name,:default_value,:type,:null)
           SQLServerColumn.new ci[:name], ci[:default_value], ci[:type], ci[:null], sqlserver_options
         end
       end
       
-
+      def create_table(table_name, options = {})
+        super
+        remove_sqlserver_columns_cache_for(table_name)
+      end
       
-      def rename_table(name, new_name)
-        execute "EXEC sp_rename '#{name}', '#{new_name}'"
+      def drop_table(table_name, options = {})
+        super
+        remove_sqlserver_columns_cache_for(table_name)
+      end
+      
+      def rename_table(table_name, new_name)
+        execute "EXEC sp_rename '#{table_name}', '#{new_name}'"
       end
       
       def add_column(table_name, column_name, type, options = {})
@@ -595,6 +611,7 @@ module ActiveRecord
         # TODO: Add support to mimic date columns, using constraints to mark them as such in the database
         # add_column_sql << " CONSTRAINT ck__#{table_name}__#{column_name}__date_only CHECK ( CONVERT(CHAR(12), #{quote_column_name(column_name)}, 14)='00:00:00:000' )" if type == :date
         execute(add_column_sql)
+        remove_sqlserver_columns_cache_for(table_name)
       end
       
       def remove_column(table_name, column_name)
@@ -602,9 +619,10 @@ module ActiveRecord
         remove_default_constraint(table_name, column_name)
         remove_indexes(table_name, column_name)
         execute "ALTER TABLE [#{table_name}] DROP COLUMN #{quote_column_name(column_name)}"
+        remove_sqlserver_columns_cache_for(table_name)
       end
       
-      def change_column(table_name, column_name, type, options = {}) #:nodoc:
+      def change_column(table_name, column_name, type, options = {})
         sql = "ALTER TABLE #{table_name} ALTER COLUMN #{quote_column_name(column_name)} #{type_to_sql(type, options[:limit], options[:precision], options[:scale])}"
         sql << " NOT NULL" if options[:null] == false
         sql_commands = [sql]
@@ -612,9 +630,8 @@ module ActiveRecord
           remove_default_constraint(table_name, column_name)
           sql_commands << "ALTER TABLE #{table_name} ADD CONSTRAINT DF_#{table_name}_#{column_name} DEFAULT #{quote(options[:default], options[:column])} FOR #{quote_column_name(column_name)}"
         end
-        sql_commands.each {|c|
-          execute(c)
-        }
+        sql_commands.each { |c| execute(c) }
+        remove_sqlserver_columns_cache_for(table_name)
       end
       
       def change_column_default(table_name, column_name, default)
@@ -852,17 +869,39 @@ module ActiveRecord
       end
       
       def identity_column(table_name)
-        @table_columns ||= {}
-        @table_columns[table_name] = columns(table_name) if @table_columns[table_name] == nil
-        @table_columns[table_name].each do |col|
-          return col.name if col.is_identity?
-        end
-        return nil
+        idcol = columns(table_name).detect(&:is_identity?)
+        idcol ? idcol.name : nil
       end
       
       # SQL UTILITY METHODS ======================================#
       
-      def column_definitions(table_name, db_name = nil)
+      def unqualify_table_name(table_name)
+        table_name.to_s.split('.').last.gsub(/[\[\]]/,'')
+      end
+      
+      def unqualify_db_name(table_name)
+        table_names = table_name.to_s.split('.')
+        table_names.length == 3 ? table_names.first.gsub(/[\[\]]/,'') : nil
+      end
+      
+      def get_table_name(sql)
+        if sql =~ /^\s*insert\s+into\s+([^\(\s]+)\s*|^\s*update\s+([^\(\s]+)\s*/i
+          $1 || $2
+        elsif sql =~ /from\s+([^\(\s]+)\s*/i
+          $1
+        else
+          nil
+        end
+      end
+      
+      def remove_sqlserver_columns_cache_for(table_name)
+        cache_key = unqualify_table_name(table_name)
+        @sqlserver_columns_cache[cache_key] = nil
+      end
+      
+      def column_definitions(table_name)
+        db_name = unqualify_db_name(table_name)
+        table_name = unqualify_table_name(table_name)
         # COL_LENGTH returns values that do not reflect how much data can be stored in certain data types.
         # COL_LENGTH returns -1 for varchar(max), nvarchar(max), and varbinary(max)
         # COL_LENGTH returns 16 for ntext, text, image types
@@ -909,19 +948,8 @@ module ActiveRecord
         end
       end
       
-      def get_table_name(sql)
-        if sql =~ /^\s*insert\s+into\s+([^\(\s]+)\s*|^\s*update\s+([^\(\s]+)\s*/i
-          $1 || $2
-        elsif sql =~ /from\s+([^\(\s]+)\s*/i
-          $1
-        else
-          nil
-        end
-      end
       
       
-      
-
       
       def change_order_direction(order)
         order.split(",").collect {|fragment|
@@ -933,18 +961,12 @@ module ActiveRecord
         }.join(",")
       end
 
-      def get_special_columns(table_name)
-        special = []
-        @table_columns ||= {}
-        @table_columns[table_name] ||= columns(table_name)
-        @table_columns[table_name].each do |col|
-          special << col.name if col.is_special?
-        end
-        special
+      def special_columns(table_name)
+        columns(table_name).select(&:is_special?).map(&:name)
       end
 
       def repair_special_columns(sql)
-        special_cols = get_special_columns(get_table_name(sql))
+        special_cols = special_columns(get_table_name(sql))
         for col in special_cols.to_a
           sql.gsub!(/((\.|\s|\()\[?#{col.to_s}\]?)\s?=\s?/, '\1 LIKE ')
           sql.gsub!(/ORDER BY #{col.to_s}/i, '')
@@ -952,18 +974,12 @@ module ActiveRecord
         sql
       end
 
-      def get_utf8_columns(table_name)
-        utf8 = []
-        @table_columns ||= {}
-        @table_columns[table_name] ||= columns(table_name)
-        @table_columns[table_name].each do |col|
-          utf8 << col.name if col.is_utf8?
-        end
-        utf8
+      def utf8_columns(table_name)
+        columns(table_name).select(&:is_utf8?).map(&:name)
       end
-
+      
       def set_utf8_values!(sql)
-        utf8_cols = get_utf8_columns(get_table_name(sql))
+        utf8_cols = utf8_columns(get_table_name(sql))
         if sql =~ /^\s*UPDATE/i
           utf8_cols.each do |col|
             sql.gsub!("[#{col.to_s}] = '", "[#{col.to_s}] = N'")

@@ -52,6 +52,41 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
       
     end
     
+    context 'for #unqualify_table_name and #unqualify_db_name' do
+
+      setup do
+        @expected_table_name = 'baz'
+        @expected_db_name = 'foo'
+        @first_second_table_names = ['[baz]','baz','[bar].[baz]','bar.baz']
+        @third_table_names = ['[foo].[bar].[baz]','foo.bar.baz']
+        @qualifed_table_names = @first_second_table_names + @third_table_names
+      end
+      
+      should 'return clean table_name from #unqualify_table_name' do
+        @qualifed_table_names.each do |qtn|
+          assert_equal @expected_table_name, 
+            @connection.send(:unqualify_table_name,qtn),
+            "This qualifed_table_name #{qtn} did not unqualify correctly."
+        end
+      end
+      
+      should 'return nil from #unqualify_db_name when table_name is less than 2 qualified' do
+        @first_second_table_names.each do |qtn|
+          assert_equal nil, @connection.send(:unqualify_db_name,qtn),
+            "This qualifed_table_name #{qtn} did not return nil."
+        end
+      end
+      
+      should 'return clean db_name from #unqualify_db_name when table is thrid level qualified' do
+        @third_table_names.each do |qtn|
+          assert_equal @expected_db_name, 
+            @connection.send(:unqualify_db_name,qtn),
+            "This qualifed_table_name #{qtn} did not unqualify the db_name correctly."
+        end
+      end
+
+    end
+    
   end
   
   context 'For identity inserts' do
