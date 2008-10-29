@@ -636,7 +636,7 @@ module ActiveRecord
       
       def change_column_default(table_name, column_name, default)
         remove_default_constraint(table_name, column_name)
-        execute "ALTER TABLE #{table_name} ADD CONSTRAINT DF_#{table_name}_#{column_name} DEFAULT #{quote(default, column_name)} FOR #{quote_column_name(column_name)}"
+        execute "ALTER TABLE #{quote_table_name(table_name)} ADD CONSTRAINT DF_#{table_name}_#{column_name} DEFAULT #{quote(default)} FOR #{quote_column_name(column_name)}"
       end
       
       def rename_column(table_name, column_name, new_column_name)
@@ -760,7 +760,6 @@ module ActiveRecord
       
       def remove_default_constraint(table_name, column_name)
         constraints = select "SELECT def.name FROM sysobjects def, syscolumns col, sysobjects tab WHERE col.cdefault = def.id AND col.name = '#{column_name}' AND tab.name = '#{table_name}' AND col.id = tab.id"
-
         constraints.each do |constraint|
           execute "ALTER TABLE #{table_name} DROP CONSTRAINT #{constraint["name"]}"
         end
