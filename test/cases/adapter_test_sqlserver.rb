@@ -152,6 +152,17 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
       assert_equal string_with_backslashs, @connection.quote_string(string_with_backslashs)
     end
     
+    should 'quote column names with brackets' do
+      assert_equal '[foo]', @connection.quote_column_name(:foo)
+      assert_equal '[foo]', @connection.quote_column_name('foo')
+      assert_equal '[foo].[bar]', @connection.quote_column_name('foo.bar')
+    end
+    
+    should 'quote table names like columns' do
+      assert_equal '[foo].[bar]', @connection.quote_column_name('foo.bar')
+      assert_equal '[foo].[bar].[baz]', @connection.quote_column_name('foo.bar.baz')
+    end
+    
   end
   
   context 'For DatabaseStatements' do

@@ -344,25 +344,8 @@ module ActiveRecord
         string.gsub(/\'/, "''")
       end
       
-      # Quotes the given column identifier.
-      # 
-      #   quote_column_name('foo') # => '[foo]'
-      #   quote_column_name(:foo) # => '[foo]'
-      #   quote_column_name('foo.bar') # => '[foo].[bar]'
-      def quote_column_name(identifier)
-        identifier.to_s.split('.').collect do |name|
-          "[#{name}]"          
-        end.join(".")
-      end
-      
-      def quote_table_name(name)
-        name_split_on_dots = name.to_s.split('.')
-        if name_split_on_dots.length == 3
-          # name is on the form "foo.bar.baz"
-          "[#{name_split_on_dots[0]}].[#{name_split_on_dots[1]}].[#{name_split_on_dots[2]}]"
-        else
-          super(name)
-        end
+      def quote_column_name(column_name)
+        column_name.to_s.split('.').map{ |name| "[#{name}]" }.join('.')
       end
       
       def quoted_true
