@@ -1,11 +1,16 @@
 require 'cases/sqlserver_helper'
 require 'models/task'
 require 'models/topic'
+require 'models/joke'
+require 'models/subscriber'
 
 class AdapterTestSqlserver < ActiveRecord::TestCase
     
   def setup
     @connection = ActiveRecord::Base.connection
+    @basic_insert_sql = "INSERT INTO [funny_jokes] ([name]) VALUES('Knock knock')"
+    @basic_update_sql = "UPDATE [customers] SET [address_street] = NULL WHERE [id] = 2"
+    @basic_select_sql = "SELECT * FROM [customers] WHERE ([customers].[id] = 1)"
   end
   
   context 'For abstract behavior' do
@@ -87,6 +92,22 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
 
     end
     
+    should 'return true to #insert_sql? for inserts only' do
+      assert @connection.send(:insert_sql?,'INSERT...')
+      assert !@connection.send(:insert_sql?,'UPDATE...')
+      assert !@connection.send(:insert_sql?,'SELECT...')
+    end
+    
+    context 'for #get_table_name' do
+
+      should 'return quoted table name from basic INSERT, UPDATE and SELECT statements' do
+        assert_equal '[funny_jokes]', @connection.send(:get_table_name,@basic_insert_sql)
+        assert_equal '[customers]', @connection.send(:get_table_name,@basic_update_sql)
+        assert_equal '[customers]', @connection.send(:get_table_name,@basic_select_sql)
+      end
+
+    end
+    
   end
   
   context 'For identity inserts' do
@@ -95,17 +116,23 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
       @identity_insert_sql = "INSERT INTO [funny_jokes] ([id],[name]) VALUES(420,'Knock knock')"
     end
     
-    should 'return true to #query_requires_identity_insert? when INSERT sql contains id_column ' do
-      assert @connection.send(:query_requires_identity_insert?,@identity_insert_sql)
+    should 'return quoted table_name to #query_requires_identity_insert? when INSERT sql contains id_column' do
+      assert_equal '[funny_jokes]', @connection.send(:query_requires_identity_insert?,@identity_insert_sql)
     end
     
     should 'return false to #query_requires_identity_insert? for normal SQL' do
-      insert_sql = "INSERT INTO [funny_jokes] ([name]) VALUES('Knock knock')"
-      update_sql = "UPDATE [customers] SET [address_street] = NULL WHERE [id] = 2"
-      select_sql = "SELECT * FROM [customers] WHERE ([customers].[id] = 1)"
-      [insert_sql,update_sql,select_sql].each do |sql|
+      [@basic_insert_sql, @basic_update_sql, @basic_select_sql].each do |sql|
         assert !@connection.send(:query_requires_identity_insert?,sql), "SQL was #{sql}"
       end
+    end
+    
+    should 'find identity column using #identity_column' do
+      joke_id_column = Joke.columns.detect { |c| c.name == 'id' }
+      assert_equal joke_id_column, @connection.send(:identity_column,Joke.table_name)
+    end
+    
+    should 'return nil when calling #identity_column for a table_name with no identity' do
+      assert_nil @connection.send(:identity_column,Subscriber.table_name)
     end
     
   end

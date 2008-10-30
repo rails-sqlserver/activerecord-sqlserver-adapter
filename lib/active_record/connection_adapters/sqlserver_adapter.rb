@@ -411,7 +411,7 @@ module ActiveRecord
       end
       
       def execute(sql, name = nil)
-        if sql =~ /^\s*INSERT/i && (table_name = query_requires_identity_insert?(sql))
+        if table_name = query_requires_identity_insert?(sql)
           log(sql, name) do
             with_identity_insert_enabled(table_name) do
               @connection.execute(sql) do |handle|
@@ -862,17 +862,24 @@ module ActiveRecord
       end
       
       def query_requires_identity_insert?(sql)
-        table_name = get_table_name(sql)
-        id_column = identity_column(table_name)
-        sql =~ /INSERT[^(]+\([^)]*\[#{id_column}\][^)]*\)/ ? table_name : nil
+        if insert_sql?(sql)
+          table_name = get_table_name(sql)
+          id_column = identity_column(table_name)
+          id_column && sql =~ /INSERT[^(]+\([^)]*\[#{id_column.name}\][^)]*\)/ ? table_name : false
+        else
+          false
+        end
       end
       
       def identity_column(table_name)
-        idcol = columns(table_name).detect(&:is_identity?)
-        idcol ? idcol.name : nil
+        columns(table_name).detect(&:is_identity?)
       end
       
-      # SQL UTILITY METHODS ======================================#
+      # HELPER METHODS ===========================================#
+      
+      def insert_sql?(sql)
+        !(sql =~ /^\s*INSERT/i).nil?
+      end
       
       def unqualify_table_name(table_name)
         table_name.to_s.split('.').last.gsub(/[\[\]]/,'')
