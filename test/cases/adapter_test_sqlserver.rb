@@ -15,6 +15,10 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
   
   context 'For abstract behavior' do
     
+    should 'have a 128 max #table_alias_length' do
+      assert @connection.table_alias_length <= 128
+    end
+    
     should 'raise invalid statement error' do
       assert_raise(ActiveRecord::StatementInvalid) { Topic.connection.update_sql("UPDATE XXX") }
     end

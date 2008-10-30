@@ -550,6 +550,10 @@ module ActiveRecord
       
       # SCHEMA STATEMENTS ========================================#
       
+      def table_alias_length
+        128
+      end
+      
       def tables(name = nil)
         execute("SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE'", name) do |sth|
           result = sth.inject([]) do |tables, field|
