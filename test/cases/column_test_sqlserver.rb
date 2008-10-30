@@ -7,6 +7,9 @@ class ColumnTestSqlserver < ActiveRecord::TestCase
     @column_klass = ActiveRecord::ConnectionAdapters::SQLServerColumn
   end
   
+  should 'return real_number as float' do
+    assert_equal :float, TableWithRealColumn.columns_hash["real_number"].type
+  end
   
   context 'For :binary columns' do
 
