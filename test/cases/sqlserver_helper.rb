@@ -18,6 +18,15 @@ ActiveRecord::Base.connection.class.class_eval do
   IGNORED_SQL << /SELECT SCOPE_IDENTITY/ << /INFORMATION_SCHEMA.TABLES/ << /INFORMATION_SCHEMA.COLUMNS/
 end
 
+ActiveRecord::ConnectionAdapters::SQLServerAdapter.class_eval do
+  def raw_select_with_query_record(sql, name = nil)
+    $queries_executed ||= []
+    $queries_executed << sql unless IGNORED_SQL.any? { |r| sql =~ r }
+    raw_select_without_query_record(sql,name)
+  end
+  alias_method_chain :raw_select, :query_record
+end
+
 module ActiveRecord 
   class TestCase < ActiveSupport::TestCase
     def assert_sql(*patterns_to_match)

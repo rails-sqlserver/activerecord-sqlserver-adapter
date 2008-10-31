@@ -13,6 +13,36 @@ class ConnectionTestSqlserver < ActiveRecord::TestCase
   end
   
   
+  should 'return finished DBI statment handle from #execute without block' do
+    handle = @connection.execute('SELECT * FROM [topics]')
+    assert_instance_of DBI::StatementHandle, handle
+    assert handle.finished?
+  end
+  
+  should 'finish DBI statment handle from #execute with block' do
+    assert_all_statements_used_are_closed do
+      @connection.execute('SELECT * FROM [topics]') { }
+    end
+  end
+  
+  should 'return an unfinished DBI statement handler from #raw_execute' do
+    handle = @connection.send(:raw_execute,'SELECT * FROM [topics]')
+    assert_instance_of DBI::StatementHandle, handle
+    assert !handle.finished?
+  end
+  
+  should 'finish connection from #query' do
+    assert_all_statements_used_are_closed do
+      @connection.send(:query,'SELECT * FROM [topics]')
+    end
+  end
+  
+  should 'finish connection from #raw_select' do
+    assert_all_statements_used_are_closed do
+      @connection.send(:raw_select,'SELECT * FROM [topics]')
+    end
+  end
+  
   should 'affect rows' do
     assert Topic.connection.instance_variable_get("@connection")["AutoCommit"]
     topic_data = { 1 => { "content" => "1 updated" }, 2 => { "content" => "2 updated" } }
@@ -28,7 +58,7 @@ class ConnectionTestSqlserver < ActiveRecord::TestCase
       @connection.execute("SELECT 1")
     end
   end
-
+  
   should 'execute with block closes statement' do
     assert_all_statements_used_are_closed do
       @connection.execute("SELECT 1") do |sth|
@@ -36,13 +66,13 @@ class ConnectionTestSqlserver < ActiveRecord::TestCase
       end
     end
   end
-
+  
   should 'insert with identity closes statement' do
     assert_all_statements_used_are_closed do
       @connection.insert("INSERT INTO accounts ([id], [firm_id],[credit_limit]) values (999, 1, 50)")
     end
   end
-
+  
   should 'insert without identity closes statement' do
     assert_all_statements_used_are_closed do
       @connection.insert("INSERT INTO accounts ([firm_id],[credit_limit]) values (1, 50)")

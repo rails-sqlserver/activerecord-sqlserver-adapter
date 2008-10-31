@@ -357,7 +357,7 @@ module ActiveRecord
       end
       
       # TODO: I get the feeling this needs to go and that it is patching something else wrong.
-      def quoted_date(value)
+      def quoted_date(value)      
         if value.acts_like?(:time)
           value.strftime("%Y%m%d %H:%M:%S")
         elsif value.acts_like?(:date)
@@ -375,40 +375,16 @@ module ActiveRecord
       # DATABASE STATEMENTS ======================================
       
       def select_rows(sql, name = nil)
-        rows = []
-        repair_special_columns(sql)
-        log(sql, name) do
-          @connection.select_all(sql) do |row|
-            record = []
-            row.each do |col|
-              if col.is_a? DBI::Timestamp
-                record << col.to_time
-              else
-                record << col
-              end
-            end
-            rows << record
-          end
-        end
-        rows
+        raw_select(sql,name).last
       end
       
-      def execute(sql, name = nil)
+      def execute(sql, name = nil, &block)
         if table_name = query_requires_identity_insert?(sql)
-          log(sql, name) do
-            with_identity_insert_enabled(table_name) do
-              @connection.execute(sql) do |handle|
-                yield(handle) if block_given?
-              end
-            end
-          end
+          handle = with_identity_insert_enabled(table_name) { raw_execute(sql,name,&block) }
         else
-          log(sql, name) do
-            @connection.execute(sql) do |handle|
-              yield(handle) if block_given?
-            end
-          end
+          handle = raw_execute(sql,name,&block)
         end
+        finish_statement_handle(handle)
       end
       
       def begin_db_transaction
@@ -511,18 +487,14 @@ module ActiveRecord
       
       def select(sql, name = nil, ignore_special_columns = false)
         repair_special_columns(sql) unless ignore_special_columns
+        fields, rows = raw_select(sql,name)
         result = []
-        execute(sql) do |handle|
-          handle.each do |row|
-            row_hash = {}
-            row.each_with_index do |value, i|
-              if value.is_a? DBI::Timestamp
-                value = DateTime.new(value.year, value.month, value.day, value.hour, value.minute, value.sec)
-              end
-              row_hash[handle.column_names[i]] = value
-            end
-            result << row_hash
+        for row in rows
+          row_hash = {}
+          fields.each_with_index do |f, i|
+            row_hash[f] = row[i]
           end
+          result << row_hash
         end
         result
       end
@@ -777,6 +749,11 @@ module ActiveRecord
         @connection.disconnect rescue nil
       end
       
+      def finish_statement_handle(handle)
+        handle.finish if handle && handle.respond_to?(:finish) && !handle.finished?
+        handle
+      end
+      
 
       # RAKE UTILITY METHODS =====================================#
 
@@ -828,6 +805,48 @@ module ActiveRecord
       
       private
       
+      # DATABASE STATEMENTS ======================================
+      
+      def raw_execute(sql, name = nil, &block)
+        log(sql, name) do
+          if block_given?
+            @connection.execute(sql) { |handle| yield(handle) }
+          else
+            @connection.execute(sql)
+          end
+        end
+      end
+      
+      def raw_select(sql, name = nil)
+        handle = raw_execute(sql,name)
+        fields = handle.column_names
+        results = handle_as_array(handle)
+        rows = results.inject([]) do |rows,row|
+          row.each_with_index do |value, i|
+            if value.is_a? DBI::Timestamp
+              row[i] = value.to_time
+              # TODO: Let's revisit this and the whole DB time thing.
+              # row[i] = DateTime.new(value.year, value.month, value.day, value.hour, value.minute, value.sec)
+            end
+          end
+          rows << row
+        end
+        return fields, rows
+      end
+      
+      def query(sql, name = nil)
+        handle = raw_execute(sql,name)
+        handle_as_array(handle)
+      end
+      
+      def handle_as_array(handle)
+        array = handle.inject([]) do |rows,row|
+          rows << row.inject([]){ |values,value| values << value }
+        end
+        finish_statement_handle(handle)
+        array
+      end
+      
       # IDENTITY INSERTS =========================================#
       
       def with_identity_insert_enabled(table_name, &block)
@@ -838,7 +857,8 @@ module ActiveRecord
       end
       
       def set_identity_insert(table_name, enable = true)
-        execute "SET IDENTITY_INSERT #{table_name} #{enable ? 'ON' : 'OFF'}"
+        sql = "SET IDENTITY_INSERT #{table_name} #{enable ? 'ON' : 'OFF'}"
+        log(sql,'IDENTITY_INSERT') { execute(sql) }
       rescue Exception => e
         raise ActiveRecordError, "IDENTITY_INSERT could not be turned #{enable ? 'ON' : 'OFF'} for table #{table_name}"
       end
