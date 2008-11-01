@@ -556,10 +556,10 @@ module ActiveRecord
       end
 
       def indexes(table_name, name = nil)
-        ActiveRecord::Base.connection.instance_variable_get("@connection")["AutoCommit"] = false
+        @connection["AutoCommit"] = false
         get_indexes(table_name,name)
       ensure
-        ActiveRecord::Base.connection.instance_variable_get("@connection")["AutoCommit"] = true
+        @connection["AutoCommit"] = true
       end
       
       def add_order_by_for_association_limiting!(sql, options)
