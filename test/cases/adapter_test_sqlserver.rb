@@ -200,17 +200,18 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
   context 'For indexes' do
     
     setup do
-      @connection.execute "CREATE INDEX idx_credit_limit ON accounts (credit_limit DESC)" rescue nil
+      @desc_index_name = 'idx_credit_limit_test_desc'
+      @connection.execute "CREATE INDEX #{@desc_index_name} ON accounts (credit_limit DESC)"
     end
     
     teardown do
-      @connection.execute "DROP INDEX accounts.idx_credit_limit"
+      @connection.execute "DROP INDEX accounts.#{@desc_index_name}"
     end
-
+    
     should 'have indexes with descending order' do
-      assert_equal ["credit_limit"], @connection.indexes('accounts').first.columns
+      assert @connection.indexes('accounts').detect { |i| i.name == @desc_index_name }
     end
-
+    
   end
   
   

@@ -557,7 +557,7 @@ module ActiveRecord
 
       def indexes(table_name, name = nil)
         ActiveRecord::Base.connection.instance_variable_get("@connection")["AutoCommit"] = false
-        __indexes(table_name, name)
+        get_indexes(table_name,name)
       ensure
         ActiveRecord::Base.connection.instance_variable_get("@connection")["AutoCommit"] = true
       end
@@ -802,25 +802,26 @@ module ActiveRecord
       end
       
       def remove_indexes(table_name, column_name)
-        __indexes(table_name).select {|idx| idx.columns.include? column_name }.each do |idx|
-          remove_index(table_name, {:name => idx.name})
+        get_indexes(table_name).select{ |index| index.columns.include?(column_name.to_s) }.each do |index|
+          remove_index(table_name, {:name => index.name})
         end
       end
       
-      def __indexes(table_name, name = nil)
-        indexes = []
-        execute("EXEC sp_helpindex #{quote_table_name(table_name)}", name) do |handle|
-          if handle.column_info.any?
-            handle.each do |index|
-              unique = index[1] =~ /unique/
-              primary = index[1] =~ /primary key/
-              if !primary
-                indexes << IndexDefinition.new(table_name, index[0], unique, index[2].split(", ").map {|e| e.gsub('(-)','')})
-              end
+      def get_indexes(table_name, name = nil)
+        select("EXEC sp_helpindex #{quote_table_name(table_name)}",name).inject([]) do |indexes,index|
+          if index['index_description'] =~ /primary key/
+            indexes
+          else
+            name    = index['index_name']
+            unique  = index['index_description'] =~ /unique/
+            columns = index['index_keys'].split(',').map do |column|
+              column.strip!
+              column.gsub! '(-)', '' if column.ends_with?('(-)')
+              column
             end
+            indexes << IndexDefinition.new(table_name, name, unique, columns)
           end
         end
-        indexes
       end
       
       # IDENTITY INSERTS =========================================#
