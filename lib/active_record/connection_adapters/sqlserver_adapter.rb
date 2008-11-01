@@ -777,15 +777,6 @@ module ActiveRecord
         return fields, rows
       end
       
-      def query(sql)
-        handle = raw_execute(sql)
-        handle_as_array(handle)
-      end
-      
-      def query_values()
-        
-      end
-      
       def handle_as_array(handle)
         array = handle.inject([]) do |rows,row|
           rows << row.inject([]){ |values,value| values << value }

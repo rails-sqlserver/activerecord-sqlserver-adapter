@@ -31,12 +31,6 @@ class ConnectionTestSqlserver < ActiveRecord::TestCase
     assert !handle.finished?
   end
   
-  should 'finish connection from #query' do
-    assert_all_statements_used_are_closed do
-      @connection.send(:query,'SELECT * FROM [topics]')
-    end
-  end
-  
   should 'finish connection from #raw_select' do
     assert_all_statements_used_are_closed do
       @connection.send(:raw_select,'SELECT * FROM [topics]')
