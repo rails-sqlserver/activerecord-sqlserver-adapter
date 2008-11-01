@@ -518,11 +518,13 @@ module ActiveRecord
         remove_sqlserver_columns_cache_for(table_name)
       end
       
-      def remove_column(table_name, column_name)
-        remove_check_constraints(table_name, column_name)
-        remove_default_constraint(table_name, column_name)
-        remove_indexes(table_name, column_name)
-        execute "ALTER TABLE #{quote_table_name(table_name)} DROP COLUMN #{quote_column_name(column_name)}"
+      def remove_column(table_name, *column_names)
+        column_names.flatten.each do |column_name|
+          remove_check_constraints(table_name, column_name)
+          remove_default_constraint(table_name, column_name)
+          remove_indexes(table_name, column_name)
+          execute "ALTER TABLE #{quote_table_name(table_name)} DROP COLUMN #{quote_column_name(column_name)}"
+        end
         remove_sqlserver_columns_cache_for(table_name)
       end
       
