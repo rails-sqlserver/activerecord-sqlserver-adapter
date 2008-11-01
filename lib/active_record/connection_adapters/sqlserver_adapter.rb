@@ -322,7 +322,7 @@ module ActiveRecord
       end
       
       def quote_string(string)
-        string.gsub(/\'/, "''")
+        string.to_s.gsub(/\'/, "''")
       end
       
       def quote_column_name(column_name)
@@ -522,7 +522,7 @@ module ActiveRecord
         remove_check_constraints(table_name, column_name)
         remove_default_constraint(table_name, column_name)
         remove_indexes(table_name, column_name)
-        execute "ALTER TABLE [#{table_name}] DROP COLUMN #{quote_column_name(column_name)}"
+        execute "ALTER TABLE #{quote_table_name(table_name)} DROP COLUMN #{quote_column_name(column_name)}"
         remove_sqlserver_columns_cache_for(table_name)
       end
       
@@ -551,12 +551,6 @@ module ActiveRecord
         end
       end
       
-      def remove_indexes(table_name, column_name)
-        __indexes(table_name).select {|idx| idx.columns.include? column_name }.each do |idx|
-          remove_index(table_name, {:name => idx.name})
-        end
-      end
-
       def remove_index(table_name, options = {})
         execute "DROP INDEX #{table_name}.#{quote_column_name(index_name(table_name, options))}"
       end
@@ -568,22 +562,6 @@ module ActiveRecord
         ActiveRecord::Base.connection.instance_variable_get("@connection")["AutoCommit"] = true
       end
       
-      def __indexes(table_name, name = nil)
-        indexes = []
-        execute("EXEC sp_helpindex '#{table_name}'", name) do |handle|
-          if handle.column_info.any?
-            handle.each do |index|
-              unique = index[1] =~ /unique/
-              primary = index[1] =~ /primary key/
-              if !primary
-                indexes << IndexDefinition.new(table_name, index[0], unique, index[2].split(", ").map {|e| e.gsub('(-)','')})
-              end
-            end
-          end
-        end
-        indexes
-      end
-
       def add_order_by_for_association_limiting!(sql, options)
         return sql if options[:order].blank?
 
@@ -662,22 +640,6 @@ module ActiveRecord
         @connection["AutoCommit"] = true
       end
       
-      def remove_default_constraint(table_name, column_name)
-        constraints = select "SELECT def.name FROM sysobjects def, syscolumns col, sysobjects tab WHERE col.cdefault = def.id AND col.name = '#{column_name}' AND tab.name = '#{table_name}' AND col.id = tab.id"
-        constraints.each do |constraint|
-          execute "ALTER TABLE #{table_name} DROP CONSTRAINT #{constraint["name"]}"
-        end
-      end
-
-      def remove_check_constraints(table_name, column_name)
-        # TODO remove all constraints in single method
-        constraints = select "SELECT CONSTRAINT_NAME FROM INFORMATION_SCHEMA.CONSTRAINT_COLUMN_USAGE where TABLE_NAME = '#{table_name}' and COLUMN_NAME = '#{column_name}'"
-        constraints.each do |constraint|
-          execute "ALTER TABLE #{table_name} DROP CONSTRAINT #{constraint["CONSTRAINT_NAME"]}"
-        end
-      end
-      
-      
       # CONNECTION MANAGEMENT ====================================#
       
       def active?
@@ -703,7 +665,6 @@ module ActiveRecord
         handle.finish if handle && handle.respond_to?(:finish) && !handle.finished?
         handle
       end
-      
 
       # RAKE UTILITY METHODS =====================================#
 
@@ -816,9 +777,13 @@ module ActiveRecord
         return fields, rows
       end
       
-      def query(sql, name = nil)
-        handle = raw_execute(sql,name)
+      def query(sql)
+        handle = raw_execute(sql)
         handle_as_array(handle)
+      end
+      
+      def query_values()
+        
       end
       
       def handle_as_array(handle)
@@ -827,6 +792,44 @@ module ActiveRecord
         end
         finish_statement_handle(handle)
         array
+      end
+      
+      # SCHEMA STATEMENTS ========================================#
+      
+      def remove_check_constraints(table_name, column_name)
+        constraints = select_values("SELECT CONSTRAINT_NAME FROM INFORMATION_SCHEMA.CONSTRAINT_COLUMN_USAGE where TABLE_NAME = '#{quote_string(table_name)}' and COLUMN_NAME = '#{quote_string(column_name)}'")
+        constraints.each do |constraint|
+          execute "ALTER TABLE #{quote_table_name(table_name)} DROP CONSTRAINT #{quote_column_name(constraint)}"
+        end
+      end
+      
+      def remove_default_constraint(table_name, column_name)
+        constraints = select_values("SELECT def.name FROM sysobjects def, syscolumns col, sysobjects tab WHERE col.cdefault = def.id AND col.name = '#{quote_string(column_name)}' AND tab.name = '#{quote_string(table_name)}' AND col.id = tab.id")
+        constraints.each do |constraint|
+          execute "ALTER TABLE #{quote_table_name(table_name)} DROP CONSTRAINT #{quote_column_name(constraint)}"
+        end
+      end
+      
+      def remove_indexes(table_name, column_name)
+        __indexes(table_name).select {|idx| idx.columns.include? column_name }.each do |idx|
+          remove_index(table_name, {:name => idx.name})
+        end
+      end
+      
+      def __indexes(table_name, name = nil)
+        indexes = []
+        execute("EXEC sp_helpindex #{quote_table_name(table_name)}", name) do |handle|
+          if handle.column_info.any?
+            handle.each do |index|
+              unique = index[1] =~ /unique/
+              primary = index[1] =~ /primary key/
+              if !primary
+                indexes << IndexDefinition.new(table_name, index[0], unique, index[2].split(", ").map {|e| e.gsub('(-)','')})
+              end
+            end
+          end
+        end
+        indexes
       end
       
       # IDENTITY INSERTS =========================================#
