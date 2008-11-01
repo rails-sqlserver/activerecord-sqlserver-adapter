@@ -295,25 +295,6 @@ module ActiveRecord
         true
       end
       
-      def native_database_types
-        txt = sqlserver_2005? ? "varchar(max)"   : "text"
-        bin = sqlserver_2005? ? "varbinary(max)" : "image"
-        {
-          :primary_key => "int NOT NULL IDENTITY(1, 1) PRIMARY KEY",
-          :string      => { :name => "varchar", :limit => 255  },
-          :text        => { :name =>  txt },
-          :integer     => { :name => "int" },
-          :float       => { :name => "float", :limit => 8 },
-          :decimal     => { :name => "decimal" },
-          :datetime    => { :name => "datetime" },
-          :timestamp   => { :name => "datetime" },
-          :time        => { :name => "datetime" },
-          :date        => { :name => "datetime" },
-          :binary      => { :name =>  bin },
-          :boolean     => { :name => "bit"}
-        }
-      end
-      
       def database_version
         select_value "SELECT @@version"
       end
@@ -482,18 +463,31 @@ module ActiveRecord
       
       # SCHEMA STATEMENTS ========================================#
       
+      def native_database_types
+        txt = sqlserver_2005? ? "varchar(max)"   : "text"
+        bin = sqlserver_2005? ? "varbinary(max)" : "image"
+        {
+          :primary_key => "int NOT NULL IDENTITY(1, 1) PRIMARY KEY",
+          :string      => { :name => "varchar", :limit => 255  },
+          :text        => { :name =>  txt },
+          :integer     => { :name => "int" },
+          :float       => { :name => "float", :limit => 8 },
+          :decimal     => { :name => "decimal" },
+          :datetime    => { :name => "datetime" },
+          :timestamp   => { :name => "datetime" },
+          :time        => { :name => "datetime" },
+          :date        => { :name => "datetime" },
+          :binary      => { :name =>  bin },
+          :boolean     => { :name => "bit"}
+        }
+      end
+      
       def table_alias_length
         128
       end
       
       def tables(name = nil)
-        execute("SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE'", name) do |sth|
-          result = sth.inject([]) do |tables, field|
-            table_name = field[0]
-            tables << table_name unless table_name == 'dtproperties'
-            tables
-          end
-        end
+        select_values "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_NAME <> 'dtproperties'"
       end
       
       def columns(table_name, name = nil)
@@ -510,21 +504,17 @@ module ActiveRecord
         remove_sqlserver_columns_cache_for(table_name)
       end
       
+      def rename_table(table_name, new_name)
+        execute "EXEC sp_rename '#{table_name}', '#{new_name}'"
+      end
+      
       def drop_table(table_name, options = {})
         super
         remove_sqlserver_columns_cache_for(table_name)
       end
       
-      def rename_table(table_name, new_name)
-        execute "EXEC sp_rename '#{table_name}', '#{new_name}'"
-      end
-      
       def add_column(table_name, column_name, type, options = {})
-        add_column_sql = "ALTER TABLE #{table_name} ADD #{quote_column_name(column_name)} #{type_to_sql(type, options[:limit], options[:precision], options[:scale])}"
-        add_column_options!(add_column_sql, options)
-        # TODO: Add support to mimic date columns, using constraints to mark them as such in the database
-        # add_column_sql << " CONSTRAINT ck__#{table_name}__#{column_name}__date_only CHECK ( CONVERT(CHAR(12), #{quote_column_name(column_name)}, 14)='00:00:00:000' )" if type == :date
-        execute(add_column_sql)
+        super
         remove_sqlserver_columns_cache_for(table_name)
       end
       
