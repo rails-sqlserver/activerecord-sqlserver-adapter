@@ -468,57 +468,17 @@ module ActiveRecord
         end
       end
       
-      # Appends a locking clause to an SQL statement.
-      # This method *modifies* the +sql+ parameter.
-      #   # SELECT * FROM suppliers FOR UPDATE
-      #   add_lock! 'SELECT * FROM suppliers', :lock => true
-      #   add_lock! 'SELECT * FROM suppliers', :lock => ' WITH(HOLDLOCK, ROWLOCK)'
-      # http://blog.sqlauthority.com/2007/04/27/sql-server-2005-locking-hints-and-examples/
       def add_lock!(sql, options)
+        # http://blog.sqlauthority.com/2007/04/27/sql-server-2005-locking-hints-and-examples/
         case lock = options[:lock]
-        when true then sql << "WITH(HOLDLOCK, ROWLOCK) "
-        when String then sql << "#{lock} "
+          when true then sql << ' WITH(HOLDLOCK, ROWLOCK) '
+          when String then sql << " #{lock} "
         end
       end
       
       def empty_insert_statement(table_name)
-        "INSERT INTO #{table_name} DEFAULT VALUES"
+        "INSERT INTO #{quote_table_name(table_name)} DEFAULT VALUES"
       end
-      
-      def select(sql, name = nil, ignore_special_columns = false)
-        repair_special_columns(sql) unless ignore_special_columns
-        fields, rows = raw_select(sql,name)
-        result = []
-        for row in rows
-          row_hash = {}
-          fields.each_with_index do |f, i|
-            row_hash[f] = row[i]
-          end
-          result << row_hash
-        end
-        result
-      end
-      
-      def insert_sql(sql, name = nil, pk = nil, id_value = nil, sequence_name = nil)
-        set_utf8_values!(sql)
-        super || select_value("SELECT SCOPE_IDENTITY() AS Ident")
-      end
-      
-      def update_sql(sql, name = nil)
-        set_utf8_values!(sql)
-        auto_commiting = @connection["AutoCommit"]
-        begin
-          begin_db_transaction if auto_commiting
-          execute(sql, name)
-          affected_rows = select_value("SELECT @@ROWCOUNT AS AffectedRows")
-          commit_db_transaction if auto_commiting
-          affected_rows
-        rescue
-          rollback_db_transaction if auto_commiting
-          raise
-        end
-      end
-      
       
       # SCHEMA STATEMENTS ========================================#
       
@@ -792,7 +752,7 @@ module ActiveRecord
       end
       
       def current_database
-        @connection.select_one("SELECT DB_NAME()")[0]
+        select_value 'SELECT DB_NAME()'
       end
 
       def remove_database_connections_and_rollback(name)
@@ -803,9 +763,41 @@ module ActiveRecord
       
       
       
-      private
+      protected
       
       # DATABASE STATEMENTS ======================================
+      
+      def select(sql, name = nil, ignore_special_columns = false)
+        repair_special_columns(sql) unless ignore_special_columns
+        fields, rows = raw_select(sql,name)
+        rows.inject([]) do |results,row|
+          row_hash = {}
+          fields.each_with_index do |f, i|
+            row_hash[f] = row[i]
+          end
+          results << row_hash
+        end
+      end
+      
+      def insert_sql(sql, name = nil, pk = nil, id_value = nil, sequence_name = nil)
+        set_utf8_values!(sql)
+        super || select_value("SELECT SCOPE_IDENTITY() AS Ident")
+      end
+      
+      def update_sql(sql, name = nil)
+        set_utf8_values!(sql)
+        auto_commiting = @connection["AutoCommit"]
+        begin
+          begin_db_transaction if auto_commiting
+          execute(sql, name)
+          affected_rows = select_value("SELECT @@ROWCOUNT AS AffectedRows")
+          commit_db_transaction if auto_commiting
+          affected_rows
+        rescue
+          rollback_db_transaction if auto_commiting
+          raise
+        end
+      end
       
       def raw_execute(sql, name = nil, &block)
         log(sql, name) do

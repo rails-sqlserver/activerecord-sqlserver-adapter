@@ -21,7 +21,7 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
     end
     
     should 'raise invalid statement error' do
-      assert_raise(ActiveRecord::StatementInvalid) { Topic.connection.update_sql("UPDATE XXX") }
+      assert_raise(ActiveRecord::StatementInvalid) { Topic.connection.update("UPDATE XXX") }
     end
     
     should 'be our adapter_name' do
