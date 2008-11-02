@@ -338,7 +338,7 @@ module ActiveRecord
       end
       
       # TODO: I get the feeling this needs to go and that it is patching something else wrong.
-      def quoted_date(value)      
+      def quoted_date(value)
         if value.acts_like?(:time)
           value.strftime("%Y%m%d %H:%M:%S")
         elsif value.acts_like?(:date)
@@ -588,14 +588,12 @@ module ActiveRecord
         sql << " ORDER BY #{order.join(',')}"
       end
       
-      def type_to_sql(type, limit = nil, precision = nil, scale = nil) #:nodoc:
+      def type_to_sql(type, limit = nil, precision = nil, scale = nil)
         # Remove limit for data types which do not require it
         # Valid:   ALTER TABLE sessions ALTER COLUMN [data] varchar(max)
         # Invalid: ALTER TABLE sessions ALTER COLUMN [data] varchar(max)(16777215)
         limit = nil if %w{text varchar(max) nvarchar(max) ntext varbinary(max) image}.include?(native_database_types[type.to_sym][:name])
-
         return super unless type.to_s == 'integer'
-
         if limit.nil?
           'integer'
         elsif limit > 4
