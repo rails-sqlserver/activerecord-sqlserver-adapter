@@ -118,7 +118,6 @@ module ActiveRecord
       def initialize(name, default, sql_type = nil, null = true, sqlserver_options = {})
         super(name, default, sql_type, null)
         @sqlserver_options = sqlserver_options
-        @limit = nil unless limitable?
       end
       
       def is_identity?
@@ -205,10 +204,13 @@ module ActiveRecord
       
       private
       
-      def limitable?
-        # SQL Server only supports limits on *char and float types. Although for schema dumping purposes 
-        # it is useful to know what others are like bigint and smallint. So we trump #extract_limit.
-        [:float,:string].include?(type) || (type == :integer && sql_type =~ /^(big|small)int/i)
+      def extract_limit(sql_type)
+        case sql_type
+          when /^smallint/i   then  2
+          when /^int/i        then  4
+          when /^bigint/i     then  8
+          else super
+        end
       end
       
       def simplified_type(field_type)
@@ -271,6 +273,15 @@ module ActiveRecord
       ADAPTER_NAME            = 'SQLServer'.freeze
       DATABASE_VERSION_REGEXP = /Microsoft SQL Server\s+(\d{4})/
       SUPPORTED_VERSIONS      = [2000,2005].freeze
+      LIMITABLE_TYPES         = [:string,:integer,:float].freeze
+      
+      class << self
+        
+        def type_limitable?(type)
+          LIMITABLE_TYPES.include?(type.to_sym)
+        end
+        
+      end
       
       def initialize(connection, logger, connection_options=nil)
         super(connection, logger)
@@ -464,20 +475,20 @@ module ActiveRecord
       # SCHEMA STATEMENTS ========================================#
       
       def native_database_types
-        txt = sqlserver_2005? ? "varchar(max)"   : "text"
-        bin = sqlserver_2005? ? "varbinary(max)" : "image"
+        text   = sqlserver_2005? ? "varchar(max)"   : "varchar(8000)"
+        binary = sqlserver_2005? ? "varbinary(max)" : "image"
         {
           :primary_key => "int NOT NULL IDENTITY(1, 1) PRIMARY KEY",
           :string      => { :name => "varchar", :limit => 255  },
-          :text        => { :name =>  txt },
-          :integer     => { :name => "int" },
+          :text        => { :name =>  text },
+          :integer     => { :name => "int", :limit => 4 },
           :float       => { :name => "float", :limit => 8 },
           :decimal     => { :name => "decimal" },
           :datetime    => { :name => "datetime" },
           :timestamp   => { :name => "datetime" },
           :time        => { :name => "datetime" },
           :date        => { :name => "datetime" },
-          :binary      => { :name =>  bin },
+          :binary      => { :name =>  binary },
           :boolean     => { :name => "bit"}
         }
       end
@@ -589,19 +600,16 @@ module ActiveRecord
       end
       
       def type_to_sql(type, limit = nil, precision = nil, scale = nil)
-        # Remove limit for data types which do not require it
-        # Valid:   ALTER TABLE sessions ALTER COLUMN [data] varchar(max)
-        # Invalid: ALTER TABLE sessions ALTER COLUMN [data] varchar(max)(16777215)
-        limit = nil if %w{text varchar(max) nvarchar(max) ntext varbinary(max) image}.include?(native_database_types[type.to_sym][:name])
-        return super unless type.to_s == 'integer'
-        if limit.nil?
-          'integer'
-        elsif limit > 4
-          'bigint'
-        elsif limit < 3
-          'smallint'
+        limit = nil unless self.class.type_limitable?(type)
+        if type.to_s == 'integer'
+          case limit
+            when 1..2       then  'smallint'
+            when 3..4, nil  then  'integer'
+            when 5..8       then  'bigint'
+            else raise(ActiveRecordError, "No integer type has byte size #{limit}. Use a numeric with precision 0 instead.")
+          end
         else
-          'integer'
+          super
         end
       end
       

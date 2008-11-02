@@ -1,8 +1,5 @@
 require 'cases/sqlserver_helper'
 
-# NOTE: The existing schema_dumper_test doesn't test the limits of <4 limit things
-# for adapaters that aren't mysql, sqlite or postgres. We should. It also only tests 
-# non-standard id dumping for mysql. We'll do that too.
 class SchemaDumperTestSqlserver < ActiveRecord::TestCase
   
   context 'In schema dump' do
@@ -15,6 +12,10 @@ class SchemaDumperTestSqlserver < ActiveRecord::TestCase
       assert_match %r{c_int_4.*}, output
       assert_no_match %r{c_int_3.*:limit}, output
       assert_no_match %r{c_int_4.*:limit}, output
+      assert_match %r{c_int_5.*:limit => 8}, output
+      assert_match %r{c_int_6.*:limit => 8}, output
+      assert_match %r{c_int_7.*:limit => 8}, output
+      assert_match %r{c_int_8.*:limit => 8}, output
     end
     
     should 'honor nonstandard primary keys' do

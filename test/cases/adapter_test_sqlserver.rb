@@ -196,7 +196,7 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
   context 'For SchemaStatements' do
     
     context 'returning from #type_to_sql' do
-
+      
       should 'create integers when no limit supplied' do
         assert_equal 'integer', @connection.type_to_sql(:integer)
       end
