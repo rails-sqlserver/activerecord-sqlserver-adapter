@@ -1,11 +1,11 @@
 require 'cases/sqlserver_helper'
 
-class StringDefaults < ActiveRecord::Base; end;
+class StringDefault < ActiveRecord::Base; end;
 
 class SpecificSchemaTestSqlserver < ActiveRecord::TestCase
   
   should 'default strings before save' do
-    default = StringDefaults.new
+    default = StringDefault.new
     assert_equal nil, default.string_with_null_default
     assert_equal 'null', default.string_with_pretend_null_one
     assert_equal '(null)', default.string_with_pretend_null_two
@@ -14,7 +14,7 @@ class SpecificSchemaTestSqlserver < ActiveRecord::TestCase
   end
 
   should 'default strings after save' do
-    default = StringDefaults.create
+    default = StringDefault.create
     assert_equal nil, default.string_with_null_default
     assert_equal 'null', default.string_with_pretend_null_one
     assert_equal '(null)', default.string_with_pretend_null_two
