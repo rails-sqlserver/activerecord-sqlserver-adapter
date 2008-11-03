@@ -307,7 +307,7 @@ module ActiveRecord
       end
       
       def database_version
-        select_value "SELECT @@version"
+        @database_version ||= select_value('SELECT @@version')
       end
       
       def database_year
