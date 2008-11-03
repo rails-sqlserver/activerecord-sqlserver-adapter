@@ -540,12 +540,13 @@ module ActiveRecord
       end
       
       def change_column(table_name, column_name, type, options = {})
-        sql = "ALTER TABLE #{table_name} ALTER COLUMN #{quote_column_name(column_name)} #{type_to_sql(type, options[:limit], options[:precision], options[:scale])}"
-        sql << " NOT NULL" if options[:null] == false
-        sql_commands = [sql]
+        sql_commands = []
+        change_column_sql = "ALTER TABLE #{quote_table_name(table_name)} ALTER COLUMN #{quote_column_name(column_name)} #{type_to_sql(type, options[:limit], options[:precision], options[:scale])}"
+        change_column_sql << " NOT NULL" if options[:null] == false
+        sql_commands << change_column_sql
         if options_include_default?(options)
           remove_default_constraint(table_name, column_name)
-          sql_commands << "ALTER TABLE #{table_name} ADD CONSTRAINT DF_#{table_name}_#{column_name} DEFAULT #{quote(options[:default], options[:column])} FOR #{quote_column_name(column_name)}"
+          sql_commands << "ALTER TABLE #{quote_table_name(table_name)} ADD CONSTRAINT #{default_name(table_name,column_name)} DEFAULT #{quote(options[:default])} FOR #{quote_column_name(column_name)}"
         end
         sql_commands.each { |c| execute(c) }
         remove_sqlserver_columns_cache_for(table_name)
@@ -553,15 +554,14 @@ module ActiveRecord
       
       def change_column_default(table_name, column_name, default)
         remove_default_constraint(table_name, column_name)
-        execute "ALTER TABLE #{quote_table_name(table_name)} ADD CONSTRAINT DF_#{table_name}_#{column_name} DEFAULT #{quote(default)} FOR #{quote_column_name(column_name)}"
+        execute "ALTER TABLE #{quote_table_name(table_name)} ADD CONSTRAINT #{default_name(table_name, column_name)} DEFAULT #{quote(default)} FOR #{quote_column_name(column_name)}"
+        remove_sqlserver_columns_cache_for(table_name)
       end
       
       def rename_column(table_name, column_name, new_column_name)
-        if columns(table_name).find{|c| c.name.to_s == column_name.to_s}
-          execute "EXEC sp_rename '#{table_name}.#{column_name}', '#{new_column_name}'"
-        else
-          raise ActiveRecordError, "No such column: #{table_name}.#{column_name}"
-        end
+        column_for(table_name,column_name)
+        execute "EXEC sp_rename '#{table_name}.#{column_name}', '#{new_column_name}', 'COLUMN'"
+        remove_sqlserver_columns_cache_for(table_name)
       end
       
       def remove_index(table_name, options = {})
@@ -832,6 +832,10 @@ module ActiveRecord
         end
       end
       
+      def default_name(table_name, column_name)
+        "DF_#{table_name}_#{column_name}"
+      end
+      
       # IDENTITY INSERTS =========================================#
       
       def with_identity_insert_enabled(table_name, &block)
@@ -941,6 +945,12 @@ module ActiveRecord
         end
       end
       
+      def column_for(table_name, column_name)
+        unless column = columns(table_name).detect { |c| c.name == column_name.to_s }
+          raise ActiveRecordError, "No such column: #{table_name}.#{column_name}"
+        end
+        column
+      end
       
       
       
