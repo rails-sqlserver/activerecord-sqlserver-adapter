@@ -3,11 +3,12 @@ require 'shoulda'
 require 'mocha'
 require 'cases/helper'
 
-SQLSERVER_TEST_ROOT       = File.expand_path(File.join('..',File.dirname(__FILE__)))
+SQLSERVER_TEST_ROOT       = File.expand_path(File.join(File.dirname(__FILE__),'..'))
 SQLSERVER_ASSETS_ROOT     = SQLSERVER_TEST_ROOT + "/assets"
 SQLSERVER_FIXTURES_ROOT   = SQLSERVER_TEST_ROOT + "/fixtures"
 SQLSERVER_MIGRATIONS_ROOT = SQLSERVER_TEST_ROOT + "/migrations"
 SQLSERVER_SCHEMA_ROOT     = SQLSERVER_TEST_ROOT + "/schema"
+ACTIVERECORD_TEST_ROOT    = File.expand_path(SQLSERVER_TEST_ROOT + "/../../../../rails/activerecord/test/")
 
 ActiveRecord::Migration.verbose = false
 
