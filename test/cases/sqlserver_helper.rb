@@ -14,6 +14,14 @@ ActiveRecord::Migration.verbose = false
 
 class TableWithRealColumn < ActiveRecord::Base; end
 
+# Change the text database type to support ActiveRecord's tests for = on text columns which 
+# is not supported in SQL Server text columns, so use varchar(8000) instead.
+
+if ActiveRecord::Base.connection.sqlserver_2000?
+  ActiveRecord::ConnectionAdapters::SQLServerAdapter.native_text_database_type = 'varchar(8000)'
+end
+
+# Our changes/additions to ActiveRecord test helpers specific for SQL Server.
 
 ActiveRecord::Base.connection.class.class_eval do
   IGNORED_SQL << /SELECT SCOPE_IDENTITY/ << /INFORMATION_SCHEMA.TABLES/ << /INFORMATION_SCHEMA.COLUMNS/

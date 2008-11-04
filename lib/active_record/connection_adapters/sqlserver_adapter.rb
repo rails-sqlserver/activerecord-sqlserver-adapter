@@ -274,6 +274,8 @@ module ActiveRecord
       SUPPORTED_VERSIONS      = [2000,2005].freeze
       LIMITABLE_TYPES         = [:string,:integer,:float].freeze
       
+      cattr_accessor :native_text_database_type
+      
       class << self
         
         def type_limitable?(type)
@@ -319,6 +321,10 @@ module ActiveRecord
       
       def sqlserver_2005?
         database_year == 2005
+      end
+      
+      def native_text_database_type
+        self.class.native_text_database_type || (sqlserver_2005? ? 'varchar(max)' : 'text')
       end
       
       # QUOTING ==================================================#
@@ -468,12 +474,11 @@ module ActiveRecord
       # SCHEMA STATEMENTS ========================================#
       
       def native_database_types
-        text   = sqlserver_2005? ? "varchar(max)"   : "varchar(8000)"
         binary = sqlserver_2005? ? "varbinary(max)" : "image"
         {
           :primary_key => "int NOT NULL IDENTITY(1, 1) PRIMARY KEY",
           :string      => { :name => "varchar", :limit => 255  },
-          :text        => { :name =>  text },
+          :text        => { :name =>  native_text_database_type },
           :integer     => { :name => "int", :limit => 4 },
           :float       => { :name => "float", :limit => 8 },
           :decimal     => { :name => "decimal" },
