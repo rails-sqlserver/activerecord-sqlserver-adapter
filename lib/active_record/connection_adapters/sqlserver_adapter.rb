@@ -373,7 +373,33 @@ module ActiveRecord
         execute "EXEC sp_MSForEachTable 'ALTER TABLE ? CHECK CONSTRAINT ALL'"
       end
       
-      # DATABASE STATEMENTS ======================================
+      # CONNECTION MANAGEMENT ====================================#
+      
+      def active?
+        raw_connection.execute("SELECT 1").finish
+        true
+      rescue DBI::DatabaseError, DBI::InterfaceError
+        false
+      end
+
+      def reconnect!
+        disconnect!
+        @connection = DBI.connect(*@connection_options)
+      rescue DBI::DatabaseError => e
+        @logger.warn "#{adapter_name} reconnection failed: #{e.message}" if @logger
+        false
+      end
+
+      def disconnect!
+        raw_connection.disconnect rescue nil
+      end
+      
+      def finish_statement_handle(handle)
+        handle.finish if handle && handle.respond_to?(:finish) && !handle.finished?
+        handle
+      end
+      
+      # DATABASE STATEMENTS ======================================#
       
       def select_rows(sql, name = nil)
         raw_select(sql,name).last
@@ -422,7 +448,7 @@ module ActiveRecord
         end
 
         if options[:limit] and options[:offset]
-          total_rows = @connection.select_all("SELECT count(*) as TotalRows from (#{sql.gsub(/\bSELECT(\s+DISTINCT)?\b/i, "SELECT#{$1} TOP 1000000000")}) tally")[0][:TotalRows].to_i
+          total_rows = raw_connection.select_all("SELECT count(*) as TotalRows from (#{sql.gsub(/\bSELECT(\s+DISTINCT)?\b/i, "SELECT#{$1} TOP 1000000000")}) tally")[0][:TotalRows].to_i
           if (options[:limit] + options[:offset]) >= total_rows
             options[:limit] = (total_rows - options[:offset] >= 0) ? (total_rows - options[:offset]) : 0
           end
@@ -638,32 +664,6 @@ module ActiveRecord
         idcol ? [idcol.name,nil] : nil
       end
       
-      # CONNECTION MANAGEMENT ====================================#
-      
-      def active?
-        @connection.execute("SELECT 1").finish
-        true
-      rescue DBI::DatabaseError, DBI::InterfaceError
-        false
-      end
-
-      def reconnect!
-        disconnect!
-        @connection = DBI.connect(*@connection_options)
-      rescue DBI::DatabaseError => e
-        @logger.warn "#{adapter_name} reconnection failed: #{e.message}" if @logger
-        false
-      end
-
-      def disconnect!
-        @connection.disconnect rescue nil
-      end
-      
-      def finish_statement_handle(handle)
-        handle.finish if handle && handle.respond_to?(:finish) && !handle.finished?
-        handle
-      end
-
       # RAKE UTILITY METHODS =====================================#
 
       def recreate_database(name)
@@ -742,9 +742,9 @@ module ActiveRecord
       def raw_execute(sql, name = nil, &block)
         log(sql, name) do
           if block_given?
-            @connection.execute(sql) { |handle| yield(handle) }
+            raw_connection.execute(sql) { |handle| yield(handle) }
           else
-            @connection.execute(sql)
+            raw_connection.execute(sql)
           end
         end
       end
