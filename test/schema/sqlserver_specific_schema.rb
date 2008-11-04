@@ -29,4 +29,18 @@ ActiveRecord::Schema.define do
     t.column :string_with_pretend_null_four, :string, :default => '(NULL)'
   end
   
+  
+  create_table :fk_test_has_fks, :force => true do |t|
+    t.integer :fk_id, :null => false
+  end
+  create_table :fk_test_has_pks, :force => true do |t|
+  end
+  execute <<-ADDFKSQL
+    ALTER TABLE fk_test_has_fks 
+    ADD CONSTRAINT FK__fk_test_has_fk_fk_id
+    FOREIGN KEY (#{quote_column_name('fk_id')}) 
+    REFERENCES #{quote_table_name('fk_test_has_pks')} (#{quote_column_name('id')})
+  ADDFKSQL
+  
+  
 end

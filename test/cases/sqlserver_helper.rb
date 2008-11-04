@@ -13,6 +13,8 @@ ACTIVERECORD_TEST_ROOT    = File.expand_path(SQLSERVER_TEST_ROOT + "/../../../..
 ActiveRecord::Migration.verbose = false
 
 class TableWithRealColumn < ActiveRecord::Base; end
+class FkTestHasFk < ActiveRecord::Base ; end
+class FkTestHasPk < ActiveRecord::Base ; end
 
 # Change the text database type to support ActiveRecord's tests for = on text columns which 
 # is not supported in SQL Server text columns, so use varchar(8000) instead.

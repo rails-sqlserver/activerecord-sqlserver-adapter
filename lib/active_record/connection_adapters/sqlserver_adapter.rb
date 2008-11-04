@@ -364,10 +364,14 @@ module ActiveRecord
         end
       end
       
-      
       # REFERENTIAL INTEGRITY ====================================#
-      # TODO: Add #disable_referential_integrity if we can use it
       
+      def disable_referential_integrity(&block)
+        execute "EXEC sp_MSForEachTable 'ALTER TABLE ? NOCHECK CONSTRAINT ALL'"
+        yield
+      ensure
+        execute "EXEC sp_MSForEachTable 'ALTER TABLE ? CHECK CONSTRAINT ALL'"
+      end
       
       # DATABASE STATEMENTS ======================================
       
