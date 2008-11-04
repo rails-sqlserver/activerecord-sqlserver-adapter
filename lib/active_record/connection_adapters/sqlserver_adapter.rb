@@ -11,7 +11,6 @@ module ActiveRecord
       mode        = config[:mode] ? config[:mode].to_s.upcase : 'ADO'
       username    = config[:username] ? config[:username].to_s : 'sa'
       password    = config[:password] ? config[:password].to_s : ''
-      autocommit  = config.key?(:autocommit) ? config[:autocommit] : true
       if mode == "ODBC"
         raise ArgumentError, "Missing DSN. Argument ':dsn' must be set in order for this adapter to work." unless config.has_key?(:dsn)
         dsn       = config[:dsn]
@@ -22,8 +21,8 @@ module ActiveRecord
         host      = config[:host] ? config[:host].to_s : 'localhost'
         driver_url = "DBI:ADO:Provider=SQLOLEDB;Data Source=#{host};Initial Catalog=#{database};User ID=#{username};Password=#{password};"
       end
-      conn      = DBI.connect(driver_url, username, password)
-      conn["AutoCommit"] = autocommit
+      conn = DBI.connect(driver_url, username, password)
+      conn["AutoCommit"] = true
       ConnectionAdapters::SQLServerAdapter.new(conn, logger, [driver_url, username, password])
     end
     
@@ -380,21 +379,15 @@ module ActiveRecord
       end
       
       def begin_db_transaction
-        @connection["AutoCommit"] = false
-      rescue Exception => e
-        @connection["AutoCommit"] = true
+        execute "BEGIN TRANSACTION"
       end
-      
+
       def commit_db_transaction
-        @connection.commit
-      ensure
-        @connection["AutoCommit"] = true
+        execute "COMMIT TRANSACTION"
       end
-      
+
       def rollback_db_transaction
-        @connection.rollback
-      ensure
-        @connection["AutoCommit"] = true
+        execute "ROLLBACK TRANSACTION" rescue nil
       end
       
       def add_limit_offset!(sql, options)
@@ -569,10 +562,20 @@ module ActiveRecord
       end
 
       def indexes(table_name, name = nil)
-        @connection["AutoCommit"] = false
-        get_indexes(table_name,name)
-      ensure
-        @connection["AutoCommit"] = true
+        select("EXEC sp_helpindex #{quote_table_name(table_name)}",name).inject([]) do |indexes,index|
+          if index['index_description'] =~ /primary key/
+            indexes
+          else
+            name    = index['index_name']
+            unique  = index['index_description'] =~ /unique/
+            columns = index['index_keys'].split(',').map do |column|
+              column.strip!
+              column.gsub! '(-)', '' if column.ends_with?('(-)')
+              column
+            end
+            indexes << IndexDefinition.new(table_name, name, unique, columns)
+          end
+        end
       end
       
       def add_order_by_for_association_limiting!(sql, options)
@@ -635,7 +638,6 @@ module ActiveRecord
       
       # Returns a table's primary key and belonging sequence (not applicable to SQL server).
       def pk_and_sequence_for(table_name)
-        @connection["AutoCommit"] = false
         keys = []
         execute("EXEC sp_helpindex '#{table_name}'") do |handle|
           if handle.column_info.any?
@@ -644,8 +646,6 @@ module ActiveRecord
           end
         end
         keys.length == 1 ? [keys.first, nil] : nil
-      ensure
-        @connection["AutoCommit"] = true
       end
       
       # CONNECTION MANAGEMENT ====================================#
@@ -745,17 +745,8 @@ module ActiveRecord
       
       def update_sql(sql, name = nil)
         set_utf8_values!(sql)
-        auto_commiting = @connection["AutoCommit"]
-        begin
-          begin_db_transaction if auto_commiting
-          execute(sql, name)
-          affected_rows = select_value("SELECT @@ROWCOUNT AS AffectedRows")
-          commit_db_transaction if auto_commiting
-          affected_rows
-        rescue
-          rollback_db_transaction if auto_commiting
-          raise
-        end
+        execute(sql, name)
+        select_value('SELECT @@ROWCOUNT AS AffectedRows')
       end
       
       def raw_execute(sql, name = nil, &block)
@@ -810,25 +801,8 @@ module ActiveRecord
       end
       
       def remove_indexes(table_name, column_name)
-        get_indexes(table_name).select{ |index| index.columns.include?(column_name.to_s) }.each do |index|
+        indexes(table_name).select{ |index| index.columns.include?(column_name.to_s) }.each do |index|
           remove_index(table_name, {:name => index.name})
-        end
-      end
-      
-      def get_indexes(table_name, name = nil)
-        select("EXEC sp_helpindex #{quote_table_name(table_name)}",name).inject([]) do |indexes,index|
-          if index['index_description'] =~ /primary key/
-            indexes
-          else
-            name    = index['index_name']
-            unique  = index['index_description'] =~ /unique/
-            columns = index['index_keys'].split(',').map do |column|
-              column.strip!
-              column.gsub! '(-)', '' if column.ends_with?('(-)')
-              column
-            end
-            indexes << IndexDefinition.new(table_name, name, unique, columns)
-          end
         end
       end
       
