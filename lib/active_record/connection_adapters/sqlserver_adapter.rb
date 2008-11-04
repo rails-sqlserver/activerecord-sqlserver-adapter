@@ -494,6 +494,23 @@ module ActiveRecord
         select_values "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_NAME <> 'dtproperties'"
       end
       
+      def indexes(table_name, name = nil)
+        select("EXEC sp_helpindex #{quote_table_name(table_name)}",name).inject([]) do |indexes,index|
+          if index['index_description'] =~ /primary key/
+            indexes
+          else
+            name    = index['index_name']
+            unique  = index['index_description'] =~ /unique/
+            columns = index['index_keys'].split(',').map do |column|
+              column.strip!
+              column.gsub! '(-)', '' if column.ends_with?('(-)')
+              column
+            end
+            indexes << IndexDefinition.new(table_name, name, unique, columns)
+          end
+        end
+      end
+      
       def columns(table_name, name = nil)
         return [] if table_name.blank?
         cache_key = unqualify_table_name(table_name)
@@ -560,27 +577,23 @@ module ActiveRecord
       def remove_index(table_name, options = {})
         execute "DROP INDEX #{table_name}.#{quote_column_name(index_name(table_name, options))}"
       end
-
-      def indexes(table_name, name = nil)
-        select("EXEC sp_helpindex #{quote_table_name(table_name)}",name).inject([]) do |indexes,index|
-          if index['index_description'] =~ /primary key/
-            indexes
-          else
-            name    = index['index_name']
-            unique  = index['index_description'] =~ /unique/
-            columns = index['index_keys'].split(',').map do |column|
-              column.strip!
-              column.gsub! '(-)', '' if column.ends_with?('(-)')
-              column
-            end
-            indexes << IndexDefinition.new(table_name, name, unique, columns)
+      
+      def type_to_sql(type, limit = nil, precision = nil, scale = nil)
+        limit = nil unless self.class.type_limitable?(type)
+        if type.to_s == 'integer'
+          case limit
+            when 1..2       then  'smallint'
+            when 3..4, nil  then  'integer'
+            when 5..8       then  'bigint'
+            else raise(ActiveRecordError, "No integer type has byte size #{limit}. Use a numeric with precision 0 instead.")
           end
+        else
+          super
         end
       end
       
       def add_order_by_for_association_limiting!(sql, options)
         return sql if options[:order].blank?
-
         # Strip any ASC or DESC from the orders for the select list
         # Build fields and order arrays
         # e.g.: options[:order] = 'table.[id], table2.[col2] desc'
@@ -597,55 +610,23 @@ module ActiveRecord
           fields << "MIN(#{$1}) AS #{$2}"
           order << "#{$2}#{$3}"
         end
-
         sql.gsub!(/(.+?) FROM/, "\\1, #{fields.join(',')} FROM")
         sql << " ORDER BY #{order.join(',')}"
       end
       
-      def type_to_sql(type, limit = nil, precision = nil, scale = nil)
-        limit = nil unless self.class.type_limitable?(type)
-        if type.to_s == 'integer'
-          case limit
-            when 1..2       then  'smallint'
-            when 3..4, nil  then  'integer'
-            when 5..8       then  'bigint'
-            else raise(ActiveRecordError, "No integer type has byte size #{limit}. Use a numeric with precision 0 instead.")
-          end
-        else
-          super
-        end
-      end
-      
-      # Clear the given table and reset the table's id to 1
-      # Argument:
-      # +table_name+:: (String) Name of the table to be cleared and reset
-      def truncate(table_name)
-        execute("TRUNCATE TABLE #{table_name}; DBCC CHECKIDENT ('#{table_name}', RESEED, 1)")
-      end
-      
       def change_column_null(table_name, column_name, null, default = nil)
-        column = columns(table_name).find { |c| c.name == column_name.to_s }
-
+        column = column_for(table_name,column_name)
         unless null || default.nil?
           execute("UPDATE #{quote_table_name(table_name)} SET #{quote_column_name(column_name)}=#{quote(default)} WHERE #{quote_column_name(column_name)} IS NULL")
         end
-
-        # TODO - work out what the reason is for column.sql_type != type_to_sql(column.type, column.limit, column.precision, column.scale)
         sql = "ALTER TABLE #{table_name} ALTER COLUMN #{quote_column_name(column_name)} #{type_to_sql column.type, column.limit, column.precision, column.scale}"
         sql << " NOT NULL" unless null
         execute sql
       end
       
-      # Returns a table's primary key and belonging sequence (not applicable to SQL server).
       def pk_and_sequence_for(table_name)
-        keys = []
-        execute("EXEC sp_helpindex '#{table_name}'") do |handle|
-          if handle.column_info.any?
-            pk_index = handle.detect {|index| index[1] =~ /primary key/ }
-            keys << pk_index[2] if pk_index
-          end
-        end
-        keys.length == 1 ? [keys.first, nil] : nil
+        idcol = identity_column(table_name)
+        idcol ? [idcol.name,nil] : nil
       end
       
       # CONNECTION MANAGEMENT ====================================#
