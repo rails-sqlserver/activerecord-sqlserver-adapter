@@ -15,6 +15,9 @@ ActiveRecord::Migration.verbose = false
 class TableWithRealColumn < ActiveRecord::Base; end
 class FkTestHasFk < ActiveRecord::Base ; end
 class FkTestHasPk < ActiveRecord::Base ; end
+class SqlServerChronic < ActiveRecord::Base
+  default_timezone = :utc
+end
 
 # Change the text database type to support ActiveRecord's tests for = on text columns which 
 # is not supported in SQL Server text columns, so use varchar(8000) instead.

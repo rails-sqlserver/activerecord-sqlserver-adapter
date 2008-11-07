@@ -5,17 +5,6 @@ ActiveRecord::Schema.define do
   end
   
   create_table :defaults, :force => true do |t|
-    # NOTE: These are the other columns from the postgresql specific schema
-    # however, there aren't any tests for them yet, so no point creating them.
-    # modified_date date default CURRENT_DATE,
-    # modified_date_function date default now(),
-    # fixed_date date default '2004-01-01',
-    # modified_time timestamp default CURRENT_TIMESTAMP,
-    # modified_time_function timestamp default now(),
-    # fixed_time timestamp default '2004-01-01 00:00:00.000000-00',
-    # char1 char(1) default 'Y',
-    # char2 character varying(50) default 'a varchar field',
-    # char3 text default 'a text field',
     t.column :positive_integer, :integer, :default => 1
     t.column :negative_integer, :integer, :default => -1
     t.column :decimal_number, :decimal, :precision => 3, :scale => 2, :default => 2.78
@@ -29,12 +18,15 @@ ActiveRecord::Schema.define do
     t.column :string_with_pretend_null_four, :string, :default => '(NULL)'
   end
   
+  create_table :sql_server_chronics, :force => true do |t|
+    t.column :date,       :date
+    t.column :time,       :time
+    t.column :datetime,   :datetime
+    t.column :timestamp,  :timestamp
+  end
   
-  create_table :fk_test_has_fks, :force => true do |t|
-    t.integer :fk_id, :null => false
-  end
-  create_table :fk_test_has_pks, :force => true do |t|
-  end
+  create_table(:fk_test_has_fks, :force => true) { |t| t.column(:fk_id, :integer, :null => false) }
+  create_table(:fk_test_has_pks, :force => true) { }
   execute <<-ADDFKSQL
     ALTER TABLE fk_test_has_fks 
     ADD CONSTRAINT FK__fk_test_has_fk_fk_id
