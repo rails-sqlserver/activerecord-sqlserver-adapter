@@ -8,6 +8,12 @@ test/connections/<your database>/connection.rb.
 
 == Requirements
 
+The following gems need to be installed. Make sure you have gems.github.com as a
+source. http://github.com/blog/97-github-loves-rubygems-1-2
+
+  * gem install thoughbot-shoulda
+  * gem install mocha
+
 The tests of this adapter depend on the existence of rails edge. All the tests
 defined by rails edge are re-used. For this to work the following directory 
 structure is assumed to exist:
@@ -31,6 +37,18 @@ of rake tasks with "rake -T"
 Rake can be found at http://rake.rubyforge.org
 
 
+== Running with Autotest
+
+Using autotest is easy, just run "autotest" and the tests will run continually in the 
+same order as the rake test command. By default autotest will use ODBC connection. If 
+you want to change this you can edit the autotest/sqlserver.rb file and set odbc_mode 
+to false.
+
+Lastly, you can run autotest on just the adapter specific tests with "autotest sqlserver". 
+This will continuously run ONLY the SQL Sever specific behavior tests which are much 
+quicker to run than the entire active record test suite.
+
+
 == Running by hand
 
 Unit tests are located in test directory. If you only want to run a single test suite, 
@@ -39,6 +57,7 @@ you can do so with:
    rake test_sqlserver TEST=base_test.rb
    
 That'll run the base suite using the SQLServer-Ruby adapter.
+
 
 == Expected Errors and Failures
 
@@ -51,20 +70,13 @@ Currently we expect the following errors from running the test suite:
 2. ERROR in test_add_limit_offset_should_sanitize_sql_injection_for_limit_without_comas
    from
    activerecord/test/cases/adapter_test.rb
-   
-3. FAILURE in test_update
-   from
-   activerecord/test/cases/mixin_test.rb
 
-4. FAILURE in test_create
-   from
-   activerecord/test/cases/mixin_test.rb
-   
-5. FAILURE in test_many_updates
-   from
-   activerecord/test/cases/mixin_test.rb
-   
-   
+3. Error:
+   test_delegates_finds_and_calculations_to_the_base_class(NamedScopeTest):
+   NoMethodError: undefined method `to_d' for 0:Fixnum
+   http://rails.lighthouseapp.com/projects/8994-ruby-on-rails/tickets/1346-coerce-0-average-calculation-to-float
+
+
 1. & 2. error because we treat the possible values for offset and limit much more 
 aggressively than the intention of the tests.  Rails expects that limit => '1,7 bad sql'
 would turn into ' limit 1,7' but that's not valid SQL Server syntax so why should we 
@@ -74,13 +86,4 @@ to sanitize them.  It's a hard-line to take on sql injection, but probably a saf
 We do however have our own offset and limit tests in test/cases/offset_and_limit_test_sqlserver
 that test our expected behaviour.
 
-3., 4., & 5. error because SQLServer datetimes (the only time data type available) does not
-store usec values so even storing a fixed Time value in the db and comparing the retrieved
-value to the know value will not work.  The retreived value will always have .usec = 0 (probably).
-
-We do however have re-implement the fixed time stuff for activerecord/test/cases/mixin_test.rb in 
-test/cases/mixin_for_sqlserver_test so that the fixed time is a time with 0 usecs.
-
-  NOTE: Neither do quite a few other adapters. I found that our implementation if the 
-  reason for these failures. Have not debuged yet.
 
