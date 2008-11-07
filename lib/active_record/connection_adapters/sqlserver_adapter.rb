@@ -131,57 +131,8 @@ module ActiveRecord
       def is_utf8?
         sql_type =~ /nvarchar|ntext|nchar|nvarchar(max)/i
       end
-
-      def type_cast(value)
-        return nil if value.nil?
-        case type
-        when :datetime  then self.class.cast_to_datetime(value)
-        when :timestamp then self.class.cast_to_time(value)
-        when :time      then self.class.cast_to_time(value)
-        when :date      then self.class.cast_to_datetime(value)
-        else super
-        end
-      end
-
-      def type_cast_code(var_name)
-        case type
-        when :datetime  then "#{self.class.name}.cast_to_datetime(#{var_name})"
-        when :timestamp then "#{self.class.name}.cast_to_time(#{var_name})"
-        when :time      then "#{self.class.name}.cast_to_time(#{var_name})"
-        when :date      then "#{self.class.name}.cast_to_datetime(#{var_name})"
-        else super
-        end
-      end
       
       class << self
-        
-        def cast_to_datetime(value)
-          return value.to_time if value.is_a?(DBI::Timestamp)
-          return string_to_time(value) if value.is_a?(Time)
-          return string_to_time(value) if value.is_a?(DateTime)
-          return cast_to_time(value) if value.is_a?(String)
-          value
-        end
-
-        def cast_to_time(value)
-          return value if value.is_a?(Time)
-          time_hash = Date._parse(value)
-          time_hash[:sec_fraction] = 0 # REVISIT: microseconds(time_hash)
-          new_time(*time_hash.values_at(:year, :mon, :mday, :hour, :min, :sec, :sec_fraction)) rescue nil
-        end
-
-        def string_to_time(value)
-          if value.is_a?(DateTime) || value.is_a?(Time)
-            # The DateTime comes in as '2008-08-08T17:57:28+00:00'
-            # Original code was taking a UTC DateTime, ignored the time zone by
-            # creating a localized Time object,  ex: 'FRI Aug 08 17:57:28 +04 2008'
-            # Instead, let Time.parse translate the DateTime string including it's timezone
-            # If Rails is UTC, call .utc, otherwise return a local time value
-            return Base.default_timezone == :utc ? Time.parse(value.to_s).utc : Time.parse(value.to_s)
-          else
-            super
-          end
-        end
         
         def string_to_binary(value)
          "0x#{value.unpack("H*")[0]}"
@@ -189,14 +140,6 @@ module ActiveRecord
         
         def binary_to_string(value)
           value =~ /[^[:xdigit:]]/ ? value : [value].pack('H*')
-        end
-        
-        protected
-        
-        def new_time(year, mon, mday, hour, min, sec, microsec = 0)
-          # Treat 0000-00-00 00:00:00 as nil.
-          return nil if year.nil? || year == 0
-          Time.time_with_datetime_fallback(Base.default_timezone, year, mon, mday, hour, min, sec, microsec) rescue nil
         end
         
       end #class << self
