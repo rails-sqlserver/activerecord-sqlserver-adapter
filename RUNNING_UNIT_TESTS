@@ -72,8 +72,9 @@ Currently we expect the following errors from running the test suite:
    activerecord/test/cases/adapter_test.rb
 
 3. Error:
-   test_delegates_finds_and_calculations_to_the_base_class(NamedScopeTest):
-   NoMethodError: undefined method `to_d' for 0:Fixnum
+   test_should_average_field(CalculationsTest)
+   test_average_with_from_option(CalculationsTest)
+   test_delegates_finds_and_calculations_to_the_base_class(NamedScopeTest)
    http://rails.lighthouseapp.com/projects/8994-ruby-on-rails/tickets/1346-coerce-0-average-calculation-to-float
 
 
