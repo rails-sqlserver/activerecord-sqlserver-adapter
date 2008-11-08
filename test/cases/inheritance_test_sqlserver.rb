@@ -11,7 +11,6 @@ class InheritanceTest < ActiveRecord::TestCase
   include SqlserverCoercedTest
   
   def test_coerced_test_eager_load_belongs_to_primary_key_quoting
-    con = Account.connection
     assert_sql(/\(\[companies\].\[id\] = 1\)/) do
       Account.find(1, :include => :firm)
     end
