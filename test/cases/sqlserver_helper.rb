@@ -19,6 +19,22 @@ class SqlServerChronic < ActiveRecord::Base
   default_timezone = :utc
 end
 
+# A module that we can include in classes where we want to override an active record test.
+
+module SqlserverCoercedTest
+  def self.included(base)
+    base.extend ClassMethods
+  end
+  module ClassMethods
+    def coerced_tests
+      self.const_get(:COERCED_TESTS) rescue nil
+    end
+    def method_added(method)
+      undef_method(method) if coerced_tests && coerced_tests.include?(method)
+    end
+  end
+end
+
 # Change the text database type to support ActiveRecord's tests for = on text columns which 
 # is not supported in SQL Server text columns, so use varchar(8000) instead.
 
