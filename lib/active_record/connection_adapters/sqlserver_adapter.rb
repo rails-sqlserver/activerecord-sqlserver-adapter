@@ -1,4 +1,6 @@
 require 'active_record/connection_adapters/abstract_adapter'
+require_library_or_gem 'dbi' unless defined?(DBI)
+require 'core_ext/dbi'
 require 'base64'
 
 module ActiveRecord
@@ -6,8 +8,7 @@ module ActiveRecord
   class Base
     
     def self.sqlserver_connection(config) #:nodoc:
-      require_library_or_gem 'dbi' unless self.class.const_defined?(:DBI)
-      config = config.symbolize_keys
+      config.symbolize_keys!
       mode        = config[:mode] ? config[:mode].to_s.upcase : 'ADO'
       username    = config[:username] ? config[:username].to_s : 'sa'
       password    = config[:password] ? config[:password].to_s : ''
@@ -296,12 +297,9 @@ module ActiveRecord
         '0'
       end
       
-      # TODO: I get the feeling this needs to go and that it is patching something else wrong.
       def quoted_date(value)
-        if value.acts_like?(:time)
-          value.strftime("%Y%m%d %H:%M:%S")
-        elsif value.acts_like?(:date)
-          value.strftime("%Y%m%d")
+        if value.acts_like?(:time) && value.respond_to?(:usec)
+          "#{super}.#{sprintf("%06d",value.usec)[0..2]}"
         else
           super
         end
@@ -699,9 +697,7 @@ module ActiveRecord
         rows = results.inject([]) do |rows,row|
           row.each_with_index do |value, i|
             if value.is_a? DBI::Timestamp
-              row[i] = value.to_time
-              # TODO: Let's revisit this and the whole DB time thing.
-              # row[i] = DateTime.new(value.year, value.month, value.day, value.hour, value.minute, value.sec)
+              row[i] = value.to_sqlserver_string
             end
           end
           rows << row

@@ -123,13 +123,38 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
         @connection.execute("SET LANGUAGE us_english") rescue nil
       end
 
-      should 'do a date insertion when language is german' do
+      should_eventually 'do a date insertion when language is german' do
         @connection.execute("SET LANGUAGE deutsch")
         assert_nothing_raised do
           Task.create(:starting => Time.utc(2000, 1, 31, 5, 42, 0), :ending => Date.new(2006, 12, 31))
         end
       end
 
+    end
+    
+  end
+  
+  context 'For chronic data types' do
+    
+    context 'with a usec' do
+
+      setup do
+        @time = Time.now
+      end
+      
+      should 'truncate 123456 usec to just 123' do
+        @time.stubs(:usec).returns(123456)
+        saved = SqlServerChronic.create!(:datetime => @time).reload
+        assert_equal 123000, saved.datetime.usec
+      end
+      
+      should 'drop 123 to 0' do
+        @time.stubs(:usec).returns(123)
+        saved = SqlServerChronic.create!(:datetime => @time).reload
+        assert_equal 0, saved.datetime.usec
+        assert_equal '000', saved.datetime_before_type_cast.split('.').last
+      end
+      
     end
     
   end
