@@ -351,10 +351,10 @@ module ActiveRecord
       
       def add_lock!(sql, options)
         # http://blog.sqlauthority.com/2007/04/27/sql-server-2005-locking-hints-and-examples/
-        case lock = options[:lock]
-          when true then sql << ' WITH(HOLDLOCK, ROWLOCK) '
-          when String then sql << " #{lock} "
-        end
+        return unless options[:lock]
+        lock_type = options[:lock] == true ? 'WITH(HOLDLOCK, ROWLOCK)' : options[:lock]
+        from_table = sql.match(/FROM(.*)WHERE/im)[1]
+        sql.sub! from_table, "#{from_table}#{lock_type} "
       end
       
       def empty_insert_statement(table_name)

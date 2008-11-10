@@ -18,37 +18,6 @@ module ActiveRecord
         
         private
         
-        # Add basic support for SQL server locking hints
-        # In the case of SQL server, the lock value must follow the FROM clause
-        # Mysql:     SELECT * FROM tst where testID = 10 LOCK IN share mode
-        # SQLServer: SELECT * from tst WITH (HOLDLOCK, ROWLOCK) where testID = 10
-        # h-lame: OK, so these 2 methods should be a patch to rails ideally, so we don't
-        #         have to play catch up against rails itself should construct_finder_sql ever
-        #         change
-        def construct_finder_sql(options)
-          scope = scope(:find)
-          sql  = "SELECT #{options[:select] || (scope && scope[:select]) || ((options[:joins] || (scope && scope[:joins])) && quoted_table_name + '.*') || '*'} "
-          sql << "FROM #{(scope && scope[:from]) || options[:from] || quoted_table_name} "
-
-          add_lock!(sql, options, scope) if ActiveRecord::Base.connection.adapter_name == "SQLServer" && !options[:lock].blank? # SQLServer
-
-          # merge_joins isn't defined in 2.1.1, but appears in edge
-          if defined?(merge_joins)
-          # The next line may fail with a nil error under 2.1.1 or other non-edge rails versions - Use this instead: add_joins!(sql, options, scope)
-           add_joins!(sql, options[:joins], scope)
-          else
-           add_joins!(sql, options, scope)
-          end
-
-          add_conditions!(sql, options[:conditions], scope)
-
-          add_group!(sql, options[:group], scope)
-          add_order!(sql, options[:order], scope)
-          add_limit!(sql, options, scope)
-          add_lock!(sql, options, scope) unless ActiveRecord::Base.connection.adapter_name == "SQLServer" #  Not SQLServer
-          sql
-        end
-
         # Overwrite the ActiveRecord::Base method for SQL server.
         # GROUP BY is necessary for distinct orderings
         def construct_finder_sql_for_association_limiting(options, join_dependency)
