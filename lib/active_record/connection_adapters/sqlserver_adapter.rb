@@ -488,25 +488,12 @@ module ActiveRecord
       end
       
       def add_order_by_for_association_limiting!(sql, options)
+        # Disertation http://gist.github.com/24073
+        # Information http://weblogs.sqlteam.com/jeffs/archive/2007/12/13/select-distinct-order-by-error.aspx
         return sql if options[:order].blank?
-        # Strip any ASC or DESC from the orders for the select list
-        # Build fields and order arrays
-        # e.g.: options[:order] = 'table.[id], table2.[col2] desc'
-        # fields = ['min(table.[id]) AS id', 'min(table2.[col2]) AS col2']
-        # order = ['id', 'col2 desc']
-        fields = []
-        order = []
-        options[:order].split(/\s*,\s*/).each do |str|
-          # regex matches 'table_name.[column_name] asc' or 'column_name' ('table_name.', 'asc', '[', and ']' are optional)
-          # $1 = 'table_name.[column_name]'
-          # $2 = 'column_name'
-          # $3 = ' asc'
-          str =~ /((?:\w+\.)?\[?(\w+)\]?)(\s+asc|\s+desc)?/i
-          fields << "MIN(#{$1}) AS #{$2}"
-          order << "#{$2}#{$3}"
-        end
-        sql.gsub!(/(.+?) FROM/, "\\1, #{fields.join(',')} FROM")
-        sql << " ORDER BY #{order.join(',')}"
+        columns = sql.match(/SELECT\s+DISTINCT(.*)FROM/)[1].strip
+        sql.sub!(/SELECT\s+DISTINCT/,'SELECT')
+        sql << "GROUP BY #{columns} ORDER BY #{order_to_min_set(options[:order])}"
       end
       
       def change_column_null(table_name, column_name, null, default = nil)
@@ -711,6 +698,19 @@ module ActiveRecord
         else
           nil
         end
+      end
+      
+      def order_to_min_set(order)
+        dir = ''
+        orders = order.split(',').map(&:strip).reject(&:blank?)
+        mins = orders.map do |o|
+          if o =~ /\b(asc|desc)$/i
+            dir = $1
+            o = o.sub($1,'').strip
+          end
+          "MIN(#{o})"
+        end
+        "#{mins.join(', ')} #{dir}".strip
       end
       
       def remove_sqlserver_columns_cache_for(table_name)

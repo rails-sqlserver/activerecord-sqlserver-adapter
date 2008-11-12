@@ -117,6 +117,17 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
 
     end
     
+    should 'take all types of order options and convert them to MIN functions using #order_to_min_set' do
+      single_order = 'comments.id'
+      assert_equal 'MIN(comments.id)', @connection.send(:order_to_min_set,single_order)
+      two_orders = 'comments.id, comments.post_id'
+      assert_equal 'MIN(comments.id), MIN(comments.post_id)', @connection.send(:order_to_min_set,two_orders)
+      single_order_with_desc = 'comments.id DESC'
+      assert_equal 'MIN(comments.id) DESC', @connection.send(:order_to_min_set,single_order_with_desc)
+      two_orders_with_asc = 'comments.id, comments.post_id ASC'
+      assert_equal 'MIN(comments.id), MIN(comments.post_id) ASC', @connection.send(:order_to_min_set,two_orders_with_asc)
+    end
+    
     context 'with different language' do
 
       teardown do
