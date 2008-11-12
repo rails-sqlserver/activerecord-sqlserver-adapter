@@ -700,17 +700,24 @@ module ActiveRecord
         end
       end
       
-      def order_to_min_set(order)
-        dir = ''
-        orders = order.split(',').map(&:strip).reject(&:blank?)
-        mins = orders.map do |o|
-          if o =~ /\b(asc|desc)$/i
-            dir = $1
-            o = o.sub($1,'').strip
+      def orders_and_dirs_set(order)
+        orders = order.sub('ORDER BY','').split(',').map(&:strip).reject(&:blank?)
+        orders_dirs = orders.map do |ord|
+          dir = nil
+          if match_data = ord.match(/\b(asc|desc)$/i)
+            dir = match_data[1]
+            ord.sub!(dir,'').strip!
+            dir.upcase!
           end
-          "MIN(#{o})"
+          [ord,dir]
         end
-        "#{mins.join(', ')} #{dir}".strip
+      end
+      
+      def order_to_min_set(order)
+        orders_dirs = orders_and_dirs_set(order)
+        orders_dirs.map do |o,d|
+          "MIN(#{o}) #{d}".strip
+        end.join(', ')
       end
       
       def remove_sqlserver_columns_cache_for(table_name)

@@ -117,15 +117,41 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
 
     end
     
-    should 'take all types of order options and convert them to MIN functions using #order_to_min_set' do
-      single_order = 'comments.id'
-      assert_equal 'MIN(comments.id)', @connection.send(:order_to_min_set,single_order)
-      two_orders = 'comments.id, comments.post_id'
-      assert_equal 'MIN(comments.id), MIN(comments.post_id)', @connection.send(:order_to_min_set,two_orders)
-      single_order_with_desc = 'comments.id DESC'
-      assert_equal 'MIN(comments.id) DESC', @connection.send(:order_to_min_set,single_order_with_desc)
-      two_orders_with_asc = 'comments.id, comments.post_id ASC'
-      assert_equal 'MIN(comments.id), MIN(comments.post_id) ASC', @connection.send(:order_to_min_set,two_orders_with_asc)
+    context 'dealing with various orders SQL snippets' do
+      
+      setup do
+        @single_order = 'comments.id'
+        @single_order_with_desc = 'comments.id DESC'
+        @two_orders = 'comments.id, comments.post_id'
+        @two_orders_with_asc = 'comments.id, comments.post_id ASC'
+        @two_orders_with_desc_and_asc = 'comments.id DESC, comments.post_id ASC'
+        @two_duplicate_order_with_dif_dir = "id, id DESC"
+      end
+      
+      should 'convert to an 2D array of column/direction arrays using #orders_and_dirs_set' do
+        assert_equal [['comments.id',nil]], orders_and_dirs_set('ORDER BY comments.id'), 'Needs to remove ORDER BY'
+        assert_equal [['comments.id',nil]], orders_and_dirs_set(@single_order)
+        assert_equal [['comments.id',nil],['comments.post_id',nil]], orders_and_dirs_set(@two_orders)
+        assert_equal [['comments.id',nil],['comments.post_id','ASC']], orders_and_dirs_set(@two_orders_with_asc)
+        assert_equal [['id',nil],['id','DESC']], orders_and_dirs_set(@two_duplicate_order_with_dif_dir)
+      end
+      
+      should 'remove duplicate or maintain the same order by statements giving precedence to first using #add_order! method chain extension' do
+        assert_equal 'ORDER BY comments.id', add_order!(@single_order)
+        assert_equal 'ORDER BY comments.id DESC', add_order!(@single_order_with_desc)
+        assert_equal 'ORDER BY comments.id, comments.post_id', add_order!(@two_orders)
+        assert_equal 'ORDER BY comments.id DESC, comments.post_id ASC', add_order!(@two_orders_with_desc_and_asc)
+        assert_equal 'ORDER BY id', add_order!(@two_duplicate_order_with_dif_dir)
+      end
+      
+      should 'take all types of order options and convert them to MIN functions using #order_to_min_set' do
+        assert_equal 'MIN(comments.id)', order_to_min_set(@single_order)
+        assert_equal 'MIN(comments.id), MIN(comments.post_id)', order_to_min_set(@two_orders)
+        assert_equal 'MIN(comments.id) DESC', order_to_min_set(@single_order_with_desc)
+        assert_equal 'MIN(comments.id), MIN(comments.post_id) ASC', order_to_min_set(@two_orders_with_asc)
+        assert_equal 'MIN(comments.id) DESC, MIN(comments.post_id) ASC', order_to_min_set(@two_orders_with_desc_and_asc)
+      end
+      
     end
     
     context 'with different language' do
@@ -304,6 +330,22 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
     
   end
   
+  
+  private
+  
+  def orders_and_dirs_set(order)
+    @connection.send :orders_and_dirs_set, order
+  end
+  
+  def add_order!(order)
+    sql = ''
+    ActiveRecord::Base.send :add_order!, sql, order, nil
+    sql
+  end
+  
+  def order_to_min_set(order)
+    @connection.send :order_to_min_set, order
+  end
   
 end
 
