@@ -287,9 +287,10 @@ module ActiveRecord
       end
       
       def add_limit_offset!(sql, options)
+        # Validate and/or convert integers for :limit and :offets options.
         if options[:offset]
           raise ArgumentError, "offset should have a limit" unless options[:limit]
-          unless options[:offset].kind_of?Integer
+          unless options[:offset].kind_of?(Integer)
             if options[:offset] =~ /^\d+$/
               options[:offset] = options[:offset].to_i
             else
@@ -297,31 +298,26 @@ module ActiveRecord
             end
           end
         end
-
-        if options[:limit] && !(options[:limit].kind_of?Integer)
-          # is it just a string which should be an integer?
+        if options[:limit] && !(options[:limit].kind_of?(Integer))
           if options[:limit] =~ /^\d+$/
             options[:limit] = options[:limit].to_i
           else
             raise ArgumentError, "limit should be an integer"
           end
         end
-
+        # The buisiness of adding limit/offset
         if options[:limit] and options[:offset]
-          total_rows = raw_connection.select_all("SELECT count(*) as TotalRows from (#{sql.gsub(/\bSELECT(\s+DISTINCT)?\b/i, "SELECT#{$1} TOP 1000000000")}) tally")[0][:TotalRows].to_i
+          total_rows = select_value("SELECT count(*) as TotalRows from (#{sql.gsub(/\bSELECT(\s+DISTINCT)?\b/i, "SELECT#{$1} TOP 1000000000")}) tally").to_i
           if (options[:limit] + options[:offset]) >= total_rows
             options[:limit] = (total_rows - options[:offset] >= 0) ? (total_rows - options[:offset]) : 0
           end
-
           # Wrap the SQL query in a bunch of outer SQL queries that emulate proper LIMIT,OFFSET support.
           sql.sub!(/^\s*SELECT(\s+DISTINCT)?/i, "SELECT * FROM (SELECT TOP #{options[:limit]} * FROM (SELECT#{$1} TOP #{options[:limit] + options[:offset]}")
           sql << ") AS tmp1"
-
           if options[:order]
             order = options[:order].split(',').map do |field|
               order_by_column, order_direction = field.split(" ")
               order_by_column = quote_column_name(order_by_column)
-
               # Investigate the SQL query to figure out if the order_by_column has been renamed.
               if sql =~ /#{Regexp.escape(order_by_column)} AS (t\d_r\d\d?)/
                 # Fx "[foo].[bar] AS t4_r2" was found in the SQL. Use the column alias (ie 't4_r2') for the subsequent orderings
@@ -333,19 +329,22 @@ module ActiveRecord
                 # name rather than the full identifier for the outer queries.
                 order_by_column = order_by_column.split('.').last
               end
-
               # Put the column name and eventual direction back together
               [order_by_column, order_direction].join(' ').strip
             end.join(', ')
-
             sql << " ORDER BY #{change_order_direction(order)}) AS tmp2 ORDER BY #{order}"
           else
             sql << ") AS tmp2"
           end
         elsif sql !~ /^\s*SELECT (@@|COUNT\()/i
-          sql.sub!(/^\s*SELECT(\s+DISTINCT)?/i) do
-            "SELECT#{$1} TOP #{options[:limit]}"
-          end unless options[:limit].nil? || options[:limit] < 1
+          unless options[:limit].nil? || options[:limit] < 1
+            if md = sql.match(/^(\s*SELECT)(\s+DISTINCT)?(.*)/im)
+              sql.replace "#{md[1]}#{md[2]} TOP #{options[:limit]}#{md[3]}"
+            else
+              # Account for building SQL fragments without SELECT yet. See #update_all and #limited_update_conditions.
+              sql.replace "TOP #{options[:limit]} #{sql}"
+            end
+          end
         end
       end
       
@@ -363,6 +362,13 @@ module ActiveRecord
       
       def case_sensitive_equality_operator
         "COLLATE Latin1_General_CS_AS ="
+      end
+      
+      def limited_update_conditions(where_sql, quoted_table_name, quoted_primary_key)
+        match_data = where_sql.match(/(.*)WHERE/)
+        limit = match_data[1]
+        where_sql.sub!(limit,'')
+        "WHERE #{quoted_primary_key} IN (SELECT #{limit} #{quoted_primary_key} FROM #{quoted_table_name} #{where_sql})"
       end
       
       # SCHEMA STATEMENTS ========================================#
