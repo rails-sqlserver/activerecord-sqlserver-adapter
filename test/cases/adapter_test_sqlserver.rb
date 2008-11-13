@@ -349,3 +349,29 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
   
 end
 
+
+class AdapterTest < ActiveRecord::TestCase
+  
+  COERCED_TESTS = [
+    :test_add_limit_offset_should_sanitize_sql_injection_for_limit_without_comas,
+    :test_add_limit_offset_should_sanitize_sql_injection_for_limit_with_comas
+  ]
+  
+  include SqlserverCoercedTest
+  
+  def test_coerced_test_add_limit_offset_should_sanitize_sql_injection_for_limit_without_comas
+    sql_inject = "1 select * from schema"
+    connection = ActiveRecord::Base.connection
+    assert_raise(ArgumentError) { connection.add_limit_offset!("", :limit=>sql_inject) }
+    assert_raise(ArgumentError) { connection.add_limit_offset!("", :limit=>sql_inject, :offset=>7) }
+  end
+
+  def test_coerced_test_add_limit_offset_should_sanitize_sql_injection_for_limit_with_comas
+    sql_inject = "1, 7 procedure help()"
+    connection = ActiveRecord::Base.connection
+    assert_raise(ArgumentError) { connection.add_limit_offset!("", :limit=>sql_inject) }
+    assert_raise(ArgumentError) { connection.add_limit_offset!("", :limit=> '1 ; DROP TABLE USERS', :offset=>7) }
+    assert_raise(ArgumentError) { connection.add_limit_offset!("", :limit=>sql_inject, :offset=>7) }
+  end
+  
+end
