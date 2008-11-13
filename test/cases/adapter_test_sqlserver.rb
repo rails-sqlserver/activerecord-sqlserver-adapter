@@ -137,11 +137,12 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
       end
       
       should 'remove duplicate or maintain the same order by statements giving precedence to first using #add_order! method chain extension' do
-        assert_equal 'ORDER BY comments.id', add_order!(@single_order)
-        assert_equal 'ORDER BY comments.id DESC', add_order!(@single_order_with_desc)
-        assert_equal 'ORDER BY comments.id, comments.post_id', add_order!(@two_orders)
-        assert_equal 'ORDER BY comments.id DESC, comments.post_id ASC', add_order!(@two_orders_with_desc_and_asc)
-        assert_equal 'ORDER BY id', add_order!(@two_duplicate_order_with_dif_dir)
+        assert_equal ' ORDER BY comments.id', add_order!(@single_order)
+        assert_equal ' ORDER BY comments.id DESC', add_order!(@single_order_with_desc)
+        assert_equal ' ORDER BY comments.id, comments.post_id', add_order!(@two_orders)
+        assert_equal ' ORDER BY comments.id DESC, comments.post_id ASC', add_order!(@two_orders_with_desc_and_asc)
+        assert_equal 'SELECT * FROM [developers] ORDER BY id', add_order!('id, developers.id DESC','SELECT * FROM [developers]')
+        assert_equal 'SELECT * FROM [developers] ORDER BY [developers].[id] DESC', add_order!('[developers].[id] DESC, id','SELECT * FROM [developers]')
       end
       
       should 'take all types of order options and convert them to MIN functions using #order_to_min_set' do
@@ -337,8 +338,7 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
     @connection.send :orders_and_dirs_set, order
   end
   
-  def add_order!(order)
-    sql = ''
+  def add_order!(order,sql='')
     ActiveRecord::Base.send :add_order!, sql, order, nil
     sql
   end

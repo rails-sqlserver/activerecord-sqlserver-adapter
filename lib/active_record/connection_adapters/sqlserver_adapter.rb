@@ -697,7 +697,7 @@ module ActiveRecord
       
       def unqualify_db_name(table_name)
         table_names = table_name.to_s.split('.')
-        table_names.length == 3 ? table_names.first.gsub(/[\[\]]/,'') : nil
+        table_names.length == 3 ? table_names.first.tr('[]','') : nil
       end
       
       def get_table_name(sql)
