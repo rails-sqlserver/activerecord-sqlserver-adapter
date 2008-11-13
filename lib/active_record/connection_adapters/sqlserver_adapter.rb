@@ -361,6 +361,10 @@ module ActiveRecord
         "INSERT INTO #{quote_table_name(table_name)} DEFAULT VALUES"
       end
       
+      def case_sensitive_equality_operator
+        "COLLATE Latin1_General_CS_AS ="
+      end
+      
       # SCHEMA STATEMENTS ========================================#
       
       def native_database_types
