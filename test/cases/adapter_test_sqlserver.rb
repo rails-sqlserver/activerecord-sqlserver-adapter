@@ -107,6 +107,27 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
       assert !@connection.send(:insert_sql?,'SELECT...')
     end
     
+    context 'for #sql_for_association_limiting?' do
+      
+      should 'return false for simple selects with no GROUP BY and ORDER BY' do
+        assert !sql_for_association_limiting?("SELECT * FROM [posts]")
+      end
+      
+      should 'return true to single SELECT, ideally a table/primarykey, that also has a GROUP BY and ORDER BY' do
+        assert sql_for_association_limiting?("SELECT [posts].id FROM...GROUP BY [posts].id ORDER BY MIN(posts.id)")
+      end
+      
+      should 'return false to single * wildcard SELECT that also has a GROUP BY and ORDER BY' do
+        assert !sql_for_association_limiting?("SELECT * FROM...GROUP BY [posts].id ORDER BY MIN(posts.id)")
+      end
+      
+      should 'return false to multiple columns in the select even when GROUP BY and ORDER BY are present' do
+        sql = "SELECT [accounts].credit_limit, firm_id FROM...GROUP BY firm_id ORDER BY firm_id"
+        assert !sql_for_association_limiting?(sql)
+      end
+      
+    end
+    
     context 'for #get_table_name' do
 
       should 'return quoted table name from basic INSERT, UPDATE and SELECT statements' do
@@ -333,6 +354,10 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
   
   
   private
+  
+  def sql_for_association_limiting?(sql)
+    @connection.send :sql_for_association_limiting?, sql
+  end
   
   def orders_and_dirs_set(order)
     @connection.send :orders_and_dirs_set, order

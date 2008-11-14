@@ -305,12 +305,14 @@ module ActiveRecord
             raise ArgumentError, "limit should be an integer"
           end
         end
-        # The buisiness of adding limit/offset
+        # The business of adding limit/offset
         if options[:limit] and options[:offset]
           total_rows = select_value("SELECT count(*) as TotalRows from (#{sql.gsub(/\bSELECT(\s+DISTINCT)?\b/i, "SELECT#{$1} TOP 1000000000")}) tally").to_i
           if (options[:limit] + options[:offset]) >= total_rows
             options[:limit] = (total_rows - options[:offset] >= 0) ? (total_rows - options[:offset]) : 0
           end
+          # Make sure we do not need a special limit/offset for association limiting. http://gist.github.com/25118
+          add_limit_offset_for_association_limiting!(sql,options) and return if sql_for_association_limiting?(sql)
           # Wrap the SQL query in a bunch of outer SQL queries that emulate proper LIMIT,OFFSET support.
           sql.sub!(/^\s*SELECT(\s+DISTINCT)?/i, "SELECT * FROM (SELECT TOP #{options[:limit]} * FROM (SELECT#{$1} TOP #{options[:limit] + options[:offset]}")
           sql << ") AS tmp1"
@@ -629,6 +631,21 @@ module ActiveRecord
         array
       end
       
+      def add_limit_offset_for_association_limiting!(sql, options)
+        sql.replace %|
+          SET NOCOUNT ON
+          DECLARE @row_number TABLE (row int identity(1,1), id int)
+          INSERT INTO @row_number (id)
+            #{sql}
+          SET NOCOUNT OFF
+          SELECT id FROM (
+            SELECT TOP #{options[:limit]} * FROM (
+              SELECT TOP #{options[:limit] + options[:offset]} * FROM @row_number ORDER BY row
+            ) AS tmp1 ORDER BY row DESC
+          ) AS tmp2 ORDER BY row
+        |.gsub(/[ \t\r\n]+/,' ')
+      end
+      
       # SCHEMA STATEMENTS ========================================#
       
       def remove_check_constraints(table_name, column_name)
@@ -728,6 +745,13 @@ module ActiveRecord
         orders_dirs.map do |o,d|
           "MIN(#{o}) #{d}".strip
         end.join(', ')
+      end
+      
+      def sql_for_association_limiting?(sql)
+        if md = sql.match(/^\s*SELECT(.*)FROM.*GROUP BY.*ORDER BY.*/im)
+          select_froms = md[1].split(',')
+          select_froms.size == 1 && !select_froms.first.include?('*')
+        end
       end
       
       def remove_sqlserver_columns_cache_for(table_name)
