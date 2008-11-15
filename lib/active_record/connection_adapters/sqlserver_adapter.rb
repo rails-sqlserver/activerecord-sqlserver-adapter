@@ -338,14 +338,12 @@ module ActiveRecord
           else
             sql << ") AS tmp2"
           end
-        elsif sql !~ /^\s*SELECT (@@|COUNT\()/i
-          unless options[:limit].nil? || options[:limit] < 1
-            if md = sql.match(/^(\s*SELECT)(\s+DISTINCT)?(.*)/im)
-              sql.replace "#{md[1]}#{md[2]} TOP #{options[:limit]}#{md[3]}"
-            else
-              # Account for building SQL fragments without SELECT yet. See #update_all and #limited_update_conditions.
-              sql.replace "TOP #{options[:limit]} #{sql}"
-            end
+        elsif options[:limit] && sql !~ /^\s*SELECT (@@|COUNT\()/i
+          if md = sql.match(/^(\s*SELECT)(\s+DISTINCT)?(.*)/im)
+            sql.replace "#{md[1]}#{md[2]} TOP #{options[:limit]}#{md[3]}"
+          else
+            # Account for building SQL fragments without SELECT yet. See #update_all and #limited_update_conditions.
+            sql.replace "TOP #{options[:limit]} #{sql}"
           end
         end
       end
