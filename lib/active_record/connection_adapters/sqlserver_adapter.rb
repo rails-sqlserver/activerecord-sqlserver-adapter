@@ -186,6 +186,10 @@ module ActiveRecord
         database_year == 2005
       end
       
+      def inspect
+        "#<#{self.class} year: #{database_year}, connection_options: #{@connection_options.inspect}>"
+      end
+      
       def native_text_database_type
         self.class.native_text_database_type || (sqlserver_2005? ? 'varchar(max)' : 'text')
       end
