@@ -231,10 +231,10 @@ module ActiveRecord
       # REFERENTIAL INTEGRITY ====================================#
       
       def disable_referential_integrity(&block)
-        execute "EXEC sp_MSForEachTable 'ALTER TABLE ? NOCHECK CONSTRAINT ALL'"
+        do_execute "EXEC sp_MSForEachTable 'ALTER TABLE ? NOCHECK CONSTRAINT ALL'"
         yield
       ensure
-        execute "EXEC sp_MSForEachTable 'ALTER TABLE ? CHECK CONSTRAINT ALL'"
+        do_execute "EXEC sp_MSForEachTable 'ALTER TABLE ? CHECK CONSTRAINT ALL'"
       end
       
       # CONNECTION MANAGEMENT ====================================#
@@ -279,15 +279,15 @@ module ActiveRecord
       end
       
       def begin_db_transaction
-        execute "BEGIN TRANSACTION"
+        do_execute "BEGIN TRANSACTION"
       end
 
       def commit_db_transaction
-        execute "COMMIT TRANSACTION"
+        do_execute "COMMIT TRANSACTION"
       end
 
       def rollback_db_transaction
-        execute "ROLLBACK TRANSACTION" rescue nil
+        do_execute "ROLLBACK TRANSACTION" rescue nil
       end
       
       def add_limit_offset!(sql, options)
@@ -435,7 +435,7 @@ module ActiveRecord
       end
       
       def rename_table(table_name, new_name)
-        execute "EXEC sp_rename '#{table_name}', '#{new_name}'"
+        do_execute "EXEC sp_rename '#{table_name}', '#{new_name}'"
       end
       
       def drop_table(table_name, options = {})
@@ -453,7 +453,7 @@ module ActiveRecord
           remove_check_constraints(table_name, column_name)
           remove_default_constraint(table_name, column_name)
           remove_indexes(table_name, column_name)
-          execute "ALTER TABLE #{quote_table_name(table_name)} DROP COLUMN #{quote_column_name(column_name)}"
+          do_execute "ALTER TABLE #{quote_table_name(table_name)} DROP COLUMN #{quote_column_name(column_name)}"
         end
         remove_sqlserver_columns_cache_for(table_name)
       end
@@ -467,24 +467,24 @@ module ActiveRecord
           remove_default_constraint(table_name, column_name)
           sql_commands << "ALTER TABLE #{quote_table_name(table_name)} ADD CONSTRAINT #{default_name(table_name,column_name)} DEFAULT #{quote(options[:default])} FOR #{quote_column_name(column_name)}"
         end
-        sql_commands.each { |c| execute(c) }
+        sql_commands.each { |c| do_execute(c) }
         remove_sqlserver_columns_cache_for(table_name)
       end
       
       def change_column_default(table_name, column_name, default)
         remove_default_constraint(table_name, column_name)
-        execute "ALTER TABLE #{quote_table_name(table_name)} ADD CONSTRAINT #{default_name(table_name, column_name)} DEFAULT #{quote(default)} FOR #{quote_column_name(column_name)}"
+        do_execute "ALTER TABLE #{quote_table_name(table_name)} ADD CONSTRAINT #{default_name(table_name, column_name)} DEFAULT #{quote(default)} FOR #{quote_column_name(column_name)}"
         remove_sqlserver_columns_cache_for(table_name)
       end
       
       def rename_column(table_name, column_name, new_column_name)
         column_for(table_name,column_name)
-        execute "EXEC sp_rename '#{table_name}.#{column_name}', '#{new_column_name}', 'COLUMN'"
+        do_execute "EXEC sp_rename '#{table_name}.#{column_name}', '#{new_column_name}', 'COLUMN'"
         remove_sqlserver_columns_cache_for(table_name)
       end
       
       def remove_index(table_name, options = {})
-        execute "DROP INDEX #{table_name}.#{quote_column_name(index_name(table_name, options))}"
+        do_execute "DROP INDEX #{table_name}.#{quote_column_name(index_name(table_name, options))}"
       end
       
       def type_to_sql(type, limit = nil, precision = nil, scale = nil)
@@ -513,11 +513,11 @@ module ActiveRecord
       def change_column_null(table_name, column_name, null, default = nil)
         column = column_for(table_name,column_name)
         unless null || default.nil?
-          execute("UPDATE #{quote_table_name(table_name)} SET #{quote_column_name(column_name)}=#{quote(default)} WHERE #{quote_column_name(column_name)} IS NULL")
+          do_execute("UPDATE #{quote_table_name(table_name)} SET #{quote_column_name(column_name)}=#{quote(default)} WHERE #{quote_column_name(column_name)} IS NULL")
         end
         sql = "ALTER TABLE #{table_name} ALTER COLUMN #{quote_column_name(column_name)} #{type_to_sql column.type, column.limit, column.precision, column.scale}"
         sql << " NOT NULL" unless null
-        execute sql
+        do_execute sql
       end
       
       def pk_and_sequence_for(table_name)
@@ -530,19 +530,19 @@ module ActiveRecord
       def recreate_database(name)
         existing_database = current_database.to_s
         if name.to_s == existing_database
-          execute 'USE master' 
+          do_execute 'USE master' 
         end
         drop_database(name)
         create_database(name)
       ensure
-        execute "USE #{existing_database}" if name.to_s == existing_database 
+        do_execute "USE #{existing_database}" if name.to_s == existing_database 
       end
 
       def drop_database(name)
         retry_count = 0
         max_retries = 1
         begin
-          execute "DROP DATABASE #{name}"
+          do_execute "DROP DATABASE #{name}"
         rescue ActiveRecord::StatementInvalid => err
           # Remove existing connections and rollback any transactions if we received the message
           #  'Cannot drop the database 'test' because it is currently in use'
@@ -558,7 +558,7 @@ module ActiveRecord
       end
 
       def create_database(name)
-        execute "CREATE DATABASE #{name}"
+        do_execute "CREATE DATABASE #{name}"
       end
       
       def current_database
@@ -568,7 +568,7 @@ module ActiveRecord
       def remove_database_connections_and_rollback(name)
         # This should disconnect all other users and rollback any transactions for SQL 2000 and 2005
         # http://sqlserver2000.databases.aspfaq.com/how-do-i-drop-a-sql-server-database.html
-        execute "ALTER DATABASE #{name} SET SINGLE_USER WITH ROLLBACK IMMEDIATE"
+        do_execute "ALTER DATABASE #{name} SET SINGLE_USER WITH ROLLBACK IMMEDIATE"
       end
       
       
@@ -607,6 +607,12 @@ module ActiveRecord
           else
             raw_connection.execute(sql)
           end
+        end
+      end
+      
+      def do_execute(sql,name=nil)
+        log(sql, name || 'EXECUTE') do
+          raw_connection.do(sql)
         end
       end
       
@@ -653,14 +659,14 @@ module ActiveRecord
       def remove_check_constraints(table_name, column_name)
         constraints = select_values("SELECT CONSTRAINT_NAME FROM INFORMATION_SCHEMA.CONSTRAINT_COLUMN_USAGE where TABLE_NAME = '#{quote_string(table_name)}' and COLUMN_NAME = '#{quote_string(column_name)}'")
         constraints.each do |constraint|
-          execute "ALTER TABLE #{quote_table_name(table_name)} DROP CONSTRAINT #{quote_column_name(constraint)}"
+          do_execute "ALTER TABLE #{quote_table_name(table_name)} DROP CONSTRAINT #{quote_column_name(constraint)}"
         end
       end
       
       def remove_default_constraint(table_name, column_name)
         constraints = select_values("SELECT def.name FROM sysobjects def, syscolumns col, sysobjects tab WHERE col.cdefault = def.id AND col.name = '#{quote_string(column_name)}' AND tab.name = '#{quote_string(table_name)}' AND col.id = tab.id")
         constraints.each do |constraint|
-          execute "ALTER TABLE #{quote_table_name(table_name)} DROP CONSTRAINT #{quote_column_name(constraint)}"
+          do_execute "ALTER TABLE #{quote_table_name(table_name)} DROP CONSTRAINT #{quote_column_name(constraint)}"
         end
       end
       
@@ -685,7 +691,7 @@ module ActiveRecord
       
       def set_identity_insert(table_name, enable = true)
         sql = "SET IDENTITY_INSERT #{table_name} #{enable ? 'ON' : 'OFF'}"
-        log(sql,'IDENTITY_INSERT') { execute(sql) }
+        do_execute(sql,'IDENTITY_INSERT')
       rescue Exception => e
         raise ActiveRecordError, "IDENTITY_INSERT could not be turned #{enable ? 'ON' : 'OFF'} for table #{table_name}"
       end
