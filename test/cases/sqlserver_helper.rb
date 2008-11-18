@@ -2,6 +2,7 @@ require 'rubygems'
 require 'shoulda'
 require 'mocha'
 require 'cases/helper'
+require 'models/topic'
 
 SQLSERVER_TEST_ROOT       = File.expand_path(File.join(File.dirname(__FILE__),'..'))
 SQLSERVER_ASSETS_ROOT     = SQLSERVER_TEST_ROOT + "/assets"
@@ -20,6 +21,10 @@ class SqlServerChronic < ActiveRecord::Base
   coerce_sqlserver_date :date
   coerce_sqlserver_time :time
   default_timezone = :utc
+end
+class Topic < ActiveRecord::Base
+  coerce_sqlserver_date :last_read
+  coerce_sqlserver_time :bonus_time
 end
 
 # A module that we can include in classes where we want to override an active record test.

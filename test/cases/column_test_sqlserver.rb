@@ -1,6 +1,5 @@
 require 'cases/sqlserver_helper'
 require 'models/binary'
-require 'models/topic'
 
 class ColumnTestSqlserver < ActiveRecord::TestCase
   

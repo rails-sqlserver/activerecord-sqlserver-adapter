@@ -1,6 +1,5 @@
 require 'cases/sqlserver_helper'
 require 'models/task'
-require 'models/topic'
 require 'models/reply'
 require 'models/joke'
 require 'models/subscriber'
