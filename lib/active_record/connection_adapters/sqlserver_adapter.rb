@@ -32,11 +32,23 @@ module ActiveRecord
   
   module ConnectionAdapters
     
-    class SQLServerColumn < Column #:nodoc:
-      
+    class SQLServerColumn < Column
+            
       def initialize(name, default, sql_type = nil, null = true, sqlserver_options = {})
-        super(name, default, sql_type, null)
         @sqlserver_options = sqlserver_options
+        super(name, default, sql_type, null)
+      end
+      
+      class << self
+        
+        def string_to_binary(value)
+         "0x#{value.unpack("H*")[0]}"
+        end
+        
+        def binary_to_string(value)
+          value =~ /[^[:xdigit:]]/ ? value : [value].pack('H*')
+        end
+        
       end
       
       def is_identity?
@@ -52,17 +64,14 @@ module ActiveRecord
         sql_type =~ /nvarchar|ntext|nchar|nvarchar(max)/i
       end
       
-      class << self
-        
-        def string_to_binary(value)
-         "0x#{value.unpack("H*")[0]}"
-        end
-        
-        def binary_to_string(value)
-          value =~ /[^[:xdigit:]]/ ? value : [value].pack('H*')
-        end
-        
-      end #class << self
+      def table_name
+        @sqlserver_options[:table_name]
+      end
+      
+      def table_klass
+        @table_klass ||= table_name.classify.constantize rescue nil
+        (@table_klass && @table_klass < ActiveRecord::Base) ? @table_klass : nil
+      end
       
       private
       
@@ -82,7 +91,18 @@ module ActiveRecord
           when /image/i             then :binary
           when /bit/i               then :boolean
           when /uniqueidentifier/i  then :string
+          when /datetime/i          then simplified_datetime
           else super
+        end
+      end
+      
+      def simplified_datetime
+        if table_klass && table_klass.coerced_sqlserver_date_columns.include?(name)
+          :date
+        elsif table_klass && table_klass.coerced_sqlserver_time_columns.include?(name)
+          :time
+        else
+          :datetime
         end
       end
       
@@ -818,6 +838,7 @@ module ActiveRecord
                       else
                         "#{ci[:type]}(#{ci[:length]})"
                       end
+          ci[:table_name] = table_name
           ci[:default_value] = ci[:default_value].match(/\A\(+N?'?(.*?)'?\)+\Z/)[1] if ci[:default_value]
           ci[:null] = ci[:is_nullable].to_i == 1 ; ci.delete(:is_nullable)
           ci

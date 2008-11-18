@@ -16,7 +16,11 @@ class TableWithRealColumn < ActiveRecord::Base; end
 class FkTestHasFk < ActiveRecord::Base ; end
 class FkTestHasPk < ActiveRecord::Base ; end
 class NumericData < ActiveRecord::Base ; self.table_name = 'numeric_data' ; end
-class SqlServerChronic < ActiveRecord::Base ; default_timezone = :utc ; end
+class SqlServerChronic < ActiveRecord::Base
+  coerce_sqlserver_date :date
+  coerce_sqlserver_time :time
+  default_timezone = :utc
+end
 
 # A module that we can include in classes where we want to override an active record test.
 

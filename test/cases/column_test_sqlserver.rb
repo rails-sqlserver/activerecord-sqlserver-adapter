@@ -12,6 +12,13 @@ class ColumnTestSqlserver < ActiveRecord::TestCase
     assert_equal :float, TableWithRealColumn.columns_hash["real_number"].type
   end
   
+  should 'know its #table_name and #table_klass' do
+    Topic.columns.each do |column|
+      assert_equal 'topics', column.table_name, "This column #{column.inspect} did not know it's #table_name"
+      assert_equal Topic, column.table_klass, "This column #{column.inspect} did not know it's #table_klass"
+    end
+  end
+  
   context 'For :binary columns' do
 
     setup do

@@ -12,6 +12,22 @@ module ActiveRecord
       
       module ClassMethods
         
+        def coerce_sqlserver_date(*attributes)
+          write_inheritable_attribute :coerced_sqlserver_date_columns, Set.new(attributes.map(&:to_s))
+        end
+        
+        def coerce_sqlserver_time(*attributes)
+          write_inheritable_attribute :coerced_sqlserver_time_columns, Set.new(attributes.map(&:to_s))
+        end
+        
+        def coerced_sqlserver_date_columns
+          read_inheritable_attribute(:coerced_sqlserver_date_columns) || []
+        end
+        
+        def coerced_sqlserver_time_columns
+          read_inheritable_attribute(:coerced_sqlserver_time_columns) || []
+        end
+        
         def reset_column_information_with_sqlserver_columns_cache_support
           connection.instance_variable_set :@sqlserver_columns_cache, {}
           reset_column_information_without_sqlserver_columns_cache_support
