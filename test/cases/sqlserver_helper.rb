@@ -15,9 +15,8 @@ ActiveRecord::Migration.verbose = false
 class TableWithRealColumn < ActiveRecord::Base; end
 class FkTestHasFk < ActiveRecord::Base ; end
 class FkTestHasPk < ActiveRecord::Base ; end
-class SqlServerChronic < ActiveRecord::Base
-  default_timezone = :utc
-end
+class NumericData < ActiveRecord::Base ; self.table_name = 'numeric_data' ; end
+class SqlServerChronic < ActiveRecord::Base ; default_timezone = :utc ; end
 
 # A module that we can include in classes where we want to override an active record test.
 

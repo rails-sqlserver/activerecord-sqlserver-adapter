@@ -610,6 +610,13 @@ module ActiveRecord
         end
       end
       
+      def without_type_conversion
+        raw_connection.convert_types = false if raw_connection.respond_to?(:convert_types=)
+        yield
+      ensure
+        raw_connection.convert_types = true if raw_connection.respond_to?(:convert_types=)
+      end
+      
       def do_execute(sql,name=nil)
         log(sql, name || 'EXECUTE') do
           raw_connection.do(sql)
@@ -622,6 +629,7 @@ module ActiveRecord
         results = handle_as_array(handle)
         rows = results.inject([]) do |rows,row|
           row.each_with_index do |value, i|
+            # DEPRECATED in DBI 0.4.0 and above. Remove when 0.2.2 and lower is no longer supported.
             if value.is_a? DBI::Timestamp
               row[i] = value.to_sqlserver_string
             end
@@ -802,7 +810,7 @@ module ActiveRecord
           WHERE columns.TABLE_NAME = '#{table_name}'
           ORDER BY columns.ordinal_position
         }.gsub(/[ \t\r\n]+/,' ')
-        results = select(sql,nil,true)
+        results = without_type_conversion { select(sql,nil,true) }
         results.collect do |ci|
           ci.symbolize_keys!
           ci[:type] = if ci[:type] =~ /numeric|decimal/i
@@ -811,7 +819,7 @@ module ActiveRecord
                         "#{ci[:type]}(#{ci[:length]})"
                       end
           ci[:default_value] = ci[:default_value].match(/\A\(+N?'?(.*?)'?\)+\Z/)[1] if ci[:default_value]
-          ci[:null] = ci[:is_nullable] == 1 ; ci.delete(:is_nullable)
+          ci[:null] = ci[:is_nullable].to_i == 1 ; ci.delete(:is_nullable)
           ci
         end
       end

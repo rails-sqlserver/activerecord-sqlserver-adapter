@@ -1,5 +1,6 @@
 require 'cases/sqlserver_helper'
 require 'models/binary'
+require 'models/topic'
 
 class ColumnTestSqlserver < ActiveRecord::TestCase
   
@@ -26,6 +27,30 @@ class ColumnTestSqlserver < ActiveRecord::TestCase
       # See the output of the stored procedure: 'exec sp_datatype_info'
       sqlserver_encoded_bdata = "0x47494638396101000100800000ffffff00000021f90400000000002c00000000010001000002024401003b"
       assert_equal sqlserver_encoded_bdata, @column_klass.string_to_binary(@binary_string) 
+    end
+
+  end
+  
+  context 'For .columns method' do
+
+    should 'return correct scales and precisions for NumericData' do
+      bank_balance = NumericData.columns_hash['bank_balance']
+      big_bank_balance = NumericData.columns_hash['big_bank_balance']
+      world_population = NumericData.columns_hash['world_population']
+      my_house_population = NumericData.columns_hash['my_house_population']
+      assert_equal [2,10], [bank_balance.scale, bank_balance.precision]
+      assert_equal [2,15], [big_bank_balance.scale, big_bank_balance.precision]
+      assert_equal [0,10], [world_population.scale, world_population.precision]
+      assert_equal [0,2], [my_house_population.scale, my_house_population.precision]
+    end
+    
+    should 'return correct null, limit, and default for Topic' do
+      tch = Topic.columns_hash
+      assert_equal false, tch['id'].null
+      assert_equal true,  tch['title'].null
+      assert_equal 255,   tch['author_name'].limit
+      assert_equal true,  tch['approved'].default
+      assert_equal 0,     tch['replies_count'].default
     end
 
   end
