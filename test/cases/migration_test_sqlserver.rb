@@ -1,4 +1,5 @@
 require 'cases/sqlserver_helper'
+require 'models/person'
 
 class MigrationTestSqlserver < ActiveRecord::TestCase
   
@@ -32,3 +33,25 @@ class MigrationTestSqlserver < ActiveRecord::TestCase
   
 end
 
+
+class MigrationTest < ActiveRecord::TestCase
+  
+  COERCED_TESTS = [:test_add_column_not_null_without_default]
+  
+  include SqlserverCoercedTest
+  
+  
+  def test_coerced_test_add_column_not_null_without_default
+    Person.connection.create_table :testings do |t| 
+      t.column :foo, :string
+      t.column :bar, :string, :null => false
+    end
+    assert_raises(ActiveRecord::StatementInvalid) do
+      Person.connection.execute "INSERT INTO [testings] ([foo], [bar]) VALUES ('hello', NULL)"
+    end
+  ensure
+    Person.connection.drop_table :testings rescue nil
+  end
+  
+  
+end

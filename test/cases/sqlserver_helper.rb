@@ -13,6 +13,8 @@ ACTIVERECORD_TEST_ROOT    = File.expand_path(SQLSERVER_TEST_ROOT + "/../../../..
 
 ActiveRecord::Migration.verbose = false
 
+# Defining our classes in one place as well as soem core tests that need coercing date/time types.
+
 class TableWithRealColumn < ActiveRecord::Base; end
 class FkTestHasFk < ActiveRecord::Base ; end
 class FkTestHasPk < ActiveRecord::Base ; end
@@ -25,6 +27,9 @@ end
 class Topic < ActiveRecord::Base
   coerce_sqlserver_date :last_read
   coerce_sqlserver_time :bonus_time
+end
+class Person < ActiveRecord::Base
+  coerce_sqlserver_date :favorite_day
 end
 
 # A module that we can include in classes where we want to override an active record test.
