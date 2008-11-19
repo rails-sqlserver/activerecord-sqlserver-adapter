@@ -14,9 +14,9 @@ source. http://github.com/blog/97-github-loves-rubygems-1-2
   * gem install thoughbot-shoulda
   * gem install mocha
 
-The tests of this adapter depend on the existence of rails edge. All the tests
-defined by rails edge are re-used. For this to work the following directory 
-structure is assumed to exist:
+The tests of this adapter depend on the existence of rails checkout. All the tests
+defined by rails are re-used. For this to work the following directory structure 
+is assumed to exist:
 
 #{RAILS_ROOT}/vendor/plugins/adapters/sqlserver
 #{RAILS_ROOT}/vendor/rails/activerecord/test
@@ -57,34 +57,4 @@ you can do so with:
    rake test_sqlserver TEST=base_test.rb
    
 That'll run the base suite using the SQLServer-Ruby adapter.
-
-
-== Expected Errors and Failures
-
-Currently we expect the following errors from running the test suite:
-
-1. ERROR in test_add_limit_offset_should_sanitize_sql_injection_for_limit_with_comas
-   from
-   activerecord/test/cases/adapter_test.rb
-   
-2. ERROR in test_add_limit_offset_should_sanitize_sql_injection_for_limit_without_comas
-   from
-   activerecord/test/cases/adapter_test.rb
-
-3. Error:
-   test_should_average_field(CalculationsTest)
-   test_average_with_from_option(CalculationsTest)
-   test_delegates_finds_and_calculations_to_the_base_class(NamedScopeTest)
-   http://rails.lighthouseapp.com/projects/8994-ruby-on-rails/tickets/1346-coerce-0-average-calculation-to-float
-
-
-1. & 2. error because we treat the possible values for offset and limit much more 
-aggressively than the intention of the tests.  Rails expects that limit => '1,7 bad sql'
-would turn into ' limit 1,7' but that's not valid SQL Server syntax so why should we 
-bother?  So we just deny non-integer limit / offset params entirely rather than trying
-to sanitize them.  It's a hard-line to take on sql injection, but probably a safer one.
-
-We do however have our own offset and limit tests in test/cases/offset_and_limit_test_sqlserver
-that test our expected behaviour.
-
 
