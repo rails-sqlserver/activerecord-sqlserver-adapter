@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name     = "2000-2005-adapter"
-  s.version  = "1.0.0"
+  s.version  = "1.0.1"
   s.date     = "2008-11-19"
   s.summary  = "SQL Server 2000 & 2005 Adapter For Rails."
   s.email    = "ken@metaskills.net"
@@ -43,5 +43,4 @@ Gem::Specification.new do |s|
     "test/schema/sqlserver_specific_schema.rb" ]
   s.rdoc_options = ["--line-numbers", "--inline-source", "--main", "README.textile"]
   s.extra_rdoc_files = ["README.textile"]
-  s.add_dependency("activerecord", [">= 2.2.0"])
 end
