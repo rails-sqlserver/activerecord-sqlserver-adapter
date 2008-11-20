@@ -9,7 +9,7 @@ The SQL Server adapter for rails is back for ActiveRecord 2.2 and up! We are cur
 * Enabled support for DDL transactions.
 * Micro second support. Time#usec is automatically converted to SQL Server's 3.33 millisecond limitation.
 * Datetime data types before type casting are represented correctly. For example: 1998-01-01 23:59:59.997
-* Implementation for #disable_referential_integrity used by ActiveRecord::Fixtures class.
+* Implementation for #disable_referential_integrity used by ActiveRecord's Fixtures class.
 * Pessimistic locking suppot. See the #add_lock! method for details.
 * Enabled #case_sensitive_equality_operator used by unique validations.
 * Unicode character support for nchar, nvarchar and ntext data types.
@@ -56,9 +56,11 @@ Optionally configure your gem dependencies in your rails environment.rb file.
 
 == Contributing
 
-Please read the RUNNING_UNIT_TESTS file for the details of how to run the unit tests. Bugs can be reported to our lighthouse page at http://rails-sqlserver.lighthouseapp.com/projects/20277-sql-server-05-adapter/overview
+If you’d like to contribute a feature or bugfix, thanks! To make sure your fix/feature has a high chance of being added, please read the following guidelines. First, ask on the Google list, IRC, or post a ticket in Lighthouse. Second, make sure there are tests! We will not accept any patch that is not tested. Please read the RUNNING_UNIT_TESTS file for the details of how to run the unit tests.
 
-There is also a #rails-sqlserver channel on irc.freenode.net if you want to discuss any topics about the adapter.
+* Lighthouse: http://rails-sqlserver.lighthouseapp.com/projects/20277-sql-server-05-adapter/overview
+* Google Group: http://groups.google.com/group/rails-sqlserver-adapter
+* IRC Room: #rails-sqlserver on irc.freenode.net
 
 
 == Credits
