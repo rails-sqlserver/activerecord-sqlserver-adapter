@@ -12,7 +12,7 @@ Gem::Specification.new do |s|
     "CHANGELOG", 
     "MIT-LICENSE", 
     "Rakefile", 
-    "README.textile", 
+    "README.rdoc", 
     "RUNNING_UNIT_TESTS", 
     "autotest",
     "autotest/discover.rb",
@@ -41,6 +41,6 @@ Gem::Specification.new do |s|
     "test/connections/native_sqlserver_odbc/connection.rb",
     "test/migrations/transaction_table/1_table_will_never_be_created.rb",
     "test/schema/sqlserver_specific_schema.rb" ]
-  s.rdoc_options = ["--line-numbers", "--inline-source", "--main", "README.textile"]
-  s.extra_rdoc_files = ["README.textile"]
+  s.rdoc_options = ["--line-numbers", "--inline-source", "--main", "README.rdoc"]
+  s.extra_rdoc_files = ["README.rdoc"]
 end

@@ -1,0 +1,39 @@
+
+== Rails SQL Server 2000 & 2005 Adapter
+
+For Rails/ActiveRecord 2.2 and up. More details to come.
+
+
+== Installation
+  
+This method is unconfirmed. You can install the adapter as a gem using the following command. Once I confirm this I can give you an example of a config.gem command too. For now I know that rails and/or ActiveRecord expects to find the SQL Server adapter in the vendor/plugins/adapters/sqlserver folder of your rails project.
+
+  $ sudo gem install rails-sqlserver-2000-2005-adapter
+
+Ruby DBI is required and to my knowledge the ADO DBD driver is no longer supported, meaning that ODBC is the only way to go. During development ancient versions of DBI back to 0.0.23 were tested along with the current latest 0.4.0 version. Because later versions of DBI will be changing many things, IT IS HIGHLY RECOMMENDED that you install 0.4.0 which the examples below show. This is not a compressive how to since ODBC mode requires also that you install Ruby ODBC and possibly FreeTDS.
+
+  $ sudo gem install dbi --version 0.4.0
+  $ sudo gem install dbd-odbc --version 0.2.4
+
+Optionally configure your gem dependencies in your rails environment.rb file.
+
+  config.gem 'dbi', :version => '0.4.0'
+  config.gem 'dbd-odbc', :version => '0.2.4', :lib => 'dbd/ODBC'
+
+
+== Contributing
+
+Please read the RUNNING_UNIT_TESTS file for the details of how to run the unit tests. Bugs can be reported to our lighthouse page at http://rails-sqlserver.lighthouseapp.com/projects/20277-sql-server-05-adapter/overview
+
+There is also a #rails-sqlserver channel on irc.freenode.net if you want to discuss any topics about the adapter.
+
+
+== Credits
+
+Many many people have contributed to this over 
+
+
+== License
+
+Copyright © 2008. It is free software, and may be redistributed under the terms specified in the MIT-LICENSE file.
+

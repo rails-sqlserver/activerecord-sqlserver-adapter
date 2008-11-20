@@ -108,48 +108,39 @@ module ActiveRecord
       
     end #SQLServerColumn
     
-    # In ADO mode, this adapter will ONLY work on Windows systems,
-    # since it relies on Win32OLE, which, to my knowledge, is only
-    # available on Windows.
+    # In ADO mode, this adapter will ONLY work on Windows systems, since it relies on 
+    # Win32OLE, which, to my knowledge, is only available on Windows.
     #
     # This mode also relies on the ADO support in the DBI module. If you are using the
-    # one-click installer of Ruby, then you already have DBI installed, but
-    # the ADO module is *NOT* installed. You will need to get the latest
-    # source distribution of Ruby-DBI from http://ruby-dbi.sourceforge.net/
-    # unzip it, and copy the file
-    # <tt>src/lib/dbd_ado/ADO.rb</tt>
-    # to
-    # <tt>X:/Ruby/lib/ruby/site_ruby/1.8/DBD/ADO/ADO.rb</tt>
-    # (you will more than likely need to create the ADO directory).
-    # Once you've installed that file, you are ready to go.
-    #
+    # one-click installer of Ruby, then you already have DBI installed, but the ADO module 
+    # is *NOT* installed. You will need to get the latest source distribution of Ruby-DBI 
+    # from http://ruby-dbi.sourceforge.net/ unzip it, and copy the file from 
+    # <tt>src/lib/dbd_ado/ADO.rb</tt> to <tt>X:/Ruby/lib/ruby/site_ruby/1.8/DBD/ADO/ADO.rb</tt>
+    # 
+    # You will more than likely need to create the ADO directory. Once you've installed 
+    # that file, you are ready to go.
+    # 
     # In ODBC mode, the adapter requires the ODBC support in the DBI module which requires
-    # the Ruby ODBC module.  Ruby ODBC 0.996 was used in development and testing,
+    # the Ruby ODBC module. Ruby ODBC 0.996 was used in development and testing,
     # and it is available at http://www.ch-werner.de/rubyodbc/
     #
     # Options:
     #
-    # * <tt>:mode</tt>      -- ADO or ODBC. Defaults to ADO.
-    # * <tt>:username</tt>  -- Defaults to sa.
-    # * <tt>:password</tt>  -- Defaults to empty string.
-    # * <tt>:windows_auth</tt> -- Defaults to "User ID=#{username};Password=#{password}"
+    # * <tt>:mode</tt>          -- ADO or ODBC. Defaults to ADO.
+    # * <tt>:username</tt>      -- Defaults to sa.
+    # * <tt>:password</tt>      -- Defaults to empty string.
+    # * <tt>:windows_auth</tt>  -- Defaults to "User ID=#{username};Password=#{password}"
     #
     # ADO specific options:
     #
-    # * <tt>:host</tt>      -- Defaults to localhost.
-    # * <tt>:database</tt>  -- The name of the database. No default, must be provided.
-    # * <tt>:windows_auth</tt> -- Use windows authentication instead of username/password.
+    # * <tt>:host</tt>          -- Defaults to localhost.
+    # * <tt>:database</tt>      -- The name of the database. No default, must be provided.
+    # * <tt>:windows_auth</tt>  -- Use windows authentication instead of username/password.
     #
     # ODBC specific options:
     #
-    # * <tt>:dsn</tt>       -- Defaults to nothing.
-    #
-    # ADO code tested on Windows 2000 and higher systems,
-    # running ruby 1.8.2 (2004-07-29) [i386-mswin32], and SQL Server 2000 SP3.
-    #
-    # ODBC code tested on a Fedora Core 4 system, running FreeTDS 0.63,
-    # unixODBC 2.2.11, Ruby ODBC 0.996, Ruby DBI 0.0.23 and Ruby 1.8.2.
-    # [Linux strongmad 2.6.11-1.1369_FC4 #1 Thu Jun 2 22:55:56 EDT 2005 i686 i686 i386 GNU/Linux]
+    # * <tt>:dsn</tt>           -- Defaults to nothing.
+    # 
     class SQLServerAdapter < AbstractAdapter
       
       ADAPTER_NAME            = 'SQLServer'.freeze
