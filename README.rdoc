@@ -48,9 +48,9 @@ First, you will need Ruby DBI and Ruby ODBC. To my knowledge the ADO DBD for DBI
 
 It should be noted that this version of the adapter was developed using both the ancient 0.0.23 version of DBI up to the current stable release of 0.4.0. Because later versions of DBI will be changing many things, IT IS HIGHLY RECOMMENDED that you max your install to version 0.4.0 which the examples below show. For the time being we are not supporting DBI versions higher than 0.4.0. The good news is that if you were using a very old DBI with ADO, technically this adapter will still work for you, but be warned your path is getting old and may not be supported for long.
 
-  $ sudo gem install dbi --version 0.4.0
-  $ sudo gem install dbd-odbc --version 0.2.4
-  $ sudo gem install rails-sqlserver-2000-2005-adapter
+  $ gem install dbi --version 0.4.0
+  $ gem install dbd-odbc --version 0.2.4
+  $ gem install rails-sqlserver-2000-2005-adapter
 
 Optionally configure your gem dependencies in your rails environment.rb file.
 

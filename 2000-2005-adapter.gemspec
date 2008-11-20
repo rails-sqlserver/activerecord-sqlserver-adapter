@@ -40,7 +40,8 @@ Gem::Specification.new do |s|
     "test/connections/native_sqlserver/connection.rb",
     "test/connections/native_sqlserver_odbc/connection.rb",
     "test/migrations/transaction_table/1_table_will_never_be_created.rb",
-    "test/schema/sqlserver_specific_schema.rb" ]
+    "test/schema/sqlserver_specific_schema.rb",
+    "test/schema/table_name_test_sqlserver.rb" ]
   s.rdoc_options = ["--line-numbers", "--inline-source", "--main", "README.rdoc"]
   s.extra_rdoc_files = ["README.rdoc"]
 end

@@ -223,6 +223,11 @@ module ActiveRecord
         column_name.to_s.split('.').map{ |name| "[#{name}]" }.join('.')
       end
       
+      def quote_table_name(table_name)
+        return table_name if table_name =~ /^\[.*\]$/
+        quote_column_name(table_name)
+      end
+      
       def quoted_true
         '1'
       end
