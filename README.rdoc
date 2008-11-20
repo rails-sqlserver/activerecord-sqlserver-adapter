@@ -37,21 +37,31 @@ Both SQL Server 2000 and 2005 do not have native data types for just 'date' or '
 This implementation has some limitations. To date we can only coerce date/time types for models that conform to the expected ActiveRecord class to table naming convention. So a table of 'foo_bar_widgets' will look for coerced types in the FooBarWidget class if it exists.
 
 
+== Versions
+
+It is our goal to match the adapter version with each version of rails. However we will track our own tiny version independent of ActiveRecord. For example, an adapter version of 2.2.x will work on any 2.2.x version of ActiveRecord. This convention will be used in both the Git tags as well as the Rubygems versioning.
+
+
 == Installation
 
-This method is unconfirmed. You can install the adapter as a gem using the following command. Once I confirm this I can give you an example of a config.gem command too. For now I know that rails and/or ActiveRecord expects to find the SQL Server adapter in the vendor/plugins/adapters/sqlserver folder of your rails project.
+First, you will need Ruby DBI and Ruby ODBC. To my knowledge the ADO DBD for DBI is no longer supported. The installation below is not a comprehensive walk thru on how to get all the required moving parts like FreeTDS installed and/or configured. It will also assume gem installations of both the dependent libraries and the adapter itself.
 
-  $ sudo gem install rails-sqlserver-2000-2005-adapter
-
-Ruby DBI is required and to my knowledge the ADO DBD driver is no longer supported, meaning that ODBC is the only way to go. During development ancient versions of DBI back to 0.0.23 were tested along with the current latest 0.4.0 version. Because later versions of DBI will be changing many things, IT IS HIGHLY RECOMMENDED that you install 0.4.0 which the examples below show. This is not a compressive how to since ODBC mode requires also that you install Ruby ODBC and possibly FreeTDS.
+It should be noted that this version of the adapter was developed using both the ancient 0.0.23 version of DBI up to the current stable release of 0.4.0. Because later versions of DBI will be changing many things, IT IS HIGHLY RECOMMENDED that you max your install to version 0.4.0 which the examples below show. For the time being we are not supporting DBI versions higher than 0.4.0. The good news is that if you were using a very old DBI with ADO, technically this adapter will still work for you, but be warned your path is getting old and may not be supported for long.
 
   $ sudo gem install dbi --version 0.4.0
   $ sudo gem install dbd-odbc --version 0.2.4
+  $ sudo gem install rails-sqlserver-2000-2005-adapter
 
 Optionally configure your gem dependencies in your rails environment.rb file.
 
   config.gem 'dbi', :version => '0.4.0'
   config.gem 'dbd-odbc', :version => '0.2.4', :lib => 'dbd/ODBC'
+  config.gem 'rails-sqlserver-2000-2005-adapter', :lib => 'active_record/connection_adapters/sqlserver_adapter'
+
+Here are some external links for libraries and/or tutorials on how to install any other additional components to use this adapter. If you know of a good one that we can include here, just let us know.
+
+* http://ruby-dbi.sourceforge.net/
+* http://www.ch-werner.de/rubyodbc/
 
 
 == Contributing
