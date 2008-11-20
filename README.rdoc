@@ -6,34 +6,39 @@ The SQL Server adapter for rails is back for ActiveRecord 2.2 and up! We are cur
 
 == What's New
 
-  * Enabled support for DDL transactions.
-  * Micro second support. Time#usec is automatically converted to SQL Server's 3.33 millisecond limitation.
-  * Datetime data type before type casting are represented correctly. For example: 1998-01-01 23:59:59.997
-  * Implementation for #disable_referential_integrity used by ActiveRecord::Fixtures class.
-  * Pessimistic locking suppot. See the #add_lock! method for details.
-  * Enabled #case_sensitive_equality_operator used by unique validations.
-  * Unicode character support for nchar, nvarchar and ntext date types.
+* Enabled support for DDL transactions.
+* Micro second support. Time#usec is automatically converted to SQL Server's 3.33 millisecond limitation.
+* Datetime data types before type casting are represented correctly. For example: 1998-01-01 23:59:59.997
+* Implementation for #disable_referential_integrity used by ActiveRecord::Fixtures class.
+* Pessimistic locking suppot. See the #add_lock! method for details.
+* Enabled #case_sensitive_equality_operator used by unique validations.
+* Unicode character support for nchar, nvarchar and ntext data types.
 
+==== Native Text Data Type Accessor
 
+To pass the ActiveRecord tests we had to implement an class accessor for the native type created for :text columns. By default any :text column created by migrations will create these native types.
 
-==== Native Text Datetype Accessor
+* SQL Server 2000 is 'text'
+* SQL Server 2005 is 'varchar(max)'
 
-native_text_database_type
+During testing this type is set to 'varchar(8000)' for both versions. The reason is that rails expects to be able to use SQL = operators on text data types and this is not possible with a native 'text' data type in SQL Server. The default 'varchar(max)' for SQL Server 2005 can be queried using the SQL = operator and has plenty of storage space which is why we made it the default for 2005. If for some reason you want to change the data type created during migrations for any SQL Server version, you can include this line in your environment.rb file.
 
-'varchar(max)' : 'text'
+  ActiveRecord::ConnectionAdapters::SQLServerAdapter.native_text_database_type = 'varchar(8000)'
 
-==== Date/Time Datatype Hinting
+==== Date/Time Data Type Hinting
 
-
+Both SQL Server 2000 and 2005 do not have native data types for just 'date' or 'time', it only has 'datetime'. To pass the ActiveRecord tests we implemented two simple class methods that can teach your models to coerce column information to be cast correctly. Simply past a list of symbols to either the <tt>coerce_sqlserver_date</tt> or <tt>coerce_sqlserver_time</tt> methods that correspond to 'datetime' columns that need to be cast correctly.
 
   class Topic < ActiveRecord::Base
     coerce_sqlserver_date :last_read
     coerce_sqlserver_time :bonus_time
   end
 
+This implementation has some limitations. To date we can only coerce date/time types for models that conform to the expected ActiveRecord class to table naming convention. So a table of 'foo_bar_widgets' will look for coerced types in the FooBarWidget class if it exists.
+
 
 == Installation
-  
+
 This method is unconfirmed. You can install the adapter as a gem using the following command. Once I confirm this I can give you an example of a config.gem command too. For now I know that rails and/or ActiveRecord expects to find the SQL Server adapter in the vendor/plugins/adapters/sqlserver folder of your rails project.
 
   $ sudo gem install rails-sqlserver-2000-2005-adapter
@@ -58,12 +63,12 @@ There is also a #rails-sqlserver channel on irc.freenode.net if you want to disc
 
 == Credits
 
-Many many people have contributed. If you do not see your name here and it should be let me know.
+Many many people have contributed. If you do not see your name here and it should be let us know.
 
-  * Ken Collins
-  * Murray Steele
-  * Shawn Balestracci
-  * Tom Ward
+* Ken Collins
+* Murray Steele
+* Shawn Balestracci
+* Tom Ward
 
 
 == License
