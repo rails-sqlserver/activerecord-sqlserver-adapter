@@ -1,7 +1,35 @@
 
 == Rails SQL Server 2000 & 2005 Adapter
 
-For Rails/ActiveRecord 2.2 and up. More details to come.
+The SQL Server adapter for rails is back for ActiveRecord 2.2 and up! We are currently passing all tests and hope to continue to do so moving forward. 
+
+
+== What's New
+
+  * Enabled support for DDL transactions.
+  * Micro second support. Time#usec is automatically converted to SQL Server's 3.33 millisecond limitation.
+  * Datetime data type before type casting are represented correctly. For example: 1998-01-01 23:59:59.997
+  * Implementation for #disable_referential_integrity used by ActiveRecord::Fixtures class.
+  * Pessimistic locking suppot. See the #add_lock! method for details.
+  * Enabled #case_sensitive_equality_operator used by unique validations.
+  * Unicode character support for nchar, nvarchar and ntext date types.
+
+
+
+==== Native Text Datetype Accessor
+
+native_text_database_type
+
+'varchar(max)' : 'text'
+
+==== Date/Time Datatype Hinting
+
+
+
+  class Topic < ActiveRecord::Base
+    coerce_sqlserver_date :last_read
+    coerce_sqlserver_time :bonus_time
+  end
 
 
 == Installation
@@ -30,7 +58,12 @@ There is also a #rails-sqlserver channel on irc.freenode.net if you want to disc
 
 == Credits
 
-Many many people have contributed to this over 
+Many many people have contributed. If you do not see your name here and it should be let me know.
+
+  * Ken Collins
+  * Murray Steele
+  * Shawn Balestracci
+  * Tom Ward
 
 
 == License
