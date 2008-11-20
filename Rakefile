@@ -48,9 +48,6 @@ task :release => :package do
   rubyforge.add_release(PKG_NAME, PKG_NAME, "REL #{PKG_VERSION}", *packages)
 end
 
-
-SCHEMA_PATH = File.join(File.dirname(__FILE__), *%w(test fixtures db_definitions))
-
 desc 'Create the SQL Server test databases'
 task :create_databases do
   # Define a user named 'rails' in SQL Server with all privileges granted
