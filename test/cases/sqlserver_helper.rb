@@ -72,6 +72,10 @@ end
 
 module ActiveRecord 
   class TestCase < ActiveSupport::TestCase
+    class << self
+      def sqlserver_2000? ; ActiveRecord::Base.connection.sqlserver_2000? ; end
+      def sqlserver_2005? ; ActiveRecord::Base.connection.sqlserver_2005? ; end
+    end
     def assert_sql(*patterns_to_match)
       $queries_executed = []
       yield
@@ -82,6 +86,8 @@ module ActiveRecord
       end
       assert failed_patterns.empty?, "Query pattern(s) #{failed_patterns.map(&:inspect).join(', ')} not found in:\n#{$queries_executed.inspect}"
     end
+    def sqlserver_2000? ; self.class.sqlserver_2000? ; end
+    def sqlserver_2005? ; self.class.sqlserver_2005? ; end
   end
 end
 
