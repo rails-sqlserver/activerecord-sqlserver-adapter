@@ -7,7 +7,7 @@ Gem::Specification.new do |s|
   s.homepage = "http://github.com/rails-sqlserver/2000-2005-adapter/"
   s.description = "SQL Server 2000 & 2005 Adapter For Rails."
   s.has_rdoc = true
-  s.authors  = ["Ken Collins","Murray Steele","Shawn Balestracci","Tom Ward"]
+  s.authors  = ["Ken Collins","Murray Steele","Shawn Balestracci","Joe Rafaniello","Tom Ward"]
   s.files    = [
     "CHANGELOG", 
     "MIT-LICENSE", 

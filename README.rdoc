@@ -110,6 +110,7 @@ Many many people have contributed. If you do not see your name here and it shoul
 * Ken Collins
 * Murray Steele
 * Shawn Balestracci
+* Joe Rafaniello
 * Tom Ward
 
 
