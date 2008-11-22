@@ -61,7 +61,7 @@ module ActiveRecord
       end
       
       def is_utf8?
-        sql_type =~ /nvarchar|ntext|nchar|nvarchar(max)/i
+        sql_type =~ /nvarchar|ntext|nchar/i
       end
       
       def table_name
@@ -77,10 +77,16 @@ module ActiveRecord
       
       def extract_limit(sql_type)
         case sql_type
-          when /^smallint/i   then  2
-          when /^int/i        then  4
-          when /^bigint/i     then  8
-          else super
+        when /^smallint/i
+          2
+        when /^int/i
+          4
+        when /^bigint/i
+          8
+        when /\(max\)/, /decimal/, /numeric/
+          nil
+        else
+          super
         end
       end
       
@@ -146,14 +152,14 @@ module ActiveRecord
       ADAPTER_NAME            = 'SQLServer'.freeze
       DATABASE_VERSION_REGEXP = /Microsoft SQL Server\s+(\d{4})/
       SUPPORTED_VERSIONS      = [2000,2005].freeze
-      LIMITABLE_TYPES         = [:string,:integer,:float].freeze
+      LIMITABLE_TYPES         = ['string','integer','float','char','nchar','varchar','nvarchar'].freeze
       
-      cattr_accessor :native_text_database_type
+      cattr_accessor :native_text_database_type, :native_binary_database_type
       
       class << self
         
         def type_limitable?(type)
-          LIMITABLE_TYPES.include?(type.to_sym)
+          LIMITABLE_TYPES.include?(type.to_s)
         end
         
       end
@@ -205,11 +211,22 @@ module ActiveRecord
         self.class.native_text_database_type || (sqlserver_2005? ? 'varchar(max)' : 'text')
       end
       
+      def native_binary_database_type
+        self.class.native_binary_database_type || (sqlserver_2005? ? 'varbinary(max)' : 'image')
+      end
+      
       # QUOTING ==================================================#
       
       def quote(value, column = nil)
-        if value.kind_of?(String) && column && column.type == :binary
-          column.class.string_to_binary(value)
+        case value
+        when String, ActiveSupport::Multibyte::Chars
+          if column && column.type == :binary
+            column.class.string_to_binary(value)
+          elsif column && column.respond_to?(:is_utf8?) && column.is_utf8?
+            quoted_utf8_value(value)
+          else
+            super
+          end
         else
           super
         end
@@ -242,6 +259,10 @@ module ActiveRecord
         else
           super
         end
+      end
+      
+      def quoted_utf8_value(value)
+        "N'#{quote_string(value)}'"
       end
       
       # REFERENTIAL INTEGRITY ====================================#
@@ -394,20 +415,26 @@ module ActiveRecord
       # SCHEMA STATEMENTS ========================================#
       
       def native_database_types
-        binary = sqlserver_2005? ? "varbinary(max)" : "image"
         {
-          :primary_key => "int NOT NULL IDENTITY(1, 1) PRIMARY KEY",
-          :string      => { :name => "varchar", :limit => 255  },
-          :text        => { :name =>  native_text_database_type },
-          :integer     => { :name => "int", :limit => 4 },
-          :float       => { :name => "float", :limit => 8 },
-          :decimal     => { :name => "decimal" },
-          :datetime    => { :name => "datetime" },
-          :timestamp   => { :name => "datetime" },
-          :time        => { :name => "datetime" },
-          :date        => { :name => "datetime" },
-          :binary      => { :name =>  binary },
-          :boolean     => { :name => "bit"}
+          :primary_key  => "int NOT NULL IDENTITY(1, 1) PRIMARY KEY",
+          :string       => { :name => "varchar", :limit => 255  },
+          :text         => { :name =>  native_text_database_type },
+          :integer      => { :name => "int", :limit => 4 },
+          :float        => { :name => "float", :limit => 8 },
+          :decimal      => { :name => "decimal" },
+          :datetime     => { :name => "datetime" },
+          :timestamp    => { :name => "datetime" },
+          :time         => { :name => "datetime" },
+          :date         => { :name => "datetime" },
+          :binary       => { :name =>  native_binary_database_type },
+          :boolean      => { :name => "bit"},
+          # These are custom types that may move somewhere else for good schema_dumper.rb hacking to output them.
+          :char         => { :name => 'char' },
+          :varchar_max  => { :name => 'varchar(max)' },
+          :nchar        => { :name => "nchar" },
+          :nvarchar     => { :name => "nvarchar", :limit => 255 },
+          :nvarchar_max => { :name => "nvarchar(max)" },
+          :ntext        => { :name => "ntext" }
         }
       end
       
@@ -505,7 +532,8 @@ module ActiveRecord
       
       def type_to_sql(type, limit = nil, precision = nil, scale = nil)
         limit = nil unless self.class.type_limitable?(type)
-        if type.to_s == 'integer'
+        case type.to_s
+        when 'integer'
           case limit
             when 1..2       then  'smallint'
             when 3..4, nil  then  'integer'
@@ -606,12 +634,10 @@ module ActiveRecord
       end
       
       def insert_sql(sql, name = nil, pk = nil, id_value = nil, sequence_name = nil)
-        set_utf8_values!(sql)
         super || select_value("SELECT SCOPE_IDENTITY() AS Ident")
       end
       
       def update_sql(sql, name = nil)
-        set_utf8_values!(sql)
         execute(sql, name)
         select_value('SELECT @@ROWCOUNT AS AffectedRows')
       end
@@ -794,11 +820,9 @@ module ActiveRecord
       def column_definitions(table_name)
         db_name = unqualify_db_name(table_name)
         table_name = unqualify_table_name(table_name)
-        # COL_LENGTH returns values that do not reflect how much data can be stored in certain data types.
-        # COL_LENGTH returns -1 for varchar(max), nvarchar(max), and varbinary(max)
-        # COL_LENGTH returns 16 for ntext, text, image types
         sql = %{
           SELECT
+          columns.TABLE_NAME as table_name,
           columns.COLUMN_NAME as name,
           columns.DATA_TYPE as type,
           CASE
@@ -808,10 +832,7 @@ module ActiveRecord
           columns.NUMERIC_SCALE as numeric_scale,
           columns.NUMERIC_PRECISION as numeric_precision,
           CASE
-            WHEN columns.DATA_TYPE IN ('nvarchar') AND COL_LENGTH(columns.TABLE_NAME, columns.COLUMN_NAME) = -1 THEN 1073741823
-            WHEN columns.DATA_TYPE IN ('varchar', 'varbinary') AND COL_LENGTH(columns.TABLE_NAME, columns.COLUMN_NAME) = -1 THEN 2147483647
-            WHEN columns.DATA_TYPE IN ('ntext') AND COL_LENGTH(columns.TABLE_NAME, columns.COLUMN_NAME) = 16 THEN 1073741823
-            WHEN columns.DATA_TYPE IN ('text', 'image') AND COL_LENGTH(columns.TABLE_NAME, columns.COLUMN_NAME) = 16 THEN 2147483647
+            WHEN columns.DATA_TYPE IN ('nchar','nvarchar') THEN columns.CHARACTER_MAXIMUM_LENGTH
             ELSE COL_LENGTH(columns.TABLE_NAME, columns.COLUMN_NAME) 
           END as length,
           CASE
@@ -829,12 +850,16 @@ module ActiveRecord
         results = without_type_conversion { select(sql,nil,true) }
         results.collect do |ci|
           ci.symbolize_keys!
-          ci[:type] = if ci[:type] =~ /numeric|decimal/i
+          ci[:type] = case ci[:type]
+                      when /^bit|image|text|ntext|datetime$/
+                        ci[:type]
+                      when /^numeric|decimal$/i
                         "#{ci[:type]}(#{ci[:numeric_precision]},#{ci[:numeric_scale]})"
+                      when /^char|nchar|varchar|nvarchar|varbinary|bigint|int|smallint$/
+                        ci[:length].to_i == -1 ? "#{ci[:type]}(max)" : "#{ci[:type]}(#{ci[:length]})"
                       else
-                        "#{ci[:type]}(#{ci[:length]})"
+                        ci[:type]
                       end
-          ci[:table_name] = table_name
           ci[:default_value] = ci[:default_value].match(/\A\(+N?'?(.*?)'?\)+\Z/)[1] if ci[:default_value]
           ci[:null] = ci[:is_nullable].to_i == 1 ; ci.delete(:is_nullable)
           ci
@@ -848,8 +873,6 @@ module ActiveRecord
         column
       end
       
-      
-      
       def change_order_direction(order)
         order.split(",").collect {|fragment|
           case fragment
@@ -859,11 +882,11 @@ module ActiveRecord
           end
         }.join(",")
       end
-
+      
       def special_columns(table_name)
         columns(table_name).select(&:is_special?).map(&:name)
       end
-
+      
       def repair_special_columns(sql)
         special_cols = special_columns(get_table_name(sql))
         for col in special_cols.to_a
@@ -872,35 +895,7 @@ module ActiveRecord
         end
         sql
       end
-
-      def utf8_columns(table_name)
-        columns(table_name).select(&:is_utf8?).map(&:name)
-      end
-      
-      def set_utf8_values!(sql)
-        utf8_cols = utf8_columns(get_table_name(sql))
-        if sql =~ /^\s*UPDATE/i
-          utf8_cols.each do |col|
-            sql.gsub!("[#{col.to_s}] = '", "[#{col.to_s}] = N'")
-          end
-        elsif sql =~ /^\s*INSERT(?!.*DEFAULT VALUES\s*$)/i
-          # TODO This code should be simplified
-          # Get columns and values, split them into arrays, and store the original_values for when we need to replace them
-          columns_and_values = sql.scan(/\((.*?)\)/m).flatten
-          columns = columns_and_values.first.split(',')
-          values =  columns_and_values[1].split(',')
-          original_values = values.dup
-          # Iterate columns that should be UTF8, and append an N to the value, if the value is not NULL
-          utf8_cols.each do |col|
-            columns.each_with_index do |column, idx|
-              values[idx] = " N#{values[idx].gsub(/^ /, '')}" if column =~ /\[#{col}\]/ and values[idx] !~ /^NULL$/
-            end
-          end
-          # Replace (in place) the SQL
-          sql.gsub!(original_values.join(','), values.join(','))
-        end
-      end
-      
+            
     end #class SQLServerAdapter < AbstractAdapter
     
   end #module ConnectionAdapters

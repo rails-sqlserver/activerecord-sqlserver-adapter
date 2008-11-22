@@ -2,6 +2,7 @@ ActiveRecord::Schema.define do
   
   create_table :table_with_real_columns, :force => true do |t|
     t.column :real_number, :real
+    # t.column :varchar_max, :varchar_max if ActiveRecord::Base.connection.sqlserver_2005?
   end
   
   create_table :defaults, :force => true do |t|
@@ -34,5 +35,30 @@ ActiveRecord::Schema.define do
     REFERENCES #{quote_table_name('fk_test_has_pks')} (#{quote_column_name('id')})
   ADDFKSQL
   
+  create_table :sql_server_unicodes, :force => true do |t|
+    t.column :nchar,          :nchar
+    t.column :nvarchar,       :nvarchar
+    t.column :ntext,          :ntext
+    t.column :ntext_10,       :ntext,     :limit => 10
+    t.column :nchar_10,       :nchar,     :limit => 10
+    t.column :nvarchar_100,   :nvarchar,  :limit => 100
+    if ActiveRecord::Base.connection.sqlserver_2005?
+      t.column :nvarchar_max,     :nvarchar_max 
+      t.column :nvarchar_max_10,  :nvarchar_max, :limit => 10
+    end
+  end
+  
+  create_table :sql_server_strings, :force => true do |t|
+    t.column :char,     :char
+    t.column :char_10,  :char,  :limit => 10
+    if ActiveRecord::Base.connection.sqlserver_2005?
+      t.column :varchar_max,     :varchar_max 
+      t.column :varchar_max_10,  :varchar_max, :limit => 10
+    end
+  end
+  
+  create_table :sql_server_binary_types, :force => true do |t|
+    # TODO: Add some different native binary types and test.
+  end
   
 end

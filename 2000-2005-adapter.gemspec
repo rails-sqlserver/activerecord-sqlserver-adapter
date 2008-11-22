@@ -1,7 +1,7 @@
 Gem::Specification.new do |s|
   s.name     = "2000-2005-adapter"
-  s.version  = "1.0.1"
-  s.date     = "2008-11-19"
+  s.version  = "2.2.0"
+  s.date     = "2008-11-21"
   s.summary  = "SQL Server 2000 & 2005 Adapter For Rails."
   s.email    = "ken@metaskills.net"
   s.homepage = "http://github.com/rails-sqlserver/2000-2005-adapter/"
@@ -37,11 +37,12 @@ Gem::Specification.new do |s|
     "test/cases/schema_dumper_test_sqlserver.rb",
     "test/cases/specific_schema_test_sqlserver.rb",
     "test/cases/sqlserver_helper.rb",
+    "test/cases/table_name_test_sqlserver.rb"
+    "test/cases/unicode_test_sqlserver.rb",
     "test/connections/native_sqlserver/connection.rb",
     "test/connections/native_sqlserver_odbc/connection.rb",
     "test/migrations/transaction_table/1_table_will_never_be_created.rb",
-    "test/schema/sqlserver_specific_schema.rb",
-    "test/schema/table_name_test_sqlserver.rb" ]
+    "test/schema/sqlserver_specific_schema.rb" ]
   s.rdoc_options = ["--line-numbers", "--inline-source", "--main", "README.rdoc"]
   s.extra_rdoc_files = ["README.rdoc"]
 end

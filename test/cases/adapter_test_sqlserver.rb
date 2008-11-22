@@ -215,33 +215,6 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
       
     end
     
-    context 'which have coerced types' do
-      
-      setup do
-        christmas_08 = "2008-12-25".to_time
-        christmas_08_afternoon = "2008-12-25 12:00".to_time
-        @chronic_date = SqlServerChronic.create!(:date => christmas_08).reload
-        @chronic_time = SqlServerChronic.create!(:time => christmas_08_afternoon).reload
-      end
-      
-      should 'have an inheritable attribute ' do
-        assert SqlServerChronic.coerced_sqlserver_date_columns.include?('date')
-      end
-      
-      should 'have column and objects cast to date' do
-        date_column = SqlServerChronic.columns_hash['date']
-        assert_equal :date, date_column.type, "This column: \n#{date_column.inspect}"
-        assert_instance_of Date, @chronic_date.date
-      end
-      
-      should 'have column objects cast to time' do
-        time_column = SqlServerChronic.columns_hash['time']
-        assert_equal :time, time_column.type, "This column: \n#{time_column.inspect}"
-        assert_instance_of Time, @chronic_time.time
-      end
-      
-    end
-    
   end
   
   context 'For identity inserts' do

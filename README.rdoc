@@ -14,17 +14,6 @@ The SQL Server adapter for rails is back for ActiveRecord 2.2 and up! We are cur
 * Enabled #case_sensitive_equality_operator used by unique validations.
 * Unicode character support for nchar, nvarchar and ntext data types.
 
-==== Native Text Data Type Accessor
-
-To pass the ActiveRecord tests we had to implement an class accessor for the native type created for :text columns. By default any :text column created by migrations will create these native types.
-
-* SQL Server 2000 is 'text'
-* SQL Server 2005 is 'varchar(max)'
-
-During testing this type is set to 'varchar(8000)' for both versions. The reason is that rails expects to be able to use SQL = operators on text data types and this is not possible with a native 'text' data type in SQL Server. The default 'varchar(max)' for SQL Server 2005 can be queried using the SQL = operator and has plenty of storage space which is why we made it the default for 2005. If for some reason you want to change the data type created during migrations for any SQL Server version, you can include this line in your environment.rb file.
-
-  ActiveRecord::ConnectionAdapters::SQLServerAdapter.native_text_database_type = 'varchar(8000)'
-
 ==== Date/Time Data Type Hinting
 
 Both SQL Server 2000 and 2005 do not have native data types for just 'date' or 'time', it only has 'datetime'. To pass the ActiveRecord tests we implemented two simple class methods that can teach your models to coerce column information to be cast correctly. Simply past a list of symbols to either the <tt>coerce_sqlserver_date</tt> or <tt>coerce_sqlserver_time</tt> methods that correspond to 'datetime' columns that need to be cast correctly.
@@ -35,6 +24,47 @@ Both SQL Server 2000 and 2005 do not have native data types for just 'date' or '
   end
 
 This implementation has some limitations. To date we can only coerce date/time types for models that conform to the expected ActiveRecord class to table naming convention. So a table of 'foo_bar_widgets' will look for coerced types in the FooBarWidget class if it exists.
+
+==== Native Data Type Support
+
+Currently the following custom data types have been tested for schema definitions.
+
+* char
+* nchar
+* nvarchar
+* ntext
+* varchar(max) for SQL Server 2005 only.
+* nvarchar(max) for SQL Server 2005 only.
+
+For example:
+
+  create_table :sql_server_custom_types, :force => true do |t|
+    t.column :ten_code,       :char,      :limit => 10
+    t.column :ten_code_utf8,  :nchar,     :limit => 10
+    t.column :title_utf8,     :nvarchar
+    t.column :body,           :varchar_max    # Creates varchar(max)
+    t.column :body_utf8,      :ntext
+    t.column :body2_utf8,     :nvarchar_max   # Creates nvarchar(max)
+  end
+
+Manually creating a varchar(max) on SQL Server 2005 is not necessary since this is the default type created when specifying a :text field. As time goes on we will be testing other SQL Server specific data types are handled correctly when created in a migration.
+
+
+==== Native Text/Binary Data Type Accessor
+
+To pass the ActiveRecord tests we had to implement an class accessor for the native type created for :text columns. By default any :text column created by migrations will create these native types.
+
+* SQL Server 2000 is 'text'
+* SQL Server 2005 is 'varchar(max)'
+
+During testing this type is set to 'varchar(8000)' for both versions. The reason is that rails expects to be able to use SQL = operators on text data types and this is not possible with a native 'text' data type in SQL Server. The default 'varchar(max)' for SQL Server 2005 can be queried using the SQL = operator and has plenty of storage space which is why we made it the default for 2005. If for some reason you want to change the data type created during migrations for any SQL Server version, you can include this line in your environment.rb file.
+
+  ActiveRecord::ConnectionAdapters::SQLServerAdapter.native_text_database_type = 'varchar(8000)'
+
+By default any :binary column created by migrations will create these native types
+
+* SQL Server 2000 is 'image'
+* SQL Server 2005 is 'varbinary(max)'
 
 
 == Versions
