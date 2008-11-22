@@ -37,7 +37,7 @@ Gem::Specification.new do |s|
     "test/cases/schema_dumper_test_sqlserver.rb",
     "test/cases/specific_schema_test_sqlserver.rb",
     "test/cases/sqlserver_helper.rb",
-    "test/cases/table_name_test_sqlserver.rb"
+    "test/cases/table_name_test_sqlserver.rb",
     "test/cases/unicode_test_sqlserver.rb",
     "test/connections/native_sqlserver/connection.rb",
     "test/connections/native_sqlserver_odbc/connection.rb",
