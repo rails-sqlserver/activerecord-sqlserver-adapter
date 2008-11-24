@@ -80,7 +80,7 @@ It should be noted that this version of the adapter was developed using both the
 
   $ gem install dbi --version 0.4.0
   $ gem install dbd-odbc --version 0.2.4
-  $ gem install rails-sqlserver-2000-2005-adapter
+  $ gem install rails-sqlserver-2000-2005-adapter -s http://gems.github.com
 
 Optionally configure your gem dependencies in your rails environment.rb file.
 
