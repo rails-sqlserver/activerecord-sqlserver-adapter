@@ -13,6 +13,7 @@ The SQL Server adapter for rails is back for ActiveRecord 2.2 and up! We are cur
 * Pessimistic locking suppot. See the #add_lock! method for details.
 * Enabled #case_sensitive_equality_operator used by unique validations.
 * Unicode character support for nchar, nvarchar and ntext data types.
+* Support for views as table names. Also support views during identity inserts.
 
 ==== Date/Time Data Type Hinting
 
