@@ -61,4 +61,12 @@ ActiveRecord::Schema.define do
     # TODO: Add some different native binary types and test.
   end
   
+  execute "IF EXISTS (SELECT TABLE_NAME FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_NAME = 'customers_view') DROP VIEW customers_view"
+  execute <<-CUSTOMERSVIEW
+    CREATE VIEW customers_view AS
+      SELECT id, name, balance
+      FROM customers
+  CUSTOMERSVIEW
+  
+  
 end

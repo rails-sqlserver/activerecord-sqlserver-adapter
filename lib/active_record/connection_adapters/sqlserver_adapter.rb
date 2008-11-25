@@ -446,6 +446,14 @@ module ActiveRecord
         select_values "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_NAME <> 'dtproperties'"
       end
       
+      def views(name = nil)
+        select_values "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'VIEW' AND TABLE_NAME NOT IN ('sysconstraints','syssegments')"
+      end
+      
+      def table_exists?(table_name)
+        super || views.include?(table_name.to_s)
+      end
+      
       def indexes(table_name, name = nil)
         select("EXEC sp_helpindex #{quote_table_name(table_name)}",name).inject([]) do |indexes,index|
           if index['index_description'] =~ /primary key/

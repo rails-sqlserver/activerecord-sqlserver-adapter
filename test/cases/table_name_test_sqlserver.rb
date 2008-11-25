@@ -12,7 +12,6 @@ class TableNameTestSqlserver < ActiveRecord::TestCase
   
   should 'load columns with escaped table name for model' do
     assert_equal 4, Order.columns.length
-    
   end
   
   should 'not re-escape table name if it is escaped already for SQL queries' do

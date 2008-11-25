@@ -351,6 +351,50 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
     
   end
   
+  context 'For views' do
+    
+    context 'using @connection.views' do
+
+      should 'return an array' do
+        assert_instance_of Array, @connection.views
+      end
+      
+      should 'find CustomersView table name' do
+        assert_contains @connection.views, 'customers_view'
+      end
+      
+      should 'not contain system views' do
+        systables = ['sysconstraints','syssegments']
+        systables.each do |systable|
+          assert !@connection.views.include?(systable), "This systable #{systable} should not be in the views array."
+        end
+      end
+
+    end
+    
+    context 'used by a class for table_name' do
+      
+      should 'yield column objects' do
+        assert !CustomersView.columns.blank?
+        ['id','name','balance'].each do |colname|
+          assert_instance_of ActiveRecord::ConnectionAdapters::SQLServerColumn, 
+            CustomersView.columns_hash[colname], "Column name #{colname.inspect} was not found"
+        end
+      end
+      
+      should 'yield all column objects having the correct table name' do
+        assert CustomersView.columns.all?{ |c| c.table_name == 'customers_view' }
+      end
+      
+      should 'respond true to table_exists?' do
+        assert CustomersView.table_exists?
+      end
+      
+    end
+    
+  end
+  
+  
   
   private
   

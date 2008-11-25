@@ -19,6 +19,7 @@ class TableWithRealColumn < ActiveRecord::Base; end
 class FkTestHasFk < ActiveRecord::Base ; end
 class FkTestHasPk < ActiveRecord::Base ; end
 class NumericData < ActiveRecord::Base ; self.table_name = 'numeric_data' ; end
+class CustomersView < ActiveRecord::Base ; self.table_name = 'customers_view' ; end
 class SqlServerUnicode < ActiveRecord::Base ; end
 class SqlServerString < ActiveRecord::Base ; end
 class SqlServerChronic < ActiveRecord::Base
