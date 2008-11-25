@@ -369,7 +369,18 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
           assert !@connection.views.include?(systable), "This systable #{systable} should not be in the views array."
         end
       end
-
+      
+      should 'allow the connection.view_information method to return meta data on the view' do
+        view_info = @connection.view_information('customers_view')
+        assert_equal('customers_view', view_info['TABLE_NAME'])
+        assert_match(/CREATE VIEW customers_view/, view_info['VIEW_DEFINITION'])
+      end
+      
+      should 'allow the connection.view_table_name method to return true table_name for the view' do
+        assert_equal 'customers', @connection.view_table_name('customers_view')
+        assert_equal 'topics', @connection.view_table_name('topics'), 'No view here, the same table name should come back.'
+      end
+      
     end
     
     context 'used by a class for table_name' do
@@ -390,6 +401,23 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
         assert CustomersView.table_exists?
       end
       
+    end
+    
+    context 'doing identity inserts' do
+
+      setup do
+        @view_insert_sql = "INSERT INTO [customers_view] ([id],[name],[balance]) VALUES (420,'Microsoft',0)"
+      end
+      
+      should 'respond true/tablename to #query_requires_identity_insert?' do
+        assert_equal '[customers_view]', @connection.send(:query_requires_identity_insert?,@view_insert_sql)
+      end
+      
+      should 'be able to do an identity insert' do
+        assert_nothing_raised { @connection.execute(@view_insert_sql) }
+        assert CustomersView.find(420)
+      end
+
     end
     
   end

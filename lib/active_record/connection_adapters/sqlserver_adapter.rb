@@ -167,7 +167,7 @@ module ActiveRecord
       def initialize(connection, logger, connection_options=nil)
         super(connection, logger)
         @connection_options = connection_options
-        @sqlserver_columns_cache = {}
+        initialize_sqlserver_caches
         unless SUPPORTED_VERSIONS.include?(database_year)
           raise NotImplementedError, "Currently, only #{SUPPORTED_VERSIONS.to_sentence} are supported."
         end
@@ -447,7 +447,17 @@ module ActiveRecord
       end
       
       def views(name = nil)
-        select_values "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'VIEW' AND TABLE_NAME NOT IN ('sysconstraints','syssegments')"
+        @sqlserver_views_cache ||= 
+          select_values "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_NAME NOT IN ('sysconstraints','syssegments')"
+      end
+      
+      def view_information(table_name)
+        select_one "SELECT * FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_NAME = '#{table_name}'"
+      end
+      
+      def view_table_name(table_name)
+        view_info = view_information(table_name)
+        view_info ? get_table_name(view_info['VIEW_DEFINITION']) : table_name
       end
       
       def table_exists?(table_name)
@@ -741,6 +751,7 @@ module ActiveRecord
       # IDENTITY INSERTS =========================================#
       
       def with_identity_insert_enabled(table_name, &block)
+        table_name = table_name_or_views_table_name(table_name)
         set_identity_insert(table_name, true)
         yield
       ensure
@@ -766,6 +777,11 @@ module ActiveRecord
       
       def identity_column(table_name)
         columns(table_name).detect(&:is_identity?)
+      end
+      
+      def table_name_or_views_table_name(table_name)
+        unquoted_table_name = unqualify_table_name(table_name)
+        views.include?(unquoted_table_name) ? view_table_name(unquoted_table_name) : table_name
       end
       
       # HELPER METHODS ===========================================#
@@ -823,6 +839,12 @@ module ActiveRecord
       def remove_sqlserver_columns_cache_for(table_name)
         cache_key = unqualify_table_name(table_name)
         @sqlserver_columns_cache[cache_key] = nil
+        initialize_sqlserver_caches(false)
+      end
+      
+      def initialize_sqlserver_caches(reset_columns=true)
+        @sqlserver_columns_cache = {} if reset_columns
+        @sqlserver_views_cache = nil
       end
       
       def column_definitions(table_name)

@@ -5,7 +5,7 @@ module ActiveRecord
       def self.included(klass)
         klass.extend ClassMethods
         class << klass
-          alias_method_chain :reset_column_information, :sqlserver_columns_cache_support
+          alias_method_chain :reset_column_information, :sqlserver_cache_support
           alias_method_chain :add_order!, :sqlserver_unique_checking
         end
       end
@@ -28,9 +28,9 @@ module ActiveRecord
           read_inheritable_attribute(:coerced_sqlserver_time_columns) || []
         end
         
-        def reset_column_information_with_sqlserver_columns_cache_support
-          connection.instance_variable_set :@sqlserver_columns_cache, {}
-          reset_column_information_without_sqlserver_columns_cache_support
+        def reset_column_information_with_sqlserver_cache_support
+          connection.send(:initialize_sqlserver_caches)
+          reset_column_information_without_sqlserver_cache_support
         end
         
         private
