@@ -1,6 +1,11 @@
 
 *MASTER* ()
 
+* 
+
+
+*2.2.1* (November 25th, 2008)
+
 * Add identity insert support for views. Cache #views so that identity #table_name_or_views_table_name 
   will run quickly. [Ken Collins]
 
