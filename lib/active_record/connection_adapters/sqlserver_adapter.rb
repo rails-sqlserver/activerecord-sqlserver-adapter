@@ -150,6 +150,7 @@ module ActiveRecord
     class SQLServerAdapter < AbstractAdapter
       
       ADAPTER_NAME            = 'SQLServer'.freeze
+      VERSION                 = '2.2.1'.freeze
       DATABASE_VERSION_REGEXP = /Microsoft SQL Server\s+(\d{4})/
       SUPPORTED_VERSIONS      = [2000,2005].freeze
       LIMITABLE_TYPES         = ['string','integer','float','char','nchar','varchar','nvarchar'].freeze
@@ -203,8 +204,12 @@ module ActiveRecord
         database_year == 2005
       end
       
+      def version
+        self.class::VERSION
+      end
+      
       def inspect
-        "#<#{self.class} year: #{database_year}, connection_options: #{@connection_options.inspect}>"
+        "#<#{self.class} version: #{version}, year: #{database_year}, connection_options: #{@connection_options.inspect}>"
       end
       
       def native_text_database_type
