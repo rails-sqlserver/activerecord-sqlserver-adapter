@@ -397,6 +397,11 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
         end
       end
       
+      should 'find identity column' do
+        assert CustomersView.columns_hash['id'].primary
+        assert CustomersView.columns_hash['id'].is_identity?
+      end
+      
       should 'yield all column objects having the correct table name' do
         assert CustomersView.columns.all?{ |c| c.table_name == 'customers_view' }
       end
