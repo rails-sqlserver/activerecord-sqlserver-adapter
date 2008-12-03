@@ -11,7 +11,7 @@ test/connections/<your database>/connection.rb.
 The following gems need to be installed. Make sure you have gems.github.com as a
 source. http://github.com/blog/97-github-loves-rubygems-1-2
 
-  * gem install thoughbot-shoulda
+  * gem install thoughtbot-shoulda -s http://gems.github.com
   * gem install mocha
 
 The tests of this adapter depend on the existence of rails checkout. All the tests
