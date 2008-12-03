@@ -78,8 +78,10 @@ class OffsetAndLimitTestSqlserver < ActiveRecord::TestCase
 
     should 'not create invalid SQL with subquery SELECTs with TOP' do
       options = { :limit => 5, :offset => 1 }
-      assert_nothing_raised(ActiveRecord::StatementInvalid) { @connection.add_limit_offset!(@subquery_select_sql, options) }
+      expected_sql = "SELECT * FROM (SELECT TOP 5 * FROM (SELECT TOP 6 *, (SELECT TOP 1 id FROM books) AS book_id FROM books) AS tmp1) AS tmp2"
+      assert_equal expected_sql, @connection.add_limit_offset!(@subquery_select_sql,options)
     end
+    
   end
   
   
