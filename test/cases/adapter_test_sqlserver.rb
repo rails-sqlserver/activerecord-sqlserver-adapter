@@ -284,13 +284,12 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
     end
     
     should 'NOT ALLOW by default the deletion of a referenced parent' do
+      FkTestHasPk.connection.disable_referential_integrity { }
       assert_raise(ActiveRecord::StatementInvalid) { @parent.destroy }
     end
     
     should 'ALLOW deletion of referenced parent using #disable_referential_integrity block' do
-      assert_nothing_raised(ActiveRecord::StatementInvalid) do
-        FkTestHasPk.connection.disable_referential_integrity { @parent.destroy }
-      end
+      FkTestHasPk.connection.disable_referential_integrity { @parent.destroy }
     end
     
     should 'again NOT ALLOW deletion of referenced parent after #disable_referential_integrity block' do
