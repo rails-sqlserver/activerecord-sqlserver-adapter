@@ -6,7 +6,7 @@ MASTER
 
 2.2.2 (December 2nd, 2008)
 
-* Add support for view defaults by making column_definitions use real table name for schema info.
+* Add support for view defaults by making column_definitions use real table name for schema info. [Ken Collins]
 
 * Include version in connection method and inspection. [Ken Collins]
 
