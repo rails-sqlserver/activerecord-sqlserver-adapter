@@ -67,6 +67,11 @@ ActiveRecord::Schema.define do
       SELECT id, name, balance
       FROM customers
   CUSTOMERSVIEW
-  
+  execute "IF EXISTS (SELECT TABLE_NAME FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_NAME = 'string_defaults_view') DROP VIEW string_defaults_view"
+  execute <<-STRINGDEFAULTSVIEW
+    CREATE VIEW string_defaults_view AS
+      SELECT id, string_with_pretend_null_one
+      FROM string_defaults
+  STRINGDEFAULTSVIEW
   
 end

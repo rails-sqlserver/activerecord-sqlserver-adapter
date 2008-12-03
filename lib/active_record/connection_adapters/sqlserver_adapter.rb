@@ -756,7 +756,7 @@ module ActiveRecord
       # IDENTITY INSERTS =========================================#
       
       def with_identity_insert_enabled(table_name, &block)
-        table_name = table_name_or_views_table_name(table_name)
+        table_name = quote_table_name(table_name_or_views_table_name(table_name))
         set_identity_insert(table_name, true)
         yield
       ensure
@@ -786,7 +786,7 @@ module ActiveRecord
       
       def table_name_or_views_table_name(table_name)
         unquoted_table_name = unqualify_table_name(table_name)
-        views.include?(unquoted_table_name) ? view_table_name(unquoted_table_name) : table_name
+        views.include?(unquoted_table_name) ? view_table_name(unquoted_table_name) : unquoted_table_name
       end
       
       # HELPER METHODS ===========================================#
@@ -854,7 +854,8 @@ module ActiveRecord
       
       def column_definitions(table_name)
         db_name = unqualify_db_name(table_name)
-        table_name = unqualify_table_name(table_name)
+        real_table_name = table_name_or_views_table_name(table_name)
+        passed_table_name = unqualify_table_name(table_name)
         sql = %{
           SELECT
           columns.TABLE_NAME as table_name,
@@ -879,12 +880,13 @@ module ActiveRecord
             ELSE 1
           END as is_identity
           FROM #{db_name}INFORMATION_SCHEMA.COLUMNS columns
-          WHERE columns.TABLE_NAME = '#{table_name}'
+          WHERE columns.TABLE_NAME = '#{real_table_name}'
           ORDER BY columns.ordinal_position
         }.gsub(/[ \t\r\n]+/,' ')
         results = without_type_conversion { select(sql,nil,true) }
         results.collect do |ci|
           ci.symbolize_keys!
+          ci[:table_name] = passed_table_name
           ci[:type] = case ci[:type]
                       when /^bit|image|text|ntext|datetime$/
                         ci[:type]

@@ -402,8 +402,14 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
         assert CustomersView.columns_hash['id'].is_identity?
       end
       
+      should 'pick up on default values from table' do
+        assert_equal 0, CustomersView.new.balance
+        assert_equal 'null', StringDefaultsView.new.string_with_pretend_null_one
+      end
+      
       should 'yield all column objects having the correct table name' do
-        assert CustomersView.columns.all?{ |c| c.table_name == 'customers_view' }
+        assert CustomersView.columns.all?{ |c| c.table_name == 'customers_view' }, 
+          CustomersView.columns.map(&:table_name).inspect
       end
       
       should 'respond true to table_exists?' do

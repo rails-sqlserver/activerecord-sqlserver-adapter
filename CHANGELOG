@@ -1,10 +1,17 @@
 
-*MASTER* ()
+MASTER
+
+* 
+
+
+2.2.2 (December 2nd, 2008)
+
+* Add support for view defaults by making column_definitions use real table name for schema info.
 
 * Include version in connection method and inspection. [Ken Collins]
 
 
-*2.2.1* (November 25th, 2008)
+2.2.1 (November 25th, 2008)
 
 * Add identity insert support for views. Cache #views so that identity #table_name_or_views_table_name 
   will run quickly. [Ken Collins]
@@ -13,7 +20,7 @@
   #table_exists? will not fall back to checking views too. [Ken Collins]
 
 
-*2.2.0* (November 21st, 2008)
+2.2.0 (November 21st, 2008)
 
 * Release for rails 2.2.2. Many many changes.  [Ken Collins], [Murray Steele], [Shawn Balestracci], [Joe Rafaniello]
 
