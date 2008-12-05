@@ -150,7 +150,7 @@ module ActiveRecord
     class SQLServerAdapter < AbstractAdapter
       
       ADAPTER_NAME            = 'SQLServer'.freeze
-      VERSION                 = '2.2.2'.freeze
+      VERSION                 = '2.2.3'.freeze
       DATABASE_VERSION_REGEXP = /Microsoft SQL Server\s+(\d{4})/
       SUPPORTED_VERSIONS      = [2000,2005].freeze
       LIMITABLE_TYPES         = ['string','integer','float','char','nchar','varchar','nvarchar'].freeze
@@ -457,6 +457,7 @@ module ActiveRecord
       end
       
       def view_information(table_name)
+        table_name = unqualify_table_name(table_name)
         select_one "SELECT * FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_NAME = '#{table_name}'"
       end
       
@@ -827,6 +828,12 @@ module ActiveRecord
         end
       end
       
+      def views_real_column_name(table_name,column_name)
+        view_definition = view_information(table_name)['VIEW_DEFINITION']
+        match_data = view_definition.match(/([\w-]*)\s+as\s+pretend_null/im)
+        match_data ? match_data[1] : column_name
+      end
+      
       def order_to_min_set(order)
         orders_dirs = orders_and_dirs_set(order)
         orders_dirs.map do |o,d|
@@ -854,17 +861,13 @@ module ActiveRecord
       
       def column_definitions(table_name)
         db_name = unqualify_db_name(table_name)
-        real_table_name = table_name_or_views_table_name(table_name)
-        passed_table_name = unqualify_table_name(table_name)
+        table_name = unqualify_table_name(table_name)
         sql = %{
           SELECT
           columns.TABLE_NAME as table_name,
           columns.COLUMN_NAME as name,
           columns.DATA_TYPE as type,
-          CASE
-            WHEN columns.COLUMN_DEFAULT = '(null)' OR columns.COLUMN_DEFAULT = '(NULL)' THEN NULL
-            ELSE columns.COLUMN_DEFAULT
-          END as default_value,
+          columns.COLUMN_DEFAULT as default_value,
           columns.NUMERIC_SCALE as numeric_scale,
           columns.NUMERIC_PRECISION as numeric_precision,
           CASE
@@ -880,13 +883,12 @@ module ActiveRecord
             ELSE 1
           END as is_identity
           FROM #{db_name}INFORMATION_SCHEMA.COLUMNS columns
-          WHERE columns.TABLE_NAME = '#{real_table_name}'
+          WHERE columns.TABLE_NAME = '#{table_name}'
           ORDER BY columns.ordinal_position
         }.gsub(/[ \t\r\n]+/,' ')
         results = without_type_conversion { select(sql,nil,true) }
         results.collect do |ci|
           ci.symbolize_keys!
-          ci[:table_name] = passed_table_name
           ci[:type] = case ci[:type]
                       when /^bit|image|text|ntext|datetime$/
                         ci[:type]
@@ -897,7 +899,18 @@ module ActiveRecord
                       else
                         ci[:type]
                       end
-          ci[:default_value] = ci[:default_value].match(/\A\(+N?'?(.*?)'?\)+\Z/)[1] if ci[:default_value]
+          if ci[:default_value].nil? && views.include?(table_name)
+            real_table_name = table_name_or_views_table_name(table_name)
+            real_column_name = views_real_column_name(table_name,ci[:name])
+            col_default_sql = "SELECT c.COLUMN_DEFAULT FROM INFORMATION_SCHEMA.COLUMNS c WHERE c.TABLE_NAME = '#{real_table_name}' AND c.COLUMN_NAME = '#{real_column_name}'"
+            ci[:default_value] = without_type_conversion { select_value(col_default_sql) }
+          end
+          ci[:default_value] = case ci[:default_value]
+                               when nil, '(null)', '(NULL)'
+                                 nil
+                               else
+                                 ci[:default_value].match(/\A\(+N?'?(.*?)'?\)+\Z/)[1]
+                               end
           ci[:null] = ci[:is_nullable].to_i == 1 ; ci.delete(:is_nullable)
           ci
         end

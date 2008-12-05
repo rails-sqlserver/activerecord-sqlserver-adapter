@@ -388,31 +388,75 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
     
     context 'used by a class for table_name' do
       
-      should 'yield column objects' do
-        assert !CustomersView.columns.blank?
-        ['id','name','balance'].each do |colname|
-          assert_instance_of ActiveRecord::ConnectionAdapters::SQLServerColumn, 
-            CustomersView.columns_hash[colname], "Column name #{colname.inspect} was not found"
+      context 'with same column names' do
+        
+        should 'have matching column objects' do
+          columns = ['id','name','balance']
+          assert !CustomersView.columns.blank?
+          assert_equal columns.size, CustomersView.columns.size
+          columns.each do |colname|
+            assert_instance_of ActiveRecord::ConnectionAdapters::SQLServerColumn, 
+              CustomersView.columns_hash[colname], 
+              "Column name #{colname.inspect} was not found in these columns #{CustomersView.columns.map(&:name).inspect}"
+          end
         end
+        
+        should 'find identity column' do
+          assert CustomersView.columns_hash['id'].primary
+          assert CustomersView.columns_hash['id'].is_identity?
+        end
+        
+        should 'find default values' do
+          assert_equal 0, CustomersView.new.balance
+        end
+        
+        should 'respond true to table_exists?' do
+          assert CustomersView.table_exists?
+        end
+        
+        should 'have correct table name for all column objects' do
+          assert CustomersView.columns.all?{ |c| c.table_name == 'customers_view' }, 
+            CustomersView.columns.map(&:table_name).inspect
+        end
+        
       end
       
-      should 'find identity column' do
-        assert CustomersView.columns_hash['id'].primary
-        assert CustomersView.columns_hash['id'].is_identity?
-      end
-      
-      should 'pick up on default values from table' do
-        assert_equal 0, CustomersView.new.balance
-        assert_equal 'null', StringDefaultsView.new.string_with_pretend_null_one
-      end
-      
-      should 'yield all column objects having the correct table name' do
-        assert CustomersView.columns.all?{ |c| c.table_name == 'customers_view' }, 
-          CustomersView.columns.map(&:table_name).inspect
-      end
-      
-      should 'respond true to table_exists?' do
-        assert CustomersView.table_exists?
+      context 'with aliased column names' do
+        
+        should 'have matching column objects' do
+          columns = ['id','pretend_null']
+          assert !StringDefaultsView.columns.blank?
+          assert_equal columns.size, StringDefaultsView.columns.size
+          columns.each do |colname|
+            assert_instance_of ActiveRecord::ConnectionAdapters::SQLServerColumn, 
+              StringDefaultsView.columns_hash[colname], 
+              "Column name #{colname.inspect} was not found in these columns #{StringDefaultsView.columns.map(&:name).inspect}"
+          end
+        end
+        
+        should 'find identity column' do
+          assert StringDefaultsView.columns_hash['id'].primary
+          assert StringDefaultsView.columns_hash['id'].is_identity?
+        end
+        
+        should 'find default values' do
+          # col_default_sql = "SELECT c.COLUMN_DEFAULT FROM INFORMATION_SCHEMA.COLUMNS c WHERE c.TABLE_NAME = 'string_defaults' AND c.COLUMN_NAME = 'string_with_pretend_null_one'"
+          # raise @connection.select_value(col_default_sql).inspect
+          # raise @connection.without_type_conversion{ @connection.select_value(col_default_sql) }.inspect
+          
+          assert_equal 'null', StringDefaultsView.new.pretend_null, 
+            StringDefaultsView.columns_hash['pretend_null'].inspect
+        end
+        
+        should 'respond true to table_exists?' do
+          assert StringDefaultsView.table_exists?
+        end
+        
+        should 'have correct table name for all column objects' do
+          assert StringDefaultsView.columns.all?{ |c| c.table_name == 'string_defaults_view' }, 
+            StringDefaultsView.columns.map(&:table_name).inspect
+        end
+        
       end
       
     end

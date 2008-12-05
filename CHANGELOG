@@ -1,6 +1,16 @@
 
 MASTER
 
+* 
+
+
+* 2.2.3 (December 5th, 2008)
+
+* Changing back to using real table name in column_definitions. Makes sure views get back only the columns 
+  that are defined for them with correct names, etc. Now supporting views by looking for NULL default and 
+  then if table name is a view, perform a targeted with sub select to the real table name and column name 
+  to find true default. [Ken Collins]
+
 * Ensure that add_limit_offset! does not alter sub queries. [Erik Bryn]
 
 
