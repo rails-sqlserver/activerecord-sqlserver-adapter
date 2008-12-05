@@ -4,6 +4,11 @@ MASTER
 * 
 
 
+* 2.2.4 (December 5th, 2008)
+
+* Fix a type left in #views_real_column_name. Also cache #view_information lookups. [Ken Collins]
+
+
 * 2.2.3 (December 5th, 2008)
 
 * Changing back to using real table name in column_definitions. Makes sure views get back only the columns 

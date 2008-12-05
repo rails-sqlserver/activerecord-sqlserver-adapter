@@ -150,7 +150,7 @@ module ActiveRecord
     class SQLServerAdapter < AbstractAdapter
       
       ADAPTER_NAME            = 'SQLServer'.freeze
-      VERSION                 = '2.2.3'.freeze
+      VERSION                 = '2.2.4'.freeze
       DATABASE_VERSION_REGEXP = /Microsoft SQL Server\s+(\d{4})/
       SUPPORTED_VERSIONS      = [2000,2005].freeze
       LIMITABLE_TYPES         = ['string','integer','float','char','nchar','varchar','nvarchar'].freeze
@@ -458,7 +458,8 @@ module ActiveRecord
       
       def view_information(table_name)
         table_name = unqualify_table_name(table_name)
-        select_one "SELECT * FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_NAME = '#{table_name}'"
+        @sqlserver_view_information_cache[table_name] ||= 
+          select_one "SELECT * FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_NAME = '#{table_name}'"
       end
       
       def view_table_name(table_name)
@@ -857,6 +858,7 @@ module ActiveRecord
       def initialize_sqlserver_caches(reset_columns=true)
         @sqlserver_columns_cache = {} if reset_columns
         @sqlserver_views_cache = nil
+        @sqlserver_view_information_cache = {}
       end
       
       def column_definitions(table_name)
