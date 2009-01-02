@@ -1,7 +1,8 @@
 
 MASTER
 
-* 
+* Core extensions for ActiveRecord now reflect on the connection before doing SQL Server things. Now 
+  this adapter is compatible for using with other adapters. [Ken Collins]
 
 
 * 2.2.4 (December 5th, 2008)

@@ -196,6 +196,10 @@ module ActiveRecord
         DATABASE_VERSION_REGEXP.match(database_version)[1].to_i
       end
       
+      def sqlserver?
+        true
+      end
+      
       def sqlserver_2000?
         database_year == 2000
       end
