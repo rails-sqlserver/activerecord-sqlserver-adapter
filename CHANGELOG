@@ -1,6 +1,11 @@
 
 MASTER
 
+* Fix millisecond support in datetime columns. ODBC::Timestamp incorrectly takes SQL Server milliseconds
+  and applies them as nanoseconds. We cope with this at the DBI layer by using SQLServerDBI::Type::SqlserverTimestamp 
+  class to parse the before type cast value appropriately. Also update the adapters #quoted_date method 
+  to work more simply by converting ruby's #usec milliseconds to SQL Server microseconds. [Ken Collins]
+
 * Core extensions for ActiveRecord now reflect on the connection before doing SQL Server things. Now 
   this adapter is compatible for using with other adapters. [Ken Collins]
 

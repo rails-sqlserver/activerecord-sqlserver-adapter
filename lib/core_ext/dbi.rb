@@ -13,20 +13,24 @@ module SQLServerDBI
     end
   end
   
-      
   module Type
     
     # Make sure we get DBI::Type::Timestamp returning a string NOT a time object
-    # that represents what is in the DB before type casting and let the adapter 
-    # do the reset. DBI::DBD::ODBC will typically return a string like:
+    # that represents what is in the DB before type casting while letting core 
+    # ActiveRecord do the reset. It is assumed that DBI is using ODBC connections 
+    # and that ODBC::Timestamp is taking the native milliseconds that SQL Server 
+    # stores and returning them incorrect using ODBC::Timestamp#fraction which is 
+    # nanoseconds. Below shows the incorrect ODBC::Timestamp represented by DBI 
+    # and the conversion we expect to have in the DB before type casting.
+    # 
     #   "1985-04-15 00:00:00 0"           # => "1985-04-15 00:00:00.000"
-    #   "2008-11-08 10:24:36 547000000"   # => "2008-11-08 10:24:36.547"
-    #   "2008-11-08 10:24:36 123000000"   # => "2008-11-08 10:24:36.000"
+    #   "2008-11-08 10:24:36 300000000"   # => "2008-11-08 10:24:36.003"
+    #   "2008-11-08 10:24:36 123000000"   # => "2008-11-08 10:24:36.123"
     class SqlserverTimestamp
       def self.parse(obj)
         return nil if ::DBI::Type::Null.parse(obj).nil?
-        date, time, fraction = obj.split(' ')
-        "#{date} #{time}.#{sprintf("%03d",fraction)}"
+        date, time, nanoseconds = obj.split(' ')
+        "#{date} #{time}.#{sprintf("%03d",nanoseconds.to_i/1000000)}"
       end
     end
     

@@ -27,7 +27,7 @@ module ActiveRecord
       conn["AutoCommit"] = true
       ConnectionAdapters::SQLServerAdapter.new(conn, logger, [driver_url, username, password])
     end
-   
+    
   end
   
   module ConnectionAdapters
@@ -264,7 +264,7 @@ module ActiveRecord
       
       def quoted_date(value)
         if value.acts_like?(:time) && value.respond_to?(:usec)
-          "#{super}.#{sprintf("%06d",value.usec)[0..2]}"
+          "#{super}.#{sprintf("%03d",value.usec/1000)}"
         else
           super
         end

@@ -199,22 +199,55 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
   context 'For chronic data types' do
     
     context 'with a usec' do
-
+      
       setup do
         @time = Time.now
+        @db_datetime_003 = '2012-11-08 10:24:36.003'
+        @db_datetime_123 = '2012-11-08 10:24:36.123'
+        @all_datetimes = [@db_datetime_003, @db_datetime_123]
+        @all_datetimes.each do |datetime|
+          @connection.execute("INSERT INTO [sql_server_chronics] ([datetime]) VALUES('#{datetime}')")
+        end
       end
       
-      should 'truncate 123456 usec to just 123' do
-        @time.stubs(:usec).returns(123456)
-        saved = SqlServerChronic.create!(:datetime => @time).reload
-        assert_equal 123000, saved.datetime.usec
+      teardown do
+        @all_datetimes.each do |datetime|
+          @connection.execute("DELETE FROM [sql_server_chronics] WHERE [datetime] = '#{datetime}'")
+        end
       end
       
-      should 'drop 123 to 0' do
-        @time.stubs(:usec).returns(123)
-        saved = SqlServerChronic.create!(:datetime => @time).reload
-        assert_equal 0, saved.datetime.usec
-        assert_equal '000', saved.datetime_before_type_cast.split('.').last
+      context 'finding existing DB objects' do
+
+        should 'find 003 millisecond in the DB with before and after casting' do
+          existing_003 = SqlServerChronic.find_by_datetime!(@db_datetime_003)
+          assert_equal @db_datetime_003, existing_003.datetime_before_type_cast
+          assert_equal 3000, existing_003.datetime.usec, 'A 003 millisecond in SQL Server is 3000 milliseconds'
+        end
+
+        should 'find 123 millisecond in the DB with before and after casting' do
+          existing_123 = SqlServerChronic.find_by_datetime!(@db_datetime_123)
+          assert_equal @db_datetime_123, existing_123.datetime_before_type_cast
+          assert_equal 123000, existing_123.datetime.usec, 'A 123 millisecond in SQL Server is 123000 milliseconds'
+        end
+
+      end
+      
+      context 'saving new datetime objects' do
+
+        should 'truncate 123456 usec to just 123 in the DB cast back to 123000' do
+          @time.stubs(:usec).returns(123456)
+          saved = SqlServerChronic.create!(:datetime => @time).reload
+          assert_equal '123', saved.datetime_before_type_cast.split('.')[1]
+          assert_equal 123000, saved.datetime.usec
+        end
+        
+        should 'truncate 3001 usec to just 003 in the DB cast back to 3000' do
+          @time.stubs(:usec).returns(3001)
+          saved = SqlServerChronic.create!(:datetime => @time).reload
+          assert_equal '003', saved.datetime_before_type_cast.split('.')[1]
+          assert_equal 3000, saved.datetime.usec
+        end
+        
       end
       
     end
