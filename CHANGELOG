@@ -1,6 +1,9 @@
 
 MASTER
 
+* Added a log_info_schema_queries class attribute and make all queries to INFORMATION_SCHEMA silent by 
+  default. [Ken Collins]
+
 * Fix millisecond support in datetime columns. ODBC::Timestamp incorrectly takes SQL Server milliseconds
   and applies them as nanoseconds. We cope with this at the DBI layer by using SQLServerDBI::Type::SqlserverTimestamp 
   class to parse the before type cast value appropriately. Also update the adapters #quoted_date method 

@@ -58,7 +58,7 @@ To pass the ActiveRecord tests we had to implement an class accessor for the nat
 * SQL Server 2000 is 'text'
 * SQL Server 2005 is 'varchar(max)'
 
-During testing this type is set to 'varchar(8000)' for both versions. The reason is that rails expects to be able to use SQL = operators on text data types and this is not possible with a native 'text' data type in SQL Server. The default 'varchar(max)' for SQL Server 2005 can be queried using the SQL = operator and has plenty of storage space which is why we made it the default for 2005. If for some reason you want to change the data type created during migrations for any SQL Server version, you can configure this line to your liking in a config/initializer file.
+During testing this type is set to 'varchar(8000)' for both versions. The reason is that rails expects to be able to use SQL = operators on text data types and this is not possible with a native 'text' data type in SQL Server. The default 'varchar(max)' for SQL Server 2005 can be queried using the SQL = operator and has plenty of storage space which is why we made it the default for 2005. If for some reason you want to change the data type created during migrations for any SQL Server version, you can configure this line to your liking in a config/initializers file.
 
   ActiveRecord::ConnectionAdapters::SQLServerAdapter.native_text_database_type = 'varchar(8000)'
 
@@ -66,6 +66,13 @@ By default any :binary column created by migrations will create these native typ
 
 * SQL Server 2000 is 'image'
 * SQL Server 2005 is 'varbinary(max)'
+
+
+== Schema Information Logging
+
+By default all queries to the INFORMATION_SCHEMA table is silenced. If you think logging these queries are useful, you can enable it by adding this like to a config/initializers file.
+
+  ActiveRecord::ConnectionAdapters::SQLServerAdapter.log_info_schema_queries = true
 
 
 == Versions

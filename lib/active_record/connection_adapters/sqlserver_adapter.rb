@@ -155,7 +155,7 @@ module ActiveRecord
       SUPPORTED_VERSIONS      = [2000,2005].freeze
       LIMITABLE_TYPES         = ['string','integer','float','char','nchar','varchar','nvarchar'].freeze
       
-      cattr_accessor :native_text_database_type, :native_binary_database_type
+      cattr_accessor :native_text_database_type, :native_binary_database_type, :log_info_schema_queries
       
       class << self
         
@@ -189,7 +189,7 @@ module ActiveRecord
       end
       
       def database_version
-        @database_version ||= select_value('SELECT @@version')
+        @database_version ||= info_schema_query { select_value('SELECT @@version') }
       end
       
       def database_year
@@ -452,18 +452,20 @@ module ActiveRecord
       end
       
       def tables(name = nil)
-        select_values "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_NAME <> 'dtproperties'"
+        info_schema_query do
+          select_values "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_NAME <> 'dtproperties'"
+        end
       end
       
       def views(name = nil)
         @sqlserver_views_cache ||= 
-          select_values "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_NAME NOT IN ('sysconstraints','syssegments')"
+          info_schema_query { select_values("SELECT TABLE_NAME FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_NAME NOT IN ('sysconstraints','syssegments')") }
       end
       
       def view_information(table_name)
         table_name = unqualify_table_name(table_name)
         @sqlserver_view_information_cache[table_name] ||= 
-          select_one "SELECT * FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_NAME = '#{table_name}'"
+          info_schema_query { select_one("SELECT * FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_NAME = '#{table_name}'") }
       end
       
       def view_table_name(table_name)
@@ -671,6 +673,10 @@ module ActiveRecord
         select_value('SELECT @@ROWCOUNT AS AffectedRows')
       end
       
+      def info_schema_query
+        log_info_schema_queries ? yield : ActiveRecord::Base.silence{ yield }
+      end
+      
       def raw_execute(sql, name = nil, &block)
         log(sql, name) do
           if block_given?
@@ -736,7 +742,7 @@ module ActiveRecord
       # SCHEMA STATEMENTS ========================================#
       
       def remove_check_constraints(table_name, column_name)
-        constraints = select_values("SELECT CONSTRAINT_NAME FROM INFORMATION_SCHEMA.CONSTRAINT_COLUMN_USAGE where TABLE_NAME = '#{quote_string(table_name)}' and COLUMN_NAME = '#{quote_string(column_name)}'")
+        constraints = info_schema_query { select_values("SELECT CONSTRAINT_NAME FROM INFORMATION_SCHEMA.CONSTRAINT_COLUMN_USAGE where TABLE_NAME = '#{quote_string(table_name)}' and COLUMN_NAME = '#{quote_string(column_name)}'") }
         constraints.each do |constraint|
           do_execute "ALTER TABLE #{quote_table_name(table_name)} DROP CONSTRAINT #{quote_column_name(constraint)}"
         end
@@ -892,7 +898,7 @@ module ActiveRecord
           WHERE columns.TABLE_NAME = '#{table_name}'
           ORDER BY columns.ordinal_position
         }.gsub(/[ \t\r\n]+/,' ')
-        results = without_type_conversion { select(sql,nil,true) }
+        results = info_schema_query { without_type_conversion{ select(sql,nil,true) } }
         results.collect do |ci|
           ci.symbolize_keys!
           ci[:type] = case ci[:type]
@@ -909,7 +915,7 @@ module ActiveRecord
             real_table_name = table_name_or_views_table_name(table_name)
             real_column_name = views_real_column_name(table_name,ci[:name])
             col_default_sql = "SELECT c.COLUMN_DEFAULT FROM INFORMATION_SCHEMA.COLUMNS c WHERE c.TABLE_NAME = '#{real_table_name}' AND c.COLUMN_NAME = '#{real_column_name}'"
-            ci[:default_value] = without_type_conversion { select_value(col_default_sql) }
+            ci[:default_value] = info_schema_query { without_type_conversion{ select_value(col_default_sql) } }
           end
           ci[:default_value] = case ci[:default_value]
                                when nil, '(null)', '(NULL)'

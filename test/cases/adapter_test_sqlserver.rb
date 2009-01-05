@@ -473,10 +473,6 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
         end
         
         should 'find default values' do
-          # col_default_sql = "SELECT c.COLUMN_DEFAULT FROM INFORMATION_SCHEMA.COLUMNS c WHERE c.TABLE_NAME = 'string_defaults' AND c.COLUMN_NAME = 'string_with_pretend_null_one'"
-          # raise @connection.select_value(col_default_sql).inspect
-          # raise @connection.without_type_conversion{ @connection.select_value(col_default_sql) }.inspect
-          
           assert_equal 'null', StringDefaultsView.new.pretend_null, 
             StringDefaultsView.columns_hash['pretend_null'].inspect
         end
