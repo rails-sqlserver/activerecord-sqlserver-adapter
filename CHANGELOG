@@ -1,6 +1,11 @@
 
 MASTER
 
+* 
+
+
+* 2.2.5 (January 4th, 2009)
+
 * Added a log_info_schema_queries class attribute and make all queries to INFORMATION_SCHEMA silent by 
   default. [Ken Collins]
 

@@ -68,7 +68,7 @@ By default any :binary column created by migrations will create these native typ
 * SQL Server 2005 is 'varbinary(max)'
 
 
-== Schema Information Logging
+====  Schema Information Logging
 
 By default all queries to the INFORMATION_SCHEMA table is silenced. If you think logging these queries are useful, you can enable it by adding this like to a config/initializers file.
 
