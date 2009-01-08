@@ -4,6 +4,11 @@ MASTER
 * 
 
 
+* 2.2.6 (January 8th, 2008)
+
+* Introduced a bug in 2.2.5 in the #add_order! core ext for ActiveRecord. Fixed [Ken Collins]
+
+
 * 2.2.5 (January 4th, 2009)
 
 * Added a log_info_schema_queries class attribute and make all queries to INFORMATION_SCHEMA silent by 

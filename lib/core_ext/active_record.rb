@@ -62,7 +62,7 @@ module ActiveRecord
               sql << " ORDER BY #{unique_order_sql}"
             end
           else
-            add_order_without_sqlserver_unique_checking!(order_sql, order, scope)
+            add_order_without_sqlserver_unique_checking!(sql, order, scope)
           end
         end
         
