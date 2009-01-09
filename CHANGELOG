@@ -1,6 +1,11 @@
 
 MASTER
 
+* 
+
+
+* 2.2.7 (January 9th, 2009)
+
 * Created a connection#execute_procedure method that takes can take any number of ruby objects as variables 
   and quotes them according to the connection's rules. Also added an ActiveRecord::Base class level core 
   extension that hooks into this. It also checks if the connection responds to #execute_procedure and if 
@@ -11,7 +16,7 @@ MASTER
   task that assists setting this to true when running tests.  [Ken Collins]
 
 
-* 2.2.6 (January 8th, 2008)
+* 2.2.6 (January 8th, 2009)
 
 * Introduced a bug in 2.2.5 in the #add_order! core ext for ActiveRecord. Fixed [Ken Collins]
 

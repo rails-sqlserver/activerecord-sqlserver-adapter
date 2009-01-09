@@ -33,7 +33,6 @@ Every class that sub classes ActiveRecord::Base will now have an execute_procedu
 
   Account.execute_procedure :update_totals, 'admin', nil, true
 
-
 ==== Native Data Type Support
 
 Currently the following custom data types have been tested for schema definitions.
