@@ -47,16 +47,30 @@ module SqlserverCoercedTest
       self.const_get(:COERCED_TESTS) rescue nil
     end
     def method_added(method)
-      undef_method(method) if coerced_tests && coerced_tests.include?(method)
+      if coerced_tests && coerced_tests.include?(method)
+        undef_method(method)
+        STDOUT.puts("Undefined coerced test: #{self.name}##{method}")
+      end
     end
   end
+end
+
+# Set weather to test unicode string defaults or not. Used from rake task.
+
+if ENV['ENABLE_DEFAULT_UNICODE_TYPES'] == 'true'
+  puts "With enabled unicode string types"
+  ActiveRecord::ConnectionAdapters::SQLServerAdapter.enable_default_unicode_types = true
 end
 
 # Change the text database type to support ActiveRecord's tests for = on text columns which 
 # is not supported in SQL Server text columns, so use varchar(8000) instead.
 
 if ActiveRecord::Base.connection.sqlserver_2000?
-  ActiveRecord::ConnectionAdapters::SQLServerAdapter.native_text_database_type = 'varchar(8000)'
+  if ActiveRecord::ConnectionAdapters::SQLServerAdapter.enable_default_unicode_types
+    ActiveRecord::ConnectionAdapters::SQLServerAdapter.native_text_database_type = 'nvarchar(4000)'
+  else
+    ActiveRecord::ConnectionAdapters::SQLServerAdapter.native_text_database_type = 'varchar(8000)'
+  end
 end
 
 # Our changes/additions to ActiveRecord test helpers specific for SQL Server.

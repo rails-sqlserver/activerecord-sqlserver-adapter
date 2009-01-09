@@ -40,7 +40,6 @@ class MigrationTest < ActiveRecord::TestCase
   
   include SqlserverCoercedTest
   
-  
   def test_coerced_test_add_column_not_null_without_default
     Person.connection.create_table :testings do |t| 
       t.column :foo, :string
@@ -53,5 +52,42 @@ class MigrationTest < ActiveRecord::TestCase
     Person.connection.drop_table :testings rescue nil
   end
   
+end
+
+class ChangeTableMigrationsTest < ActiveRecord::TestCase
+  
+  COERCED_TESTS = [:test_string_creates_string_column]
+
+  include SqlserverCoercedTest
+  
+  def setup
+    @connection = Person.connection
+    @connection.create_table :delete_me, :force => true do |t|
+    end
+  end
+
+  def teardown
+    @connection.drop_table :delete_me rescue nil
+  end
+  
+  def test_coerced_string_creates_string_column
+    with_sqlserver_change_table do |t|
+      @connection.expects(:add_column).with(:delete_me, :foo, sqlserver_string_column, {})
+      @connection.expects(:add_column).with(:delete_me, :bar, sqlserver_string_column, {})
+      t.string :foo, :bar
+    end
+  end
+  
+  protected
+
+  def with_sqlserver_change_table
+    @connection.change_table :delete_me do |t|
+      yield t
+    end
+  end
+  
+  def sqlserver_string_column
+    "#{@connection.native_string_database_type}(255)"
+  end
   
 end

@@ -1,7 +1,9 @@
 
 MASTER
 
-* 
+* Added a #enable_default_unicode_types class attribute access to make all new added or changed string types 
+  like :string/:text default to unicode/national data types. See the README for full details. Added a rake 
+  task that assists setting this to true when running tests.  [Ken Collins]
 
 
 * 2.2.6 (January 8th, 2008)

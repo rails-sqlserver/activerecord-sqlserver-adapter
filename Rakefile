@@ -27,6 +27,7 @@ task :recreate_databases => [:drop_databases, :create_databases]
 
 
 for adapter in %w( sqlserver sqlserver_odbc )
+  
   Rake::TestTask.new("test_#{adapter}") { |t|
     t.libs << "test" 
     t.libs << "test/connections/native_#{adapter}"
@@ -40,5 +41,12 @@ for adapter in %w( sqlserver sqlserver_odbc )
   namespace adapter do
     task :test => "test_#{adapter}"
   end
+  
 end
 
+desc 'Test with unicode types enabled.'
+Rake::TestTask.new(:test_unicode_types) do |t|
+  ENV['ENABLE_DEFAULT_UNICODE_TYPES'] = 'true'
+  test = Rake::Task['test_sqlserver_odbc']
+  test.invoke
+end

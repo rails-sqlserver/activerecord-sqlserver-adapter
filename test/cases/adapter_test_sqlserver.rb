@@ -194,6 +194,35 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
 
     end
     
+    context 'testing #enable_default_unicode_types configuration' do
+
+      should 'use non-unicode types when set to false' do
+        with_enable_default_unicode_types(false) do
+          if sqlserver_2000?
+            assert_equal 'varchar', @connection.native_string_database_type
+            assert_equal 'text', @connection.native_text_database_type
+          elsif sqlserver_2005?
+            assert_equal 'varchar', @connection.native_string_database_type
+            assert_equal 'varchar(max)', @connection.native_text_database_type
+          end
+        end
+      end
+      
+      should 'use unicode types when set to true' do
+        with_enable_default_unicode_types(true) do
+          if sqlserver_2000?
+            assert_equal 'nvarchar', @connection.native_string_database_type
+            assert_equal 'ntext', @connection.native_text_database_type
+          elsif sqlserver_2005?
+            assert_equal 'nvarchar', @connection.native_string_database_type
+            assert_equal 'nvarchar(max)', @connection.native_text_database_type
+          end
+        end
+      end
+
+    end
+    
+    
   end
   
   context 'For chronic data types' do
@@ -528,6 +557,20 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
   
   def order_to_min_set(order)
     @connection.send :order_to_min_set, order
+  end
+  
+  def with_enable_default_unicode_types(setting)
+    old_setting = ActiveRecord::ConnectionAdapters::SQLServerAdapter.enable_default_unicode_types
+    old_text = ActiveRecord::ConnectionAdapters::SQLServerAdapter.native_text_database_type
+    old_string = ActiveRecord::ConnectionAdapters::SQLServerAdapter.native_string_database_type
+    ActiveRecord::ConnectionAdapters::SQLServerAdapter.enable_default_unicode_types = setting
+    ActiveRecord::ConnectionAdapters::SQLServerAdapter.native_text_database_type = nil
+    ActiveRecord::ConnectionAdapters::SQLServerAdapter.native_string_database_type = nil
+    yield
+  ensure
+    ActiveRecord::ConnectionAdapters::SQLServerAdapter.enable_default_unicode_types = old_setting
+    ActiveRecord::ConnectionAdapters::SQLServerAdapter.native_text_database_type = old_text
+    ActiveRecord::ConnectionAdapters::SQLServerAdapter.native_string_database_type = old_string
   end
   
 end

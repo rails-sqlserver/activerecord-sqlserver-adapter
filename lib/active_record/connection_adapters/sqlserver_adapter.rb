@@ -155,7 +155,8 @@ module ActiveRecord
       SUPPORTED_VERSIONS      = [2000,2005].freeze
       LIMITABLE_TYPES         = ['string','integer','float','char','nchar','varchar','nvarchar'].freeze
       
-      cattr_accessor :native_text_database_type, :native_binary_database_type, :log_info_schema_queries
+      cattr_accessor :native_text_database_type, :native_binary_database_type, :native_string_database_type,
+                     :log_info_schema_queries, :enable_default_unicode_types
       
       class << self
         
@@ -216,12 +217,21 @@ module ActiveRecord
         "#<#{self.class} version: #{version}, year: #{database_year}, connection_options: #{@connection_options.inspect}>"
       end
       
+      def native_string_database_type
+        @@native_string_database_type || (enable_default_unicode_types ? 'nvarchar' : 'varchar') 
+      end
+      
       def native_text_database_type
-        self.class.native_text_database_type || (sqlserver_2005? ? 'varchar(max)' : 'text')
+        @@native_text_database_type || 
+        if sqlserver_2005?
+          enable_default_unicode_types ? 'nvarchar(max)' : 'varchar(max)'
+        else
+          enable_default_unicode_types ? 'ntext' : 'text'
+        end
       end
       
       def native_binary_database_type
-        self.class.native_binary_database_type || (sqlserver_2005? ? 'varbinary(max)' : 'image')
+        @@native_binary_database_type || (sqlserver_2005? ? 'varbinary(max)' : 'image')
       end
       
       # QUOTING ==================================================#
@@ -426,8 +436,8 @@ module ActiveRecord
       def native_database_types
         {
           :primary_key  => "int NOT NULL IDENTITY(1, 1) PRIMARY KEY",
-          :string       => { :name => "varchar", :limit => 255  },
-          :text         => { :name =>  native_text_database_type },
+          :string       => { :name => native_string_database_type, :limit => 255  },
+          :text         => { :name => native_text_database_type },
           :integer      => { :name => "int", :limit => 4 },
           :float        => { :name => "float", :limit => 8 },
           :decimal      => { :name => "decimal" },
@@ -435,7 +445,7 @@ module ActiveRecord
           :timestamp    => { :name => "datetime" },
           :time         => { :name => "datetime" },
           :date         => { :name => "datetime" },
-          :binary       => { :name =>  native_binary_database_type },
+          :binary       => { :name => native_binary_database_type },
           :boolean      => { :name => "bit"},
           # These are custom types that may move somewhere else for good schema_dumper.rb hacking to output them.
           :char         => { :name => 'char' },

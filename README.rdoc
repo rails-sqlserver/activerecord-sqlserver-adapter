@@ -12,7 +12,7 @@ The SQL Server adapter for rails is back for ActiveRecord 2.2 and up! We are cur
 * Implementation for #disable_referential_integrity used by ActiveRecord's Fixtures class.
 * Pessimistic locking suppot. See the #add_lock! method for details.
 * Enabled #case_sensitive_equality_operator used by unique validations.
-* Unicode character support for nchar, nvarchar and ntext data types.
+* Unicode character support for nchar, nvarchar and ntext data types. Configuration option for defaulting all string data types to the unicode safe types.
 * View support for table names, identity inserts, and column defaults.
 
 ==== Date/Time Data Type Hinting
@@ -51,21 +51,42 @@ For example:
 Manually creating a varchar(max) on SQL Server 2005 is not necessary since this is the default type created when specifying a :text field. As time goes on we will be testing other SQL Server specific data types are handled correctly when created in a migration.
 
 
-==== Native Text/Binary Data Type Accessor
+==== Native Text/String/Binary Data Type Accessor
 
 To pass the ActiveRecord tests we had to implement an class accessor for the native type created for :text columns. By default any :text column created by migrations will create these native types.
 
 * SQL Server 2000 is 'text'
 * SQL Server 2005 is 'varchar(max)'
 
-During testing this type is set to 'varchar(8000)' for both versions. The reason is that rails expects to be able to use SQL = operators on text data types and this is not possible with a native 'text' data type in SQL Server. The default 'varchar(max)' for SQL Server 2005 can be queried using the SQL = operator and has plenty of storage space which is why we made it the default for 2005. If for some reason you want to change the data type created during migrations for any SQL Server version, you can configure this line to your liking in a config/initializers file.
+During testing this type is set to 'varchar(8000)' for SQL Server 2000. The reason is that rails expects to be able to use SQL = operators on text data types and this is not possible with a native 'text' data type in SQL Server. The default 'varchar(max)' for SQL Server 2005 can be queried using the SQL = operator and has plenty of storage space which is why we made it the default for 2005. If for some reason you want to change the data type created during migrations for any SQL Server version, you can configure this line to your liking in a config/initializers file.
 
   ActiveRecord::ConnectionAdapters::SQLServerAdapter.native_text_database_type = 'varchar(8000)'
+  
+Also, there is a class attribute setter for the native string database type. This is the same for both SQL Server 2000 and 2005, 'varchar'. However in can be used instead of the #enable_default_unicode_types below for finer grain control over which types you want unicode safe when adding or changing the schema.
+
+  ActiveRecord::ConnectionAdapters::SQLServerAdapter.native_string_database_type = 'nvarchar'
 
 By default any :binary column created by migrations will create these native types
 
 * SQL Server 2000 is 'image'
 * SQL Server 2005 is 'varbinary(max)'
+
+
+====  Setting Unicode Types As Default
+
+By default the adapter will use non-unicode safe data types for :string and :text types when DEFINING or CHANGING the schema. If you choose, you can set the following class attribute in a config/initializers file that will change this behavior. When set to true it has the equivalent meaning as the two lower items. These examples show detail level alternatives to achieve similar effects.
+  
+  ActiveRecord::ConnectionAdapters::SQLServerAdapter.enable_default_unicode_types = true
+  
+  # SQL Server 2000
+  ActiveRecord::ConnectionAdapters::SQLServerAdapter.native_text_database_type = 'ntext'
+  ActiveRecord::ConnectionAdapters::SQLServerAdapter.native_string_database_type = 'nvarchar'
+  
+  # SQL Server 2005
+  ActiveRecord::ConnectionAdapters::SQLServerAdapter.native_text_database_type = 'nvarchar(max)'
+  ActiveRecord::ConnectionAdapters::SQLServerAdapter.native_string_database_type = 'nvarchar'
+
+It is important to remember that unicode types in SQL Server have approximately half the storage capacity as their counter parts. So where a normal string would max out at (8000) a unicode string will top off at (4000).
 
 
 ====  Schema Information Logging
