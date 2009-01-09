@@ -29,6 +29,7 @@ Gem::Specification.new do |s|
     "test/cases/column_test_sqlserver.rb",
     "test/cases/connection_test_sqlserver.rb",
     "test/cases/eager_association_test_sqlserver.rb",
+    "test/cases/execute_procedure_test_sqlserver.rb",
     "test/cases/inheritance_test_sqlserver.rb",
     "test/cases/migration_test_sqlserver.rb",
     "test/cases/offset_and_limit_test_sqlserver.rb",

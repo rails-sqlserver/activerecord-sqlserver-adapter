@@ -12,6 +12,14 @@ module ActiveRecord
       
       module ClassMethods
         
+        def execute_procedure(proc_name, *variables)
+          if connection.respond_to?(:execute_procedure)
+            connection.execute_procedure(proc_name,*variables)
+          else
+            []
+          end
+        end
+        
         def coerce_sqlserver_date(*attributes)
           write_inheritable_attribute :coerced_sqlserver_date_columns, Set.new(attributes.map(&:to_s))
         end

@@ -334,6 +334,15 @@ module ActiveRecord
         finish_statement_handle(handle)
       end
       
+      def execute_procedure(proc_name, *variables)
+        holders = (1..variables.size).to_a.map{|n|'?'}.join(', ')
+        statement = "EXEC #{proc_name} #{holders}".strip
+        sql = statement.gsub('?') { quote(variables.shift) }
+        select(sql,'PROCEDURE',true).inject([]) do |results,row|
+          results << row.with_indifferent_access
+        end
+      end
+      
       def begin_db_transaction
         do_execute "BEGIN TRANSACTION"
       end

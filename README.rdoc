@@ -6,6 +6,7 @@ The SQL Server adapter for rails is back for ActiveRecord 2.2 and up! We are cur
 
 == What's New
 
+* An ActiveRecord::Base.execute_procedure method that can be used by classes.
 * Enabled support for DDL transactions.
 * Micro second support. Time#usec is automatically converted to SQL Server's 3.33 millisecond limitation.
 * Datetime data types before type casting are represented correctly. For example: 1998-01-01 23:59:59.997
@@ -25,6 +26,13 @@ Both SQL Server 2000 and 2005 do not have native data types for just 'date' or '
   end
 
 This implementation has some limitations. To date we can only coerce date/time types for models that conform to the expected ActiveRecord class to table naming convention. So a table of 'foo_bar_widgets' will look for coerced types in the FooBarWidget class if it exists.
+
+==== Executing Stored Procedures
+
+Every class that sub classes ActiveRecord::Base will now have an execute_procedure class method to use. This method takes the name of the stored procedure which can be a string or symbol and any number of variables to pass to the procedure. Arguments will automatically be quoted per the connection's standards as normal. For example.
+
+  Account.execute_procedure :update_totals, 'admin', nil, true
+
 
 ==== Native Data Type Support
 

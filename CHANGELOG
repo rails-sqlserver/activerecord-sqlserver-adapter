@@ -1,6 +1,11 @@
 
 MASTER
 
+* Created a connection#execute_procedure method that takes can take any number of ruby objects as variables 
+  and quotes them according to the connection's rules. Also added an ActiveRecord::Base class level core 
+  extension that hooks into this. It also checks if the connection responds to #execute_procedure and if 
+  not returns an empty array. [Ken Collins]
+
 * Added a #enable_default_unicode_types class attribute access to make all new added or changed string types 
   like :string/:text default to unicode/national data types. See the README for full details. Added a rake 
   task that assists setting this to true when running tests.  [Ken Collins]
