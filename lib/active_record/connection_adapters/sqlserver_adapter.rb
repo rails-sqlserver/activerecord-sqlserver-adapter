@@ -150,7 +150,7 @@ module ActiveRecord
     class SQLServerAdapter < AbstractAdapter
       
       ADAPTER_NAME            = 'SQLServer'.freeze
-      VERSION                 = '2.2.7'.freeze
+      VERSION                 = '2.2.8'.freeze
       DATABASE_VERSION_REGEXP = /Microsoft SQL Server\s+(\d{4})/
       SUPPORTED_VERSIONS      = [2000,2005].freeze
       LIMITABLE_TYPES         = ['string','integer','float','char','nchar','varchar','nvarchar'].freeze
@@ -335,10 +335,9 @@ module ActiveRecord
       end
       
       def execute_procedure(proc_name, *variables)
-        holders = (1..variables.size).to_a.map{|n|'?'}.join(', ')
-        statement = "EXEC #{proc_name} #{holders}".strip
-        sql = statement.gsub('?') { quote(variables.shift) }
-        select(sql,'PROCEDURE',true).inject([]) do |results,row|
+        vars = variables.map{ |v| quote(v) }.join(', ')
+        sql = "EXEC #{proc_name} #{vars}".strip
+        select(sql,'Execute Procedure',true).inject([]) do |results,row|
           results << row.with_indifferent_access
         end
       end

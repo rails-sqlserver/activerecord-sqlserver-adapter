@@ -4,6 +4,11 @@ MASTER
 * 
 
 
+* 2.2.8 (January 9th, 2009)
+
+* Update execute_procedure method a bit to remove excess code. [Ken Collins]
+
+
 * 2.2.7 (January 9th, 2009)
 
 * Created a connection#execute_procedure method that takes can take any number of ruby objects as variables 
