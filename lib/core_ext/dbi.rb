@@ -2,14 +2,12 @@
 module SQLServerDBI
   
   module Timestamp
-    # Will further change DBI::Timestamp #to_s return value by limiting the usec of 
-    # the time to 3 digits and in some cases adding zeros if needed. For example:
-    #   "1985-04-15 00:00:00.0"         # => "1985-04-15 00:00:00.000"
-    #   "2008-11-08 10:24:36.547000"    # => "2008-11-08 10:24:36.547"
-    #   "2008-11-08 10:24:36.123"       # => "2008-11-08 10:24:36.000"
+    # Deprecated DBI. See documentation for Type::SqlserverTimestamp which 
+    # this method tries to mimic as ODBC is still going to convert SQL Server 
+    # milliconds to whole number representation of nanoseconds.
     def to_sqlserver_string
-      datetime, usec = to_s[0..22].split('.')
-      "#{datetime}.#{sprintf("%03d",usec)}"
+      datetime, nanoseconds = to_s.split('.')
+      "#{datetime}.#{sprintf("%03d",nanoseconds.to_i/1000000)}"
     end
   end
   
@@ -24,7 +22,7 @@ module SQLServerDBI
     # and the conversion we expect to have in the DB before type casting.
     # 
     #   "1985-04-15 00:00:00 0"           # => "1985-04-15 00:00:00.000"
-    #   "2008-11-08 10:24:36 300000000"   # => "2008-11-08 10:24:36.003"
+    #   "2008-11-08 10:24:36 30000000"    # => "2008-11-08 10:24:36.003"
     #   "2008-11-08 10:24:36 123000000"   # => "2008-11-08 10:24:36.123"
     class SqlserverTimestamp
       def self.parse(obj)
