@@ -482,8 +482,13 @@ module ActiveRecord
       
       def view_information(table_name)
         table_name = unqualify_table_name(table_name)
-        @sqlserver_view_information_cache[table_name] ||= 
-          info_schema_query { select_one("SELECT * FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_NAME = '#{table_name}'") }
+        @sqlserver_view_information_cache[table_name] ||= begin
+          view_info = info_schema_query { select_one("SELECT * FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_NAME = '#{table_name}'") }
+          if view_info
+            view_info['VIEW_DEFINITION'] ||= info_schema_query { select_values("EXEC sp_helptext #{table_name}").join }
+          end
+          view_info
+        end
       end
       
       def view_table_name(table_name)

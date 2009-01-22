@@ -536,6 +536,19 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
 
     end
     
+    context 'that have more than 4000 chars for their defintion' do
+
+      should 'cope with null returned for the defintion' do
+        assert_nothing_raised() { StringDefaultsBigView.columns }
+      end
+      
+      should 'using alternate view defintion still be able to find real default' do
+        assert_equal 'null', StringDefaultsBigView.new.pretend_null, 
+          StringDefaultsBigView.columns_hash['pretend_null'].inspect
+      end
+
+    end
+    
   end
   
   
