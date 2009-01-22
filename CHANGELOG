@@ -1,6 +1,10 @@
 
 MASTER
 
+* Fixing a small bug in the deprecated DBI::Timestamp conversion so it correctly converts nanosecond whole 
+  numbers to back to pre type cast SQL Server milliseconds, ultimately allow ruby's Time#usec which is 
+  microseconds to be correct. [Ken Collins]
+  
 * Sometimes views are more than 4000 chars long and will return NULL for the VIEW_DEFINITION. If so, use 
   sp_helptext procedure as a backup method. [Ken Collins]
 
