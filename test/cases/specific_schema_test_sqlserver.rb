@@ -11,6 +11,7 @@ class SpecificSchemaTestSqlserver < ActiveRecord::TestCase
     assert_equal '(null)', default.string_with_pretend_null_two
     assert_equal 'NULL', default.string_with_pretend_null_three
     assert_equal '(NULL)', default.string_with_pretend_null_four
+    assert_equal '(3)', default.string_with_pretend_paren_three
   end
 
   should 'default strings after save' do

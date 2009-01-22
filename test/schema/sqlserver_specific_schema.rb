@@ -17,6 +17,7 @@ ActiveRecord::Schema.define do
     t.column :string_with_pretend_null_two, :string, :default => '(null)'
     t.column :string_with_pretend_null_three, :string, :default => 'NULL'
     t.column :string_with_pretend_null_four, :string, :default => '(NULL)'
+    t.column :string_with_pretend_paren_three, :string, :default => '(3)'
   end
   
   create_table :sql_server_chronics, :force => true do |t|
