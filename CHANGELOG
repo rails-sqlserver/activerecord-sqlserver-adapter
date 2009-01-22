@@ -1,6 +1,11 @@
 
 MASTER
 
+* 
+
+
+* 2.2.9 * (January 22nd, 2009)
+
 * Fixing a small bug in the deprecated DBI::Timestamp conversion so it correctly converts nanosecond whole 
   numbers to back to pre type cast SQL Server milliseconds, ultimately allow ruby's Time#usec which is 
   microseconds to be correct. [Ken Collins]
