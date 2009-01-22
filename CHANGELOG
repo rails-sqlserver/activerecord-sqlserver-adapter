@@ -1,7 +1,8 @@
 
 MASTER
 
-* 
+* Sometimes views are more than 4000 chars long and will return NULL for the VIEW_DEFINITION. If so, use 
+  sp_helptext procedure as a backup method. [Ken Collins]
 
 
 * 2.2.8 (January 9th, 2009)

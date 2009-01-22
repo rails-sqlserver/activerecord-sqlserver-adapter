@@ -250,13 +250,13 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
         should 'find 003 millisecond in the DB with before and after casting' do
           existing_003 = SqlServerChronic.find_by_datetime!(@db_datetime_003)
           assert_equal @db_datetime_003, existing_003.datetime_before_type_cast
-          assert_equal 3000, existing_003.datetime.usec, 'A 003 millisecond in SQL Server is 3000 milliseconds'
+          assert_equal 3000, existing_003.datetime.usec, 'A 003 millisecond in SQL Server is 3000 microseconds'
         end
 
         should 'find 123 millisecond in the DB with before and after casting' do
           existing_123 = SqlServerChronic.find_by_datetime!(@db_datetime_123)
           assert_equal @db_datetime_123, existing_123.datetime_before_type_cast
-          assert_equal 123000, existing_123.datetime.usec, 'A 123 millisecond in SQL Server is 123000 milliseconds'
+          assert_equal 123000, existing_123.datetime.usec, 'A 123 millisecond in SQL Server is 123000 microseconds'
         end
 
       end
