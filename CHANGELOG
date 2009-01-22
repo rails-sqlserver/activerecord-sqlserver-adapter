@@ -4,6 +4,11 @@ MASTER
 * 
 
 
+* 2.2.10 * (January 22nd, 2009)
+
+* Add a rails-sqlserver-2000-2005-adapter.rb file so that long :lib option for config.gem is no longer needed.
+
+
 * 2.2.9 * (January 22nd, 2009)
 
 * Fixing a small bug in the deprecated DBI::Timestamp conversion so it correctly converts nanosecond whole 

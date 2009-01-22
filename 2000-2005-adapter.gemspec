@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name     = "2000-2005-adapter"
-  s.version  = "2.2.9"
+  s.version  = "2.2.10"
   s.date     = "2009-01-22"
   s.summary  = "SQL Server 2000 & 2005 Adapter For Rails."
   s.email    = "ken@metaskills.net"
@@ -18,6 +18,7 @@ Gem::Specification.new do |s|
     "autotest/discover.rb",
     "autotest/railssqlserver.rb",
     "autotest/sqlserver.rb",
+    "lib/rails-sqlserver-2000-2005-adapter.rb.rb",
     "lib/active_record/connection_adapters/sqlserver_adapter.rb",
     "lib/core_ext/active_record.rb",
     "lib/core_ext/dbi.rb" ]
