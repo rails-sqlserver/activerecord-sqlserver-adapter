@@ -80,7 +80,7 @@ ActiveRecord::Schema.define do
   execute <<-STRINGDEFAULTSBIGVIEW
     CREATE VIEW string_defaults_big_view AS
       SELECT id, string_with_pretend_null_one as pretend_null
-      /*#{4000.times.inject(''){|s,n|s<<'x'}}*/
+      /*#{'x'*4000}}*/
       FROM string_defaults
   STRINGDEFAULTSBIGVIEW
   
