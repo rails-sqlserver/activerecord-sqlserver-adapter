@@ -4,7 +4,7 @@ MASTER
 * 
 
 
-* 2.2.10 * (January 22nd, 2009)
+* 2.2.10/11 * (January 22nd, 2009)
 
 * Add a rails-sqlserver-2000-2005-adapter.rb file so that long :lib option for config.gem is no longer needed.
 
