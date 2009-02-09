@@ -1,7 +1,7 @@
 
 MASTER
 
-* 
+* Update table_exists? to work with qualified table names that may include an user prefix. [Ken Collins]
 
 
 * 2.2.10/11 * (January 22nd, 2009)
@@ -83,7 +83,7 @@ MASTER
   will run quickly. [Ken Collins]
 
 * Add views support. ActiveRecord classes can use views. The connection now has a #views method and 
-  #table_exists? will not fall back to checking views too. [Ken Collins]
+  #table_exists? will now fall back to checking views too. [Ken Collins]
 
 
 2.2.0 (November 21st, 2008)

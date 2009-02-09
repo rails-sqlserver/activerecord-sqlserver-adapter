@@ -497,7 +497,7 @@ module ActiveRecord
       end
       
       def table_exists?(table_name)
-        super || views.include?(table_name.to_s)
+        super || tables.include?(unqualify_table_name(table_name)) || views.include?(table_name.to_s)
       end
       
       def indexes(table_name, name = nil)

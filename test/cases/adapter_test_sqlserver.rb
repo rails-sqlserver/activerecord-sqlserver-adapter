@@ -39,6 +39,17 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
       assert @connection.supports_ddl_transactions?
     end
     
+    should 'allow owner table name prefixs like dbo. to still allow table_exists? to return true' do
+      begin
+        assert_equal 'tasks', Task.table_name
+        assert Task.table_exists?
+        Task.table_name = 'dbo.tasks'
+        assert Task.table_exists?, 'Tasks table name of dbo.tasks should return true for exists.'
+      ensure
+        Task.table_name = 'tasks'
+      end
+    end
+    
     context 'for database version' do
       
       setup do
