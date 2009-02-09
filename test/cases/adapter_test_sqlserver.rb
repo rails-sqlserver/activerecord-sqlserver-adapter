@@ -376,6 +376,68 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
   
   context 'For DatabaseStatements' do
     
+    context "finding out what user_options are available" do
+      should "run the database consistency checker useroptions command" do
+        @connection.expects(:select_rows).with(regexp_matches(/^dbcc\s+useroptions$/i)).returns []
+        @connection.user_options
+      end
+      
+      should "return a symbolized hash of the results" do
+        @connection.expects(:select_rows).with(regexp_matches(/^dbcc\s+useroptions$/i)).returns [['some', 'thing'], ['an', 'other thing']]
+        res = @connection.user_options
+        assert_equal 'thing', res[:some]
+        assert_equal 'other thing', res[:an]
+        assert_equal 2, res.keys.size
+      end
+    end
+
+    context "altering isolation levels" do
+      should "barf if the requested isolation level is not valid" do
+        @connection.class::VALID_ISOLATION_LEVELS.expects(:include?).returns false
+        assert_raise(ArgumentError) do
+          @connection.run_with_isolation_level 'something' do; end
+        end
+      end
+      
+      context "with a valid isolation level" do
+        setup do
+          @connection.class::VALID_ISOLATION_LEVELS.expects(:include?).returns true
+          @connection.stubs(:user_options).returns({:"isolation level" => "something"})
+          @yieldy = states('yield').starts_as(:not_yielded)
+        end
+        
+        should "set the isolation level to that supplied before calling the supplied block" do
+          @connection.expects(:execute).with(regexp_matches(/set transaction isolation level new_isolation_level/i)).when(@yieldy.is(:not_yielded))
+          @connection.stubs(:execute).when(@yieldy.is(:yielded))
+          
+          @connection.run_with_isolation_level 'new_isolation_level' do
+            @yieldy.become(:yielded)
+          end
+        end
+
+        should "set the isolation level back to the original after calling the supplied block" do
+          @connection.expects(:execute).with(regexp_matches(/set transaction isolation level something/i)).when(@yieldy.is(:yielded))
+          @connection.stubs(:execute).when(@yieldy.is(:not_yielded))
+        
+          @connection.run_with_isolation_level 'new_isolation_level' do
+            @yieldy.become(:yielded)
+          end
+        end
+      
+        should "set the isolation level back to the original after calling the supplied block even when the block raises an exception" do
+          @connection.expects(:execute).with(regexp_matches(/set transaction isolation level something/i)).when(@yieldy.is(:yielded))
+          @connection.stubs(:execute).when(@yieldy.is(:not_yielded))
+        
+          assert_raise(RuntimeError) do
+            @connection.run_with_isolation_level 'new_isolation_level' do
+              @yieldy.become(:yielded)
+              raise "a problem"
+            end
+          end
+        end
+      end
+    end
+    
   end
   
   context 'For SchemaStatements' do

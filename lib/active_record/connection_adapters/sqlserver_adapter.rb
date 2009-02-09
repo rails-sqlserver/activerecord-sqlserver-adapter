@@ -325,6 +325,37 @@ module ActiveRecord
       
       # DATABASE STATEMENTS ======================================#
       
+      # Returns the SET options active for the current connection.
+      def user_options
+        values = {}
+        select_rows("dbcc useroptions").each {|field| values.merge!(field[0].to_sym => field[1])}
+        values
+      end
+      
+      VALID_ISOLATION_LEVELS = ["READ UNCOMMITTED", "READ COMMITTED", "REPEATABLE READ", "SNAPSHOT", "SERIALIZABLE"]
+      
+      # Runs a block with a given isolation level.
+      # Supported isolation levels include 
+      # * <tt>"READ UNCOMMITTED"</tt>
+      # * <tt>"READ COMMITTED"</tt>
+      # * <tt>"REPEATABLE READ"</tt>
+      # * <tt>"SERIALIZABLE"</tt>      
+      # * <tt>"SNAPSHOT"</tt>
+      def run_with_isolation_level(isolation_level, &block)
+        if !VALID_ISOLATION_LEVELS.include?(isolation_level.upcase)        
+          raise ArgumentError, "#{isolation_level} not a supported isolation level.  Supported isolation levels are #{VALID_ISOLATION_LEVELS.to_sentence}"
+        end
+        
+        initial_isolation_level = user_options[:"isolation level"] || "READ COMMITTED"
+        execute "SET TRANSACTION ISOLATION LEVEL #{isolation_level}"
+        begin
+          result = yield
+          return result
+        ensure
+          execute "SET TRANSACTION ISOLATION LEVEL #{initial_isolation_level}"
+        end
+      end
+      
       def select_rows(sql, name = nil)
         raw_select(sql,name).last
       end
