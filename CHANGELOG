@@ -1,6 +1,11 @@
 
 MASTER
 
+*
+
+
+* 2.2.12 * (February 8th, 2009)
+
 * Update table_exists? to work with qualified table names that may include an user prefix. [Ken Collins]
 
 
