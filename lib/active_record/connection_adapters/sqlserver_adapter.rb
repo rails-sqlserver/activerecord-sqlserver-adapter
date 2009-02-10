@@ -150,7 +150,7 @@ module ActiveRecord
     class SQLServerAdapter < AbstractAdapter
       
       ADAPTER_NAME            = 'SQLServer'.freeze
-      VERSION                 = '2.2.12'.freeze
+      VERSION                 = '2.2.13'.freeze
       DATABASE_VERSION_REGEXP = /Microsoft SQL Server\s+(\d{4})/
       SUPPORTED_VERSIONS      = [2000,2005].freeze
       LIMITABLE_TYPES         = ['string','integer','float','char','nchar','varchar','nvarchar'].freeze
@@ -501,7 +501,8 @@ module ActiveRecord
       end
       
       def indexes(table_name, name = nil)
-        select("EXEC sp_helpindex #{quote_table_name(table_name)}",name).inject([]) do |indexes,index|
+        unquoted_table_name = unqualify_table_name(table_name)
+        select("EXEC sp_helpindex #{quote_table_name(unquoted_table_name)}",name).inject([]) do |indexes,index|
           if index['index_description'] =~ /primary key/
             indexes
           else
