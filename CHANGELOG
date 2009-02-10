@@ -1,6 +1,11 @@
 
 MASTER
 
+* Rails2.3 - Coerced tests that ensure hash conditions on referenced tables are considered when eager 
+  loading with limit/offset. Information on these changes and the ticket in rails are.
+  http://github.com/rails/rails/commit/9a4d557713acb0fc8e80f61af18094034aca029a
+  http://rails.lighthouseapp.com/projects/8994-ruby-on-rails/tickets/1404-conditions_tables-doesnt-understand-condition-hashes
+
 * Rails2.3 - Add coerced tests for true/false attributes in selects use SQL Server case statement. [Ken Collins]
 
 * Making sure that smalldatetime types are OK to use. Also fixed a bug in the #view_information method that 
