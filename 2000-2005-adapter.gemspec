@@ -25,6 +25,7 @@ Gem::Specification.new do |s|
   s.test_files = [
     "test/cases/aaaa_create_tables_test_sqlserver.rb",
     "test/cases/adapter_test_sqlserver.rb",
+    "test/cases/attribute_methods_test_sqlserver.rb",
     "test/cases/basics_test_sqlserver.rb",
     "test/cases/calculations_test_sqlserver.rb",
     "test/cases/column_test_sqlserver.rb",
