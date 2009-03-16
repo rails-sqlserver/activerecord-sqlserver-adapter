@@ -158,6 +158,7 @@ class ColumnTestSqlserver < ActiveRecord::TestCase
       @date = SqlServerChronic.columns_hash['date']
       @time = SqlServerChronic.columns_hash['time']
       @datetime = SqlServerChronic.columns_hash['datetime']
+      @smalldatetime = SqlServerChronic.columns_hash['smalldatetime']
     end
 
     should 'have correct simplified type for uncast datetime' do
@@ -174,6 +175,23 @@ class ColumnTestSqlserver < ActiveRecord::TestCase
       assert_equal nil, @date.limit
       assert_equal nil, @time.limit
       assert_equal nil, @datetime.limit
+    end
+    
+    context 'For smalldatetime types' do
+      
+      should 'have created that type using rails migrations' do
+        assert_equal 'smalldatetime', @smalldatetime.sql_type
+      end
+      
+      should 'be able to insert column without truncation warnings or the like' do
+        SqlServerChronic.create! :smalldatetime => Time.now
+      end
+      
+      should 'be able to update column without truncation warnings or the like' do
+        ssc = SqlServerChronic.create! :smalldatetime => 2.days.ago
+        ssc.update_attributes! :smalldatetime => Time.now
+      end
+
     end
     
     context 'which have coerced types' do

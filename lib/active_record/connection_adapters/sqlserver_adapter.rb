@@ -485,7 +485,9 @@ module ActiveRecord
         @sqlserver_view_information_cache[table_name] ||= begin
           view_info = info_schema_query { select_one("SELECT * FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_NAME = '#{table_name}'") }
           if view_info
-            view_info['VIEW_DEFINITION'] ||= info_schema_query { select_values("EXEC sp_helptext #{table_name}").join }
+            if view_info['VIEW_DEFINITION'].blank? || view_info['VIEW_DEFINITION'].length == 4000
+              view_info['VIEW_DEFINITION'] = info_schema_query { select_values("EXEC sp_helptext #{table_name}").join }
+            end
           end
           view_info
         end

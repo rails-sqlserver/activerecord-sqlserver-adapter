@@ -25,6 +25,7 @@ ActiveRecord::Schema.define do
     t.column :time,       :time
     t.column :datetime,   :datetime
     t.column :timestamp,  :timestamp
+    t.column :smalldatetime, :smalldatetime
   end
   
   create_table(:fk_test_has_fks, :force => true) { |t| t.column(:fk_id, :integer, :null => false) }
