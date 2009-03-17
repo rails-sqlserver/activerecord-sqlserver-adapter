@@ -1,7 +1,7 @@
 Gem::Specification.new do |s|
   s.name     = "2000-2005-adapter"
-  s.version  = "2.2.13"
-  s.date     = "2009-02-08"
+  s.version  = "2.2.14"
+  s.date     = "2009-03-17"
   s.summary  = "SQL Server 2000 & 2005 Adapter For Rails."
   s.email    = "ken@metaskills.net"
   s.homepage = "http://github.com/rails-sqlserver/2000-2005-adapter/"
@@ -33,6 +33,7 @@ Gem::Specification.new do |s|
     "test/cases/eager_association_test_sqlserver.rb",
     "test/cases/execute_procedure_test_sqlserver.rb",
     "test/cases/inheritance_test_sqlserver.rb",
+    "test/cases/method_scoping_test_sqlserver.rb",
     "test/cases/migration_test_sqlserver.rb",
     "test/cases/offset_and_limit_test_sqlserver.rb",
     "test/cases/pessimistic_locking_test_sqlserver.rb",
@@ -41,6 +42,7 @@ Gem::Specification.new do |s|
     "test/cases/specific_schema_test_sqlserver.rb",
     "test/cases/sqlserver_helper.rb",
     "test/cases/table_name_test_sqlserver.rb",
+    "test/cases/transaction_test_sqlserver.rb",
     "test/cases/unicode_test_sqlserver.rb",
     "test/connections/native_sqlserver/connection.rb",
     "test/connections/native_sqlserver_odbc/connection.rb",

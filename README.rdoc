@@ -6,6 +6,7 @@ The SQL Server adapter for rails is back for ActiveRecord 2.2 and up! We are cur
 
 == What's New
 
+* Now supports both rails 2.2 & 2.3!!!
 * An ActiveRecord::Base.execute_procedure method that can be used by classes.
 * Enabled support for DDL transactions.
 * Micro second support. Time#usec is automatically converted to SQL Server's 3.33 millisecond limitation.
