@@ -1,6 +1,10 @@
 
 MASTER
 
+* Rails2.3 - Implement new savepoint support [Ken Collins]
+  http://rails.lighthouseapp.com/projects/8994/tickets/383
+  http://www.codeproject.com/KB/database/sqlservertransactions.aspx
+
 * Rails2.3 - Coerce NestedScopingTest#test_merged_scoped_find to use correct regexp for adapter. [Ken Collins]
 
 * Rails2.3 - Implement a custom ActiveRecord::Associations::ClassMethods::JoinDependency::JoinAssociation#aliased_table_name_for

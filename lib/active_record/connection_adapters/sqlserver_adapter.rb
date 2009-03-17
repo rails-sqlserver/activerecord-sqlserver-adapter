@@ -189,6 +189,10 @@ module ActiveRecord
         true
       end
       
+      def supports_savepoints?
+        true
+      end
+      
       def database_version
         @database_version ||= info_schema_query { select_value('SELECT @@version') }
       end
@@ -356,6 +360,17 @@ module ActiveRecord
 
       def rollback_db_transaction
         do_execute "ROLLBACK TRANSACTION" rescue nil
+      end
+      
+      def create_savepoint
+        do_execute "SAVE TRANSACTION #{current_savepoint_name}"
+      end
+
+      def release_savepoint
+      end
+      
+      def rollback_to_savepoint
+        do_execute "ROLLBACK TRANSACTION #{current_savepoint_name}"
       end
       
       def add_limit_offset!(sql, options)
