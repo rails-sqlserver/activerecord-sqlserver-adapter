@@ -342,6 +342,10 @@ module ActiveRecord
         end
       end
       
+      def outside_transaction?
+        info_schema_query { select_value("SELECT @@TRANCOUNT") == 0 }
+      end
+      
       def begin_db_transaction
         do_execute "BEGIN TRANSACTION"
       end

@@ -1,6 +1,9 @@
 
 MASTER
 
+* Rails2.3 - Implement #outside_transaction? and a new transaction test case to test some SQL Server 
+  basic support while implementing this method. Future home of some savepoint tests too. [Ken Collins]
+
 * Rails2.3 - Coerced tests that ensure hash conditions on referenced tables are considered when eager 
   loading with limit/offset. Information on these changes and the ticket in rails are.
   http://github.com/rails/rails/commit/9a4d557713acb0fc8e80f61af18094034aca029a
