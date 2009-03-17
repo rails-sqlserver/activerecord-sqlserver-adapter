@@ -3,6 +3,7 @@ require 'shoulda'
 require 'mocha'
 require 'cases/helper'
 require 'models/topic'
+require 'active_record/version'
 
 SQLSERVER_TEST_ROOT       = File.expand_path(File.join(File.dirname(__FILE__),'..'))
 SQLSERVER_ASSETS_ROOT     = SQLSERVER_TEST_ROOT + "/assets"
@@ -94,6 +95,8 @@ module ActiveRecord
     class << self
       def sqlserver_2000? ; ActiveRecord::Base.connection.sqlserver_2000? ; end
       def sqlserver_2005? ; ActiveRecord::Base.connection.sqlserver_2005? ; end
+      def active_record_2_point_2? ; ActiveRecord::VERSION::MAJOR == 2 && ActiveRecord::VERSION::MINOR == 2 ; end
+      def active_record_2_point_3? ; ActiveRecord::VERSION::MAJOR == 2 && ActiveRecord::VERSION::MINOR == 3 ; end
     end
     def assert_sql(*patterns_to_match)
       $queries_executed = []
@@ -107,6 +110,8 @@ module ActiveRecord
     end
     def sqlserver_2000? ; self.class.sqlserver_2000? ; end
     def sqlserver_2005? ; self.class.sqlserver_2005? ; end
+    def active_record_2_point_2? ; self.class.active_record_2_point_2? ; end
+    def active_record_2_point_3? ; self.class.active_record_2_point_3? ; end
   end
 end
 

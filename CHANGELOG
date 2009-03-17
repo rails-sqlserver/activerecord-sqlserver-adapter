@@ -1,6 +1,11 @@
 
 MASTER
 
+* Rails2.3 - Back passing tests on 2.2 work. Includes: (1) Created new test helpers that check ActiveRecord 
+  version strings so we can conditionally run 2.2 and 2.3 tests. (2) Making TransactionTestSqlserver use Ship vs 
+  Bird model. Also made it conditional run a few blocks for different versions of ActiveRecord. (3) Previous 
+  JoinDependency#aliased_table_name_for is now only patched in ActiveRecord equal or greater than 2.3. [Ken Collins]
+
 * Rails2.3 - Implement new savepoint support [Ken Collins]
   http://rails.lighthouseapp.com/projects/8994/tickets/383
   http://www.codeproject.com/KB/database/sqlservertransactions.aspx

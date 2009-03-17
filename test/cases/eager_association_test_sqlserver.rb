@@ -36,7 +36,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
         :conditions => { 'authors.name' => 'David', 'comments.body' => 'go crazy' })
       assert_equal 0, posts.size
     end
-  end
+  end unless active_record_2_point_2?
   
   
 end
