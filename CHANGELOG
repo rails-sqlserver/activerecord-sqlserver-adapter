@@ -1,6 +1,8 @@
 
 MASTER
 
+* Rails2.3 - Coerce NestedScopingTest#test_merged_scoped_find to use correct regexp for adapter. [Ken Collins]
+
 * Rails2.3 - Implement a custom ActiveRecord::Associations::ClassMethods::JoinDependency::JoinAssociation#aliased_table_name_for
   method that uses a Regexp.escape so that table/column quoting does not get ignored. [Ken Collins]
 
