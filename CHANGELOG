@@ -1,7 +1,9 @@
 
 MASTER
 
-*
+* Making sure that smalldatetime types are OK to use. Also fixed a bug in the #view_information method that 
+  checks to see if a view definition is equal to 4000 chars, meaning that it is most likely truncated and 
+  needs to use the backup method of sp_helptext to get it's view definition. [Ken Collins]
 
 
 * 2.2.13 * (February 10th, 2009)
