@@ -394,7 +394,9 @@ module ActiveRecord
         end
         # The business of adding limit/offset
         if options[:limit] and options[:offset]
-          total_rows = select_value("SELECT count(*) as TotalRows from (#{sql.sub(/\bSELECT(\s+DISTINCT)?\b/i, "SELECT#{$1} TOP 1000000000")}) tally").to_i
+          tally_sql = "SELECT count(*) as TotalRows from (#{sql.sub(/\bSELECT(\s+DISTINCT)?\b/i, "SELECT#{$1} TOP 1000000000")}) tally"
+          add_lock! tally_sql, :lock => 'WITH (NOLOCK)'
+          total_rows = select_value(tally_sql).to_i
           if (options[:limit] + options[:offset]) >= total_rows
             options[:limit] = (total_rows - options[:offset] >= 0) ? (total_rows - options[:offset]) : 0
           end
@@ -439,8 +441,8 @@ module ActiveRecord
         # http://blog.sqlauthority.com/2007/04/27/sql-server-2005-locking-hints-and-examples/
         return unless options[:lock]
         lock_type = options[:lock] == true ? 'WITH(HOLDLOCK, ROWLOCK)' : options[:lock]
-        from_table = sql.match(/FROM(.*)WHERE/im)[1]
-        sql.sub! from_table, "#{from_table}#{lock_type} "
+        sql.gsub! %r|LEFT OUTER JOIN\s+(.*?)\s+ON|im, "LEFT OUTER JOIN \\1 #{lock_type} ON"
+        sql.gsub! %r{FROM\s([\w\[\]\.]+)}im, "FROM \\1 #{lock_type}"
       end
       
       def empty_insert_statement(table_name)

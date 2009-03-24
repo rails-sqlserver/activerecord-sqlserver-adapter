@@ -78,7 +78,8 @@ end
 # Our changes/additions to ActiveRecord test helpers specific for SQL Server.
 
 ActiveRecord::Base.connection.class.class_eval do
-  IGNORED_SQL << /SELECT SCOPE_IDENTITY/ << /INFORMATION_SCHEMA.TABLES/ << /INFORMATION_SCHEMA.COLUMNS/ << /^SELECT @@TRANCOUNT/  
+  IGNORED_SQL << %r|SELECT SCOPE_IDENTITY| << %r{INFORMATION_SCHEMA\.(TABLES|VIEWS|COLUMNS)}
+  IGNORED_SQL << %r|SELECT @@IDENTITY| << %r|SELECT @@ROWCOUNT| << %r|SELECT @@version| << %r|SELECT @@TRANCOUNT|
 end
 
 ActiveRecord::ConnectionAdapters::SQLServerAdapter.class_eval do

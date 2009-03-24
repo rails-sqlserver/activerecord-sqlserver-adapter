@@ -1,7 +1,10 @@
 
 MASTER
 
-* 
+* Better add_lock! method that can add the lock to just about all the elements in the statement. This 
+  could be eager loaded associations, joins, etc. Done so that paginated results can easily add lock 
+  options for performance. Note, the tally count in add_limit_offset! use "WITH (NOLOCK)" explicitly 
+  as it can not hurt and is needed. [Ken Collins]
 
 
 * 2.2.14 * (March 17th, 2009)
