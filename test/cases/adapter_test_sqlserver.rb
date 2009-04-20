@@ -5,6 +5,8 @@ require 'models/joke'
 require 'models/subscriber'
 
 class AdapterTestSqlserver < ActiveRecord::TestCase
+  
+  fixtures :tasks
     
   def setup
     @connection = ActiveRecord::Base.connection
@@ -377,65 +379,75 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
   context 'For DatabaseStatements' do
     
     context "finding out what user_options are available" do
+      
       should "run the database consistency checker useroptions command" do
         @connection.expects(:select_rows).with(regexp_matches(/^dbcc\s+useroptions$/i)).returns []
         @connection.user_options
       end
       
-      should "return a symbolized hash of the results" do
-        @connection.expects(:select_rows).with(regexp_matches(/^dbcc\s+useroptions$/i)).returns [['some', 'thing'], ['an', 'other thing']]
-        res = @connection.user_options
-        assert_equal 'thing', res[:some]
-        assert_equal 'other thing', res[:an]
-        assert_equal 2, res.keys.size
+      should "return a underscored key hash with indifferent access of the results" do
+        @connection.expects(:select_rows).with(regexp_matches(/^dbcc\s+useroptions$/i)).returns [['some', 'thing'], ['isolation level', 'read uncommitted']]
+        uo = @connection.user_options
+        assert_equal 2, uo.keys.size
+        assert_equal 'thing', uo['some']
+        assert_equal 'thing', uo[:some]
+        assert_equal 'read uncommitted', uo['isolation_level']
+        assert_equal 'read uncommitted', uo[:isolation_level]
       end
+      
     end
 
     context "altering isolation levels" do
+      
       should "barf if the requested isolation level is not valid" do
-        @connection.class::VALID_ISOLATION_LEVELS.expects(:include?).returns false
         assert_raise(ArgumentError) do
-          @connection.run_with_isolation_level 'something' do; end
+          @connection.run_with_isolation_level 'INVALID ISOLATION LEVEL' do; end
         end
       end
       
       context "with a valid isolation level" do
+        
         setup do
-          @connection.class::VALID_ISOLATION_LEVELS.expects(:include?).returns true
-          @connection.stubs(:user_options).returns({:"isolation level" => "something"})
-          @yieldy = states('yield').starts_as(:not_yielded)
+          @t1 = tasks(:first_task)
+          @t2 = tasks(:another_task)
+          assert @t1, 'Tasks :first_task should be in AR fixtures'
+          assert @t2, 'Tasks :another_task should be in AR fixtures'
+          good_isolation_level = @connection.user_options[:isolation_level].blank? || @connection.user_options[:isolation_level] =~ /read committed/i
+          assert good_isolation_level, "User isolation level is not at a happy starting place: #{@connection.user_options[:isolation_level].inspect}"
         end
         
-        should "set the isolation level to that supplied before calling the supplied block" do
-          @connection.expects(:execute).with(regexp_matches(/set transaction isolation level new_isolation_level/i)).when(@yieldy.is(:not_yielded))
-          @connection.stubs(:execute).when(@yieldy.is(:yielded))
-          
-          @connection.run_with_isolation_level 'new_isolation_level' do
-            @yieldy.become(:yielded)
+        should 'allow #run_with_isolation_level to not take a block to set it' do
+          begin
+            @connection.run_with_isolation_level 'READ UNCOMMITTED'
+            assert_match %r|read uncommitted|i, @connection.user_options[:isolation_level]
+          ensure
+            @connection.run_with_isolation_level 'READ COMMITTED'
           end
         end
-
-        should "set the isolation level back to the original after calling the supplied block" do
-          @connection.expects(:execute).with(regexp_matches(/set transaction isolation level something/i)).when(@yieldy.is(:yielded))
-          @connection.stubs(:execute).when(@yieldy.is(:not_yielded))
         
-          @connection.run_with_isolation_level 'new_isolation_level' do
-            @yieldy.become(:yielded)
-          end
+        should 'return block value using #run_with_isolation_level' do
+          assert_same_elements Task.find(:all), @connection.run_with_isolation_level('READ UNCOMMITTED') { Task.find(:all) }
         end
-      
-        should "set the isolation level back to the original after calling the supplied block even when the block raises an exception" do
-          @connection.expects(:execute).with(regexp_matches(/set transaction isolation level something/i)).when(@yieldy.is(:yielded))
-          @connection.stubs(:execute).when(@yieldy.is(:not_yielded))
         
-          assert_raise(RuntimeError) do
-            @connection.run_with_isolation_level 'new_isolation_level' do
-              @yieldy.become(:yielded)
-              raise "a problem"
+        should 'pass a read uncommitted isolation level test' do
+          assert_nil @t2.starting, 'Fixture should have this empty.'
+          begin
+            Task.transaction do
+              @t2.starting = Time.now
+              @t2.save
+              @dirty_t2 = @connection.run_with_isolation_level('READ UNCOMMITTED') { Task.find(@t2.id) }
+              raise ActiveRecord::ActiveRecordError
             end
+          rescue
+            'Do Nothing'
           end
+          assert @dirty_t2, 'Should have a Task record from within block above.'
+          assert @dirty_t2.starting, 'Should have a dirty date.'
+          assert_nil Task.find(@t2.id).starting, 'Should be nil again from botched transaction above.'
         end
+        
       end
+      
     end
     
   end

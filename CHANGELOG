@@ -1,7 +1,9 @@
 
 MASTER
 
-* 
+* Provide support for running queries at different isolation levels using #run_with_isolation_level method 
+  that can take a block or not. Also implement a #user_options method that reflects on the current user 
+  session values. Resolves #20 [Murray Steele]
 
 
 * 2.2.15 * (March 23rd, 2009)

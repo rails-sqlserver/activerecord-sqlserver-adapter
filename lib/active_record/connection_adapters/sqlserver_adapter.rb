@@ -325,35 +325,28 @@ module ActiveRecord
       
       # DATABASE STATEMENTS ======================================#
       
-      # Returns the SET options active for the current connection.
       def user_options
-        values = {}
-        select_rows("dbcc useroptions").each {|field| values.merge!(field[0].to_sym => field[1])}
-        values
+        info_schema_query do
+          select_rows("dbcc useroptions").inject(HashWithIndifferentAccess.new) do |values,row| 
+            set_option = row[0].gsub(/\s+/,'_')
+            user_value = row[1]
+            values[set_option] = user_value
+            values
+          end
+        end
       end
       
-      VALID_ISOLATION_LEVELS = ["READ UNCOMMITTED", "READ COMMITTED", "REPEATABLE READ", "SNAPSHOT", "SERIALIZABLE"]
+      VALID_ISOLATION_LEVELS = ["READ COMMITTED", "READ UNCOMMITTED", "REPEATABLE READ", "SERIALIZABLE", "SNAPSHOT"]
       
-      # Runs a block with a given isolation level.
-      # Supported isolation levels include 
-      # * <tt>"READ UNCOMMITTED"</tt>
-      # * <tt>"READ COMMITTED"</tt>
-      # * <tt>"REPEATABLE READ"</tt>
-      # * <tt>"SERIALIZABLE"</tt>      
-      # * <tt>"SNAPSHOT"</tt>
-      def run_with_isolation_level(isolation_level, &block)
-        if !VALID_ISOLATION_LEVELS.include?(isolation_level.upcase)        
-          raise ArgumentError, "#{isolation_level} not a supported isolation level.  Supported isolation levels are #{VALID_ISOLATION_LEVELS.to_sentence}"
-        end
-        
-        initial_isolation_level = user_options[:"isolation level"] || "READ COMMITTED"
-        execute "SET TRANSACTION ISOLATION LEVEL #{isolation_level}"
+      def run_with_isolation_level(isolation_level)
+        raise ArgumentError, "Invalid isolation level, #{isolation_level}. Supported levels include #{VALID_ISOLATION_LEVELS.to_sentence}." if !VALID_ISOLATION_LEVELS.include?(isolation_level.upcase)
+        initial_isolation_level = user_options[:isolation_level] || "READ COMMITTED"
+        do_execute "SET TRANSACTION ISOLATION LEVEL #{isolation_level}"
         begin
-          result = yield
-          return result
+          yield 
         ensure
-          execute "SET TRANSACTION ISOLATION LEVEL #{initial_isolation_level}"
-        end
+          do_execute "SET TRANSACTION ISOLATION LEVEL #{initial_isolation_level}"
+        end if block_given?
       end
       
       def select_rows(sql, name = nil)
