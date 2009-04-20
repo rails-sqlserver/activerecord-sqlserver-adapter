@@ -1,6 +1,9 @@
 
 MASTER
 
+* Update internal helper method #orders_and_dirs_set to cope with an order clause like "description desc". This 
+  resolves ticket #26 [Ken Collins]
+
 * Provide support for running queries at different isolation levels using #run_with_isolation_level method 
   that can take a block or not. Also implement a #user_options method that reflects on the current user 
   session values. Resolves #20 [Murray Steele]

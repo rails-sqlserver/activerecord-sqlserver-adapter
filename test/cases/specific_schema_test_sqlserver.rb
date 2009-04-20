@@ -1,6 +1,7 @@
 require 'cases/sqlserver_helper'
 
 class StringDefault < ActiveRecord::Base; end;
+class SqlServerEdgeSchema < ActiveRecord::Base; end;
 
 class SpecificSchemaTestSqlserver < ActiveRecord::TestCase
   
@@ -22,5 +23,35 @@ class SpecificSchemaTestSqlserver < ActiveRecord::TestCase
     assert_equal 'NULL', default.string_with_pretend_null_three
     assert_equal '(NULL)', default.string_with_pretend_null_four
   end
+  
+  context 'Testing edge case schemas' do
+    
+    setup do
+      @edge_class = SqlServerEdgeSchema
+    end
+    
+    context 'with description column' do
+
+      setup do
+        @da = @edge_class.create! :description => 'A'
+        @db = @edge_class.create! :description => 'B'
+        @dc = @edge_class.create! :description => 'C'
+      end
+      
+      teardown { @edge_class.delete_all }
+
+      should 'allow all sorts of ordering without adapter munging it up' do
+        assert_equal ['A','B','C'], @edge_class.all(:order => 'description').map(&:description)
+        assert_equal ['A','B','C'], @edge_class.all(:order => 'description asc').map(&:description)
+        assert_equal ['A','B','C'], @edge_class.all(:order => 'description ASC').map(&:description)
+        assert_equal ['C','B','A'], @edge_class.all(:order => 'description desc').map(&:description)
+        assert_equal ['C','B','A'], @edge_class.all(:order => 'description DESC').map(&:description)
+      end
+
+    end
+    
+
+  end
+  
   
 end

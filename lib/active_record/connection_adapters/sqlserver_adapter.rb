@@ -901,12 +901,13 @@ module ActiveRecord
         orders = order.sub('ORDER BY','').split(',').map(&:strip).reject(&:blank?)
         orders_dirs = orders.map do |ord|
           dir = nil
-          if match_data = ord.match(/\b(asc|desc)$/i)
-            dir = match_data[1]
-            ord.sub!(dir,'').strip!
-            dir.upcase!
+          ord.sub!(/\b(asc|desc)$/i) do |match|
+            if match
+              dir = match.upcase.strip
+              ''
+            end
           end
-          [ord,dir]
+          [ord.strip, dir]
         end
       end
       
