@@ -771,7 +771,7 @@ module ActiveRecord
         while count <= 5
           sleep 2** count
           ActiveRecord::Base.did_retry_sqlserver_connection(self,count)
-          return true if connect && active?
+          return true if reconnect!
           count += 1
         end
         ActiveRecord::Base.did_loose_sqlserver_connection(self)
