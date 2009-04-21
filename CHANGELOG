@@ -1,6 +1,11 @@
 
 MASTER
 
+*
+
+
+* 2.2.16 * (April 21st, 2009)
+
 * Make add_limit_offset! only add locking hints (for tally) when the :lock option is present. Added tests 
   to make sure tally SQL is augmented correctly and tests to make sure that add_lock! is doing what it needs 
   for deep sub selects in paginated results. [Ken Collins]
