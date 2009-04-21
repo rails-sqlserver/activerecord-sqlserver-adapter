@@ -32,7 +32,7 @@ module ActiveRecord
       logger.info "CONNECTION RETRY: #{connection.class.name} retry ##{count}."
     end
     
-    def self.did_loose_sqlserver_connection(connection)
+    def self.did_lose_sqlserver_connection(connection)
       logger.info "CONNECTION LOST: #{connection.class.name}"
     end
     
@@ -774,7 +774,7 @@ module ActiveRecord
           return true if reconnect!
           count += 1
         end
-        ActiveRecord::Base.did_loose_sqlserver_connection(self)
+        ActiveRecord::Base.did_lose_sqlserver_connection(self)
         false
       ensure
         @auto_connecting = false
