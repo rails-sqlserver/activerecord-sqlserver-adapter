@@ -437,7 +437,7 @@ module ActiveRecord
         # The business of adding limit/offset
         if options[:limit] and options[:offset]
           tally_sql = "SELECT count(*) as TotalRows from (#{sql.sub(/\bSELECT(\s+DISTINCT)?\b/i, "SELECT#{$1} TOP 1000000000")}) tally"
-          add_lock! tally_sql, :lock => 'WITH (NOLOCK)'
+          add_lock! tally_sql, options
           total_rows = select_value(tally_sql).to_i
           if (options[:limit] + options[:offset]) >= total_rows
             options[:limit] = (total_rows - options[:offset] >= 0) ? (total_rows - options[:offset]) : 0

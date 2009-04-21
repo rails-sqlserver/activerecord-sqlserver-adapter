@@ -1,6 +1,10 @@
 
 MASTER
 
+* Make add_limit_offset! only add locking hints (for tally) when the :lock option is present. Added tests 
+  to make sure tally SQL is augmented correctly and tests to make sure that add_lock! is doing what it needs 
+  for deep sub selects in paginated results. [Ken Collins]
+
 * Add auto reconnect support utilizing a new #with_auto_reconnect block. By default each query run through 
   the adapter will automatically reconnect at standard intervals, logging attempts along the way, till success 
   or the original exception bubbles up. See docs for more details. Resolves ticket #18 [Ken Collins] 
