@@ -1,6 +1,10 @@
 
 MASTER
 
+* Add auto reconnect support utilizing a new #with_auto_reconnect block. By default each query run through 
+  the adapter will automatically reconnect at standard intervals, logging attempts along the way, till success 
+  or the original exception bubbles up. See docs for more details. Resolves ticket #18 [Ken Collins] 
+
 * Update internal helper method #orders_and_dirs_set to cope with an order clause like "description desc". This 
   resolves ticket #26 [Ken Collins]
 

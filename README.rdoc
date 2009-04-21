@@ -16,6 +16,8 @@ The SQL Server adapter for rails is back for ActiveRecord 2.2 and up! We are cur
 * Enabled #case_sensitive_equality_operator used by unique validations.
 * Unicode character support for nchar, nvarchar and ntext data types. Configuration option for defaulting all string data types to the unicode safe types.
 * View support for table names, identity inserts, and column defaults.
+* A block method to run queries within a specific isolation level.
+* Automatically reconnects to lost database connections.
 
 ==== Date/Time Data Type Hinting
 
@@ -102,6 +104,12 @@ It is important to remember that unicode types in SQL Server have approximately 
 By default all queries to the INFORMATION_SCHEMA table is silenced. If you think logging these queries are useful, you can enable it by adding this like to a config/initializers file.
 
   ActiveRecord::ConnectionAdapters::SQLServerAdapter.log_info_schema_queries = true
+
+==== Auto Connecting
+
+By default the adapter will auto connect to lost DB connections. For every query it will retry at intervals of 2, 4, 8, 16 and 32 seconds. During each retry it will callback out to ActiveRecord::Base.did_retry_sqlserver_connection(connection,count). When all retries fail, it will callback to ActiveRecord::Base.did_loose_sqlserver_connection(connection). Both implementations of these methods are to write to the rails logger, however, they make great override points for notifications like Hoptoad. If you want to disable automatic reconnections use the following in an initializer.
+
+  ActiveRecord::ConnectionAdapters::SQLServerAdapter.auto_connect = false
 
 
 == Versions

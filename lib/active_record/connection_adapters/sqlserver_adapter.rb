@@ -23,9 +23,17 @@ module ActiveRecord
         host      = config[:host] ? config[:host].to_s : 'localhost'
         driver_url = "DBI:ADO:Provider=SQLOLEDB;Data Source=#{host};Initial Catalog=#{database};User ID=#{username};Password=#{password};"
       end
-      conn = DBI.connect(driver_url, username, password)
-      conn["AutoCommit"] = true
-      ConnectionAdapters::SQLServerAdapter.new(conn, logger, [driver_url, username, password])
+      ConnectionAdapters::SQLServerAdapter.new(logger, [driver_url, username, password])
+    end
+    
+    protected
+    
+    def self.did_retry_sqlserver_connection(connection,count)
+      logger.info "CONNECTION RETRY: #{connection.class.name} retry ##{count}."
+    end
+    
+    def self.did_loose_sqlserver_connection(connection)
+      logger.info "CONNECTION LOST: #{connection.class.name}"
     end
     
   end
@@ -155,8 +163,15 @@ module ActiveRecord
       SUPPORTED_VERSIONS      = [2000,2005].freeze
       LIMITABLE_TYPES         = ['string','integer','float','char','nchar','varchar','nvarchar'].freeze
       
+      LOST_CONNECTION_EXCEPTIONS = [DBI::DatabaseError, DBI::InterfaceError]
+      LOST_CONNECTION_MESSAGES = [
+        'Communication link failure',
+        'Read from the server failed',
+        'Write to the server failed',
+        'Database connection was already closed']
+      
       cattr_accessor :native_text_database_type, :native_binary_database_type, :native_string_database_type,
-                     :log_info_schema_queries, :enable_default_unicode_types
+                     :log_info_schema_queries, :enable_default_unicode_types, :auto_connect
       
       class << self
         
@@ -166,9 +181,10 @@ module ActiveRecord
         
       end
       
-      def initialize(connection, logger, connection_options=nil)
-        super(connection, logger)
+      def initialize(logger, connection_options)
         @connection_options = connection_options
+        connect
+        super(raw_connection, logger)
         initialize_sqlserver_caches
         unless SUPPORTED_VERSIONS.include?(database_year)
           raise NotImplementedError, "Currently, only #{SUPPORTED_VERSIONS.to_sentence} are supported."
@@ -219,6 +235,10 @@ module ActiveRecord
       
       def inspect
         "#<#{self.class} version: #{version}, year: #{database_year}, connection_options: #{@connection_options.inspect}>"
+      end
+      
+      def auto_connect
+        @@auto_connect.is_a?(FalseClass) ? false : true
       end
       
       def native_string_database_type
@@ -302,16 +322,14 @@ module ActiveRecord
       def active?
         raw_connection.execute("SELECT 1").finish
         true
-      rescue DBI::DatabaseError, DBI::InterfaceError
+      rescue *LOST_CONNECTION_EXCEPTIONS
         false
       end
 
       def reconnect!
         disconnect!
-        @connection = DBI.connect(*@connection_options)
-      rescue DBI::DatabaseError => e
-        @logger.warn "#{adapter_name} reconnection failed: #{e.message}" if @logger
-        false
+        connect
+        active?
       end
 
       def disconnect!
@@ -721,6 +739,47 @@ module ActiveRecord
       
       protected
       
+      # CONNECTION MANAGEMENT ====================================#
+      
+      def connect
+        driver_url, username, password = @connection_options
+        @connection = DBI.connect(driver_url, username, password)
+        configure_connection
+      rescue
+        raise unless @auto_connecting
+      end
+      
+      def configure_connection
+        raw_connection['AutoCommit'] = true
+      end
+      
+      def with_auto_reconnect
+        begin
+          yield
+        rescue *LOST_CONNECTION_EXCEPTIONS => e
+          if LOST_CONNECTION_MESSAGES.any? { |lcm| e.message =~ Regexp.new(lcm,Regexp::IGNORECASE) }
+            retry if auto_reconnected?
+          end
+          raise
+        end
+      end
+      
+      def auto_reconnected?
+        return false unless auto_connect
+        @auto_connecting = true
+        count = 0
+        while count <= 5
+          sleep 2** count
+          ActiveRecord::Base.did_retry_sqlserver_connection(self,count)
+          return true if connect && active?
+          count += 1
+        end
+        ActiveRecord::Base.did_loose_sqlserver_connection(self)
+        false
+      ensure
+        @auto_connecting = false
+      end
+      
       # DATABASE STATEMENTS ======================================
       
       def select(sql, name = nil, ignore_special_columns = false)
@@ -751,9 +810,9 @@ module ActiveRecord
       def raw_execute(sql, name = nil, &block)
         log(sql, name) do
           if block_given?
-            raw_connection.execute(sql) { |handle| yield(handle) }
+            with_auto_reconnect { raw_connection.execute(sql) { |handle| yield(handle) } }
           else
-            raw_connection.execute(sql)
+            with_auto_reconnect { raw_connection.execute(sql) }
           end
         end
       end
@@ -767,7 +826,7 @@ module ActiveRecord
       
       def do_execute(sql,name=nil)
         log(sql, name || 'EXECUTE') do
-          raw_connection.do(sql)
+          with_auto_reconnect { raw_connection.do(sql) }
         end
       end
       

@@ -78,6 +78,37 @@ class ConnectionTestSqlserver < ActiveRecord::TestCase
     end
   end
   
+  context 'Connection management' do
+    
+    setup do
+      assert @connection.active?
+    end
+    
+    should 'be able to disconnect and reconnect at will' do
+      @connection.disconnect!
+      assert !@connection.active?
+      @connection.reconnect!
+      assert @connection.active?
+    end
+    
+    should 'auto reconnect when setting is on' do
+      with_auto_connect(true) do
+        @connection.disconnect!
+        assert_nothing_raised() { Topic.count }
+        assert @connection.active?
+      end
+    end
+    
+    should 'not auto reconnect when setting is off' do
+      with_auto_connect(false) do
+        @connection.disconnect!
+        assert_raise(ActiveRecord::StatementInvalid) { Topic.count }
+      end
+    end
+    
+  end
+  
+  
   
   private
   
@@ -98,6 +129,14 @@ class ConnectionTestSqlserver < ActiveRecord::TestCase
     end
   ensure
     GC.enable
+  end
+  
+  def with_auto_connect(boolean)
+    existing = ActiveRecord::ConnectionAdapters::SQLServerAdapter.auto_connect
+    ActiveRecord::ConnectionAdapters::SQLServerAdapter.auto_connect = boolean
+    yield
+  ensure
+    ActiveRecord::ConnectionAdapters::SQLServerAdapter.auto_connect = existing
   end
 
 end
