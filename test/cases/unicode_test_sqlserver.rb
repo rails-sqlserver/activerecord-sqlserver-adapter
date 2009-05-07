@@ -1,3 +1,4 @@
+# encoding: utf-8
 require 'cases/sqlserver_helper'
 
 class UnicodeTestSqlserver < ActiveRecord::TestCase
