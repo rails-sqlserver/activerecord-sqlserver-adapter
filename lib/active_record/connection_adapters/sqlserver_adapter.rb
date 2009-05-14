@@ -49,6 +49,10 @@ module ActiveRecord
       
       class << self
         
+        def string_to_utf8_encoding(value)
+          value.force_encoding('UTF-8') rescue value
+        end
+        
         def string_to_binary(value)
          "0x#{value.unpack("H*")[0]}"
         end
@@ -57,6 +61,22 @@ module ActiveRecord
           value =~ /[^[:xdigit:]]/ ? value : [value].pack('H*')
         end
         
+      end
+      
+      def type_cast(value)
+        if value && type == :string && is_utf8?
+          self.class.string_to_utf8_encoding(value)
+        else
+          super
+        end
+      end
+      
+      def type_cast_code(var_name)
+        if type == :string && is_utf8?
+          "#{self.class.name}.string_to_utf8_encoding(#{var_name})"
+        else
+          super
+        end
       end
       
       def is_identity?

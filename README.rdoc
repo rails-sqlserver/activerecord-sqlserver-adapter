@@ -6,6 +6,7 @@ The SQL Server adapter for rails is back for ActiveRecord 2.2 and up! We are cur
 
 == What's New
 
+* Fully tested under 1.9!!! Correctly encodes/decodes UTF-8 types in ruby 1.9 too.
 * Now supports both rails 2.2 & 2.3!!!
 * An ActiveRecord::Base.execute_procedure method that can be used by classes.
 * Enabled support for DDL transactions.
@@ -119,11 +120,11 @@ It is our goal to match the adapter version with each version of rails. However 
 
 == Installation
 
-First, you will need Ruby DBI and Ruby ODBC. To my knowledge the ADO DBD for DBI is no longer supported. The installation below is not a comprehensive walk thru on how to get all the required moving parts like FreeTDS installed and/or configured. It will also assume gem installations of both the dependent libraries and the adapter itself.
+First, you will need Ruby DBI and Ruby ODBC. If you are using the adapter under 1.9, then you need at least ruby-odbc version 0.9996. To my knowledge the ADO DBD for DBI is no longer supported. The installation below is not a comprehensive walk thru on how to get all the required moving parts like FreeTDS installed and/or configured. It will also assume gem installations of both the dependent libraries and the adapter itself.
 
-It should be noted that this version of the adapter was developed using both the ancient 0.0.23 version of DBI up to the current stable release of 0.4.0. Because later versions of DBI will be changing many things, IT IS HIGHLY RECOMMENDED that you max your install to version 0.4.0 which the examples below show. For the time being we are not supporting DBI versions higher than 0.4.0. The good news is that if you were using a very old DBI with ADO, technically this adapter will still work for you, but be warned your path is getting old and may not be supported for long.
+It should be noted that this version of the adapter was developed using both the ancient 0.0.23 version of DBI up to the current stable release of 0.4.1. Note that DBI 0.4.1 is the minimal for ruby 1.9 compatibility. Because later versions of DBI will be changing many things, IT IS HIGHLY RECOMMENDED that you max your install to version 0.4.0 which the examples below show. For the time being we are not supporting DBI versions higher than 0.4.0. The good news is that if you were using a very old DBI with ADO, technically this adapter will still work for you, but be warned your path is getting old and may not be supported for long.
 
-  $ gem install dbi --version 0.4.0
+  $ gem install dbi --version 0.4.1
   $ gem install dbd-odbc --version 0.2.4
   $ gem install rails-sqlserver-2000-2005-adapter -s http://gems.github.com
 

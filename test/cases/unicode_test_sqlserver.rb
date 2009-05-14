@@ -1,4 +1,3 @@
-# encoding: utf-8
 require 'cases/sqlserver_helper'
 
 class UnicodeTestSqlserver < ActiveRecord::TestCase
@@ -30,13 +29,19 @@ class UnicodeTestSqlserver < ActiveRecord::TestCase
   context 'Testing unicode data' do
 
     setup do
-      @unicode_data = "一二34五六"
+      @unicode_data = "\344\270\200\344\272\21434\344\272\224\345\205\255"
+      @encoded_unicode_data = "\344\270\200\344\272\21434\344\272\224\345\205\255".force_encoding('UTF-8') if ruby_19?
     end
 
     should 'insert into nvarchar field' do
       assert data = SqlServerUnicode.create!(:nvarchar => @unicode_data)
       assert_equal @unicode_data, data.reload.nvarchar
     end
+    
+    should 're-encode data on DB reads' do
+      assert data = SqlServerUnicode.create!(:nvarchar => @unicode_data)
+      assert_equal @encoded_unicode_data, data.reload.nvarchar
+    end if ruby_19?
 
   end
   

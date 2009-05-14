@@ -1,7 +1,9 @@
 
 MASTER
 
-*
+* Tested ruby 1.9, ruby-odbc 0.9996, and DBI 0.4.1. Also added correct support for UTF-8 character 
+  encoding going in and out of the DB. See before gist http://gist.github.com/111709 and after gist 
+  http://gist.github.com/111719
 
 
 * 2.2.16 * (April 21st, 2009)
