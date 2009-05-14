@@ -1,6 +1,9 @@
 
 MASTER
 
+
+* 2.2.17 * (May 14th, 2009)
+
 * Add simplified type recognition for varchar(max) and nvarchar(max) under SQL Server 2005 to be a 
   :text type. This ensures schema dumper does the right thing. Fixes ticket #30. [Ken Collins]
 
