@@ -67,8 +67,8 @@ class ColumnTestSqlserver < ActiveRecord::TestCase
       assert_equal :string, @char.type
       assert_equal :string, @char10.type
       if sqlserver_2005?
-        assert_equal :string, @varcharmax.type
-        assert_equal :string, @varcharmax10.type
+        assert_equal :text, @varcharmax.type, @varcharmax.inspect
+        assert_equal :text, @varcharmax10.type, @varcharmax10.inspect
       end
     end
     
@@ -120,8 +120,8 @@ class ColumnTestSqlserver < ActiveRecord::TestCase
       assert_equal :string, @nchar10.type
       assert_equal :string, @nvarchar100.type
       if sqlserver_2005?
-        assert_equal :string, @nvarcharmax.type
-        assert_equal :string, @nvarcharmax10.type
+        assert_equal :text, @nvarcharmax.type, @nvarcharmax.inspect
+        assert_equal :text, @nvarcharmax10.type, @nvarcharmax10.inspect
       end
     end
     

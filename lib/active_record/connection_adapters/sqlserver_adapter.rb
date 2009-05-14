@@ -126,6 +126,7 @@ module ActiveRecord
           when /bit/i               then :boolean
           when /uniqueidentifier/i  then :string
           when /datetime/i          then simplified_datetime
+          when /varchar\(max\)/     then :text
           else super
         end
       end

@@ -1,9 +1,12 @@
 
 MASTER
 
+* Add simplified type recognition for varchar(max) and nvarchar(max) under SQL Server 2005 to be a 
+  :text type. This ensures schema dumper does the right thing. Fixes ticket #30. [Ken Collins]
+
 * Tested ruby 1.9, ruby-odbc 0.9996, and DBI 0.4.1. Also added correct support for UTF-8 character 
   encoding going in and out of the DB. See before gist http://gist.github.com/111709 and after gist 
-  http://gist.github.com/111719
+  http://gist.github.com/111719 [Ken Collins]
 
 
 * 2.2.16 * (April 21st, 2009)

@@ -35,6 +35,17 @@ class SchemaDumperTestSqlserver < ActiveRecord::TestCase
     
   end
   
+  context 'For strings' do
+
+    should 'have varchar(max) dumped as text' do
+      table_dump('sql_server_strings') do |output|
+        assert_match %r{t.text.*varchar_max}, output
+      end
+    end
+
+  end
+  
+  
   
   
   private
