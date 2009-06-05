@@ -97,7 +97,11 @@ module ActiveRecord
       end
       
       def table_klass
-        @table_klass ||= table_name.classify.constantize rescue nil
+        @table_klass ||= begin
+          table_name.classify.constantize
+        rescue StandardError, NameError, LoadError
+          nil
+        end
         (@table_klass && @table_klass < ActiveRecord::Base) ? @table_klass : nil
       end
       
