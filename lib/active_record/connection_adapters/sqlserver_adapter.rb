@@ -272,7 +272,7 @@ module ActiveRecord
       
       def native_text_database_type
         @@native_text_database_type || 
-        if sqlserver_2005?
+        if sqlserver_2005? || sqlserver_2008?
           enable_default_unicode_types ? 'nvarchar(max)' : 'varchar(max)'
         else
           enable_default_unicode_types ? 'ntext' : 'text'

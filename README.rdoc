@@ -1,11 +1,12 @@
 
-== Rails SQL Server 2000 & 2005 Adapter
+== Rails SQL Server 2000 & 2005 & 2008 Adapter
 
 The SQL Server adapter for rails is back for ActiveRecord 2.2 and up! We are currently passing all tests and hope to continue to do so moving forward. 
 
 
 == What's New
 
+* Now supports SQL Server 2008 too!
 * Fully tested under 1.9!!! Correctly encodes/decodes UTF-8 types in ruby 1.9 too.
 * Now supports both rails 2.2 & 2.3!!!
 * An ActiveRecord::Base.execute_procedure method that can be used by classes.
@@ -19,6 +20,13 @@ The SQL Server adapter for rails is back for ActiveRecord 2.2 and up! We are cur
 * View support for table names, identity inserts, and column defaults.
 * A block method to run queries within a specific isolation level.
 * Automatically reconnects to lost database connections.
+
+
+==== SQL Server 2008 Support
+
+Because this adapter is primarily coded to SQL Server 2000/2005, it does not take advantage of many of the things in 2008 that would speed up the code. At some point in the future there we be a branch of this code that is specifically targeted for 2008. That adapter version will remove much of the dirty innards of this version that are meant to code around many of their short comings in 2000/2005, the biggest being no limit/offset.
+
+
 
 ==== Date/Time Data Type Hinting
 
