@@ -2,6 +2,13 @@
 MASTER
 
 
+* 2.2.18 * (June 5th, 2009)
+
+* Column reflection on table name rescues LoadError and a few others. Resolves tickets #25 & #33 [Ken Collins]
+
+* Added 2008 support. Resolves ticket #32 [Ken Collins]
+
+
 * 2.2.17 * (May 14th, 2009)
 
 * Add simplified type recognition for varchar(max) and nvarchar(max) under SQL Server 2005 to be a 
