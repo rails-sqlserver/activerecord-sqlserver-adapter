@@ -59,6 +59,7 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
         @supported_version = ActiveRecord::ConnectionAdapters::SQLServerAdapter::SUPPORTED_VERSIONS
         @sqlserver_2000_string = "Microsoft SQL Server  2000 - 8.00.2039 (Intel X86)"
         @sqlserver_2005_string = "Microsoft SQL Server 2005 - 9.00.3215.00 (Intel X86)"
+        @sqlserver_2008_string = "Microsoft SQL Server 2008 (RTM) - 10.0.1600.22 (Intel X86)"
       end
       
       should 'return a string from #database_version that matches class regexp' do
@@ -78,6 +79,11 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
       should 'return true to #sqlserver_2005?' do
         @connection.stubs(:database_version).returns(@sqlserver_2005_string)
         assert @connection.sqlserver_2005?
+      end
+      
+      should 'return true to #sqlserver_2008?' do
+        @connection.stubs(:database_version).returns(@sqlserver_2008_string)
+        assert @connection.sqlserver_2008?
       end
       
     end

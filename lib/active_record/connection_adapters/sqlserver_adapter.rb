@@ -181,7 +181,7 @@ module ActiveRecord
       ADAPTER_NAME            = 'SQLServer'.freeze
       VERSION                 = '2.2.17'.freeze
       DATABASE_VERSION_REGEXP = /Microsoft SQL Server\s+(\d{4})/
-      SUPPORTED_VERSIONS      = [2000,2005].freeze
+      SUPPORTED_VERSIONS      = [2000,2005,2008].freeze
       LIMITABLE_TYPES         = ['string','integer','float','char','nchar','varchar','nvarchar'].freeze
       
       LOST_CONNECTION_EXCEPTIONS = [DBI::DatabaseError, DBI::InterfaceError]
@@ -250,6 +250,10 @@ module ActiveRecord
         database_year == 2005
       end
       
+      def sqlserver_2008?
+        database_year == 2008
+      end
+      
       def version
         self.class::VERSION
       end
@@ -276,7 +280,7 @@ module ActiveRecord
       end
       
       def native_binary_database_type
-        @@native_binary_database_type || (sqlserver_2005? ? 'varbinary(max)' : 'image')
+        @@native_binary_database_type || ((sqlserver_2005? || sqlserver_2008?) ? 'varbinary(max)' : 'image')
       end
       
       # QUOTING ==================================================#

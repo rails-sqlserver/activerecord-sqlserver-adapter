@@ -14,7 +14,7 @@ class UnicodeTestSqlserver < ActiveRecord::TestCase
       test_string = 'Ken Collins'
       assert nvarcharmax_data = SqlServerUnicode.create!(:nvarchar_max => test_string)
       assert_equal test_string, SqlServerUnicode.find(nvarcharmax_data.id).nvarchar_max
-    end if sqlserver_2005?
+    end if sqlserver_2005? || sqlserver_2008?
 
     should 'enforce default nchar_10 limit of 10' do
       assert_raise(ActiveRecord::StatementInvalid) { SqlServerUnicode.create!(:nchar => '01234567891') }
