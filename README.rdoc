@@ -1,5 +1,5 @@
 
-== Rails SQL Server 2000 & 2005 & 2008 Adapter
+== Rails SQL Server 2000, 2005 and 2008 Adapter
 
 The SQL Server adapter for rails is back for ActiveRecord 2.2 and up! We are currently passing all tests and hope to continue to do so moving forward. 
 
@@ -24,13 +24,13 @@ The SQL Server adapter for rails is back for ActiveRecord 2.2 and up! We are cur
 
 ==== SQL Server 2008 Support
 
-Because this adapter is primarily coded to SQL Server 2000/2005, it does not take advantage of many of the things in 2008 that would speed up the code. At some point in the future there we be a branch of this code that is specifically targeted for 2008. That adapter version will remove much of the dirty innards of this version that are meant to code around many of their short comings in 2000/2005, the biggest being no limit/offset.
+Because this adapter is primarily coded to SQL Server 2000/2005, it does not take advantage of many of the things in 2008 that would speed up the code. At some point in the future there will be a branch of this code that is specifically targeted for 2008. That adapter version will remove much of the dirty innards of this version that are meant to code around many previous SQL Server 2000/2005 short comings, the biggest being no limit/offset.
 
 
 
 ==== Date/Time Data Type Hinting
 
-Both SQL Server 2000 and 2005 do not have native data types for just 'date' or 'time', it only has 'datetime'. To pass the ActiveRecord tests we implemented two simple class methods that can teach your models to coerce column information to be cast correctly. Simply past a list of symbols to either the <tt>coerce_sqlserver_date</tt> or <tt>coerce_sqlserver_time</tt> methods that correspond to 'datetime' columns that need to be cast correctly.
+Both SQL Server 2000 and 2005 do not include native data types for just 'date' or 'time', it only has 'datetime'. To pass the ActiveRecord tests we implemented two simple class methods that can teach your models to coerce column information to be cast correctly. Simply past a list of symbols to either the <tt>coerce_sqlserver_date</tt> or <tt>coerce_sqlserver_time</tt> methods that correspond to 'datetime' columns that need to be cast correctly.
 
   class Topic < ActiveRecord::Base
     coerce_sqlserver_date :last_read
@@ -130,17 +130,17 @@ It is our goal to match the adapter version with each version of rails. However 
 
 First, you will need Ruby DBI and Ruby ODBC. If you are using the adapter under 1.9, then you need at least ruby-odbc version 0.9996. To my knowledge the ADO DBD for DBI is no longer supported. The installation below is not a comprehensive walk thru on how to get all the required moving parts like FreeTDS installed and/or configured. It will also assume gem installations of both the dependent libraries and the adapter itself.
 
-It should be noted that this version of the adapter was developed using both the ancient 0.0.23 version of DBI up to the current stable release of 0.4.1. Note that DBI 0.4.1 is the minimal for ruby 1.9 compatibility. Because later versions of DBI will be changing many things, IT IS HIGHLY RECOMMENDED that you max your install to version 0.4.0 which the examples below show. For the time being we are not supporting DBI versions higher than 0.4.0. The good news is that if you were using a very old DBI with ADO, technically this adapter will still work for you, but be warned your path is getting old and may not be supported for long.
+It should be noted that this version of the adapter was developed using both the ancient 0.0.23 version of DBI up to the current stable release of 0.4.1. Note that DBI 0.4.1 is the minimal for ruby 1.9 compatibility. Because later versions of DBI will be changing many things, IT IS HIGHLY RECOMMENDED that you max your install to version 0.4.1 which the examples below show. For the time being we are not supporting DBI versions higher than 0.4.1. The good news is that if you were using a very old DBI with ADO, technically this adapter will still work for you, but be warned your path is getting old and may not be supported for long.
 
   $ gem install dbi --version 0.4.1
   $ gem install dbd-odbc --version 0.2.4
-  $ gem install rails-sqlserver-2000-2005-adapter -s http://gems.github.com
+  $ gem install activerecord-sqlserver-adapter
 
 Optionally configure your gem dependencies in your rails environment.rb file.
 
-  config.gem 'dbi', :version => '0.4.0'
+  config.gem 'dbi', :version => '0.4.1'
   config.gem 'dbd-odbc', :version => '0.2.4', :lib => 'dbd/ODBC'
-  config.gem 'rails-sqlserver-2000-2005-adapter', :source => 'http://gems.github.com'
+  config.gem 'activerecord-sqlserver-adapter',    :version => 'x.x.xx'
 
 Here are some external links for libraries and/or tutorials on how to install any other additional components to use this adapter. If you know of a good one that we can include here, just let us know.
 
@@ -152,6 +152,7 @@ Here are some external links for libraries and/or tutorials on how to install an
 
 If you’d like to contribute a feature or bugfix, thanks! To make sure your fix/feature has a high chance of being added, please read the following guidelines. First, ask on the Google list, IRC, or post a ticket in Lighthouse. Second, make sure there are tests! We will not accept any patch that is not tested. Please read the RUNNING_UNIT_TESTS file for the details of how to run the unit tests.
 
+* Github: http://github.com/rails-sqlserver
 * Lighthouse: http://rails-sqlserver.lighthouseapp.com/projects/20277-sql-server-05-adapter/tickets
 * Google Group: http://groups.google.com/group/rails-sqlserver-adapter
 * IRC Room: #rails-sqlserver on irc.freenode.net

@@ -2,3 +2,6 @@ nbproject/
 debug.log
 .DS_Store
 pkg/
+doc/
+tasks/
+Manifest
