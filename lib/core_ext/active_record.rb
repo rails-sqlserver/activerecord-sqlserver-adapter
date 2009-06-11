@@ -9,6 +9,7 @@ module ActiveRecord
         class << klass
           alias_method_chain :reset_column_information, :sqlserver_cache_support
           alias_method_chain :add_order!, :sqlserver_unique_checking
+          alias_method_chain :add_limit!, :sqlserver_order_checking
         end
       end
       
@@ -44,6 +45,23 @@ module ActiveRecord
         end
         
         private
+        
+        def add_limit_with_sqlserver_order_checking!(sql, options, scope = :auto)
+          if connection.respond_to?(:sqlserver?)
+            scope = scope(:find) if :auto == scope
+            if scope
+              options = options.dup
+              scoped_order = scope[:order]
+              order = options[:order]
+              if order && scoped_order
+                options[:order] = add_order_with_sqlserver_unique_checking!('', order, scope).gsub(/^ ORDER BY /,'')
+              elsif scoped_order
+                options[:order] = scoped_order
+              end
+            end
+          end
+          add_limit_without_sqlserver_order_checking!(sql, options, scope)
+        end
         
         def add_order_with_sqlserver_unique_checking!(sql, order, scope = :auto)
           if connection.respond_to?(:sqlserver?)

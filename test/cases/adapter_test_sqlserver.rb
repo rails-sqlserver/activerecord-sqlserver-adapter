@@ -159,6 +159,28 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
       end
 
     end
+
+    context "for add_limit! within a scoped method call" do
+      setup do
+        @connection.stubs(:select_value).with(regexp_matches(/TotalRows/)).returns '100000000'
+      end
+
+      should 'not add any ordering if the scope doesn\'t have an order' do
+        assert_equal 'SELECT * FROM (SELECT TOP 10 * FROM (SELECT TOP 40 * FROM [developers]) AS tmp1) AS tmp2', add_limit!('SELECT * FROM [developers]', {:offset => 30, :limit => 10}, {})
+      end
+
+      should 'still add the default ordering if the scope doesn\'t have an order but the raw order option is there' do
+        assert_equal 'SELECT * FROM (SELECT TOP 10 * FROM (SELECT TOP 40 * FROM [developers]) AS tmp1 ORDER BY [name] DESC) AS tmp2 ORDER BY [name]', add_limit!('SELECT * FROM [developers]', {:offset => 30, :limit => 10, :order => 'name'}, {})
+      end
+
+      should 'add scoped order options to the offset and limit sql' do
+        assert_equal 'SELECT * FROM (SELECT TOP 10 * FROM (SELECT TOP 40 * FROM [developers]) AS tmp1 ORDER BY [id] DESC) AS tmp2 ORDER BY [id]', add_limit!('SELECT * FROM [developers]', {:offset => 30, :limit => 10}, {:order => 'id'})
+      end
+
+      should 'combine scoped order with raw order options in the offset and limit sql' do
+        assert_equal 'SELECT * FROM (SELECT TOP 10 * FROM (SELECT TOP 40 * FROM [developers]) AS tmp1 ORDER BY [name] DESC, [id] DESC) AS tmp2 ORDER BY [name], [id]', add_limit!('SELECT * FROM [developers]', {:offset => 30, :limit => 10, :order => 'name'}, {:order => 'id'})
+      end
+    end
     
     context 'dealing with various orders SQL snippets' do
       
@@ -659,6 +681,11 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
     sql
   end
   
+  def add_limit!(sql, options, scope = :auto)
+    ActiveRecord::Base.send :add_limit!, sql, options, scope
+    sql
+  end
+
   def order_to_min_set(order)
     @connection.send :order_to_min_set, order
   end
