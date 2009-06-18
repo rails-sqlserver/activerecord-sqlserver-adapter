@@ -1,6 +1,8 @@
 
 MASTER
 
+* 2.2.19 * (June 19th, 2009)
+
 * Leave quoted column names as is. Resolves ticket #36 [Vince Puzzella]
 
 * Changing add_limit! in ActiveRecord::Base for SQLServer so that it passes through any scoped :order 
