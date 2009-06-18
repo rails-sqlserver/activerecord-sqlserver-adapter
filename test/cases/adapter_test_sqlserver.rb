@@ -372,6 +372,11 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
       assert_equal '[foo].[bar]', @connection.quote_column_name('foo.bar')
     end
     
+    should 'not quote already quoted column names with brackets' do
+      assert_equal '[foo]', @connection.quote_column_name('[foo]')
+      assert_equal '[foo].[bar]', @connection.quote_column_name('[foo].[bar]')
+    end
+    
     should 'quote table names like columns' do
       assert_equal '[foo].[bar]', @connection.quote_column_name('foo.bar')
       assert_equal '[foo].[bar].[baz]', @connection.quote_column_name('foo.bar.baz')

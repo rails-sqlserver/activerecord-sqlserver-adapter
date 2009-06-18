@@ -309,7 +309,7 @@ module ActiveRecord
       end
       
       def quote_column_name(column_name)
-        column_name.to_s.split('.').map{ |name| "[#{name}]" }.join('.')
+        column_name.to_s.split('.').map{ |name| name =~ /^\[.*\]$/ ? name : "[#{name}]" }.join('.')
       end
       
       def quote_table_name(table_name)
