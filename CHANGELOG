@@ -1,6 +1,9 @@
 
 MASTER
 
+* Changing add_limit! in ActiveRecord::Base for SQLServer so that it passes through any scoped :order 
+  parameters. Resolves ticket #35 [Murray Steele]
+
 
 * 2.2.18 * (June 5th, 2009)
 
