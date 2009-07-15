@@ -1,6 +1,9 @@
 
 MASTER
 
+* Make sure bigint SQL Server data type can be used and converted back to Bignum as expected. [Ken Collins]
+
+
 * 2.2.19 * (June 19th, 2009)
 
 * Leave quoted column names as is. Resolves ticket #36 [Vince Puzzella]
