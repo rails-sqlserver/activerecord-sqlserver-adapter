@@ -50,7 +50,24 @@ class SpecificSchemaTestSqlserver < ActiveRecord::TestCase
 
     end
     
+    context 'with bigint column' do
 
+      setup do
+        @b5k   = 5000
+        @bi5k  = @edge_class.create! :bigint => @b5k, :description => 'Five Thousand'
+        @bnum  = 9_000_000_000_000_000_000
+        @bimjr = @edge_class.create! :bigint => @bnum, :description => 'Close to max bignum'
+      end
+
+      should 'can find by biginit' do
+        assert_equal @bi5k,  @edge_class.find_by_bigint(@b5k)
+        assert_equal @b5k,   @edge_class.find(:first, :select => 'bigint', :conditions => {:bigint => @b5k}).bigint
+        assert_equal @bimjr, @edge_class.find_by_bigint(@bnum)
+        assert_equal @bnum,  @edge_class.find(:first, :select => 'bigint', :conditions => {:bigint => @bnum}).bigint
+      end
+
+    end
+    
   end
   
   

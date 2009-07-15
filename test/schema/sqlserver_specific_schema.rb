@@ -64,6 +64,7 @@ ActiveRecord::Schema.define do
   
   create_table :sql_server_edge_schemas, :force => true do |t|
     t.string :description
+    t.column :bigint, :bigint
   end
   
   execute "IF EXISTS (SELECT TABLE_NAME FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_NAME = 'customers_view') DROP VIEW customers_view"
