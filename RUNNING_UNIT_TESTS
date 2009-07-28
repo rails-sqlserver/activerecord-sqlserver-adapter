@@ -5,12 +5,19 @@ The default names for the test databases are "activerecord_unittest" and
 to update the connection adapter setups you want to test with in 
 test/connections/<your database>/connection.rb. 
 
+The connection files make certain assumptions. For instance, the ODBC connection 
+assumes you have a DSN setup that matches the name of the default database names.
+
 
 == Requirements
 
 The following gems need to be installed. Make sure you have gems.github.com as a
-source. http://github.com/blog/97-github-loves-rubygems-1-2
+source. Info here. http://gems.github.com/
 
+We use echoe for packagemanagement to rubyforge. Not needed really for the tests 
+but since we need it... you need to install it.
+
+  * gem install echoe
   * gem install thoughtbot-shoulda -s http://gems.github.com
   * gem install mocha
 
@@ -21,11 +28,8 @@ is assumed to exist:
 #{RAILS_ROOT}/vendor/plugins/adapters/sqlserver
 #{RAILS_ROOT}/vendor/rails/activerecord/test
 
-Define a user named 'rails' in SQL Server with all privileges granted. Use an empty 
-password for user 'rails', or alternatively use the OSQLPASSWORD environment variable
-which allows you to set a default password for the current session.
-
-Then run "rake create_databases".
+Define a user named 'rails' in SQL Server with all privileges granted for the 
+test databases. Use an empty password for said user.
 
 
 == Running with Rake
