@@ -1,4 +1,5 @@
 
+ 
 namespace :sqlserver do
   
   ['sqlserver','sqlserver_odbc'].each do |adapter|
@@ -27,5 +28,12 @@ namespace :sqlserver do
   end
   
   
+end
+
+
+desc 'Test the default ODBC mode, taks sqlserver:test_sqlserver_odbc.'
+task :test do
+  test = Rake::Task['sqlserver:test_sqlserver_odbc']
+  test.invoke
 end
 
