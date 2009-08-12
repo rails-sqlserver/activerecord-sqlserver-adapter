@@ -1,6 +1,9 @@
 
 MASTER
 
+* Use a lazy match in add_order_by_for_association_limiting! to allow sub selects to be used. Resolves 
+  ticket #11.
+
 * Add default rake task back for testing. Runs the namespaced sqlserver:test_sqlserver_odbc. 
   Resolves ticket #10 [Ken Collins]
 

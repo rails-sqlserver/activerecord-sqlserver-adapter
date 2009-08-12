@@ -698,7 +698,7 @@ module ActiveRecord
         # Disertation http://gist.github.com/24073
         # Information http://weblogs.sqlteam.com/jeffs/archive/2007/12/13/select-distinct-order-by-error.aspx
         return sql if options[:order].blank?
-        columns = sql.match(/SELECT\s+DISTINCT(.*)FROM/)[1].strip
+        columns = sql.match(/SELECT\s+DISTINCT(.*?)FROM/)[1].strip
         sql.sub!(/SELECT\s+DISTINCT/,'SELECT')
         sql << "GROUP BY #{columns} ORDER BY #{order_to_min_set(options[:order])}"
       end
