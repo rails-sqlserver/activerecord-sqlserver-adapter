@@ -908,9 +908,10 @@ module ActiveRecord
       end
       
       def remove_default_constraint(table_name, column_name)
-        constraints = select_values("SELECT def.name FROM sysobjects def, syscolumns col, sysobjects tab WHERE col.cdefault = def.id AND col.name = '#{quote_string(column_name)}' AND tab.name = '#{quote_string(table_name)}' AND col.id = tab.id")
-        constraints.each do |constraint|
-          do_execute "ALTER TABLE #{quote_table_name(table_name)} DROP CONSTRAINT #{quote_column_name(constraint)}"
+        select_all("EXEC sp_helpconstraint '#{quote_string(table_name)}','nomsg'").select do |row|
+          row['constraint_type'] == "DEFAULT on column #{column_name}"
+        end.each do |row|
+          do_execute "ALTER TABLE #{quote_table_name(table_name)} DROP CONSTRAINT #{row['constraint_name']}"
         end
       end
       

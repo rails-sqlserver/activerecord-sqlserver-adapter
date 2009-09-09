@@ -1,6 +1,8 @@
 
 MASTER
 
+* Implement a new remove_default_constraint method that uses sp_helpconstraint [Ken Collins]
+
 * Use a lazy match in add_order_by_for_association_limiting! to allow sub selects to be used. Resolves 
   ticket #11.
 
