@@ -4,6 +4,16 @@ MASTER
 * 
 
 
+* 2.2.21 * (September 10th, 2009)
+
+* Changes for gem best practices per http://weblog.rubyonrails.org/2009/9/1/gem-packaging-best-practices
+  Details of such are as follows: [Ken Collins]
+  - Removed rails-sqlserver-2000-2005-adapter.rb load file for old github usage.
+  - Move the core_ext directory to active_record/connection_adapters/sqlserver_adapter/core_ext
+  - Renamespace SQLServerDBI to ActiveRecord::ConnectionAdapters::SQLServerCoreExtensions::DBI
+  - Renamespace ActiveRecord::ConnectionAdapters::SQLServerActiveRecordExtensions to ActiveRecord::ConnectionAdapters::SQLServerCoreExtensions::ActiveRecord
+
+
 * 2.2.20 * (September 10th, 2009)
 
 * Implement a new remove_default_constraint method that uses sp_helpconstraint [Ken Collins]

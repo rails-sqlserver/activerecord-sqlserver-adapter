@@ -1,7 +1,7 @@
 require 'active_record/connection_adapters/abstract_adapter'
 require_library_or_gem 'dbi' unless defined?(DBI)
-require 'core_ext/dbi'
-require 'core_ext/active_record'
+require 'active_record/connection_adapters/sqlserver_adapter/core_ext/dbi'
+require 'active_record/connection_adapters/sqlserver_adapter/core_ext/active_record'
 require 'base64'
 
 module ActiveRecord

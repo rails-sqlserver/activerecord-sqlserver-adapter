@@ -18,10 +18,9 @@ Gem::Specification.new do |s|
     "autotest/discover.rb",
     "autotest/railssqlserver.rb",
     "autotest/sqlserver.rb",
-    "lib/rails-sqlserver-2000-2005-adapter.rb",
     "lib/active_record/connection_adapters/sqlserver_adapter.rb",
-    "lib/core_ext/active_record.rb",
-    "lib/core_ext/dbi.rb" ]
+    "lib/active_record/connection_adapters/sqlserver_adapter/core_ext/active_record.rb",
+    "lib/active_record/connection_adapters/sqlserver_adapter/core_ext/dbi.rb" ]
   s.test_files = [
     "test/cases/aaaa_create_tables_test_sqlserver.rb",
     "test/cases/adapter_test_sqlserver.rb",

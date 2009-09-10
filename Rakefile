@@ -11,7 +11,7 @@ Echoe.new('activerecord-sqlserver-adapter','2.2.20') do |p|
   p.url                   = "http://github.com/rails-sqlserver"
   p.runtime_dependencies  = ["dbi =0.4.1","dbd-odbc =0.2.4"]
   p.include_gemspec       = false
-  p.ignore_pattern        = ["autotest/*","*.gemspec","lib/rails-sqlserver-2000-2005-adapter.rb"]
+  p.ignore_pattern        = ["autotest/*","*.gemspec"]
   p.project               = 'arsqlserver'
 end
 
