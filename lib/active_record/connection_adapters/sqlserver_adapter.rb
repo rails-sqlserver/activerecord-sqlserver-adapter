@@ -183,7 +183,7 @@ module ActiveRecord
     class SQLServerAdapter < AbstractAdapter
       
       ADAPTER_NAME            = 'SQLServer'.freeze
-      VERSION                 = '2.2.20'.freeze
+      VERSION                 = '2.2.21'.freeze
       DATABASE_VERSION_REGEXP = /Microsoft SQL Server\s+(\d{4})/
       SUPPORTED_VERSIONS      = [2000,2005,2008].freeze
       LIMITABLE_TYPES         = ['string','integer','float','char','nchar','varchar','nvarchar'].freeze
