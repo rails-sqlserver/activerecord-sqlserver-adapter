@@ -3,7 +3,7 @@ require 'rake'
 require 'rake/testtask'
 require 'echoe'
 
-Echoe.new('activerecord-sqlserver-adapter','2.2.21') do |p|
+Echoe.new('activerecord-sqlserver-adapter','2.2.22') do |p|
   p.summary               = "SQL Server 2000, 2005 and 2008 Adapter For Rails."
   p.description           = "SQL Server 2000, 2005 and 2008 Adapter For Rails."
   p.author                = ["Ken Collins","Murray Steele","Shawn Balestracci","Joe Rafaniello","Tom Ward"]

@@ -1,6 +1,10 @@
 
 MASTER
 
+
+
+* 2.2.22 * (October 15th, 2009)
+
 * Support Identity-key-column judgement on multiple schema environment [Ken Tachiya]
 
 * Add support for tinyint data types. In MySQL all these types would be boolean, however in 

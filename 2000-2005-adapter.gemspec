@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name     = "2000-2005-adapter"
-  s.version  = "2.2.21"
+  s.version  = "2.2.22"
   s.date     = "2009-09-10"
   s.summary  = "SQL Server 2000, 2005 and 2008 Adapter For Rails."
   s.email    = "ken@metaskills.net"
