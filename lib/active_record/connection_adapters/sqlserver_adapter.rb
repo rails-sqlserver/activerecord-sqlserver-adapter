@@ -1052,7 +1052,7 @@ module ActiveRecord
             ELSE NULL
           end as is_nullable,
           CASE
-            WHEN COLUMNPROPERTY(OBJECT_ID(columns.TABLE_NAME), columns.COLUMN_NAME, 'IsIdentity') = 0 THEN NULL
+            WHEN COLUMNPROPERTY(OBJECT_ID(columns.TABLE_SCHEMA+'.'+columns.TABLE_NAME), columns.COLUMN_NAME, 'IsIdentity') = 0 THEN NULL
             ELSE 1
           END as is_identity
           FROM #{db_name}INFORMATION_SCHEMA.COLUMNS columns

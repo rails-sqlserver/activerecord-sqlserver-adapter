@@ -1,6 +1,8 @@
 
 MASTER
 
+* Support Identity-key-column judgement on multiple schema environment [Ken Tachiya]
+
 * Add support for tinyint data types. In MySQL all these types would be boolean, however in 
   our adapter, they will use the full 1 => 255 Fixnum value as you would expect. [Ken Collins]
 
