@@ -46,6 +46,14 @@ module ActiveRecord
               obj.to_s
             end
           end
+          
+          # We want our true 1 to 255 tinyint range.
+          class SqlserverForcedTinyint
+            def self.parse(obj)
+              return nil if ::DBI::Type::Null.parse(obj).nil?
+              obj.to_i
+            end
+          end
 
         end
 
@@ -68,6 +76,8 @@ module ActiveRecord
                 DBI::Type::SqlserverTimestamp
               when /^float|decimal|money$/i
                 DBI::Type::SqlserverForcedString
+              when /^tinyint$/i
+                DBI::Type::SqlserverForcedTinyint
               else
                 type_name_to_module_without_sqlserver_types(type_name)
               end

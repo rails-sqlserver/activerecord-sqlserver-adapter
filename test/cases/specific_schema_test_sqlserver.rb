@@ -68,6 +68,24 @@ class SpecificSchemaTestSqlserver < ActiveRecord::TestCase
 
     end
     
+    context 'with tinyint column' do
+
+      setup do
+        @tiny1 = @edge_class.create! :tinyint => 1
+        @tiny255 = @edge_class.create! :tinyint => 255
+      end
+
+      should 'not treat tinyint like boolean as mysql does' do
+        assert_equal 1, @edge_class.find_by_tinyint(1).tinyint
+        assert_equal 255, @edge_class.find_by_tinyint(255).tinyint
+      end
+      
+      should 'throw an error when going out of our tiny int bounds' do
+        assert_raise(ActiveRecord::StatementInvalid) { @edge_class.create! :tinyint => 256 }
+      end
+      
+    end
+    
   end
   
   

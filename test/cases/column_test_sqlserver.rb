@@ -1,6 +1,8 @@
 require 'cases/sqlserver_helper'
 require 'models/binary'
 
+class SqlServerEdgeSchema < ActiveRecord::Base; end;
+
 class ColumnTestSqlserver < ActiveRecord::TestCase
   
   def setup
@@ -258,6 +260,20 @@ class ColumnTestSqlserver < ActiveRecord::TestCase
       assert_equal [2,0],  [@my_house_population.precision, @my_house_population.scale]
     end
     
+  end
+  
+  context 'For tinyint columns' do
+
+    setup do
+      @tinyint = SqlServerEdgeSchema.columns_hash['tinyint']
+    end
+
+    should 'be all it should be' do
+      assert_equal :integer, @tinyint.type
+      assert_nil @tinyint.scale
+      assert_equal 'tinyint(1)', @tinyint.sql_type
+    end
+
   end
   
   
