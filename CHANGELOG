@@ -1,6 +1,8 @@
 
 MASTER
 
+* Fixed namespace in calling test_sqlserver_odbc within test_unicode_types. [Gary/iawgens]
+
 * Columns with multi-line defaults work correctly. [bfabry]
 
 

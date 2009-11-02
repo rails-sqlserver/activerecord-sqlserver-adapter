@@ -23,7 +23,7 @@ namespace :sqlserver do
   desc 'Test with unicode types enabled.'
   task :test_unicode_types do
     ENV['ENABLE_DEFAULT_UNICODE_TYPES'] = 'true'
-    test = Rake::Task['test_sqlserver_odbc']
+    test = Rake::Task['sqlserver:test_sqlserver_odbc']
     test.invoke
   end
   
