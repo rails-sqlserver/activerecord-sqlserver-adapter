@@ -1,6 +1,9 @@
 
 MASTER
 
+* Allow query_requires_identity_insert? method to return quoted table name in situations where the 
+  INSERT parts are not quoted themselves. [Gary/iawgens, Richard Penwell, Ken Collins]
+
 * Fixed namespace in calling test_sqlserver_odbc within test_unicode_types. [Gary/iawgens]
 
 * Columns with multi-line defaults work correctly. [bfabry]
