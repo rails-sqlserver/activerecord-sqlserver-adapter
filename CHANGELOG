@@ -1,6 +1,7 @@
 
 MASTER
 
+* Columns with multi-line defaults work correctly. [bfabry]
 
 
 * 2.2.22 * (October 15th, 2009)

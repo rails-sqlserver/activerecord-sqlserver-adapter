@@ -5,6 +5,11 @@ class SqlServerEdgeSchema < ActiveRecord::Base; end;
 
 class SpecificSchemaTestSqlserver < ActiveRecord::TestCase
   
+  should 'cope with multi line defaults' do
+    default = StringDefault.new
+    assert_equal "Some long default with a\nnew line.", default.string_with_multiline_default
+  end
+  
   should 'default strings before save' do
     default = StringDefault.new
     assert_equal nil, default.string_with_null_default

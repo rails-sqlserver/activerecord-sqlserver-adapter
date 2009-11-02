@@ -1082,7 +1082,7 @@ module ActiveRecord
                                when nil, '(null)', '(NULL)'
                                  nil
                                else
-                                 match_data = ci[:default_value].match(/\A\(+N?'?(.*?)'?\)+\Z/)
+                                 match_data = ci[:default_value].match(/\A\(+N?'?(.*?)'?\)+\Z/m)
                                  match_data ? match_data[1] : nil
                                end
           ci[:null] = ci[:is_nullable].to_i == 1 ; ci.delete(:is_nullable)
