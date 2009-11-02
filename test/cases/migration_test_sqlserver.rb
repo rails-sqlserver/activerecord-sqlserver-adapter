@@ -3,10 +3,13 @@ require 'models/person'
 
 class MigrationTestSqlserver < ActiveRecord::TestCase
   
+  def setup
+    @connection = ActiveRecord::Base.connection
+  end
+  
   context 'For transactions' do
     
     setup do
-      @connection = ActiveRecord::Base.connection
       @trans_test_table1 = 'sqlserver_trans_table1'
       @trans_test_table2 = 'sqlserver_trans_table2'
       @trans_tables = [@trans_test_table1,@trans_test_table2]
@@ -26,6 +29,21 @@ class MigrationTestSqlserver < ActiveRecord::TestCase
       end
       assert_does_not_contain @trans_test_table1, @connection.tables
       assert_does_not_contain @trans_test_table2, @connection.tables
+    end
+    
+  end
+  
+  context 'For changing column' do
+    
+    should 'not raise exception when column contains default constraint' do
+      lock_version_column = Person.columns_hash['lock_version']
+      assert_equal :integer, lock_version_column.type
+      assert lock_version_column.default.present?
+      assert_nothing_raised { @connection.change_column 'people', 'lock_version', :string }
+      Person.reset_column_information
+      lock_version_column = Person.columns_hash['lock_version']
+      assert_equal :string, lock_version_column.type
+      assert lock_version_column.default.nil?
     end
     
   end

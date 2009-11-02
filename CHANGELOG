@@ -1,6 +1,10 @@
 
 MASTER
 
+* Change column/view cache to happen at class level. Allows connection pool to share same
+  caches as well as the ability to expire the caches when needed. Also fix change_column so 
+  that exceptions are not raised when the column contains an existing default. [Ken Collins]
+
 * Allow query_requires_identity_insert? method to return quoted table name in situations where the 
   INSERT parts are not quoted themselves. [Gary/iawgens, Richard Penwell, Ken Collins]
 

@@ -568,13 +568,13 @@ module ActiveRecord
       end
       
       def views(name = nil)
-        @sqlserver_views_cache ||= 
+        @@sqlserver_views_cache ||= 
           info_schema_query { select_values("SELECT TABLE_NAME FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_NAME NOT IN ('sysconstraints','syssegments')") }
       end
       
       def view_information(table_name)
         table_name = unqualify_table_name(table_name)
-        @sqlserver_view_information_cache[table_name] ||= begin
+        @@sqlserver_view_information_cache[table_name] ||= begin
           view_info = info_schema_query { select_one("SELECT * FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_NAME = '#{table_name}'") }
           if view_info
             if view_info['VIEW_DEFINITION'].blank? || view_info['VIEW_DEFINITION'].length == 4000
@@ -615,7 +615,7 @@ module ActiveRecord
       def columns(table_name, name = nil)
         return [] if table_name.blank?
         cache_key = unqualify_table_name(table_name)
-        @sqlserver_columns_cache[cache_key] ||= column_definitions(table_name).collect do |ci|
+        @@sqlserver_columns_cache[cache_key] ||= column_definitions(table_name).collect do |ci|
           sqlserver_options = ci.except(:name,:default_value,:type,:null)
           SQLServerColumn.new ci[:name], ci[:default_value], ci[:type], ci[:null], sqlserver_options
         end
@@ -623,7 +623,7 @@ module ActiveRecord
       
       def create_table(table_name, options = {})
         super
-        remove_sqlserver_columns_cache_for(table_name)
+        initialize_sqlserver_caches
       end
       
       def rename_table(table_name, new_name)
@@ -632,12 +632,12 @@ module ActiveRecord
       
       def drop_table(table_name, options = {})
         super
-        remove_sqlserver_columns_cache_for(table_name)
+        initialize_sqlserver_caches
       end
       
       def add_column(table_name, column_name, type, options = {})
         super
-        remove_sqlserver_columns_cache_for(table_name)
+        initialize_sqlserver_caches
       end
       
       def remove_column(table_name, *column_names)
@@ -647,32 +647,32 @@ module ActiveRecord
           remove_indexes(table_name, column_name)
           do_execute "ALTER TABLE #{quote_table_name(table_name)} DROP COLUMN #{quote_column_name(column_name)}"
         end
-        remove_sqlserver_columns_cache_for(table_name)
+        initialize_sqlserver_caches
       end
       
       def change_column(table_name, column_name, type, options = {})
         sql_commands = []
+        remove_default_constraint(table_name, column_name)
         change_column_sql = "ALTER TABLE #{quote_table_name(table_name)} ALTER COLUMN #{quote_column_name(column_name)} #{type_to_sql(type, options[:limit], options[:precision], options[:scale])}"
         change_column_sql << " NOT NULL" if options[:null] == false
         sql_commands << change_column_sql
         if options_include_default?(options)
-          remove_default_constraint(table_name, column_name)
           sql_commands << "ALTER TABLE #{quote_table_name(table_name)} ADD CONSTRAINT #{default_name(table_name,column_name)} DEFAULT #{quote(options[:default])} FOR #{quote_column_name(column_name)}"
         end
         sql_commands.each { |c| do_execute(c) }
-        remove_sqlserver_columns_cache_for(table_name)
+        initialize_sqlserver_caches
       end
       
       def change_column_default(table_name, column_name, default)
         remove_default_constraint(table_name, column_name)
         do_execute "ALTER TABLE #{quote_table_name(table_name)} ADD CONSTRAINT #{default_name(table_name, column_name)} DEFAULT #{quote(default)} FOR #{quote_column_name(column_name)}"
-        remove_sqlserver_columns_cache_for(table_name)
+        initialize_sqlserver_caches
       end
       
       def rename_column(table_name, column_name, new_column_name)
         column_for(table_name,column_name)
         do_execute "EXEC sp_rename '#{table_name}.#{column_name}', '#{new_column_name}', 'COLUMN'"
-        remove_sqlserver_columns_cache_for(table_name)
+        initialize_sqlserver_caches
       end
       
       def remove_index(table_name, options = {})
@@ -1020,16 +1020,10 @@ module ActiveRecord
         end
       end
       
-      def remove_sqlserver_columns_cache_for(table_name)
-        cache_key = unqualify_table_name(table_name)
-        @sqlserver_columns_cache[cache_key] = nil
-        initialize_sqlserver_caches(false)
-      end
-      
-      def initialize_sqlserver_caches(reset_columns=true)
-        @sqlserver_columns_cache = {} if reset_columns
-        @sqlserver_views_cache = nil
-        @sqlserver_view_information_cache = {}
+      def initialize_sqlserver_caches
+        @@sqlserver_columns_cache = {}
+        @@sqlserver_views_cache = nil
+        @@sqlserver_view_information_cache = {}
       end
       
       def column_definitions(table_name)
