@@ -1,5 +1,5 @@
 require 'autotest'
-require 'activesupport'
+require 'active_support'
 
 class Autotest::Sqlserver < Autotest
 

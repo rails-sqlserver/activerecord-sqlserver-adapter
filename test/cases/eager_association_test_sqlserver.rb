@@ -1,6 +1,6 @@
 require 'cases/sqlserver_helper'
-require 'models/author'
 require 'models/post'
+require 'models/author'
 require 'models/comment'
 
 class EagerAssociationTestSqlserver < ActiveRecord::TestCase
