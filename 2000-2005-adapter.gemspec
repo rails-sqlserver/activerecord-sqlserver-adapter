@@ -44,6 +44,7 @@ Gem::Specification.new do |s|
     "test/cases/table_name_test_sqlserver.rb",
     "test/cases/transaction_test_sqlserver.rb",
     "test/cases/unicode_test_sqlserver.rb",
+    "test/cases/validations_test_sqlserver.rb",
     "test/connections/native_sqlserver/connection.rb",
     "test/connections/native_sqlserver_odbc/connection.rb",
     "test/migrations/transaction_table/1_table_will_never_be_created.rb",

@@ -1,7 +1,7 @@
 
 MASTER
 
-* Coerce named scope test [Ken Collins]
+* Coerce a few tests that were failing in 2.3.x [Ken Collins]
 
 * Change column/view cache to happen at class level. Allows connection pool to share same
   caches as well as the ability to expire the caches when needed. Also fix change_column so 
