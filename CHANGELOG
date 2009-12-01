@@ -1,6 +1,8 @@
 
 MASTER
 
+* Table and column aliases can handle many. Resolves ticket #19 [stonegao]
+
 * Coerce a few tests that were failing in 2.3.x [Ken Collins]
 
 * Change column/view cache to happen at class level. Allows connection pool to share same

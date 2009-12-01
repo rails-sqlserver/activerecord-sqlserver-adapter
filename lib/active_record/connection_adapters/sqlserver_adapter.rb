@@ -481,7 +481,7 @@ module ActiveRecord
               order_by_column, order_direction = field.split(" ")
               order_by_column = quote_column_name(order_by_column)
               # Investigate the SQL query to figure out if the order_by_column has been renamed.
-              if sql =~ /#{Regexp.escape(order_by_column)} AS (t\d_r\d\d?)/
+              if sql =~ /#{Regexp.escape(order_by_column)} AS (t\d+_r\d+)/
                 # Fx "[foo].[bar] AS t4_r2" was found in the SQL. Use the column alias (ie 't4_r2') for the subsequent orderings
                 order_by_column = $1
               elsif order_by_column =~ /\w+\.\[?(\w+)\]?/
