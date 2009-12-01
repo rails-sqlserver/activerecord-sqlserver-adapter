@@ -34,6 +34,7 @@ Gem::Specification.new do |s|
     "test/cases/inheritance_test_sqlserver.rb",
     "test/cases/method_scoping_test_sqlserver.rb",
     "test/cases/migration_test_sqlserver.rb",
+    "test/cases/named_scope_test_sqlserver.rb",
     "test/cases/offset_and_limit_test_sqlserver.rb",
     "test/cases/pessimistic_locking_test_sqlserver.rb",
     "test/cases/query_cache_test_sqlserver.rb",
