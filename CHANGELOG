@@ -1,6 +1,9 @@
 
 MASTER
 
+
+* 2.3 * (December 1st, 2009)
+
 * Table and column aliases can handle many. Resolves ticket #19 [stonegao]
 
 * Coerce a few tests that were failing in 2.3.x [Ken Collins]
