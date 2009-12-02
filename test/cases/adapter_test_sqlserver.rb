@@ -30,7 +30,7 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
     end
     
     should 'include version in inspect' do
-      assert_match(/version\: \d.\d.\d/,@connection.inspect)
+      assert_match(/version\: \d.\d/,@connection.inspect)
     end
     
     should 'support migrations' do
