@@ -140,7 +140,8 @@ Optionally configure your gem dependencies in your rails environment.rb file.
 
   config.gem 'dbi', :version => '0.4.1'
   config.gem 'dbd-odbc', :version => '0.2.4', :lib => 'dbd/ODBC'
-  config.gem 'activerecord-sqlserver-adapter',    :version => 'x.x.xx'
+  config.gem 'activerecord-sqlserver-adapter', :version => 'x.x.xx', 
+                                               :lib => 'active_record/connection_adapters/sqlserver_adapter'
 
 Here are some external links for libraries and/or tutorials on how to install any other additional components to use this adapter. If you know of a good one that we can include here, just let us know.
 
