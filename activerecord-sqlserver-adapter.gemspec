@@ -18,7 +18,7 @@ Gem::Specification.new do |s|
     "autotest/discover.rb",
     "autotest/railssqlserver.rb",
     "autotest/sqlserver.rb",
-    "lib/activerecord-sqlserver-adapter",
+    "lib/activerecord-sqlserver-adapter.rb",
     "lib/active_record/connection_adapters/sqlserver_adapter.rb",
     "lib/active_record/connection_adapters/sqlserver_adapter/core_ext/active_record.rb",
     "lib/active_record/connection_adapters/sqlserver_adapter/core_ext/dbi.rb" ]
