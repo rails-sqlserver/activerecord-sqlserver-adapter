@@ -1,6 +1,8 @@
 
 MASTER
 
+* Leave order by alone when same column crosses two tables [Ransom Briggs]
+
 
 * 2.3 * (December 1st, 2009)
 

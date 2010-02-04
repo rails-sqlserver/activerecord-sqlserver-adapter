@@ -218,6 +218,10 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
         assert_equal 'MIN(comments.id) DESC, MIN(comments.post_id) ASC', order_to_min_set(@two_orders_with_desc_and_asc)
       end
       
+      should 'leave order by alone when same column crosses two tables' do
+        assert_equal ' ORDER BY developers.name, projects.name', add_order!('developers.name, projects.name')
+      end
+      
     end
     
     context 'with different language' do

@@ -83,10 +83,11 @@ module ActiveRecord
                                                     else
                                                       [nil, ord_tn_and_cn.first]
                                                     end
-                  if (ord_table_name && ord_table_name == select_table_name && unique_order_hash[ord_column_name]) || unique_order_hash[ord_column_name]
+                  unique_key = [(ord_table_name || select_table_name), ord_column_name]
+                  if unique_order_hash[unique_key]
                     array
                   else
-                    unique_order_hash[ord_column_name] = true
+                    unique_order_hash[unique_key] = true
                     array << "#{ord} #{dir}".strip
                   end
                 end.join(', ')
