@@ -1,6 +1,6 @@
 require 'active_record/connection_adapters/abstract_adapter'
-require_library_or_gem 'dbi' unless defined?(DBI)
-require 'active_record/connection_adapters/sqlserver_adapter/core_ext/dbi'
+require_library_or_gem 'odbc' unless defined?(ODBC)
+require File.dirname(__FILE__)+'/sqlserver_adapter/core_ext/odbc'
 require 'active_record/connection_adapters/sqlserver_adapter/core_ext/active_record'
 require 'base64'
 
@@ -10,20 +10,11 @@ module ActiveRecord
     
     def self.sqlserver_connection(config) #:nodoc:
       config.symbolize_keys!
-      mode        = config[:mode] ? config[:mode].to_s.upcase : 'ADO'
       username    = config[:username] ? config[:username].to_s : 'sa'
       password    = config[:password] ? config[:password].to_s : ''
-      if mode == "ODBC"
-        raise ArgumentError, "Missing DSN. Argument ':dsn' must be set in order for this adapter to work." unless config.has_key?(:dsn)
-        dsn       = config[:dsn]
-        driver_url = "DBI:ODBC:#{dsn}"
-      else
-        raise ArgumentError, "Missing Database. Argument ':database' must be set in order for this adapter to work." unless config.has_key?(:database)
-        database  = config[:database]
-        host      = config[:host] ? config[:host].to_s : 'localhost'
-        driver_url = "DBI:ADO:Provider=SQLOLEDB;Data Source=#{host};Initial Catalog=#{database};User ID=#{username};Password=#{password};"
-      end
-      ConnectionAdapters::SQLServerAdapter.new(logger, [driver_url, username, password])
+      raise ArgumentError, "Missing DSN. Argument ':dsn' must be set in order for this adapter to work." unless config.has_key?(:dsn)
+      dsn       = config[:dsn]
+      ConnectionAdapters::SQLServerAdapter.new(logger, [dsn, username, password])
     end
     
     protected
@@ -147,53 +138,28 @@ module ActiveRecord
       
     end #SQLServerColumn
     
-    # In ADO mode, this adapter will ONLY work on Windows systems, since it relies on 
-    # Win32OLE, which, to my knowledge, is only available on Windows.
-    #
-    # This mode also relies on the ADO support in the DBI module. If you are using the
-    # one-click installer of Ruby, then you already have DBI installed, but the ADO module 
-    # is *NOT* installed. You will need to get the latest source distribution of Ruby-DBI 
-    # from http://ruby-dbi.sourceforge.net/ unzip it, and copy the file from 
-    # <tt>src/lib/dbd_ado/ADO.rb</tt> to <tt>X:/Ruby/lib/ruby/site_ruby/1.8/DBD/ADO/ADO.rb</tt>
-    # 
-    # You will more than likely need to create the ADO directory. Once you've installed 
-    # that file, you are ready to go.
-    # 
     # In ODBC mode, the adapter requires the ODBC support in the DBI module which requires
     # the Ruby ODBC module. Ruby ODBC 0.996 was used in development and testing,
     # and it is available at http://www.ch-werner.de/rubyodbc/
     #
     # Options:
     #
-    # * <tt>:mode</tt>          -- ADO or ODBC. Defaults to ADO.
     # * <tt>:username</tt>      -- Defaults to sa.
     # * <tt>:password</tt>      -- Defaults to empty string.
-    # * <tt>:windows_auth</tt>  -- Defaults to "User ID=#{username};Password=#{password}"
-    #
-    # ADO specific options:
-    #
-    # * <tt>:host</tt>          -- Defaults to localhost.
-    # * <tt>:database</tt>      -- The name of the database. No default, must be provided.
-    # * <tt>:windows_auth</tt>  -- Use windows authentication instead of username/password.
-    #
-    # ODBC specific options:
-    #
     # * <tt>:dsn</tt>           -- Defaults to nothing.
     # 
     class SQLServerAdapter < AbstractAdapter
       
       ADAPTER_NAME            = 'SQLServer'.freeze
-      VERSION                 = '2.3'.freeze
+      VERSION                 = '2.4-mmi'.freeze
       DATABASE_VERSION_REGEXP = /Microsoft SQL Server\s+(\d{4})/
       SUPPORTED_VERSIONS      = [2000,2005,2008].freeze
       LIMITABLE_TYPES         = ['string','integer','float','char','nchar','varchar','nvarchar'].freeze
       
-      LOST_CONNECTION_EXCEPTIONS = [DBI::DatabaseError, DBI::InterfaceError]
+      LOST_CONNECTION_EXCEPTIONS = [ODBC::Error] #[DBI::DatabaseError, DBI::InterfaceError]
       LOST_CONNECTION_MESSAGES = [
-        'Communication link failure',
-        'Read from the server failed',
-        'Write to the server failed',
-        'Database connection was already closed']
+        'Invalid handle'
+      ]
       
       cattr_accessor :native_text_database_type, :native_binary_database_type, :native_string_database_type,
                      :log_info_schema_queries, :enable_default_unicode_types, :auto_connect
@@ -349,7 +315,7 @@ module ActiveRecord
       # CONNECTION MANAGEMENT ====================================#
       
       def active?
-        raw_connection.execute("SELECT 1").finish
+        raw_connection.run("SELECT 1").drop
         true
       rescue *LOST_CONNECTION_EXCEPTIONS
         false
@@ -366,7 +332,7 @@ module ActiveRecord
       end
       
       def finish_statement_handle(handle)
-        handle.finish if handle && handle.respond_to?(:finish) && !handle.finished?
+        handle.drop if handle && handle.respond_to?(:drop) && !handle.finished?
         handle
       end
       
@@ -771,15 +737,15 @@ module ActiveRecord
       # CONNECTION MANAGEMENT ====================================#
       
       def connect
-        driver_url, username, password = @connection_options
-        @connection = DBI.connect(driver_url, username, password)
+        dsn, username, password = @connection_options
+        @connection = ODBC.connect(dsn, username, password)
         configure_connection
       rescue
         raise unless @auto_connecting
       end
       
       def configure_connection
-        raw_connection['AutoCommit'] = true
+        # raw_connection['AutoCommit'] = true
       end
       
       def with_auto_reconnect
@@ -839,9 +805,9 @@ module ActiveRecord
       def raw_execute(sql, name = nil, &block)
         log(sql, name) do
           if block_given?
-            with_auto_reconnect { raw_connection.execute(sql) { |handle| yield(handle) } }
+            with_auto_reconnect { raw_connection.run_block(sql) { |handle| yield(handle) } }
           else
-            with_auto_reconnect { raw_connection.execute(sql) }
+            with_auto_reconnect { raw_connection.run(sql) }
           end
         end
       end
@@ -861,12 +827,12 @@ module ActiveRecord
       
       def raw_select(sql, name = nil)
         handle = raw_execute(sql,name)
-        fields = handle.column_names
+        fields = handle.columns(true).map{|c|c.name}
         results = handle_as_array(handle)
         rows = results.inject([]) do |rows,row|
           row.each_with_index do |value, i|
             # DEPRECATED in DBI 0.4.0 and above. Remove when 0.2.2 and lower is no longer supported.
-            if value.is_a? DBI::Timestamp
+            if value.is_a? ODBC::TimeStamp
               row[i] = value.to_sqlserver_string
             end
           end

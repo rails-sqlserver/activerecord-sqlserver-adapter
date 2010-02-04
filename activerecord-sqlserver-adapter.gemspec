@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name     = "activerecord-sqlserver-adapter"
-  s.version  = "2.3.1"
+  s.version  = "2.3.2.mmi"
   s.date     = "2009-09-10"
   s.summary  = "SQL Server 2000, 2005 and 2008 Adapter For Rails."
   s.email    = "ken@metaskills.net"
@@ -21,7 +21,7 @@ Gem::Specification.new do |s|
     "lib/activerecord-sqlserver-adapter.rb",
     "lib/active_record/connection_adapters/sqlserver_adapter.rb",
     "lib/active_record/connection_adapters/sqlserver_adapter/core_ext/active_record.rb",
-    "lib/active_record/connection_adapters/sqlserver_adapter/core_ext/dbi.rb" ]
+    "lib/active_record/connection_adapters/sqlserver_adapter/core_ext/odbc.rb" ]
   s.test_files = [
     "test/cases/aaaa_create_tables_test_sqlserver.rb",
     "test/cases/adapter_test_sqlserver.rb",
