@@ -1,6 +1,9 @@
 
 MASTER
 
+* Insert queries that include the word "insert" as a partial column name with the word 
+  "id" as a value were falsely being matched as identity inserts. [Sean Caffery/bfabry]
+
 * Delegate all low level #raw_connection calls to #raw_connection_run and #raw_connection_do
   which abstract out the low level modes in the connection options at that point. [Ken Collins]
 
