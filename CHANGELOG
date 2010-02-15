@@ -1,6 +1,8 @@
 
 MASTER
 
+2.3.2
+
 * Insert queries that include the word "insert" as a partial column name with the word 
   "id" as a value were falsely being matched as identity inserts. [Sean Caffery/bfabry]
 

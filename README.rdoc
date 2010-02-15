@@ -6,6 +6,7 @@ The SQL Server adapter for rails is back for ActiveRecord 2.2 and up! We are cur
 
 == What's New
 
+* Strict ODBC required! No DBI means around 20% faster!
 * Now supports SQL Server 2008 too!
 * Fully tested under 1.9!!! Correctly encodes/decodes UTF-8 types in ruby 1.9 too.
 * Now supports both rails 2.2 & 2.3!!!
@@ -128,24 +129,16 @@ It is our goal to match the adapter version with each version of rails. However 
 
 == Installation
 
-First, you will need Ruby DBI and Ruby ODBC. If you are using the adapter under 1.9, then you need at least ruby-odbc version 0.9996. To my knowledge the ADO DBD for DBI is no longer supported. The installation below is not a comprehensive walk thru on how to get all the required moving parts like FreeTDS installed and/or configured. It will also assume gem installations of both the dependent libraries and the adapter itself.
+You will need Ruby ODBC. If you are using the adapter under 1.9, then you need at least ruby-odbc version 0.9996. Currently ADO modes are not supported since we dropped the unnecessary DBI dependency and transport layer. This was done so we could incorporate other transports such as ADO.NET (w IronRuby) mode in the future or possibly a straight FreeTDS layer. The sky is the limit now and we have a code that can be accept these optional transports. If you are interested in helping, open a ticket and submit a patch. Or start a conversation on the Google Group.
 
-It should be noted that this version of the adapter was developed using both the ancient 0.0.23 version of DBI up to the current stable release of 0.4.1. Note that DBI 0.4.1 is the minimal for ruby 1.9 compatibility. Because later versions of DBI will be changing many things, IT IS HIGHLY NECESSARY that you max your install to version 0.4.1 which the examples below show. For the time being we are not supporting DBI versions higher than 0.4.1 this they settle down on new internal implementations.
-
-  $ gem install dbi --version 0.4.1
-  $ gem install dbd-odbc --version 0.2.4
   $ gem install activerecord-sqlserver-adapter
 
 Optionally configure your gem dependencies in your rails environment.rb file.
 
-  config.gem 'dbi', :version => '0.4.1'
-  config.gem 'dbd-odbc', :version => '0.2.4', :lib => 'dbd/ODBC'
-  config.gem 'activerecord-sqlserver-adapter', :version => 'x.x.xx', 
-                                               :lib => 'active_record/connection_adapters/sqlserver_adapter'
+  config.gem 'activerecord-sqlserver-adapter', :version => 'x.x.xx'
 
 Here are some external links for libraries and/or tutorials on how to install any other additional components to use this adapter. If you know of a good one that we can include here, just let us know.
 
-* http://ruby-dbi.sourceforge.net/
 * http://www.ch-werner.de/rubyodbc/
 
 
