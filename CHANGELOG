@@ -1,6 +1,9 @@
 
 MASTER
 
+* Delegate all low level #raw_connection calls to #raw_connection_run and #raw_connection_do
+  which abstract out the low level modes in the connection options at that point. [Ken Collins]
+
 * Remove DBI dependency and go straight ODBC for speed improvement [Erik Bryn]
 
 * Leave order by alone when same column crosses two tables [Ransom Briggs]

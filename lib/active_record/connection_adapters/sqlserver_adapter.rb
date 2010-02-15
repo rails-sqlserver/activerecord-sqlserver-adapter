@@ -326,7 +326,7 @@ module ActiveRecord
       # CONNECTION MANAGEMENT ====================================#
       
       def active?
-        raw_connection.run("SELECT 1").drop
+        raw_connection_do("SELECT 1")
         true
       rescue *lost_connection_exceptions
         false
@@ -340,6 +340,26 @@ module ActiveRecord
 
       def disconnect!
         raw_connection.disconnect rescue nil
+      end
+      
+      def raw_connection_run(sql)
+        with_auto_reconnect do
+          case connection_mode
+          when :odbc
+            block_given? ? raw_connection.run_block(sql) { |handle| yield(handle) } : raw_connection.run(sql)
+          else :ado
+
+          end
+        end
+      end
+      
+      def raw_connection_do(sql)
+        case connection_mode
+        when :odbc
+          raw_connection.do(sql)
+        else :ado
+          
+        end
       end
       
       def finish_statement_handle(handle)
@@ -827,25 +847,12 @@ module ActiveRecord
       end
       
       def raw_execute(sql, name = nil, &block)
-        log(sql, name) do
-          if block_given?
-            with_auto_reconnect { raw_connection.run_block(sql) { |handle| yield(handle) } }
-          else
-            with_auto_reconnect { raw_connection.run(sql) }
-          end
-        end
-      end
-      
-      def without_type_conversion
-        raw_connection.convert_types = false if raw_connection.respond_to?(:convert_types=)
-        yield
-      ensure
-        raw_connection.convert_types = true if raw_connection.respond_to?(:convert_types=)
+        log(sql,name) { raw_connection_run(sql) }
       end
       
       def do_execute(sql,name=nil)
         log(sql, name || 'EXECUTE') do
-          with_auto_reconnect { raw_connection.do(sql) }
+          with_auto_reconnect { raw_connection_do(sql) }
         end
       end
       
@@ -1042,7 +1049,7 @@ module ActiveRecord
           WHERE columns.TABLE_NAME = '#{table_name}'
           ORDER BY columns.ordinal_position
         }.gsub(/[ \t\r\n]+/,' ')
-        results = info_schema_query { without_type_conversion{ select(sql,nil,true) } }
+        results = info_schema_query { select(sql,nil,true) }
         results.collect do |ci|
           ci.symbolize_keys!
           ci[:type] = case ci[:type]
@@ -1059,7 +1066,7 @@ module ActiveRecord
             real_table_name = table_name_or_views_table_name(table_name)
             real_column_name = views_real_column_name(table_name,ci[:name])
             col_default_sql = "SELECT c.COLUMN_DEFAULT FROM INFORMATION_SCHEMA.COLUMNS c WHERE c.TABLE_NAME = '#{real_table_name}' AND c.COLUMN_NAME = '#{real_column_name}'"
-            ci[:default_value] = info_schema_query { without_type_conversion{ select_value(col_default_sql) } }
+            ci[:default_value] = info_schema_query { select_value(col_default_sql) }
           end
           ci[:default_value] = case ci[:default_value]
                                when nil, '(null)', '(NULL)'
