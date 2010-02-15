@@ -1,6 +1,8 @@
 
 MASTER
 
+* Remove DBI dependency and go straight ODBC for speed improvement [Erik Bryn]
+
 * Leave order by alone when same column crosses two tables [Ransom Briggs]
 
 
