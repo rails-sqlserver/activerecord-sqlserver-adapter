@@ -128,6 +128,15 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
       assert !@connection.send(:insert_sql?,'UPDATE...')
       assert !@connection.send(:insert_sql?,'SELECT...')
     end
+    
+    context 'for #limited_update_conditions' do
+    
+      should 'only match up to the first WHERE' do
+        where_sql = "TOP 1 WHERE ([posts].author_id = 1 and [posts].columnWHEREname = 2)  ORDER BY posts.id"
+        assert_equal "WHERE bar IN (SELECT TOP 1  bar FROM foo WHERE ([posts].author_id = 1 and [posts].columnWHEREname = 2)  ORDER BY posts.id)", @connection.limited_update_conditions(where_sql, 'foo', 'bar')
+      end
+    
+    end
         
     context 'for #sql_for_association_limiting?' do
       

@@ -522,7 +522,7 @@ module ActiveRecord
       end
       
       def limited_update_conditions(where_sql, quoted_table_name, quoted_primary_key)
-        match_data = where_sql.match(/(.*)WHERE/)
+        match_data = where_sql.match(/^(.*?[\]\) ])WHERE[\[\( ]/)
         limit = match_data[1]
         where_sql.sub!(limit,'')
         "WHERE #{quoted_primary_key} IN (SELECT #{limit} #{quoted_primary_key} FROM #{quoted_table_name} #{where_sql})"

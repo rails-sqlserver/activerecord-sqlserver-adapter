@@ -1,7 +1,8 @@
 
 MASTER
 
-* 
+* Altered limited_update_conditions regex conditions, the .* would greedily fail 
+  if the where_sql had WHERE in a table or field, etc. [Ransom Briggs]
 
 * Changing test to allow ENV['ARUNIT_DB_NAME'] as the database name for the test units. 
   Matches up with AR conventions. [Ransom Briggs]
