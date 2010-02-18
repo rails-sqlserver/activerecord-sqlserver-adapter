@@ -1,6 +1,9 @@
 
 MASTER
 
+* For tables that named with schema(ex. rails.users), they could not get length of column.
+  column of varchar(40) gets length => nil. Ticket #27 & #15 [Ken Tachiya]
+
 * Altered limited_update_conditions regex conditions, the .* would greedily fail 
   if the where_sql had WHERE in a table or field, etc. [Ransom Briggs]
 

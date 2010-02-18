@@ -1042,7 +1042,7 @@ module ActiveRecord
           columns.NUMERIC_PRECISION as numeric_precision,
           CASE
             WHEN columns.DATA_TYPE IN ('nchar','nvarchar') THEN columns.CHARACTER_MAXIMUM_LENGTH
-            ELSE COL_LENGTH(columns.TABLE_NAME, columns.COLUMN_NAME) 
+            ELSE COL_LENGTH(columns.TABLE_SCHEMA+'.'+columns.TABLE_NAME, columns.COLUMN_NAME)
           END as length,
           CASE
             WHEN columns.IS_NULLABLE = 'YES' THEN 1
