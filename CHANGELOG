@@ -1,6 +1,12 @@
 
 MASTER
 
+* 
+
+* Changing test to allow ENV['ARUNIT_DB_NAME'] as the database name for the test units. 
+  Matches up with AR conventions. [Ransom Briggs]
+
+
 2.3.3
   
 * Revert #ad83df82 and again cache column information at the connection's instance. The 

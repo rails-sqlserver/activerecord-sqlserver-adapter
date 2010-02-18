@@ -16,7 +16,7 @@ class ExecuteProcedureTestSqlserver < ActiveRecord::TestCase
     tables = @klass.execute_procedure :sp_tables, 'sql_server_chronics'
     table_info = tables.first
     assert_equal 1, tables.size
-    assert_equal 'activerecord_unittest', table_info[:TABLE_QUALIFIER], "Table Info: #{table_info.inspect}"
+    assert_equal (ENV['ARUNIT_DB_NAME'] || 'activerecord_unittest'), table_info[:TABLE_QUALIFIER], "Table Info: #{table_info.inspect}"
     assert_equal 'TABLE', table_info[:TABLE_TYPE], "Table Info: #{table_info.inspect}"
   end
   
