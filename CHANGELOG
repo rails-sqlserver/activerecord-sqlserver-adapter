@@ -1,6 +1,9 @@
 
 MASTER
 
+
+* 2.3.4
+
 * For tables that named with schema(ex. rails.users), they could not get length of column.
   column of varchar(40) gets length => nil. Ticket #27 & #15 [Ken Tachiya]
 
