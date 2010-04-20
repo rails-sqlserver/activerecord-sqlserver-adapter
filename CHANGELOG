@@ -1,6 +1,9 @@
 
 MASTER
 
+* Using change_column will leave default if the type does not change or a new default
+  is not included. Fixes issue #22. [Ransom Briggs]
+
 * Use correct SP name for sp_MSforeachtable so any collation can get to it. [7to3]
 
 * Qualify INFORMATION_SCHEMA.COLUMNS with a correct period DB name if present.
