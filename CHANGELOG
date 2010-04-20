@@ -1,6 +1,8 @@
 
 MASTER
 
+* Use correct SP name for sp_MSforeachtable so any collation can get to it. [7to3]
+
 * Qualify INFORMATION_SCHEMA.COLUMNS with a correct period DB name if present.
 
 * Allow adapter to return multipe results sets, for example from stored procedures. [Chris Hall]

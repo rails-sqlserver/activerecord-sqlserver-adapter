@@ -317,10 +317,10 @@ module ActiveRecord
       # REFERENTIAL INTEGRITY ====================================#
       
       def disable_referential_integrity(&block)
-        do_execute "EXEC sp_MSForEachTable 'ALTER TABLE ? NOCHECK CONSTRAINT ALL'"
+        do_execute "EXEC sp_MSforeachtable 'ALTER TABLE ? NOCHECK CONSTRAINT ALL'"
         yield
       ensure
-        do_execute "EXEC sp_MSForEachTable 'ALTER TABLE ? CHECK CONSTRAINT ALL'"
+        do_execute "EXEC sp_MSforeachtable 'ALTER TABLE ? CHECK CONSTRAINT ALL'"
       end
       
       # CONNECTION MANAGEMENT ====================================#
