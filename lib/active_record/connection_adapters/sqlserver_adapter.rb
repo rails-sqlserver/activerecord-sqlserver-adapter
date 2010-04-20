@@ -1047,6 +1047,7 @@ module ActiveRecord
       
       def column_definitions(table_name)
         db_name = unqualify_db_name(table_name)
+        db_name_with_period = "#{db_name}." if db_name
         table_name = unqualify_table_name(table_name)
         sql = %{
           SELECT
@@ -1068,7 +1069,7 @@ module ActiveRecord
             WHEN COLUMNPROPERTY(OBJECT_ID(columns.TABLE_SCHEMA+'.'+columns.TABLE_NAME), columns.COLUMN_NAME, 'IsIdentity') = 0 THEN NULL
             ELSE 1
           END as is_identity
-          FROM #{db_name}INFORMATION_SCHEMA.COLUMNS columns
+          FROM #{db_name_with_period}INFORMATION_SCHEMA.COLUMNS columns
           WHERE columns.TABLE_NAME = '#{table_name}'
           ORDER BY columns.ordinal_position
         }.gsub(/[ \t\r\n]+/,' ')
@@ -1088,7 +1089,7 @@ module ActiveRecord
           if ci[:default_value].nil? && views.include?(table_name)
             real_table_name = table_name_or_views_table_name(table_name)
             real_column_name = views_real_column_name(table_name,ci[:name])
-            col_default_sql = "SELECT c.COLUMN_DEFAULT FROM INFORMATION_SCHEMA.COLUMNS c WHERE c.TABLE_NAME = '#{real_table_name}' AND c.COLUMN_NAME = '#{real_column_name}'"
+            col_default_sql = "SELECT c.COLUMN_DEFAULT FROM #{db_name_with_period}INFORMATION_SCHEMA.COLUMNS c WHERE c.TABLE_NAME = '#{real_table_name}' AND c.COLUMN_NAME = '#{real_column_name}'"
             ci[:default_value] = info_schema_query { select_value(col_default_sql) }
           end
           ci[:default_value] = case ci[:default_value]

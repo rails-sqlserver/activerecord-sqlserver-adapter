@@ -1,6 +1,8 @@
 
 MASTER
 
+* Qualify INFORMATION_SCHEMA.COLUMNS with a correct period DB name if present.
+
 * Allow adapter to return multipe results sets, for example from stored procedures. [Chris Hall]
 
 
