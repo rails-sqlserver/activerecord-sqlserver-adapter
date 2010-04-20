@@ -1,6 +1,8 @@
 
 MASTER
 
+* Allow adapter to return multipe results sets, for example from stored procedures. [Chris Hall]
+
 
 * 2.3.4
 

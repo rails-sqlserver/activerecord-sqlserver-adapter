@@ -394,7 +394,7 @@ module ActiveRecord
       end
       
       def select_rows(sql, name = nil)
-        raw_select(sql,name).last
+        raw_select(sql,name).first.last
       end
       
       def execute(sql, name = nil, &block)
@@ -410,7 +410,11 @@ module ActiveRecord
         vars = variables.map{ |v| quote(v) }.join(', ')
         sql = "EXEC #{proc_name} #{vars}".strip
         select(sql,'Execute Procedure',true).inject([]) do |results,row|
-          results << row.with_indifferent_access
+          if row.kind_of?(Array)
+            results << row.inject([]) { |rs,r| rs << r.with_indifferent_access }
+          else
+            results << row.with_indifferent_access
+          end
         end
       end
       
@@ -824,7 +828,15 @@ module ActiveRecord
       
       def select(sql, name = nil, ignore_special_columns = false)
         repair_special_columns(sql) unless ignore_special_columns
-        fields, rows = raw_select(sql,name)
+        fields_and_row_sets = raw_select(sql,name)
+        final_result_set = fields_and_row_sets.inject([]) do |rs,fields_and_rows|
+          fields, rows = fields_and_rows
+          rs << zip_fields_and_rows(fields,rows)
+        end
+        final_result_set.many? ? final_result_set : final_result_set.first
+      end
+      
+      def zip_fields_and_rows(fields, rows)
         rows.inject([]) do |results,row|
           row_hash = {}
           fields.each_with_index do |f, i|
@@ -859,24 +871,28 @@ module ActiveRecord
       
       def raw_select(sql, name = nil)
         handle = raw_execute(sql,name)
-        fields = handle.columns(true).map{|c|c.name}
-        results = handle_as_array(handle)
-        rows = results.inject([]) do |rows,row|
-          row.each_with_index do |value, i|
-            if value.is_a? ODBC::TimeStamp
-              row[i] = value.to_sqlserver_string
+        fields_and_row_sets = []
+        loop do
+          fields = handle.columns(true).map{|c|c.name}
+          results = handle_as_array(handle)
+          rows = results.inject([]) do |rows,row|
+            row.each_with_index do |value, i|
+              if value.is_a? ODBC::TimeStamp
+                row[i] = value.to_sqlserver_string
+              end
             end
+            rows << row
           end
-          rows << row
+          fields_and_row_sets << [fields,rows]
+          finish_statement_handle(handle) && break unless handle.more_results
         end
-        return fields, rows
+        fields_and_row_sets
       end
       
       def handle_as_array(handle)
         array = handle.inject([]) do |rows,row|
           rows << row.inject([]){ |values,value| values << value }
         end
-        finish_statement_handle(handle)
         array
       end
       

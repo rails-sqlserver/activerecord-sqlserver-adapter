@@ -29,5 +29,16 @@ class ExecuteProcedureTestSqlserver < ActiveRecord::TestCase
     end if sqlserver_2000?
   end
   
+  should 'allow multiple result sets to be returned' do
+    results1, results2 = @klass.execute_procedure('sp_helpconstraint','accounts')
+    assert_instance_of Array, results1
+    assert_instance_of HashWithIndifferentAccess, results1.first
+    assert results1.first['Object Name']
+    assert_instance_of Array, results2
+    assert_instance_of HashWithIndifferentAccess, results2.first
+    assert results2.first['constraint_name']
+    assert results2.first['constraint_type']
+  end
+  
   
 end
