@@ -54,10 +54,12 @@ module ActiveRecord
         end
         
         def string_to_binary(value)
+          value = value.dup.force_encoding(Encoding::BINARY) if value.respond_to?(:force_encoding)
          "0x#{value.unpack("H*")[0]}"
         end
         
         def binary_to_string(value)
+          value = value.dup.force_encoding(Encoding::BINARY) if value.respond_to?(:force_encoding)
           value =~ /[^[:xdigit:]]/ ? value : [value].pack('H*')
         end
         

@@ -1,6 +1,9 @@
 
 MASTER
 
+* Force a binary encoding on values coming in and out of those columns for ruby 1.9.
+  Fixes ticket #33 [Jeroen Zwartepoorte]
+
 * Using change_column will leave default if the type does not change or a new default
   is not included. Fixes issue #22. [Ransom Briggs]
 
