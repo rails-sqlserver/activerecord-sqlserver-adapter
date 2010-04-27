@@ -145,11 +145,15 @@ Here are some external links for libraries and/or tutorials on how to install an
 
 == IronRuby ADONET Mode
 
-A few details on this implementation. All that is needed in your database.yml configuration file is "mode: adonet" vs "odbc" and if you are running IronRuby, the connection will be native. No need for ANY DBI middle layer is needed or special extension to this adapter. The adapter is opinionated in regards to IronRuby on types coming out of the DB. For example strings will be String, not System::String and DateTime vs System::Datetime. This is so that we can pass all the ActiveRecord tests. When using the adapter it is best to stick with default Ruby types coming in and out. Currently IronRuby is passing most of the ActiveRecord tests. Here is a list of the ones remaining.
+A few details on this implementation. All that is needed in your database.yml configuration file is "mode: adonet" vs "odbc" and if you are running IronRuby, the connection will be native. You can also specify an "integrated_security: true" option in your configuration, remember to remove the username/password options too. To use this adapter, you will not need need ANY DBI middle layer or special extension gems to the adapter. 
+
+This adapter is opinionated in regards to IronRuby on types going in and out of the DB. For example strings will be String, not System::String and DateTime vs System::Datetime. There are many more examples but the rule of thumb is that the types will be simple types that correlate to a standard Ruby implementation. We enforce this basic rule because it is necessary to pass the tests and let the framework do its job. We recommend sticking to native Ruby types in your application code too.
+
+The adapter establishes a System::Data::SqlClient connection that has both MultipleActiveResultSets (MARS) and Pooling turned off. There are good reasons for this one because the connection would not work otherwise for all the code issued by ActiveRecord. Remember too that ActiveRecord has it's own connection pooling and these underlying features like MARS/Pooling work against the adapter code.
+
+Currently IronRuby is passing most of the ActiveRecord and Adapter tests. Here is a list of the ones remaining. Some are in the adapter's realm and some are in Marshaling area of IronRuby's core to fix. Feel like helping knock these out? Submit a patch to github issues.
 
 http://gist.github.com/381101
-
-Some are in the adapters realm and some are in Marshalling which is IronRuby core to fix. Feel like helping knock these out, submit a patch.
 
 
 == Contributing

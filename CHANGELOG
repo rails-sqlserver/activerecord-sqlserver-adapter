@@ -1,6 +1,9 @@
 
 MASTER
 
+
+* 2.3.5
+
 * Initial IronRuby ADONET connection mode support baked right in. Removed most &block 
   parameters, no handle/request object yielded anymore. Better abstraction and compliance 
   per the ActiveRecord abstract adapter to not yielding handles for #execute and only for 
