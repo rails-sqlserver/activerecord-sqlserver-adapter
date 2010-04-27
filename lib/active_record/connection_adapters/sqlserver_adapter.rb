@@ -16,7 +16,9 @@ module ActiveRecord
         require_library_or_gem 'odbc' unless defined?(ODBC)
         require 'active_record/connection_adapters/sqlserver_adapter/core_ext/odbc'
         raise ArgumentError, 'Missing :dsn configuration.' unless config.has_key?(:dsn)
-        config = config.slice :dsn, :username, :password
+      when :adonet
+        require 'System.Data'
+        raise ArgumentError, 'Missing :database configuration.' unless config.has_key?(:database)
       when :ado
         raise NotImplementedError, 'Please use version 2.3.1 of the adapter for ADO connections. Future versions may support ADO.NET.'
         raise ArgumentError, 'Missing :database configuration.' unless config.has_key?(:database)
@@ -166,12 +168,12 @@ module ActiveRecord
       SUPPORTED_VERSIONS          = [2000,2005,2008].freeze
       LIMITABLE_TYPES             = ['string','integer','float','char','nchar','varchar','nvarchar'].freeze
       LOST_CONNECTION_EXCEPTIONS  = {
-        :odbc => ['ODBC::Error'],
-        :ado  => []
+        :odbc   => ['ODBC::Error'],
+        :adonet => ['TypeError','System::Data::SqlClient::SqlException']
       }
       LOST_CONNECTION_MESSAGES    = {
-        :odbc => [/link failure/, /server failed/, /connection was already closed/, /invalid handle/i],
-        :ado  => []
+        :odbc   => [/link failure/, /server failed/, /connection was already closed/, /invalid handle/i],
+        :adonet => [/current state is closed/, /network-related/]
       }
       
       cattr_accessor :native_text_database_type, :native_binary_database_type, :native_string_database_type,
@@ -318,7 +320,7 @@ module ActiveRecord
       
       # REFERENTIAL INTEGRITY ====================================#
       
-      def disable_referential_integrity(&block)
+      def disable_referential_integrity
         do_execute "EXEC sp_MSforeachtable 'ALTER TABLE ? NOCHECK CONSTRAINT ALL'"
         yield
       ensure
@@ -341,32 +343,12 @@ module ActiveRecord
       end
 
       def disconnect!
-        raw_connection.disconnect rescue nil
-      end
-      
-      def raw_connection_run(sql)
-        with_auto_reconnect do
-          case connection_mode
-          when :odbc
-            block_given? ? raw_connection.run_block(sql) { |handle| yield(handle) } : raw_connection.run(sql)
-          else :ado
-
-          end
-        end
-      end
-      
-      def raw_connection_do(sql)
         case connection_mode
         when :odbc
-          raw_connection.do(sql)
-        else :ado
-          
+          raw_connection.disconnect rescue nil
+        else :adonet
+          raw_connection.close rescue nil
         end
-      end
-      
-      def finish_statement_handle(handle)
-        handle.drop if handle && handle.respond_to?(:drop) && !handle.finished?
-        handle
       end
       
       # DATABASE STATEMENTS ======================================#
@@ -399,13 +381,12 @@ module ActiveRecord
         raw_select(sql,name).first.last
       end
       
-      def execute(sql, name = nil, &block)
+      def execute(sql, name = nil, skip_logging = false)
         if table_name = query_requires_identity_insert?(sql)
-          handle = with_identity_insert_enabled(table_name) { raw_execute(sql,name,&block) }
+          with_identity_insert_enabled(table_name) { do_execute(sql,name) }
         else
-          handle = raw_execute(sql,name,&block)
+          do_execute(sql,name)
         end
-        finish_statement_handle(handle)
       end
       
       def execute_procedure(proc_name, *variables)
@@ -782,8 +763,19 @@ module ActiveRecord
         @connection = case connection_mode
                       when :odbc
                         ODBC.connect config[:dsn], config[:username], config[:password]
-                      when :ado
-                        
+                      when :adonet
+                        System::Data::SqlClient::SqlConnection.new.tap do |connection|
+                          connection.connection_string = System::Data::SqlClient::SqlConnectionStringBuilder.new.tap do |cs|
+                            cs.user_i_d = config[:username] if config[:username]
+                            cs.password = config[:password] if config[:password]
+                            cs.integrated_security = true if config[:integrated_security] == 'true'
+                            cs.add 'Server', config[:host].to_clr_string
+                            cs.initial_catalog = config[:database]
+                            cs.multiple_active_result_sets = false
+                            cs.pooling = false
+                          end.to_s
+                          connection.open
+                        end
                       end
       rescue
         raise unless @auto_connecting
@@ -829,6 +821,37 @@ module ActiveRecord
         @auto_connecting = false
       end
       
+      def raw_connection_run(sql)
+        with_auto_reconnect do
+          case connection_mode
+          when :odbc
+            block_given? ? raw_connection.run_block(sql) { |handle| yield(handle) } : raw_connection.run(sql)
+          else :adonet
+            raw_connection.create_command.tap{ |cmd| cmd.command_text = sql }.execute_reader
+          end
+        end
+      end
+      
+      def raw_connection_do(sql)
+        case connection_mode
+        when :odbc
+          raw_connection.do(sql)
+        else :adonet
+          raw_connection.create_command.tap{ |cmd| cmd.command_text = sql }.execute_non_query
+        end
+      end
+      
+      def finish_statement_handle(handle)
+        case connection_mode
+        when :odbc
+          handle.drop if handle && handle.respond_to?(:drop) && !handle.finished?
+        when :adonet
+          handle.close if handle && handle.respond_to?(:close) && !handle.is_closed
+          handle.dispose if handle && handle.respond_to?(:dispose)
+        end
+        handle
+      end
+      
       # DATABASE STATEMENTS ======================================
       
       def select(sql, name = nil, ignore_special_columns = false)
@@ -864,10 +887,6 @@ module ActiveRecord
         log_info_schema_queries ? yield : ActiveRecord::Base.silence{ yield }
       end
       
-      def raw_execute(sql, name = nil, &block)
-        log(sql,name) { raw_connection_run(sql) }
-      end
-      
       def do_execute(sql,name=nil)
         log(sql, name || 'EXECUTE') do
           with_auto_reconnect { raw_connection_do(sql) }
@@ -875,30 +894,80 @@ module ActiveRecord
       end
       
       def raw_select(sql, name = nil)
-        handle = raw_execute(sql,name)
         fields_and_row_sets = []
-        loop do
-          fields = handle.columns(true).map{|c|c.name}
-          results = handle_as_array(handle)
-          rows = results.inject([]) do |rows,row|
-            row.each_with_index do |value, i|
-              if value.is_a? ODBC::TimeStamp
-                row[i] = value.to_sqlserver_string
-              end
+        log(sql,name) do
+          begin
+            handle = raw_connection_run(sql)
+            loop do
+              fields_and_rows = case connection_mode
+                                when :odbc
+                                  handle_to_fields_and_rows_odbc(handle)
+                                when :adonet
+                                  handle_to_fields_and_rows_adonet(handle)
+                                end
+              fields_and_row_sets << fields_and_rows
+              break unless handle_more_results?(handle)
             end
-            rows << row
+          ensure
+            finish_statement_handle(handle)
           end
-          fields_and_row_sets << [fields,rows]
-          finish_statement_handle(handle) && break unless handle.more_results
         end
         fields_and_row_sets
       end
       
-      def handle_as_array(handle)
-        array = handle.inject([]) do |rows,row|
-          rows << row.inject([]){ |values,value| values << value }
+      def handle_more_results?(handle)
+        case connection_mode
+        when :odbc
+          handle.more_results
+        when :adonet
+          handle.next_result
         end
-        array
+      end
+      
+      def handle_to_fields_and_rows_odbc(handle)
+        fields = handle.columns(true).map { |c| c.name }
+        results = handle.inject([]) do |rows,row|
+          rows << row.inject([]) { |values,value| values << value }
+        end
+        rows = results.inject([]) do |rows,row|
+          row.each_with_index do |value, i|
+            if value.is_a? ODBC::TimeStamp
+              row[i] = value.to_sqlserver_string
+            end
+          end
+          rows << row
+        end
+        [fields,rows]
+      end
+      
+      def handle_to_fields_and_rows_adonet(handle)
+        if handle.has_rows
+          fields = []
+          rows = []
+          fields_named = false
+          while handle.read
+            row = []
+            handle.visible_field_count.times do |row_index|
+              value = handle.get_value(row_index)
+              value = if value.is_a? System::String
+                        value.to_s
+                      elsif value.is_a? System::DBNull
+                        nil
+                      elsif value.is_a? System::DateTime
+                        value.to_string("yyyy-MM-dd HH:MM:ss.fff").to_s
+                      else
+                        value
+                      end
+              row << value
+              fields << handle.get_name(row_index).to_s unless fields_named
+            end
+            rows << row
+            fields_named = true
+          end
+        else
+          fields, rows = [], []
+        end
+        [fields,rows]
       end
       
       def add_limit_offset_for_association_limiting!(sql, options)
@@ -945,7 +1014,7 @@ module ActiveRecord
       
       # IDENTITY INSERTS =========================================#
       
-      def with_identity_insert_enabled(table_name, &block)
+      def with_identity_insert_enabled(table_name)
         table_name = quote_table_name(table_name_or_views_table_name(table_name))
         set_identity_insert(table_name, true)
         yield

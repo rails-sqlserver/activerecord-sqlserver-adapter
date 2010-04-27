@@ -20,7 +20,6 @@ module ActiveRecord
               true
             end
           end
-          
         end
 
         module Database

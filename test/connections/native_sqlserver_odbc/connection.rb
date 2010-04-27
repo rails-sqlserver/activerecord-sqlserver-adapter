@@ -1,4 +1,4 @@
-print "Using native SQLServer via ODBC\n"
+print "Using SQLServer via ODBC\n"
 require_dependency 'models/course'
 require 'logger'
 

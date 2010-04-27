@@ -6,7 +6,8 @@ The SQL Server adapter for rails is back for ActiveRecord 2.2 and up! We are cur
 
 == What's New
 
-* Strict ODBC required! No DBI means around 20% faster!
+* IronRuby support using ADONET connection mode.
+* Direct ODBC mode. No DBI anymore, means around 20% faster!
 * Now supports SQL Server 2008 too!
 * Fully tested under 1.9!!! Correctly encodes/decodes UTF-8 types in ruby 1.9 too.
 * Now supports both rails 2.2 & 2.3!!!
@@ -129,7 +130,7 @@ It is our goal to match the adapter version with each version of rails. However 
 
 == Installation
 
-You will need Ruby ODBC. If you are using the adapter under 1.9, then you need at least ruby-odbc version 0.9996. Currently ADO modes are not supported since we dropped the unnecessary DBI dependency and transport layer. This was done so we could incorporate other transports such as ADO.NET (w IronRuby) mode in the future or possibly a straight FreeTDS layer. The sky is the limit now and we have a code that can be accept these optional transports. If you are interested in helping, open a ticket and submit a patch. Or start a conversation on the Google Group.
+You will need Ruby ODBC. If you are using the adapter under 1.9, then you need at least ruby-odbc version 0.9996. ODBC is the preferred mode, however if you are using IronRuby you can use the ADONET connection mode which uses native System.Data connection. Other connection modes may be supported, possibly a straight FreeTDS layer. The sky is the limit now and we have a code that can be accept these optional transports. If you are interested in helping, open a ticket and submit a patch. Or start a conversation on the Google Group.
 
   $ gem install activerecord-sqlserver-adapter
 
@@ -140,6 +141,15 @@ Optionally configure your gem dependencies in your rails environment.rb file.
 Here are some external links for libraries and/or tutorials on how to install any other additional components to use this adapter. If you know of a good one that we can include here, just let us know.
 
 * http://www.ch-werner.de/rubyodbc/
+
+
+== IronRuby ADONET Mode
+
+A few details on this implementation. All that is needed in your database.yml configuration file is "mode: adonet" vs "odbc" and if you are running IronRuby, the connection will be native. No need for ANY DBI middle layer is needed or special extension to this adapter. The adapter is opinionated in regards to IronRuby on types coming out of the DB. For example strings will be String, not System::String and DateTime vs System::Datetime. This is so that we can pass all the ActiveRecord tests. When using the adapter it is best to stick with default Ruby types coming in and out. Currently IronRuby is passing most of the ActiveRecord tests. Here is a list of the ones remaining.
+
+http://gist.github.com/381101
+
+Some are in the adapters realm and some are in Marshalling which is IronRuby core to fix. Feel like helping knock these out, submit a patch.
 
 
 == Contributing

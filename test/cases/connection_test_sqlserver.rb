@@ -13,21 +13,15 @@ class ConnectionTestSqlserver < ActiveRecord::TestCase
   
   
   should 'return finished ODBC statment handle from #execute without block' do
-    handle = @connection.execute('SELECT * FROM [topics]')
-    assert_instance_of ODBC::Statement, handle
-    assert handle.finished?
+    assert_all_statements_used_are_closed do
+      @connection.execute('SELECT * FROM [topics]')
+    end
   end
   
   should 'finish ODBC statment handle from #execute with block' do
     assert_all_statements_used_are_closed do
       @connection.execute('SELECT * FROM [topics]') { }
     end
-  end
-  
-  should 'return an unfinished ODBC statement handler from #raw_execute' do
-    handle = @connection.send(:raw_execute,'SELECT * FROM [topics]')
-    assert_instance_of ODBC::Statement, handle
-    assert !handle.finished?
   end
   
   should 'finish connection from #raw_select' do

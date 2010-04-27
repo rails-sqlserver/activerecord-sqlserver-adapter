@@ -1,6 +1,14 @@
 
 MASTER
 
+* Initial IronRuby ADONET connection mode support baked right in. Removed most &block 
+  parameters, no handle/request object yielded anymore. Better abstraction and compliance 
+  per the ActiveRecord abstract adapter to not yielding handles for #execute and only for 
+  low level #select. Better wrapping of all queries at lowest level in #log so exceptions 
+  at anytime can be handled correctly by core AR. Critical for System::Data's command 
+  readers. Better abstraction for introspecting on #connection_mode. Added support for 
+  running singular test cases via TextMate's Command-R. [Ken Collins]
+  
 * Force a binary encoding on values coming in and out of those columns for ruby 1.9.
   Fixes ticket #33 [Jeroen Zwartepoorte]
 
