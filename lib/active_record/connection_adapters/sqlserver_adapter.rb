@@ -766,9 +766,12 @@ module ActiveRecord
                       when :adonet
                         System::Data::SqlClient::SqlConnection.new.tap do |connection|
                           connection.connection_string = System::Data::SqlClient::SqlConnectionStringBuilder.new.tap do |cs|
-                            cs.user_i_d = config[:username] if config[:username]
-                            cs.password = config[:password] if config[:password]
-                            cs.integrated_security = true if config[:integrated_security] == 'true'
+                            if config[:integrated_security] == 'true'
+                              cs.integrated_security = true
+                            else
+                              cs.user_i_d = config[:username]
+                              cs.password = config[:password]
+                            end
                             cs.add 'Server', config[:host].to_clr_string
                             cs.initial_catalog = config[:database]
                             cs.multiple_active_result_sets = false
