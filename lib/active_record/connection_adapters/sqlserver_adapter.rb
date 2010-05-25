@@ -782,7 +782,7 @@ module ActiveRecord
                       when :adonet
                         System::Data::SqlClient::SqlConnection.new.tap do |connection|
                           connection.connection_string = System::Data::SqlClient::SqlConnectionStringBuilder.new.tap do |cs|
-                            if config[:integrated_security] == 'true'
+                            if config[:integrated_security]
                               cs.integrated_security = true
                             else
                               cs.user_i_d = config[:username]
