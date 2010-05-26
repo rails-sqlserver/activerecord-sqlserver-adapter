@@ -6,6 +6,7 @@ The SQL Server adapter for rails is back for ActiveRecord 2.2 and up! We are cur
 
 == What's New
 
+* Integration with rails :db namespaced rake tasks.
 * IronRuby support using ADONET connection mode.
 * Direct ODBC mode. No DBI anymore, means around 20% faster!
 * Now supports SQL Server 2008 too!
@@ -22,6 +23,13 @@ The SQL Server adapter for rails is back for ActiveRecord 2.2 and up! We are cur
 * View support for table names, identity inserts, and column defaults.
 * A block method to run queries within a specific isolation level.
 * Automatically reconnects to lost database connections.
+
+
+==== Testing Rake Tasks Support
+
+This is a long story, but if you are not working with a legacy database and you can trust your schema.rb to setup you local development or test database, then we have adapter level support for rails :db rake tasks. Please read this wiki page for full details.
+
+http://wiki.github.com/rails-sqlserver/2000-2005-adapter/rails-db-rake-tasks
 
 
 ==== SQL Server 2008 Support
