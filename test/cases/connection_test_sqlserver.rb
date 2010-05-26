@@ -71,6 +71,17 @@ class ConnectionTestSqlserver < ActiveRecord::TestCase
     end
   end
   
+  should 'allow usage of :database connection option to remove setting from dsn' do
+    assert_equal 'activerecord_unittest', @connection.current_database
+    begin
+      @connection.use_database('activerecord_unittest2')
+      assert_equal 'activerecord_unittest2', @connection.current_database
+    ensure
+      @connection.use_database
+      assert_equal 'activerecord_unittest', @connection.current_database, 'Would default back to connection options'
+    end
+  end
+  
   context 'Connection management' do
     
     setup do

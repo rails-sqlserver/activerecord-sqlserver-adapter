@@ -10,14 +10,16 @@ ActiveRecord::Base.configurations = {
     :mode     => 'ODBC',
     :host     => 'localhost',
     :username => 'rails',
-    :dsn => 'activerecord_unittest'
+    :dsn      => 'activerecord_unittest',
+    :database => 'activerecord_unittest'
   },
   'arunit2' => {
     :adapter  => 'sqlserver',
     :mode     => 'ODBC',
     :host     => 'localhost',
     :username => 'rails',
-    :dsn => 'activerecord_unittest2'
+    :dsn      => 'activerecord_unittest2',
+    :database => 'activerecord_unittest2'
   }
 }
 

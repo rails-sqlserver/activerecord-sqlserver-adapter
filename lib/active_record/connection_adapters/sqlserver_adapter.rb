@@ -192,6 +192,7 @@ module ActiveRecord
         connect
         super(raw_connection, logger)
         initialize_sqlserver_caches
+        use_database
         unless SUPPORTED_VERSIONS.include?(database_year)
           raise NotImplementedError, "Currently, only #{SUPPORTED_VERSIONS.to_sentence} are supported."
         end
@@ -399,6 +400,11 @@ module ActiveRecord
             results << row.with_indifferent_access
           end
         end
+      end
+      
+      def use_database(database=nil)
+        database ||= @connection_options[:database]
+        do_execute "USE #{database}" unless database.blank?
       end
       
       def outside_transaction?
@@ -722,7 +728,7 @@ module ActiveRecord
         drop_database(database)
         create_database(database)
       ensure
-        do_execute "USE #{current_db}" if this_db
+        use_database(current_db) if this_db
       end
       
       # Remove existing connections and rollback any transactions if we received the message

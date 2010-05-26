@@ -2,6 +2,15 @@
 MASTER
 
 
+* 2.3.6
+
+* Allow DNS's to not contain a database and use what is in database.yml [Marco Mastrodonato]
+
+* Rake tasks methods for vanallia rails :db namespace parity. [Ken Collins]
+
+* IronRuby integrated security fixes [Jimmy Schementi]
+
+
 * 2.3.5
 
 * Initial IronRuby ADONET connection mode support baked right in. Removed most &block 
