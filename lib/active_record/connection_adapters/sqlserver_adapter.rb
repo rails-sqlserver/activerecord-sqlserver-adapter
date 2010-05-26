@@ -664,7 +664,7 @@ module ActiveRecord
       end
       
       def remove_index(table_name, options = {})
-        do_execute "DROP INDEX #{table_name}.#{quote_column_name(index_name(table_name, options))}"
+        do_execute "DROP INDEX #{table_name}.#{quote_column_name(index_name(table_name, options))}" rescue nil
       end
       
       def type_to_sql(type, limit = nil, precision = nil, scale = nil)
