@@ -109,6 +109,11 @@ module ActiveRecord
         (@table_klass && @table_klass < ActiveRecord::Base) ? @table_klass : nil
       end
       
+      def database_year
+        @sqlserver_options[:database_year]
+      end
+      
+      
       private
       
       def extract_limit(sql_type)
@@ -140,7 +145,9 @@ module ActiveRecord
       end
       
       def simplified_datetime
-        if table_klass && table_klass.coerced_sqlserver_date_columns.include?(name)
+        if database_year >= 2008
+          :datetime
+        elsif table_klass && table_klass.coerced_sqlserver_date_columns.include?(name)
           :date
         elsif table_klass && table_klass.coerced_sqlserver_time_columns.include?(name)
           :time
@@ -163,7 +170,7 @@ module ActiveRecord
     class SQLServerAdapter < AbstractAdapter
       
       ADAPTER_NAME                = 'SQLServer'.freeze
-      VERSION                     = '2.3.6'.freeze
+      VERSION                     = '2.3.7'.freeze
       DATABASE_VERSION_REGEXP     = /Microsoft SQL Server\s+(\d{4})/
       SUPPORTED_VERSIONS          = [2000,2005,2008].freeze
       LIMITABLE_TYPES             = ['string','integer','float','char','nchar','varchar','nvarchar'].freeze
@@ -265,9 +272,18 @@ module ActiveRecord
         end
       end
       
+      def native_time_database_type
+        sqlserver_2008? ? 'time' : 'datetime'
+      end
+      
+      def native_date_database_type
+        sqlserver_2008? ? 'date' : 'datetime'
+      end
+      
       def native_binary_database_type
         @@native_binary_database_type || ((sqlserver_2005? || sqlserver_2008?) ? 'varbinary(max)' : 'image')
       end
+      
       
       # QUOTING ==================================================#
       
@@ -533,8 +549,8 @@ module ActiveRecord
           :decimal      => { :name => "decimal" },
           :datetime     => { :name => "datetime" },
           :timestamp    => { :name => "datetime" },
-          :time         => { :name => "datetime" },
-          :date         => { :name => "datetime" },
+          :time         => { :name => native_time_database_type },
+          :date         => { :name => native_date_database_type },
           :binary       => { :name => native_binary_database_type },
           :boolean      => { :name => "bit"},
           # These are custom types that may move somewhere else for good schema_dumper.rb hacking to output them.
@@ -606,7 +622,7 @@ module ActiveRecord
         return [] if table_name.blank?
         cache_key = unqualify_table_name(table_name)
         @sqlserver_columns_cache[cache_key] ||= column_definitions(table_name).collect do |ci|
-          sqlserver_options = ci.except(:name,:default_value,:type,:null)
+          sqlserver_options = ci.except(:name,:default_value,:type,:null).merge(:database_year=>database_year)
           SQLServerColumn.new ci[:name], ci[:default_value], ci[:type], ci[:null], sqlserver_options
         end
       end

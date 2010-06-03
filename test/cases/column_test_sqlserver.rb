@@ -167,10 +167,15 @@ class ColumnTestSqlserver < ActiveRecord::TestCase
       assert_equal :datetime, @datetime.type
     end
     
-    should 'all be a datetime #sql_type' do
-      assert_equal 'datetime', @date.sql_type
-      assert_equal 'datetime', @time.sql_type
+    should 'use correct #sql_type for different sql server versions' do
       assert_equal 'datetime', @datetime.sql_type
+      if sqlserver_2000? || sqlserver_2005?
+        assert_equal 'datetime', @date.sql_type
+        assert_equal 'datetime', @time.sql_type
+      else
+        assert_equal 'date', @date.sql_type
+        assert_equal 'time', @time.sql_type
+      end
     end
     
     should 'all be have nil #limit' do
@@ -206,7 +211,7 @@ class ColumnTestSqlserver < ActiveRecord::TestCase
       end
       
       should 'have an inheritable attribute ' do
-        assert SqlServerChronic.coerced_sqlserver_date_columns.include?('date')
+        assert SqlServerChronic.coerced_sqlserver_date_columns.include?('date') unless sqlserver_2008?
       end
       
       should 'have column and objects cast to date' do
