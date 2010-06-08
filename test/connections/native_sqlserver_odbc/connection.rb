@@ -10,7 +10,7 @@ ActiveRecord::Base.configurations = {
     :mode     => 'ODBC',
     :host     => 'localhost',
     :username => 'rails',
-    :dsn      => 'activerecord_unittest',
+    :dsn      => ENV['ACTIVERECORD_UNITTEST_DSN'] || 'activerecord_unittest',
     :database => 'activerecord_unittest'
   },
   'arunit2' => {
@@ -18,7 +18,7 @@ ActiveRecord::Base.configurations = {
     :mode     => 'ODBC',
     :host     => 'localhost',
     :username => 'rails',
-    :dsn      => 'activerecord_unittest2',
+    :dsn      => ENV['ACTIVERECORD_UNITTEST2_DSN'] || 'activerecord_unittest2',
     :database => 'activerecord_unittest2'
   }
 }

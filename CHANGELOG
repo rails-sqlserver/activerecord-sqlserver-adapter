@@ -1,6 +1,10 @@
 
 MASTER
 
+* 2.3.8
+
+* Properly quote all database names in rake helper methods. [Ken Collins]
+
 
 * 2.3.7
 

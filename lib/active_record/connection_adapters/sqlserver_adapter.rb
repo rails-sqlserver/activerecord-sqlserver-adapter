@@ -170,7 +170,7 @@ module ActiveRecord
     class SQLServerAdapter < AbstractAdapter
       
       ADAPTER_NAME                = 'SQLServer'.freeze
-      VERSION                     = '2.3.7'.freeze
+      VERSION                     = '2.3.8'.freeze
       DATABASE_VERSION_REGEXP     = /Microsoft SQL Server\s+(\d{4})/
       SUPPORTED_VERSIONS          = [2000,2005,2008].freeze
       LIMITABLE_TYPES             = ['string','integer','float','char','nchar','varchar','nvarchar'].freeze
@@ -420,7 +420,7 @@ module ActiveRecord
       
       def use_database(database=nil)
         database ||= @connection_options[:database]
-        do_execute "USE #{database}" unless database.blank?
+        do_execute "USE #{quote_table_name(database)}" unless database.blank?
       end
       
       def outside_transaction?
@@ -753,7 +753,7 @@ module ActiveRecord
         retry_count = 0
         max_retries = 1
         begin
-          do_execute "DROP DATABASE #{database}"
+          do_execute "DROP DATABASE #{quote_table_name(database)}"
         rescue ActiveRecord::StatementInvalid => err
           if err.message =~ /because it is currently in use/i
             raise if retry_count >= max_retries
@@ -767,7 +767,7 @@ module ActiveRecord
       end
 
       def create_database(database)
-        do_execute "CREATE DATABASE #{database}"
+        do_execute "CREATE DATABASE #{quote_table_name(database)}"
       end
       
       def current_database
@@ -782,11 +782,11 @@ module ActiveRecord
       # http://sqlserver2000.databases.aspfaq.com/how-do-i-drop-a-sql-server-database.html
       def remove_database_connections_and_rollback(database=nil)
         database ||= current_database
-        do_execute "ALTER DATABASE #{database} SET SINGLE_USER WITH ROLLBACK IMMEDIATE"
+        do_execute "ALTER DATABASE #{quote_table_name(database)} SET SINGLE_USER WITH ROLLBACK IMMEDIATE"
         begin
           yield
         ensure
-          do_execute "ALTER DATABASE #{database} SET MULTI_USER"
+          do_execute "ALTER DATABASE #{quote_table_name(database)} SET MULTI_USER"
         end if block_given?
       end
       
