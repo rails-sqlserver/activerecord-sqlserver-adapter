@@ -1,6 +1,8 @@
 require 'active_record'
 require 'active_record/connection_adapters/abstract_adapter'
 require 'active_record/connection_adapters/sqlserver_adapter/core_ext/active_record'
+require 'active_record/connection_adapters/sqlserver_adapter/database_limits'
+require 'active_support/core_ext/kernel/requires'
 require 'base64'
 
 module ActiveRecord
@@ -13,7 +15,6 @@ module ActiveRecord
       mode = config[:mode].to_s.downcase.underscore.to_sym
       case mode
       when :odbc
-        require 'active_support/core_ext/kernel/requires'
         require_library_or_gem 'odbc' unless defined?(ODBC)
         require 'active_record/connection_adapters/sqlserver_adapter/core_ext/odbc'
         raise ArgumentError, 'Missing :dsn configuration.' unless config.has_key?(:dsn)
@@ -159,16 +160,9 @@ module ActiveRecord
       
     end #SQLServerColumn
     
-    # In ODBC mode, the adapter requires Ruby ODBC and requires that you specify 
-    # a :dsn option. Ruby ODBC is available at http://www.ch-werner.de/rubyodbc/
-    #
-    # Options:
-    #
-    # * <tt>:username</tt>      -- Defaults to sa.
-    # * <tt>:password</tt>      -- Defaults to blank string.
-    # * <tt>:dsn</tt>           -- An ODBC DSN. (required)
-    # 
     class SQLServerAdapter < AbstractAdapter
+      
+      include SqlserverAdapter::DatabaseLimits
       
       ADAPTER_NAME                = 'SQLServer'.freeze
       VERSION                     = '3.0.0.beta1'.freeze
@@ -566,10 +560,6 @@ module ActiveRecord
           :nvarchar_max => { :name => "nvarchar(max)" },
           :ntext        => { :name => "ntext" }
         }
-      end
-      
-      def table_alias_length
-        128
       end
       
       def tables(name = nil)
