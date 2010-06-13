@@ -13,6 +13,7 @@ module ActiveRecord
       mode = config[:mode].to_s.downcase.underscore.to_sym
       case mode
       when :odbc
+        require 'active_support/core_ext/kernel/requires'
         require_library_or_gem 'odbc' unless defined?(ODBC)
         require 'active_record/connection_adapters/sqlserver_adapter/core_ext/odbc'
         raise ArgumentError, 'Missing :dsn configuration.' unless config.has_key?(:dsn)
@@ -212,6 +213,10 @@ module ActiveRecord
       end
       
       def supports_migrations?
+        true
+      end
+      
+      def supports_primary_key?
         true
       end
       
@@ -541,7 +546,7 @@ module ActiveRecord
       
       def native_database_types
         {
-          :primary_key  => "int NOT NULL IDENTITY(1, 1) PRIMARY KEY",
+          :primary_key  => "int NOT NULL IDENTITY(1,1) PRIMARY KEY",
           :string       => { :name => native_string_database_type, :limit => 255  },
           :text         => { :name => native_text_database_type },
           :integer      => { :name => "int", :limit => 4 },
@@ -726,6 +731,10 @@ module ActiveRecord
       def pk_and_sequence_for(table_name)
         idcol = identity_column(table_name)
         idcol ? [idcol.name,nil] : nil
+      end
+      
+      def primary_key(table_name)
+        identity_column(table_name).try(:name)
       end
       
       # RAKE UTILITY METHODS =====================================#

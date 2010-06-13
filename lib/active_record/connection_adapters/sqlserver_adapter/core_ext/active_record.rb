@@ -11,8 +11,6 @@ module ActiveRecord
           klass.extend ClassMethods
           class << klass
             alias_method_chain :reset_column_information, :sqlserver_cache_support
-            alias_method_chain :add_order!, :sqlserver_unique_checking
-            alias_method_chain :add_limit!, :sqlserver_order_checking
           end
         end
 
@@ -48,55 +46,57 @@ module ActiveRecord
           end
 
           private
-
-          def add_limit_with_sqlserver_order_checking!(sql, options, scope = :auto)
-            if connection.respond_to?(:sqlserver?)
-              scope = scope(:find) if :auto == scope
-              if scope
-                options = options.dup
-                scoped_order = scope[:order]
-                order = options[:order]
-                if order && scoped_order
-                  options[:order] = add_order_with_sqlserver_unique_checking!('', order, scope).gsub(/^ ORDER BY /,'')
-                elsif scoped_order
-                  options[:order] = scoped_order
-                end
-              end
-            end
-            add_limit_without_sqlserver_order_checking!(sql, options, scope)
-          end
-
-          def add_order_with_sqlserver_unique_checking!(sql, order, scope = :auto)
-            if connection.respond_to?(:sqlserver?)
-              order_sql = ''
-              add_order_without_sqlserver_unique_checking!(order_sql, order, scope)
-              unless order_sql.blank?
-                unique_order_hash = {}
-                select_table_name = connection.send(:get_table_name,sql)
-                select_table_name.tr!('[]','') if select_table_name
-                orders_and_dirs_set = connection.send(:orders_and_dirs_set,order_sql)
-                unique_order_sql = orders_and_dirs_set.inject([]) do |array,order_dir|
-                  ord, dir = order_dir
-                  ord_tn_and_cn = ord.to_s.split('.').map{|o|o.tr('[]','')}
-                  ord_table_name, ord_column_name = if ord_tn_and_cn.size > 1
-                                                      ord_tn_and_cn
-                                                    else
-                                                      [nil, ord_tn_and_cn.first]
-                                                    end
-                  unique_key = [(ord_table_name || select_table_name), ord_column_name]
-                  if unique_order_hash[unique_key]
-                    array
-                  else
-                    unique_order_hash[unique_key] = true
-                    array << "#{ord} #{dir}".strip
-                  end
-                end.join(', ')
-                sql << " ORDER BY #{unique_order_sql}"
-              end
-            else
-              add_order_without_sqlserver_unique_checking!(sql, order, scope)
-            end
-          end
+          
+          # TODO: [Rails3] Remove AR #add_limit! method chain.
+          # def add_limit_with_sqlserver_order_checking!(sql, options, scope = :auto)
+          #   if connection.respond_to?(:sqlserver?)
+          #     scope = scope(:find) if :auto == scope
+          #     if scope
+          #       options = options.dup
+          #       scoped_order = scope[:order]
+          #       order = options[:order]
+          #       if order && scoped_order
+          #         options[:order] = add_order_with_sqlserver_unique_checking!('', order, scope).gsub(/^ ORDER BY /,'')
+          #       elsif scoped_order
+          #         options[:order] = scoped_order
+          #       end
+          #     end
+          #   end
+          #   add_limit_without_sqlserver_order_checking!(sql, options, scope)
+          # end
+          
+          # TODO: [Rails3] Remove AR #add_order! method chain.
+          # def add_order_with_sqlserver_unique_checking!(sql, order, scope = :auto)
+          #   if connection.respond_to?(:sqlserver?)
+          #     order_sql = ''
+          #     add_order_without_sqlserver_unique_checking!(order_sql, order, scope)
+          #     unless order_sql.blank?
+          #       unique_order_hash = {}
+          #       select_table_name = connection.send(:get_table_name,sql)
+          #       select_table_name.tr!('[]','') if select_table_name
+          #       orders_and_dirs_set = connection.send(:orders_and_dirs_set,order_sql)
+          #       unique_order_sql = orders_and_dirs_set.inject([]) do |array,order_dir|
+          #         ord, dir = order_dir
+          #         ord_tn_and_cn = ord.to_s.split('.').map{|o|o.tr('[]','')}
+          #         ord_table_name, ord_column_name = if ord_tn_and_cn.size > 1
+          #                                             ord_tn_and_cn
+          #                                           else
+          #                                             [nil, ord_tn_and_cn.first]
+          #                                           end
+          #         unique_key = [(ord_table_name || select_table_name), ord_column_name]
+          #         if unique_order_hash[unique_key]
+          #           array
+          #         else
+          #           unique_order_hash[unique_key] = true
+          #           array << "#{ord} #{dir}".strip
+          #         end
+          #       end.join(', ')
+          #       sql << " ORDER BY #{unique_order_sql}"
+          #     end
+          #   else
+          #     add_order_without_sqlserver_unique_checking!(sql, order, scope)
+          #   end
+          # end
 
         end
         
@@ -105,7 +105,7 @@ module ActiveRecord
           def self.included(klass)
             klass.class_eval do
               include InstanceMethods
-              alias_method_chain :aliased_table_name_for, :sqlserver_support
+              # alias_method_chain :aliased_table_name_for, :sqlserver_support
             end
           end
 
