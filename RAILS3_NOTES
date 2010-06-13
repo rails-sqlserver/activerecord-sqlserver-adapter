@@ -1,0 +1,29 @@
+
+= Arel Testing Setup
+
+You should have both rails and the adapter cloned to your typical repo folder. Let's say this 
+would be ~/repos referred to as REPOS. As of current make sure your rails checkout is at master
+and the sqlserver adapter on the "3.0.0.beta1" topic branch. Make sure to remote track that 
+origin topic branch. It's typically good practice to do your work on a local branch of that 
+remote tracking branch.
+
+In your environment set RAILS_SOURCE & ARSQLSERVER_SOURCE to the full path of your local repos
+for each of rails and the adapter above. You should now be able to run "bundle install" from 
+this project root. From here you can start testing, but it is best practice to use the 
+"bundle exec ..." commands. For instance:
+
+  $ bundle exec rake spec:sqlserver
+
+
+= Arel Todo
+
+  338 examples, 64 failures, 3 pending
+
+  * Review/remove our long winded add_limit_offset!
+    With supporting add_lock! & add_limit_offset_for_association_limiting!
+
+
+= Adapter Todo
+
+  * Move all sqlserver_adapter/core_ext files to sqlserver/core_ext
+
