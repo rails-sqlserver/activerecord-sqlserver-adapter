@@ -1,6 +1,6 @@
 module ActiveRecord
   module ConnectionAdapters
-    module SqlserverAdapter
+    module Sqlserver
       module DatabaseLimits
         
         def table_alias_length

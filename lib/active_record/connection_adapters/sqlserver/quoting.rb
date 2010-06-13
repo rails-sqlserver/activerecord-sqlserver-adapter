@@ -1,6 +1,6 @@
 module ActiveRecord
   module ConnectionAdapters
-    module SqlserverAdapter
+    module Sqlserver
       module Quoting
         
         def quote(value, column = nil)
