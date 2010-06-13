@@ -106,8 +106,8 @@ module ActiveRecord
           end
         end
 
-        def empty_insert_statement(table_name)
-          "INSERT INTO #{quote_table_name(table_name)} DEFAULT VALUES"
+        def empty_insert_statement_value
+          "DEFAULT VALUES"
         end
 
         def case_sensitive_equality_operator
