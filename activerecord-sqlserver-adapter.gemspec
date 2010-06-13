@@ -22,7 +22,8 @@ Gem::Specification.new do |s|
     "lib/active_record/connection_adapters/sqlserver_adapter.rb",
     "lib/active_record/connection_adapters/sqlserver_adapter/core_ext/active_record.rb",
     "lib/active_record/connection_adapters/sqlserver_adapter/core_ext/odbc.rb",
-    "lib/active_record/connection_adapters/sqlserver_adapter/database_limits.rb" ]
+    "lib/active_record/connection_adapters/sqlserver_adapter/database_limits.rb",
+    "lib/active_record/connection_adapters/sqlserver_adapter/quoting.rb" ]
   s.test_files = [
     "test/cases/aaaa_create_tables_test_sqlserver.rb",
     "test/cases/adapter_test_sqlserver.rb",
