@@ -323,59 +323,7 @@ module ActiveRecord
         @@native_binary_database_type || ((sqlserver_2005? || sqlserver_2008?) ? 'varbinary(max)' : 'image')
       end
       
-      # RAKE UTILITY METHODS =====================================#
-      
-      def recreate_database
-        remove_database_connections_and_rollback do
-          do_execute "EXEC sp_MSforeachtable 'DROP TABLE ?'"
-        end
-      end
-      
-      def recreate_database!(database=nil)
-        current_db = current_database
-        database ||= current_db
-        this_db = database.to_s == current_db
-        do_execute 'USE master' if this_db
-        drop_database(database)
-        create_database(database)
-      ensure
-        use_database(current_db) if this_db
-      end
-      
-      # Remove existing connections and rollback any transactions if we received the message
-      # 'Cannot drop the database 'test' because it is currently in use'
-      def drop_database(database)
-        retry_count = 0
-        max_retries = 1
-        begin
-          do_execute "DROP DATABASE #{quote_table_name(database)}"
-        rescue ActiveRecord::StatementInvalid => err
-          if err.message =~ /because it is currently in use/i
-            raise if retry_count >= max_retries
-            retry_count += 1
-            remove_database_connections_and_rollback(database)
-            retry
-          else
-            raise
-          end
-        end
-      end
-
-      def create_database(database)
-        do_execute "CREATE DATABASE #{quote_table_name(database)}"
-      end
-      
-      def current_database
-        select_value 'SELECT DB_NAME()'
-      end
-      
-      def charset
-        select_value "SELECT SERVERPROPERTY('SqlCharSetName')"
-      end
-
-      
-      
-      
+            
       protected
       
       # === SQLServer Specific (Connection Management) ================ #
