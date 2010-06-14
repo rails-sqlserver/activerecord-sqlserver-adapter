@@ -192,7 +192,7 @@ module ActiveRecord
         end
       end
       
-      # ABSTRACT ADAPTER =========================================#
+      # === Abstract Adapter ========================================== #
       
       def adapter_name
         ADAPTER_NAME
@@ -213,6 +213,54 @@ module ActiveRecord
       def supports_savepoints?
         true
       end
+      
+      def disable_referential_integrity
+        do_execute "EXEC sp_MSforeachtable 'ALTER TABLE ? NOCHECK CONSTRAINT ALL'"
+        yield
+      ensure
+        do_execute "EXEC sp_MSforeachtable 'ALTER TABLE ? CHECK CONSTRAINT ALL'"
+      end
+      
+      # === Abstract Adapter (Connection Management) ================== #
+      
+      def active?
+        raw_connection_do("SELECT 1")
+        true
+      rescue *lost_connection_exceptions
+        false
+      end
+
+      def reconnect!
+        disconnect!
+        connect
+        active?
+      end
+
+      def disconnect!
+        case connection_mode
+        when :odbc
+          raw_connection.disconnect rescue nil
+        else :adonet
+          raw_connection.close rescue nil
+        end
+      end
+      
+      def reset!
+        remove_database_connections_and_rollback { }
+      end
+      
+      # === Abstract Adapter (Misc Support) =========================== #
+      
+      def pk_and_sequence_for(table_name)
+        idcol = identity_column(table_name)
+        idcol ? [idcol.name,nil] : nil
+      end
+
+      def primary_key(table_name)
+        identity_column(table_name).try(:name)
+      end
+      
+      # === SQLServer Specific (DB Reflection) ======================== #
       
       def database_version
         @database_version ||= info_schema_query { select_value('SELECT @@version') }
@@ -275,39 +323,6 @@ module ActiveRecord
         @@native_binary_database_type || ((sqlserver_2005? || sqlserver_2008?) ? 'varbinary(max)' : 'image')
       end
       
-      # REFERENTIAL INTEGRITY ====================================#
-      
-      def disable_referential_integrity
-        do_execute "EXEC sp_MSforeachtable 'ALTER TABLE ? NOCHECK CONSTRAINT ALL'"
-        yield
-      ensure
-        do_execute "EXEC sp_MSforeachtable 'ALTER TABLE ? CHECK CONSTRAINT ALL'"
-      end
-      
-      # CONNECTION MANAGEMENT ====================================#
-      
-      def active?
-        raw_connection_do("SELECT 1")
-        true
-      rescue *lost_connection_exceptions
-        false
-      end
-
-      def reconnect!
-        disconnect!
-        connect
-        active?
-      end
-
-      def disconnect!
-        case connection_mode
-        when :odbc
-          raw_connection.disconnect rescue nil
-        else :adonet
-          raw_connection.close rescue nil
-        end
-      end
-      
       # RAKE UTILITY METHODS =====================================#
       
       def recreate_database
@@ -357,24 +372,13 @@ module ActiveRecord
       def charset
         select_value "SELECT SERVERPROPERTY('SqlCharSetName')"
       end
-      
-      # This should disconnect all other users and rollback any transactions for SQL 2000 and 2005
-      # http://sqlserver2000.databases.aspfaq.com/how-do-i-drop-a-sql-server-database.html
-      def remove_database_connections_and_rollback(database=nil)
-        database ||= current_database
-        do_execute "ALTER DATABASE #{quote_table_name(database)} SET SINGLE_USER WITH ROLLBACK IMMEDIATE"
-        begin
-          yield
-        ensure
-          do_execute "ALTER DATABASE #{quote_table_name(database)} SET MULTI_USER"
-        end if block_given?
-      end
+
       
       
       
       protected
       
-      # CONNECTION MANAGEMENT ====================================#
+      # === SQLServer Specific (Connection Management) ================ #
       
       def connect
         config = @connection_options
@@ -402,8 +406,14 @@ module ActiveRecord
         raise unless @auto_connecting
       end
       
-      def connection_mode
-        @connection_options[:mode]
+      def remove_database_connections_and_rollback(database=nil)
+        database ||= current_database
+        do_execute "ALTER DATABASE #{quote_table_name(database)} SET SINGLE_USER WITH ROLLBACK IMMEDIATE"
+        begin
+          yield
+        ensure
+          do_execute "ALTER DATABASE #{quote_table_name(database)} SET MULTI_USER"
+        end if block_given?
       end
       
       def lost_connection_exceptions
@@ -442,35 +452,8 @@ module ActiveRecord
         @auto_connecting = false
       end
       
-      def raw_connection_run(sql)
-        with_auto_reconnect do
-          case connection_mode
-          when :odbc
-            block_given? ? raw_connection.run_block(sql) { |handle| yield(handle) } : raw_connection.run(sql)
-          else :adonet
-            raw_connection.create_command.tap{ |cmd| cmd.command_text = sql }.execute_reader
-          end
-        end
-      end
-      
-      def raw_connection_do(sql)
-        case connection_mode
-        when :odbc
-          raw_connection.do(sql)
-        else :adonet
-          raw_connection.create_command.tap{ |cmd| cmd.command_text = sql }.execute_non_query
-        end
-      end
-      
-      def finish_statement_handle(handle)
-        case connection_mode
-        when :odbc
-          handle.drop if handle && handle.respond_to?(:drop) && !handle.finished?
-        when :adonet
-          handle.close if handle && handle.respond_to?(:close) && !handle.is_closed
-          handle.dispose if handle && handle.respond_to?(:dispose)
-        end
-        handle
+      def connection_mode
+        @connection_options[:mode]
       end
             
     end #class SQLServerAdapter < AbstractAdapter

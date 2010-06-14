@@ -152,15 +152,6 @@ module ActiveRecord
           sql << " NOT NULL" unless null
           do_execute sql
         end
-
-        def pk_and_sequence_for(table_name)
-          idcol = identity_column(table_name)
-          idcol ? [idcol.name,nil] : nil
-        end
-
-        def primary_key(table_name)
-          identity_column(table_name).try(:name)
-        end
         
         # === SQLServer Specific ======================================== #
         

@@ -198,12 +198,25 @@ module ActiveRecord
             results << row_hash
           end
         end
+        
+        # === SQLServer Specific (Executing) ============================ #
 
         def do_execute(sql,name=nil)
           log(sql, name || 'EXECUTE') do
             with_auto_reconnect { raw_connection_do(sql) }
           end
         end
+        
+        def raw_connection_do(sql)
+          case connection_mode
+          when :odbc
+            raw_connection.do(sql)
+          else :adonet
+            raw_connection.create_command.tap{ |cmd| cmd.command_text = sql }.execute_non_query
+          end
+        end
+        
+        # === SQLServer Specific (Selecting) ============================ #
 
         def raw_select(sql, name = nil)
           fields_and_row_sets = []
@@ -226,7 +239,18 @@ module ActiveRecord
           end
           fields_and_row_sets
         end
-
+        
+        def raw_connection_run(sql)
+          with_auto_reconnect do
+            case connection_mode
+            when :odbc
+              block_given? ? raw_connection.run_block(sql) { |handle| yield(handle) } : raw_connection.run(sql)
+            else :adonet
+              raw_connection.create_command.tap{ |cmd| cmd.command_text = sql }.execute_reader
+            end
+          end
+        end
+        
         def handle_more_results?(handle)
           case connection_mode
           when :odbc
@@ -281,6 +305,19 @@ module ActiveRecord
           end
           [fields,rows]
         end
+        
+        def finish_statement_handle(handle)
+          case connection_mode
+          when :odbc
+            handle.drop if handle && handle.respond_to?(:drop) && !handle.finished?
+          when :adonet
+            handle.close if handle && handle.respond_to?(:close) && !handle.is_closed
+            handle.dispose if handle && handle.respond_to?(:dispose)
+          end
+          handle
+        end
+        
+        # === SQLServer Specific (Misc, Doomed?) ======================== #
         
         def add_lock!(sql, options)
           # http://blog.sqlauthority.com/2007/04/27/sql-server-2005-locking-hints-and-examples/

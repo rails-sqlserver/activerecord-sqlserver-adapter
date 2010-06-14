@@ -58,7 +58,14 @@ this project root. From here you can start testing, but it is best practice to u
       end.join(', ')
     end
 
+
 = Adapter Todo
     
-  * Move all sqlserver_adapter/core_ext files to sqlserver/core_ext
+  * Move all sqlserver_adapter/core_ext files to sqlserver/core_ext.
+  * Make sure the repair special columns was good to go.
+  * Possibly remove 2000 support and query methods.
+
+
+
+
 
