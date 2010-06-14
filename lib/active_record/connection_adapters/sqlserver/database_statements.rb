@@ -126,7 +126,7 @@ module ActiveRecord
         def execute_procedure(proc_name, *variables)
           vars = variables.map{ |v| quote(v) }.join(', ')
           sql = "EXEC #{proc_name} #{vars}".strip
-          select(sql,'Execute Procedure',true).inject([]) do |results,row|
+          select(sql,'Execute Procedure').inject([]) do |results,row|
             if row.kind_of?(Array)
               results << row.inject([]) { |rs,r| rs << r.with_indifferent_access }
             else
@@ -165,8 +165,7 @@ module ActiveRecord
         
         protected
         
-        def select(sql, name = nil, ignore_special_columns = false)
-          repair_special_columns(sql) unless ignore_special_columns
+        def select(sql, name = nil)
           fields_and_row_sets = raw_select(sql,name)
           final_result_set = fields_and_row_sets.inject([]) do |rs,fields_and_rows|
             fields, rows = fields_and_rows

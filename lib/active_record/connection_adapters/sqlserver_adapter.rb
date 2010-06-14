@@ -92,10 +92,6 @@ module ActiveRecord
         @sqlserver_options[:is_identity]
       end
       
-      def is_special?
-        sql_type =~ /^text|ntext|image$/
-      end
-      
       def is_utf8?
         sql_type =~ /nvarchar|ntext|nchar/i
       end
@@ -475,21 +471,6 @@ module ActiveRecord
           handle.dispose if handle && handle.respond_to?(:dispose)
         end
         handle
-      end
-      
-      # HELPER METHODS ===========================================#
-      
-      def special_columns(table_name)
-        columns(table_name).select(&:is_special?).map(&:name)
-      end
-      
-      def repair_special_columns(sql)
-        special_cols = special_columns(get_table_name(sql))
-        for col in special_cols.to_a
-          sql.gsub!(/((\.|\s|\()\[?#{col.to_s}\]?)\s?=\s?/, '\1 LIKE ')
-          sql.gsub!(/ORDER BY #{col.to_s}/i, '')
-        end
-        sql
       end
             
     end #class SQLServerAdapter < AbstractAdapter

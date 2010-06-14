@@ -202,7 +202,7 @@ module ActiveRecord
             WHERE columns.TABLE_NAME = '#{table_name}'
             ORDER BY columns.ordinal_position
           }.gsub(/[ \t\r\n]+/,' ')
-          results = info_schema_query { select(sql,nil,true) }
+          results = info_schema_query { select(sql,nil) }
           results.collect do |ci|
             ci.symbolize_keys!
             ci[:type] = case ci[:type]
