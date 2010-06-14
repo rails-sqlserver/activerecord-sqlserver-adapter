@@ -570,15 +570,15 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
         end
       end
       
-      should 'allow the connection.view_information method to return meta data on the view' do
-        view_info = @connection.view_information('customers_view')
+      should 'allow the connection#view_information method to return meta data on the view' do
+        view_info = @connection.send(:view_information,'customers_view')
         assert_equal('customers_view', view_info['TABLE_NAME'])
         assert_match(/CREATE VIEW customers_view/, view_info['VIEW_DEFINITION'])
       end
       
-      should 'allow the connection.view_table_name method to return true table_name for the view' do
-        assert_equal 'customers', @connection.view_table_name('customers_view')
-        assert_equal 'topics', @connection.view_table_name('topics'), 'No view here, the same table name should come back.'
+      should 'allow the connection#view_table_name method to return true table_name for the view' do
+        assert_equal 'customers', @connection.send(:view_table_name,'customers_view')
+        assert_equal 'topics', @connection.send(:view_table_name,'topics'), 'No view here, the same table name should come back.'
       end
       
     end

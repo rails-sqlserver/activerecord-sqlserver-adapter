@@ -200,10 +200,6 @@ module ActiveRecord
           end
         end
 
-        def info_schema_query
-          log_info_schema_queries ? yield : ActiveRecord::Base.silence{ yield }
-        end
-
         def do_execute(sql,name=nil)
           log(sql, name || 'EXECUTE') do
             with_auto_reconnect { raw_connection_do(sql) }
@@ -294,7 +290,14 @@ module ActiveRecord
           sql.gsub! %r|LEFT OUTER JOIN\s+(.*?)\s+ON|im, "LEFT OUTER JOIN \\1 #{lock_type} ON"
           sql.gsub! %r{FROM\s([\w\[\]\.]+)}im, "FROM \\1 #{lock_type}"
         end
-
+        
+        def sql_for_association_limiting?(sql)
+          if md = sql.match(/^\s*SELECT(.*)FROM.*GROUP BY.*ORDER BY.*/im)
+            select_froms = md[1].split(',')
+            select_froms.size == 1 && !select_froms.first.include?('*')
+          end
+        end
+        
         def add_limit_offset_for_association_limiting!(sql, options)
           sql.replace %|
             SET NOCOUNT ON
@@ -308,6 +311,16 @@ module ActiveRecord
               ) AS tmp1 ORDER BY row DESC
             ) AS tmp2 ORDER BY row
           |.gsub(/[ \t\r\n]+/,' ')
+        end
+        
+        def change_order_direction(order)
+          order.split(",").collect {|fragment|
+            case fragment
+              when  /\bDESC\b/i     then fragment.gsub(/\bDESC\b/i, "ASC")
+              when  /\bASC\b/i      then fragment.gsub(/\bASC\b/i, "DESC")
+              else                  String.new(fragment).split(',').join(' DESC,') + ' DESC'
+            end
+          }.join(",")
         end
         
       end

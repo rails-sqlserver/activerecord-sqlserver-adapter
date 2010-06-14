@@ -20,10 +20,45 @@ this project root. From here you can start testing, but it is best practice to u
   338 examples, 64 failures, 3 pending
 
   * Review/remove our long winded add_limit_offset!
-    With supporting add_lock! & add_limit_offset_for_association_limiting!
-
+    Supporting:
+      - add_lock!
+      - add_limit_offset_for_association_limiting!
+      - sql_for_association_limiting?
+      - change_order_direction
+  
+  * Find out if this is needed anywhere.
+    
+    def add_order_by_for_association_limiting!(sql, options)
+      # Disertation http://gist.github.com/24073
+      # Information http://weblogs.sqlteam.com/jeffs/archive/2007/12/13/select-distinct-order-by-error.aspx
+      return sql if options[:order].blank?
+      columns = sql.match(/SELECT\s+DISTINCT(.*?)FROM/)[1].strip
+      sql.sub!(/SELECT\s+DISTINCT/,'SELECT')
+      sql << "GROUP BY #{columns} ORDER BY #{order_to_min_set(options[:order])}"
+    end
+    
+    def orders_and_dirs_set(order)
+      orders = order.sub('ORDER BY','').split(',').map(&:strip).reject(&:blank?)
+      orders_dirs = orders.map do |ord|
+        dir = nil
+        ord.sub!(/\b(asc|desc)$/i) do |match|
+          if match
+            dir = match.upcase.strip
+            ''
+          end
+        end
+        [ord.strip, dir]
+      end
+    end
+    
+    def order_to_min_set(order)
+      orders_dirs = orders_and_dirs_set(order)
+      orders_dirs.map do |o,d|
+        "MIN(#{o}) #{d}".strip
+      end.join(', ')
+    end
 
 = Adapter Todo
-
+    
   * Move all sqlserver_adapter/core_ext files to sqlserver/core_ext
 

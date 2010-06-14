@@ -24,6 +24,7 @@ Gem::Specification.new do |s|
     "lib/active_record/connection_adapters/sqlserver_adapter/core_ext/odbc.rb",
     "lib/active_record/connection_adapters/sqlserver/database_limits.rb",
     "lib/active_record/connection_adapters/sqlserver/database_statements.rb",
+    "lib/active_record/connection_adapters/sqlserver/schema_statements.rb",
     "lib/active_record/connection_adapters/sqlserver/quoting.rb" ]
   s.test_files = [
     "test/cases/aaaa_create_tables_test_sqlserver.rb",
