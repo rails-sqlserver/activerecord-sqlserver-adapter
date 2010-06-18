@@ -1,23 +1,34 @@
 
 = SQL Server Testing Setup
 
- 1) $ bundle install
- 2) 
+  1) Clone adapter http://github.com/rails-sqlserver/2000-2005-adapter
+  2) Switch to remote tracking branch "3.0.0.beta1" or the latest beta version.
+  3) Set the ARSQLSERVER_SOURCE environment variable with the path of this repo.
 
 = Arel Testing Setup
 
-You should have both rails and the adapter cloned to your typical repo folder. Let's say this 
-would be ~/repos referred to as REPOS. As of current make sure your rails checkout is at master
-and the sqlserver adapter on the "3.0.0.beta1" topic branch. Make sure to remote track that 
-origin topic branch. It's typically good practice to do your work on a local branch of that 
-remote tracking branch.
+  1) Clone our fork of Arel. http://github.com/rails-sqlserver/arel
+  2) Switch to remote tracking branch "sqlserver"
+  3) Set the AREL_SOURCE environment variable with path of this repo.
 
-In your environment set RAILS_SOURCE & ARSQLSERVER_SOURCE to the full path of your local repos
-for each of rails and the adapter above. You should now be able to run "bundle install" from 
-this project root. From here you can start testing, but it is best practice to use the 
-"bundle exec ..." commands. For instance:
+= Rails
 
-  $ bundle exec rake spec:sqlserver
+  1) Clone rails.
+  2) Creat a local topic branch, maybe something like sqlserver_3.0.0.beta
+  3) Apply the following diff, till we push this upstream. http://gist.github.com/443568
+  4) Set the RAILS_SOURCE environment variable with the path of this repo.
+
+= Testing Last Steps And Notes
+
+So bundler manages the dependencies now and if you have set the correct environment 
+variables then all dependency paths for development should be resolved. It is now best to 
+run "bundle install" first from your Arel, then to the adapter repo. Now you should be able
+to run "bundle exec rake spec:sqlserver" in Arel to run tests. Since we put bundler as
+a development dependency in the adapter, all you need to do is run "rake test".
+
+Remember you have to set an environment variable for the DSN of the adapter, see the ODBC
+connection information for details. Lastly, it is typically good practice to do your work 
+on a local branch of our remote tracking branch.
 
 
 
