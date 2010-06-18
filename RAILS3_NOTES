@@ -53,7 +53,10 @@ on a local branch of our remote tracking branch.
     Undefined coerced test: ChangeTableMigrationsTest#test_string_creates_string_column
     Undefined coerced test: NamedScopeTest#test_named_scopes_honor_current_scopes_from_when_defined
     Undefined coerced test: QueryCacheTest#test_cache_does_not_wrap_string_results_in_arrays
-    
+  * Move all sqlserver_adapter/core_ext files to sqlserver/core_ext.
+  * Make sure the repair special columns was good to go.
+  * Possibly remove 2000 support and query methods.
+  
     
 
 = Arel Todo
@@ -132,15 +135,6 @@ on a local branch of our remote tracking branch.
         "MIN(#{o}) #{d}".strip
       end.join(', ')
     end
-
-
-= Adapter Todo
-    
-  * Move all sqlserver_adapter/core_ext files to sqlserver/core_ext.
-  * Make sure the repair special columns was good to go.
-  * Possibly remove 2000 support and query methods.
-
-
 
 
 
