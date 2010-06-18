@@ -7,6 +7,8 @@ SQLSERVER_SCHEMA_ROOT     = File.expand_path(File.join(SQLSERVER_TEST_ROOT,'sche
 ACTIVERECORD_TEST_ROOT    = File.expand_path(File.join(ENV['RAILS_SOURCE'],'activerecord','test'))
 
 require 'rubygems'
+require 'bundler'
+Bundler.setup
 require 'shoulda'
 require 'mocha'
 [ File.expand_path(File.join(File.dirname(__FILE__),'..','..','test')),

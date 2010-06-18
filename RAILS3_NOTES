@@ -1,4 +1,9 @@
 
+= SQL Server Testing Setup
+
+ 1) $ bundle install
+ 2) 
+
 = Arel Testing Setup
 
 You should have both rails and the adapter cloned to your typical repo folder. Let's say this 
@@ -15,9 +20,68 @@ this project root. From here you can start testing, but it is best practice to u
   $ bundle exec rake spec:sqlserver
 
 
+
+= SQL Server Todo
+  
+  2384 tests, 9524 assertions, 30 failures, 37 errors
+  
+  * Verify coerced tests
+    Undefined coerced test: AdapterTest#test_add_limit_offset_should_sanitize_sql_injection_for_limit_without_comas
+    Undefined coerced test: AdapterTest#test_add_limit_offset_should_sanitize_sql_injection_for_limit_with_comas
+    Undefined coerced test: EagerAssociationTest#test_eager_with_has_many_and_limit_and_high_offset_and_multiple_array_conditions
+    Undefined coerced test: EagerAssociationTest#test_eager_with_has_many_and_limit_and_high_offset_and_multiple_hash_conditions
+    Undefined coerced test: EagerAssociationTest#test_count_with_include
+    Undefined coerced test: AttributeMethodsTest#test_typecast_attribute_from_select_to_false
+    Undefined coerced test: AttributeMethodsTest#test_typecast_attribute_from_select_to_true
+    Undefined coerced test: BasicsTest#test_read_attributes_before_type_cast_on_datetime
+    Undefined coerced test: CalculationsTest#test_should_sum_expression
+    Undefined coerced test: InheritanceTest#test_a_bad_type_column
+    Undefined coerced test: InheritanceTest#test_eager_load_belongs_to_primary_key_quoting
+    Undefined coerced test: NestedScopingTest#test_merged_scoped_find
+    Undefined coerced test: MigrationTest#test_add_column_not_null_without_default
+    Undefined coerced test: ChangeTableMigrationsTest#test_string_creates_string_column
+    Undefined coerced test: NamedScopeTest#test_named_scopes_honor_current_scopes_from_when_defined
+    Undefined coerced test: QueryCacheTest#test_cache_does_not_wrap_string_results_in_arrays
+    
+    
+
 = Arel Todo
 
-  338 examples, 64 failures, 3 pending
+  338 examples, 6 failures, 3 pending
+  
+  * integration/joins/
+    √ with_adjacency_spec.rb
+    x with_aggregations_spec.rb   # => 1 failure (debug after take spec)
+    √ with_compounds_spec.rb
+  * unit/predicates
+    √ binary_spec.rb
+    √ equality_spec.rb
+    √ in_spec.rb
+    √ noteq_spec.rb
+    √ predicates_spec.rb
+  * unit/primitives
+    √ attribute_spec.rb
+    √ expression_spec.rb
+    √ literal_spec.rb
+    √ value_spec.rb
+  * unit/relations
+    √ alias_spec.rb
+    x delete_spec.rb      # => 1 failure (debug after take spec)
+    √ from_spec.rb
+    √ group_spec.rb
+    √ having_spec.rb
+    √ insert_spec.rb
+    √ join_spec.rb
+    x lock_spec.rb        # => 1 failure (todo on purpose)
+      - Add more tests.
+    √ order_spec.rb
+    √ project_spec.rb
+    • skip_spec.rb
+    √ table_spec.rb
+    • take_spec.rb
+    x update_spec.rb      # => 1 failure (debug after take spec)
+    √ where_spec.rb
+  
 
   * Review/remove our long winded add_limit_offset!
     Supporting:
