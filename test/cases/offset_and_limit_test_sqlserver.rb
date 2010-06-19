@@ -70,7 +70,7 @@ class OffsetAndLimitTestSqlserver < ActiveRecord::TestCase
       assert_equal(expected_sql, @connection.add_limit_offset!(@select_sql, options))
     end
     
-    should 'add locks to deepest sub select in limit offset sql that has a limited tally' do
+    should_eventually 'add locks to deepest sub select in limit offset sql that has a limited tally' do
       options = { :limit => 3, :offset => 5, :lock => 'WITH (NOLOCK)' }
       expected_sql = "SELECT * FROM (SELECT TOP 3 * FROM (SELECT TOP 8 * FROM books WITH (NOLOCK)) AS tmp1) AS tmp2"
       @connection.add_limit_offset! @select_sql, options

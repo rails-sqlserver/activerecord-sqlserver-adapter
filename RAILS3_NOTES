@@ -109,11 +109,47 @@ on a local branch of our remote tracking branch.
   
 
   * Review/remove our long winded add_limit_offset!
-    Supporting:
-      - add_lock!
-      - add_limit_offset_for_association_limiting!
-      - sql_for_association_limiting?
-      - change_order_direction
+
+    def add_lock!(sql, options)
+      # http://blog.sqlauthority.com/2007/04/27/sql-server-2005-locking-hints-and-examples/
+      return unless options[:lock]
+      lock_type = options[:lock] == true ? 'WITH(HOLDLOCK, ROWLOCK)' : options[:lock]
+      sql.gsub! %r|LEFT OUTER JOIN\s+(.*?)\s+ON|im, "LEFT OUTER JOIN \\1 #{lock_type} ON"
+      sql.gsub! %r{FROM\s([\w\[\]\.]+)}im, "FROM \\1 #{lock_type}"
+    end
+    
+    def add_limit_offset_for_association_limiting!(sql, options)
+      sql.replace %|
+        SET NOCOUNT ON
+        DECLARE @row_number TABLE (row int identity(1,1), id int)
+        INSERT INTO @row_number (id)
+          #{sql}
+        SET NOCOUNT OFF
+        SELECT id FROM (
+          SELECT TOP #{options[:limit]} * FROM (
+            SELECT TOP #{options[:limit] + options[:offset]} * FROM @row_number ORDER BY row
+          ) AS tmp1 ORDER BY row DESC
+        ) AS tmp2 ORDER BY row
+      |.gsub(/[ \t\r\n]+/,' ')
+    end
+    
+    def sql_for_association_limiting?(sql)
+      if md = sql.match(/^\s*SELECT(.*)FROM.*GROUP BY.*ORDER BY.*/im)
+        select_froms = md[1].split(',')
+        select_froms.size == 1 && !select_froms.first.include?('*')
+      end
+    end
+
+    def change_order_direction(order)
+      order.split(",").collect {|fragment|
+        case fragment
+          when  /\bDESC\b/i     then fragment.gsub(/\bDESC\b/i, "ASC")
+          when  /\bASC\b/i      then fragment.gsub(/\bASC\b/i, "DESC")
+          else                  String.new(fragment).split(',').join(' DESC,') + ' DESC'
+        end
+      }.join(",")
+    end
+  
   
   * Find out if this is needed anywhere.
     
