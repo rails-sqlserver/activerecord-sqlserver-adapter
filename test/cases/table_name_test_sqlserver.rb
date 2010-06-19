@@ -19,7 +19,7 @@ class TableNameTestSqlserver < ActiveRecord::TestCase
   end
   
   should 'not re-escape table name if it is escaped already for SQL queries' do
-    assert_sql(/SELECT \* FROM \[orders\]/) { Order.all }
+    assert_sql(/SELECT \[orders\]\.\* FROM \[orders\]/) { Order.all }
   end
   
   context 'Table scoped to user.table_name' do

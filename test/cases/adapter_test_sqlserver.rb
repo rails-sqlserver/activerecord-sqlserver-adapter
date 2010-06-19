@@ -137,27 +137,6 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
       end
     
     end
-        
-    context 'for #sql_for_association_limiting?' do
-      
-      should_eventually 'return false for simple selects with no GROUP BY and ORDER BY' do
-        assert !sql_for_association_limiting?("SELECT * FROM [posts]")
-      end
-      
-      should_eventually 'return true to single SELECT, ideally a table/primarykey, that also has a GROUP BY and ORDER BY' do
-        assert sql_for_association_limiting?("SELECT [posts].id FROM...GROUP BY [posts].id ORDER BY MIN(posts.id)")
-      end
-      
-      should_eventually 'return false to single * wildcard SELECT that also has a GROUP BY and ORDER BY' do
-        assert !sql_for_association_limiting?("SELECT * FROM...GROUP BY [posts].id ORDER BY MIN(posts.id)")
-      end
-      
-      should_eventually 'return false to multiple columns in the select even when GROUP BY and ORDER BY are present' do
-        sql = "SELECT [accounts].credit_limit, firm_id FROM...GROUP BY firm_id ORDER BY firm_id"
-        assert !sql_for_association_limiting?(sql)
-      end
-      
-    end
     
     context 'for #get_table_name' do
 
@@ -167,70 +146,6 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
         assert_equal '[customers]', @connection.send(:get_table_name,@basic_select_sql)
       end
 
-    end
-
-    context "for add_limit! within a scoped method call" do
-      setup do
-        @connection.stubs(:select_value).with(regexp_matches(/TotalRows/)).returns '100000000'
-      end
-
-      should 'not add any ordering if the scope doesn\'t have an order' do
-        assert_equal 'SELECT * FROM (SELECT TOP 10 * FROM (SELECT TOP 40 * FROM [developers]) AS tmp1) AS tmp2', add_limit!('SELECT * FROM [developers]', {:offset => 30, :limit => 10}, {})
-      end
-
-      should 'still add the default ordering if the scope doesn\'t have an order but the raw order option is there' do
-        assert_equal 'SELECT * FROM (SELECT TOP 10 * FROM (SELECT TOP 40 * FROM [developers]) AS tmp1 ORDER BY [name] DESC) AS tmp2 ORDER BY [name]', add_limit!('SELECT * FROM [developers]', {:offset => 30, :limit => 10, :order => 'name'}, {})
-      end
-
-      should 'add scoped order options to the offset and limit sql' do
-        assert_equal 'SELECT * FROM (SELECT TOP 10 * FROM (SELECT TOP 40 * FROM [developers]) AS tmp1 ORDER BY [id] DESC) AS tmp2 ORDER BY [id]', add_limit!('SELECT * FROM [developers]', {:offset => 30, :limit => 10}, {:order => 'id'})
-      end
-
-      should 'combine scoped order with raw order options in the offset and limit sql' do
-        assert_equal 'SELECT * FROM (SELECT TOP 10 * FROM (SELECT TOP 40 * FROM [developers]) AS tmp1 ORDER BY [name] DESC, [id] DESC) AS tmp2 ORDER BY [name], [id]', add_limit!('SELECT * FROM [developers]', {:offset => 30, :limit => 10, :order => 'name'}, {:order => 'id'})
-      end
-    end
-    
-    context 'dealing with various orders SQL snippets' do
-      
-      setup do
-        @single_order = 'comments.id'
-        @single_order_with_desc = 'comments.id DESC'
-        @two_orders = 'comments.id, comments.post_id'
-        @two_orders_with_asc = 'comments.id, comments.post_id ASC'
-        @two_orders_with_desc_and_asc = 'comments.id DESC, comments.post_id ASC'
-        @two_duplicate_order_with_dif_dir = "id, id DESC"
-      end
-      
-      should 'convert to an 2D array of column/direction arrays using #orders_and_dirs_set' do
-        assert_equal [['comments.id',nil]], orders_and_dirs_set('ORDER BY comments.id'), 'Needs to remove ORDER BY'
-        assert_equal [['comments.id',nil]], orders_and_dirs_set(@single_order)
-        assert_equal [['comments.id',nil],['comments.post_id',nil]], orders_and_dirs_set(@two_orders)
-        assert_equal [['comments.id',nil],['comments.post_id','ASC']], orders_and_dirs_set(@two_orders_with_asc)
-        assert_equal [['id',nil],['id','DESC']], orders_and_dirs_set(@two_duplicate_order_with_dif_dir)
-      end
-      
-      should 'remove duplicate or maintain the same order by statements giving precedence to first using #add_order! method chain extension' do
-        assert_equal ' ORDER BY comments.id', add_order!(@single_order)
-        assert_equal ' ORDER BY comments.id DESC', add_order!(@single_order_with_desc)
-        assert_equal ' ORDER BY comments.id, comments.post_id', add_order!(@two_orders)
-        assert_equal ' ORDER BY comments.id DESC, comments.post_id ASC', add_order!(@two_orders_with_desc_and_asc)
-        assert_equal 'SELECT * FROM [developers] ORDER BY id', add_order!('id, developers.id DESC','SELECT * FROM [developers]')
-        assert_equal 'SELECT * FROM [developers] ORDER BY [developers].[id] DESC', add_order!('[developers].[id] DESC, id','SELECT * FROM [developers]')
-      end
-      
-      should 'take all types of order options and convert them to MIN functions using #order_to_min_set' do
-        assert_equal 'MIN(comments.id)', order_to_min_set(@single_order)
-        assert_equal 'MIN(comments.id), MIN(comments.post_id)', order_to_min_set(@two_orders)
-        assert_equal 'MIN(comments.id) DESC', order_to_min_set(@single_order_with_desc)
-        assert_equal 'MIN(comments.id), MIN(comments.post_id) ASC', order_to_min_set(@two_orders_with_asc)
-        assert_equal 'MIN(comments.id) DESC, MIN(comments.post_id) ASC', order_to_min_set(@two_orders_with_desc_and_asc)
-      end
-      
-      should 'leave order by alone when same column crosses two tables' do
-        assert_equal ' ORDER BY developers.name, projects.name', add_order!('developers.name, projects.name')
-      end
-      
     end
     
     context 'with different language' do
@@ -690,24 +605,6 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
   
   private
   
-  def orders_and_dirs_set(order)
-    @connection.send :orders_and_dirs_set, order
-  end
-  
-  def add_order!(order,sql='')
-    ActiveRecord::Base.send :add_order!, sql, order, nil
-    sql
-  end
-  
-  def add_limit!(sql, options, scope = :auto)
-    ActiveRecord::Base.send :add_limit!, sql, options, scope
-    sql
-  end
-
-  def order_to_min_set(order)
-    @connection.send :order_to_min_set, order
-  end
-  
   def with_enable_default_unicode_types(setting)
     old_setting = ActiveRecord::ConnectionAdapters::SQLServerAdapter.enable_default_unicode_types
     old_text = ActiveRecord::ConnectionAdapters::SQLServerAdapter.native_text_database_type
@@ -724,29 +621,3 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
   
 end
 
-
-class AdapterTest < ActiveRecord::TestCase
-  
-  COERCED_TESTS = [
-    :test_add_limit_offset_should_sanitize_sql_injection_for_limit_without_comas,
-    :test_add_limit_offset_should_sanitize_sql_injection_for_limit_with_comas
-  ]
-  
-  include SqlserverCoercedTest
-  
-  def test_coerced_test_add_limit_offset_should_sanitize_sql_injection_for_limit_without_comas
-    sql_inject = "1 select * from schema"
-    connection = ActiveRecord::Base.connection
-    assert_raise(ArgumentError) { connection.add_limit_offset!("", :limit=>sql_inject) }
-    assert_raise(ArgumentError) { connection.add_limit_offset!("", :limit=>sql_inject, :offset=>7) }
-  end
-
-  def test_coerced_test_add_limit_offset_should_sanitize_sql_injection_for_limit_with_comas
-    sql_inject = "1, 7 procedure help()"
-    connection = ActiveRecord::Base.connection
-    assert_raise(ArgumentError) { connection.add_limit_offset!("", :limit=>sql_inject) }
-    assert_raise(ArgumentError) { connection.add_limit_offset!("", :limit=> '1 ; DROP TABLE USERS', :offset=>7) }
-    assert_raise(ArgumentError) { connection.add_limit_offset!("", :limit=>sql_inject, :offset=>7) }
-  end
-  
-end

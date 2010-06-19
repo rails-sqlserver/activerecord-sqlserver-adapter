@@ -34,21 +34,16 @@ on a local branch of our remote tracking branch.
 
 = SQL Server Todo
   
-  2384 tests, 9524 assertions, 30 failures, 37 errors
+  2370 tests, 8467 assertions, 31 failures, 34 errors
   
   * SQL Server Test Cases
-    x adapter_test_sqlserver.rb               (8) Limit offset stuff.
     x eager_association_test_sqlserver.rb     (2) Limit offset stuff.
     x inheritance_test_sqlserver.rb           (1) Recheck orig.
     x method_scoping_test_sqlserver.rb        (1) Recheck orig.
     √ named_scope_test_sqlserver.rb           (0) Recheck orig.
-    x offset_and_limit_test_sqlserver.rb      (3) Offset/Limit stuff.
-    x pessimistic_locking_test_sqlserver.rb   (7) Tons of lock problems.
-    x table_name_test_sqlserver.rb            (1) Query pattern.
+    x offset_and_limit_test_sqlserver.rb      (10) Offset/Limit stuff.
   
   * Verify coerced tests
-    Undefined coerced test: AdapterTest#test_add_limit_offset_should_sanitize_sql_injection_for_limit_without_comas
-    Undefined coerced test: AdapterTest#test_add_limit_offset_should_sanitize_sql_injection_for_limit_with_comas
     Undefined coerced test: EagerAssociationTest#test_eager_with_has_many_and_limit_and_high_offset_and_multiple_array_conditions
     Undefined coerced test: EagerAssociationTest#test_eager_with_has_many_and_limit_and_high_offset_and_multiple_hash_conditions
     Undefined coerced test: EagerAssociationTest#test_count_with_include
@@ -67,46 +62,17 @@ on a local branch of our remote tracking branch.
   * Make sure the repair special columns was good to go.
   * Possibly remove 2000 support and query methods.
   * Make sure Gemspec is good.
-  
-    
+
+
 
 = Arel Todo
 
-  338 examples, 4 failures, 3 pending
+  338 examples, 2 failures, 3 pending
   
-  * integration/joins/
-    √ with_adjacency_spec.rb
-    x with_aggregations_spec.rb   # => 1 failure (debug after take spec)
-    √ with_compounds_spec.rb
-  * unit/predicates
-    √ binary_spec.rb
-    √ equality_spec.rb
-    √ in_spec.rb
-    √ noteq_spec.rb
-    √ predicates_spec.rb
-  * unit/primitives
-    √ attribute_spec.rb
-    √ expression_spec.rb
-    √ literal_spec.rb
-    √ value_spec.rb
   * unit/relations
-    √ alias_spec.rb
-    x delete_spec.rb      # => 1 failure (debug after take spec)
-    √ from_spec.rb
-    √ group_spec.rb
-    √ having_spec.rb
-    √ insert_spec.rb
-    √ join_spec.rb
-    x lock_spec.rb        # => 1 failure (todo on purpose)
-      - Add more tests.
-    √ order_spec.rb
-    √ project_spec.rb
     • skip_spec.rb
-    √ table_spec.rb
     • take_spec.rb
-    x update_spec.rb      # => 1 failure (debug after take spec)
-    √ where_spec.rb
-  
+
 
   * Review/remove our long winded add_limit_offset!
 
@@ -133,6 +99,27 @@ on a local branch of our remote tracking branch.
       |.gsub(/[ \t\r\n]+/,' ')
     end
     
+    context 'for #sql_for_association_limiting?' do
+      
+      should_eventually 'return false for simple selects with no GROUP BY and ORDER BY' do
+        assert !sql_for_association_limiting?("SELECT * FROM [posts]")
+      end
+      
+      should_eventually 'return true to single SELECT, ideally a table/primarykey, that also has a GROUP BY and ORDER BY' do
+        assert sql_for_association_limiting?("SELECT [posts].id FROM...GROUP BY [posts].id ORDER BY MIN(posts.id)")
+      end
+      
+      should_eventually 'return false to single * wildcard SELECT that also has a GROUP BY and ORDER BY' do
+        assert !sql_for_association_limiting?("SELECT * FROM...GROUP BY [posts].id ORDER BY MIN(posts.id)")
+      end
+      
+      should_eventually 'return false to multiple columns in the select even when GROUP BY and ORDER BY are present' do
+        sql = "SELECT [accounts].credit_limit, firm_id FROM...GROUP BY firm_id ORDER BY firm_id"
+        assert !sql_for_association_limiting?(sql)
+      end
+      
+    end
+    
     def sql_for_association_limiting?(sql)
       if md = sql.match(/^\s*SELECT(.*)FROM.*GROUP BY.*ORDER BY.*/im)
         select_froms = md[1].split(',')
@@ -153,6 +140,139 @@ on a local branch of our remote tracking branch.
   
   * Find out if this is needed anywhere.
     
+    def add_limit_with_sqlserver_order_checking!(sql, options, scope = :auto)
+      if connection.respond_to?(:sqlserver?)
+        scope = scope(:find) if :auto == scope
+        if scope
+          options = options.dup
+          scoped_order = scope[:order]
+          order = options[:order]
+          if order && scoped_order
+            options[:order] = add_order_with_sqlserver_unique_checking!('', order, scope).gsub(/^ ORDER BY /,'')
+          elsif scoped_order
+            options[:order] = scoped_order
+          end
+        end
+      end
+      add_limit_without_sqlserver_order_checking!(sql, options, scope)
+    end
+    
+    context "for add_limit! within a scoped method call" do
+      setup do
+        @connection.stubs(:select_value).with(regexp_matches(/TotalRows/)).returns '100000000'
+      end
+
+      should 'not add any ordering if the scope doesn\'t have an order' do
+        assert_equal 'SELECT * FROM (SELECT TOP 10 * FROM (SELECT TOP 40 * FROM [developers]) AS tmp1) AS tmp2', add_limit!('SELECT * FROM [developers]', {:offset => 30, :limit => 10}, {})
+      end
+
+      should 'still add the default ordering if the scope doesn\'t have an order but the raw order option is there' do
+        assert_equal 'SELECT * FROM (SELECT TOP 10 * FROM (SELECT TOP 40 * FROM [developers]) AS tmp1 ORDER BY [name] DESC) AS tmp2 ORDER BY [name]', add_limit!('SELECT * FROM [developers]', {:offset => 30, :limit => 10, :order => 'name'}, {})
+      end
+
+      should 'add scoped order options to the offset and limit sql' do
+        assert_equal 'SELECT * FROM (SELECT TOP 10 * FROM (SELECT TOP 40 * FROM [developers]) AS tmp1 ORDER BY [id] DESC) AS tmp2 ORDER BY [id]', add_limit!('SELECT * FROM [developers]', {:offset => 30, :limit => 10}, {:order => 'id'})
+      end
+
+      should 'combine scoped order with raw order options in the offset and limit sql' do
+        assert_equal 'SELECT * FROM (SELECT TOP 10 * FROM (SELECT TOP 40 * FROM [developers]) AS tmp1 ORDER BY [name] DESC, [id] DESC) AS tmp2 ORDER BY [name], [id]', add_limit!('SELECT * FROM [developers]', {:offset => 30, :limit => 10, :order => 'name'}, {:order => 'id'})
+      end
+    end
+    
+    def add_limit!(sql, options, scope = :auto)
+      ActiveRecord::Base.send :add_limit!, sql, options, scope
+      sql
+    end
+    
+    
+    
+    
+    
+    def add_order_with_sqlserver_unique_checking!(sql, order, scope = :auto)
+      if connection.respond_to?(:sqlserver?)
+        order_sql = ''
+        add_order_without_sqlserver_unique_checking!(order_sql, order, scope)
+        unless order_sql.blank?
+          unique_order_hash = {}
+          select_table_name = connection.send(:get_table_name,sql)
+          select_table_name.tr!('[]','') if select_table_name
+          orders_and_dirs_set = connection.send(:orders_and_dirs_set,order_sql)
+          unique_order_sql = orders_and_dirs_set.inject([]) do |array,order_dir|
+            ord, dir = order_dir
+            ord_tn_and_cn = ord.to_s.split('.').map{|o|o.tr('[]','')}
+            ord_table_name, ord_column_name = if ord_tn_and_cn.size > 1
+                                                ord_tn_and_cn
+                                              else
+                                                [nil, ord_tn_and_cn.first]
+                                              end
+            unique_key = [(ord_table_name || select_table_name), ord_column_name]
+            if unique_order_hash[unique_key]
+              array
+            else
+              unique_order_hash[unique_key] = true
+              array << "#{ord} #{dir}".strip
+            end
+          end.join(', ')
+          sql << " ORDER BY #{unique_order_sql}"
+        end
+      else
+        add_order_without_sqlserver_unique_checking!(sql, order, scope)
+      end
+    end
+    
+    def order_to_min_set(order)
+      orders_dirs = orders_and_dirs_set(order)
+      orders_dirs.map do |o,d|
+        "MIN(#{o}) #{d}".strip
+      end.join(', ')
+    end
+    
+    context 'dealing with various orders SQL snippets' do
+      
+      setup do
+        @single_order = 'comments.id'
+        @single_order_with_desc = 'comments.id DESC'
+        @two_orders = 'comments.id, comments.post_id'
+        @two_orders_with_asc = 'comments.id, comments.post_id ASC'
+        @two_orders_with_desc_and_asc = 'comments.id DESC, comments.post_id ASC'
+        @two_duplicate_order_with_dif_dir = "id, id DESC"
+      end
+      
+      should 'remove duplicate or maintain the same order by statements giving precedence to first using #add_order! method chain extension' do
+        assert_equal ' ORDER BY comments.id', add_order!(@single_order)
+        assert_equal ' ORDER BY comments.id DESC', add_order!(@single_order_with_desc)
+        assert_equal ' ORDER BY comments.id, comments.post_id', add_order!(@two_orders)
+        assert_equal ' ORDER BY comments.id DESC, comments.post_id ASC', add_order!(@two_orders_with_desc_and_asc)
+        assert_equal 'SELECT * FROM [developers] ORDER BY id', add_order!('id, developers.id DESC','SELECT * FROM [developers]')
+        assert_equal 'SELECT * FROM [developers] ORDER BY [developers].[id] DESC', add_order!('[developers].[id] DESC, id','SELECT * FROM [developers]')
+      end
+    
+      should 'leave order by alone when same column crosses two tables' do
+        assert_equal ' ORDER BY developers.name, projects.name', add_order!('developers.name, projects.name')
+      end
+      
+      should 'take all types of order options and convert them to MIN functions using #order_to_min_set' do
+        assert_equal 'MIN(comments.id)', order_to_min_set(@single_order)
+        assert_equal 'MIN(comments.id), MIN(comments.post_id)', order_to_min_set(@two_orders)
+        assert_equal 'MIN(comments.id) DESC', order_to_min_set(@single_order_with_desc)
+        assert_equal 'MIN(comments.id), MIN(comments.post_id) ASC', order_to_min_set(@two_orders_with_asc)
+        assert_equal 'MIN(comments.id) DESC, MIN(comments.post_id) ASC', order_to_min_set(@two_orders_with_desc_and_asc)
+      end
+    
+    end
+    
+    def add_order!(order,sql='')
+      ActiveRecord::Base.send :add_order!, sql, order, nil
+      sql
+    end
+    
+    def order_to_min_set(order)
+      @connection.send :order_to_min_set, order
+    end
+    
+    
+    
+    
     def add_order_by_for_association_limiting!(sql, options)
       # Disertation http://gist.github.com/24073
       # Information http://weblogs.sqlteam.com/jeffs/archive/2007/12/13/select-distinct-order-by-error.aspx
@@ -161,6 +281,9 @@ on a local branch of our remote tracking branch.
       sql.sub!(/SELECT\s+DISTINCT/,'SELECT')
       sql << "GROUP BY #{columns} ORDER BY #{order_to_min_set(options[:order])}"
     end
+    
+    
+    
     
     def orders_and_dirs_set(order)
       orders = order.sub('ORDER BY','').split(',').map(&:strip).reject(&:blank?)
@@ -176,12 +299,21 @@ on a local branch of our remote tracking branch.
       end
     end
     
-    def order_to_min_set(order)
-      orders_dirs = orders_and_dirs_set(order)
-      orders_dirs.map do |o,d|
-        "MIN(#{o}) #{d}".strip
-      end.join(', ')
+    should 'convert to an 2D array of column/direction arrays using #orders_and_dirs_set' do
+      assert_equal [['comments.id',nil]], orders_and_dirs_set('ORDER BY comments.id'), 'Needs to remove ORDER BY'
+      assert_equal [['comments.id',nil]], orders_and_dirs_set(@single_order)
+      assert_equal [['comments.id',nil],['comments.post_id',nil]], orders_and_dirs_set(@two_orders)
+      assert_equal [['comments.id',nil],['comments.post_id','ASC']], orders_and_dirs_set(@two_orders_with_asc)
+      assert_equal [['id',nil],['id','DESC']], orders_and_dirs_set(@two_duplicate_order_with_dif_dir)
     end
+    
+    def orders_and_dirs_set(order)
+      @connection.send :orders_and_dirs_set, order
+    end
+    
+    
+    
+
 
 
 

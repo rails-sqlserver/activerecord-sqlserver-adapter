@@ -24,7 +24,7 @@ class PessimisticLockingTestSqlserver < ActiveRecord::TestCase
     should 'lock with scoped find' do
       assert_nothing_raised do
         Person.transaction do
-          Person.with_scope(:find => { :lock => true }) do
+          Person.send(:with_scope, :find => { :lock => true }) do
             Person.find 1
           end
         end
@@ -51,7 +51,7 @@ class PessimisticLockingTestSqlserver < ActiveRecord::TestCase
     end
     
     should 'simply add lock to find all' do
-      assert_sql %r|SELECT \* FROM \[people\] WITH \(NOLOCK\)| do
+      assert_sql %r|SELECT \[people\]\.\* FROM \[people\] WITH \(NOLOCK\)| do
         Person.all(:lock => 'WITH (NOLOCK)')
       end
     end
@@ -64,7 +64,7 @@ class PessimisticLockingTestSqlserver < ActiveRecord::TestCase
       20.times { |n| Person.create!(:first_name => "Thing_#{n}") }
     end
     
-    should 'cope with un-locked paginated results' do
+    should_eventually 'cope with un-locked paginated results' do
       tally_not_locked = %r|SELECT count\(\*\) as TotalRows from \(SELECT TOP 1000000000 \* FROM \[people\]\s+WITH \(NOLOCK\) \) tally|
       inner_tmp_not_locked = %r|SELECT TOP 15 \* FROM \[people\] WITH \(NOLOCK\)|
       # Currently association limiting is not locked like the parent.
