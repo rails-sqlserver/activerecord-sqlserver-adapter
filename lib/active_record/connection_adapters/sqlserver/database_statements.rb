@@ -43,67 +43,77 @@ module ActiveRecord
         end
 
         def add_limit_offset!(sql, options)
-          # Validate and/or convert integers for :limit and :offets options.
-          if options[:offset]
-            raise ArgumentError, "offset should have a limit" unless options[:limit]
-            unless options[:offset].kind_of?(Integer)
-              if options[:offset] =~ /^\d+$/
-                options[:offset] = options[:offset].to_i
-              else
-                raise ArgumentError, "offset should be an integer"
-              end
-            end
+          limit = options[:limit]
+          offset = options[:offset]
+          
+          
+          if limit && !offset
+            sql
+          elsif limit || offset
+            sql
           end
-          if options[:limit] && !(options[:limit].kind_of?(Integer))
-            if options[:limit] =~ /^\d+$/
-              options[:limit] = options[:limit].to_i
-            else
-              raise ArgumentError, "limit should be an integer"
-            end
-          end
-          # The business of adding limit/offset
-          if options[:limit] and options[:offset]
-            tally_sql = "SELECT count(*) as TotalRows from (#{sql.sub(/\bSELECT(\s+DISTINCT)?\b/i, "SELECT#{$1} TOP 1000000000")}) tally"
-            add_lock! tally_sql, options
-            total_rows = select_value(tally_sql).to_i
-            if (options[:limit] + options[:offset]) >= total_rows
-              options[:limit] = (total_rows - options[:offset] >= 0) ? (total_rows - options[:offset]) : 0
-            end
-            # Make sure we do not need a special limit/offset for association limiting. http://gist.github.com/25118
-            add_limit_offset_for_association_limiting!(sql,options) and return if sql_for_association_limiting?(sql)
-            # Wrap the SQL query in a bunch of outer SQL queries that emulate proper LIMIT,OFFSET support.
-            sql.sub!(/^\s*SELECT(\s+DISTINCT)?/i, "SELECT * FROM (SELECT TOP #{options[:limit]} * FROM (SELECT#{$1} TOP #{options[:limit] + options[:offset]}")
-            sql << ") AS tmp1"
-            if options[:order]
-              order = options[:order].split(',').map do |field|
-                order_by_column, order_direction = field.split(" ")
-                order_by_column = quote_column_name(order_by_column)
-                # Investigate the SQL query to figure out if the order_by_column has been renamed.
-                if sql =~ /#{Regexp.escape(order_by_column)} AS (t\d+_r\d+)/
-                  # Fx "[foo].[bar] AS t4_r2" was found in the SQL. Use the column alias (ie 't4_r2') for the subsequent orderings
-                  order_by_column = $1
-                elsif order_by_column =~ /\w+\.\[?(\w+)\]?/
-                  order_by_column = $1
-                else
-                  # It doesn't appear that the column name has been renamed as part of the query. Use just the column
-                  # name rather than the full identifier for the outer queries.
-                  order_by_column = order_by_column.split('.').last
-                end
-                # Put the column name and eventual direction back together
-                [order_by_column, order_direction].join(' ').strip
-              end.join(', ')
-              sql << " ORDER BY #{change_order_direction(order)}) AS tmp2 ORDER BY #{order}"
-            else
-              sql << ") AS tmp2"
-            end
-          elsif options[:limit] && sql !~ /^\s*SELECT (@@|COUNT\()/i
-            if md = sql.match(/^(\s*SELECT)(\s+DISTINCT)?(.*)/im)
-              sql.replace "#{md[1]}#{md[2]} TOP #{options[:limit]}#{md[3]}"
-            else
-              # Account for building SQL fragments without SELECT yet. See #update_all and #limited_update_conditions.
-              sql.replace "TOP #{options[:limit]} #{sql}"
-            end
-          end
+          
+          # options[:offset] ||= 0
+          # if options[:offset] > 0
+          #   options[:order] ||= if order_by = sql.match(/ORDER BY (.*$)/i)
+          #                       order_by[1]
+          #                     else
+          #                       table_name = sql.match('FROM ([\[\]a-zA-Z0-9_\.]+)')[1]
+          # 
+          #                       find_table_primary_key_columns(table_name)
+          #                     end
+          #   sql.sub!(/ORDER BY.*$/i, '')
+          #   sql.sub!(/SELECT/i, "SELECT * FROM ( SELECT ROW_NUMBER() OVER( ORDER BY #{options[:order] } ) AS row_num, ")
+          #   sql << ") AS t WHERE row_num > #{options[:offset]}"
+          # end
+          # sql.sub!(/^SELECT/i, "SELECT TOP #{options[:limit]}") if options[:limit]
+          # sql
+          
+          
+
+          # # The business of adding limit/offset
+          # if options[:limit] and options[:offset]
+          #   tally_sql = "SELECT count(*) as TotalRows from (#{sql.sub(/\bSELECT(\s+DISTINCT)?\b/i, "SELECT#{$1} TOP 1000000000")}) tally"
+          #   add_lock! tally_sql, options
+          #   total_rows = select_value(tally_sql).to_i
+          #   if (options[:limit] + options[:offset]) >= total_rows
+          #     options[:limit] = (total_rows - options[:offset] >= 0) ? (total_rows - options[:offset]) : 0
+          #   end
+          #   # Make sure we do not need a special limit/offset for association limiting. http://gist.github.com/25118
+          #   add_limit_offset_for_association_limiting!(sql,options) and return if sql_for_association_limiting?(sql)
+          #   # Wrap the SQL query in a bunch of outer SQL queries that emulate proper LIMIT,OFFSET support.
+          #   sql.sub!(/^\s*SELECT(\s+DISTINCT)?/i, "SELECT * FROM (SELECT TOP #{options[:limit]} * FROM (SELECT#{$1} TOP #{options[:limit] + options[:offset]}")
+          #   sql << ") AS tmp1"
+          #   if options[:order]
+          #     order = options[:order].split(',').map do |field|
+          #       order_by_column, order_direction = field.split(" ")
+          #       order_by_column = quote_column_name(order_by_column)
+          #       # Investigate the SQL query to figure out if the order_by_column has been renamed.
+          #       if sql =~ /#{Regexp.escape(order_by_column)} AS (t\d+_r\d+)/
+          #         # Fx "[foo].[bar] AS t4_r2" was found in the SQL. Use the column alias (ie 't4_r2') for the subsequent orderings
+          #         order_by_column = $1
+          #       elsif order_by_column =~ /\w+\.\[?(\w+)\]?/
+          #         order_by_column = $1
+          #       else
+          #         # It doesn't appear that the column name has been renamed as part of the query. Use just the column
+          #         # name rather than the full identifier for the outer queries.
+          #         order_by_column = order_by_column.split('.').last
+          #       end
+          #       # Put the column name and eventual direction back together
+          #       [order_by_column, order_direction].join(' ').strip
+          #     end.join(', ')
+          #     sql << " ORDER BY #{change_order_direction(order)}) AS tmp2 ORDER BY #{order}"
+          #   else
+          #     sql << ") AS tmp2"
+          #   end
+          # elsif options[:limit] && sql !~ /^\s*SELECT (@@|COUNT\()/i
+          #   if md = sql.match(/^(\s*SELECT)(\s+DISTINCT)?(.*)/im)
+          #     sql.replace "#{md[1]}#{md[2]} TOP #{options[:limit]}#{md[3]}"
+          #   else
+          #     # Account for building SQL fragments without SELECT yet. See #update_all and #limited_update_conditions.
+          #     sql.replace "TOP #{options[:limit]} #{sql}"
+          #   end
+          # end
         end
 
         def empty_insert_statement_value

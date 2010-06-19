@@ -36,6 +36,16 @@ on a local branch of our remote tracking branch.
   
   2384 tests, 9524 assertions, 30 failures, 37 errors
   
+  * SQL Server Test Cases
+    x adapter_test_sqlserver.rb               (8) Limit offset stuff.
+    x eager_association_test_sqlserver.rb     (2) Limit offset stuff.
+    x inheritance_test_sqlserver.rb           (1) Recheck orig.
+    x method_scoping_test_sqlserver.rb        (1) Recheck orig.
+    √ named_scope_test_sqlserver.rb           (0) Recheck orig.
+    x offset_and_limit_test_sqlserver.rb      (3) Offset/Limit stuff.
+    x pessimistic_locking_test_sqlserver.rb   (7) Tons of lock problems.
+    x table_name_test_sqlserver.rb            (1) Query pattern.
+  
   * Verify coerced tests
     Undefined coerced test: AdapterTest#test_add_limit_offset_should_sanitize_sql_injection_for_limit_without_comas
     Undefined coerced test: AdapterTest#test_add_limit_offset_should_sanitize_sql_injection_for_limit_with_comas
@@ -62,7 +72,7 @@ on a local branch of our remote tracking branch.
 
 = Arel Todo
 
-  338 examples, 6 failures, 3 pending
+  338 examples, 4 failures, 3 pending
   
   * integration/joins/
     √ with_adjacency_spec.rb
