@@ -49,9 +49,26 @@ module ActiveRecord
           
           if limit && !offset
             sql
-          elsif limit || offset
+          elsif !limit && offset
+            sql
+          else limit && offset
             sql
           end
+          
+          # SELECT [_rnt].[id], [_rnt].[name] FROM
+          #     (SELECT ROW_NUMBER() 
+          #         OVER (ORDER BY [users].[id]) AS [rn], 
+          #         [users].[id], [users].[name]
+          #     FROM [users]) AS [_rnt]
+          # WHERE [_rnt].[rn] > 4
+          
+          
+          # http://github.com/kenglishhi/2000-2005-adapter/commit/476ac1f6dbd517ed090ef350e6d5855a581f6cbf
+          # if options[:limit] and options[:offset]
+          #   sql.sub! /ORDER BY.*$/i, ''
+          #   sql.sub! /SELECT/i, "SELECT ROW_NUMBER() OVER (ORDER BY #{options[:order]}) AS [row_number], "
+          #   sql.replace "SELECT TOP (#{options[:limit]}) * FROM (#{sql}) as [row_number_table] WHERE [row_number_table].[row_number] > #{options[:offset]}"
+          # end
           
           # options[:offset] ||= 0
           # if options[:offset] > 0
