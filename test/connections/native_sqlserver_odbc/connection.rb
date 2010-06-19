@@ -2,7 +2,7 @@ print "Using SQLServer via ODBC\n"
 require_dependency 'models/course'
 require 'logger'
 
-ActiveRecord::Base.logger = Logger.new("debug.log")
+ActiveRecord::Base.logger = Logger.new(File.expand_path(File.join(SQLSERVER_TEST_ROOT,'debug.log')))
 
 ActiveRecord::Base.configurations = {
   'arunit' => {
