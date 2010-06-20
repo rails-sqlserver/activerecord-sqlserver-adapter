@@ -43,25 +43,26 @@ module ActiveRecord
         end
 
         def add_limit_offset!(sql, options)
-          limit = options[:limit]
-          offset = options[:offset]
-          
-          
-          if limit && !offset
-            sql
-          elsif !limit && offset
-            sql
-          else limit && offset
-            sql
-          end
-          
-          # SELECT [_rnt].[id], [_rnt].[name] FROM
-          #     (SELECT ROW_NUMBER() 
-          #         OVER (ORDER BY [users].[id]) AS [rn], 
-          #         [users].[id], [users].[name]
-          #     FROM [users]) AS [_rnt]
-          # WHERE [_rnt].[rn] > 4
-          
+          # Easy locals.
+          limit = options[:limit].try(:to_i)
+          offset = options[:offset].try(:to_i)
+          select_clauses = options[:select_clauses]
+          order_clauses = options[:order_clauses]
+          primary_key = options[:primary_key]
+          table_name = options[:table_name]
+          # Template strings
+          limit_string = "TOP (#{limit}) " if limit
+          select_string = select_clauses.join(', ').gsub(%r|\[#{table_name}\]\.|,'[_rnt].')
+          order_string = order_clauses.present? ? order_clauses.join(', ') : [quote_table_name(table_name),quote_column_name(primary_key)].join('.')
+          window_template = %q|
+            SELECT #{limit_string}#{select_string} FROM (
+              SELECT ROW_NUMBER() OVER (ORDER BY #{order_string}) AS [rn], 
+              #{sql}
+            ) AS [_rnt]
+            WHERE [_rnt].[rn] > #{offset}|.squish!
+          # Assembly
+          sql.sub! /SELECT/i, ''
+          sql.replace instance_eval("%|#{window_template}|")
           
           # http://github.com/kenglishhi/2000-2005-adapter/commit/476ac1f6dbd517ed090ef350e6d5855a581f6cbf
           # if options[:limit] and options[:offset]
@@ -69,6 +70,23 @@ module ActiveRecord
           #   sql.sub! /SELECT/i, "SELECT ROW_NUMBER() OVER (ORDER BY #{options[:order]}) AS [row_number], "
           #   sql.replace "SELECT TOP (#{options[:limit]}) * FROM (#{sql}) as [row_number_table] WHERE [row_number_table].[row_number] > #{options[:offset]}"
           # end
+          
+          # options = {:limit => 10, :offset => 20, :order => '[users].[id] ASC'}
+          # sql = %|SELECT [users].[id], [users].[name] FROM [users]|
+          # >> sql.sub! /SELECT/i, "SELECT ROW_NUMBER() OVER (ORDER BY #{options[:order]}) AS [row_number], "
+          # => "SELECT ROW_NUMBER() OVER (ORDER BY [users].[id] ASC) AS [row_number],  [users].[id], [users].[name] FROM [users]"
+          # >> sql.replace "SELECT TOP (#{options[:limit]}) * FROM (#{sql}) as [row_number_table] WHERE [row_number_table].[row_number] > #{options[:offset]}"
+          # SELECT TOP (10) * FROM (
+          #   SELECT ROW_NUMBER() OVER (ORDER BY [users].[id] ASC) AS [row_number],
+          #   [users].[id], [users].[name] FROM [users]
+          # ) as [row_number_table] WHERE [row_number_table].[row_number] > 20"
+          
+          # SELECT * FROM
+          #   (SELECT ROW_NUMBER() 
+          #     OVER (ORDER BY [users].[id]) AS [rn], 
+          #     [users].[id], [users].[name]
+          #   FROM [users]) AS [_rnt]
+          # WHERE [_rnt].[rn] > 4
           
           # options[:offset] ||= 0
           # if options[:offset] > 0
