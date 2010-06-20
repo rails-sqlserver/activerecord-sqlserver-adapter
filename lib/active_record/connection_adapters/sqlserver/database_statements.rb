@@ -54,12 +54,10 @@ module ActiveRecord
           limit_string = "TOP (#{limit}) " if limit
           select_string = select_clauses.join(', ').gsub(%r|\[#{table_name}\]\.|,'[_rnt].')
           order_string = order_clauses.present? ? order_clauses.join(', ') : [quote_table_name(table_name),quote_column_name(primary_key)].join('.')
-          window_template = %q|
-            SELECT #{limit_string}#{select_string} FROM (
-              SELECT ROW_NUMBER() OVER (ORDER BY #{order_string}) AS [rn], 
-              #{sql}
-            ) AS [_rnt]
-            WHERE [_rnt].[rn] > #{offset}|.squish!
+          window_template = 
+            'SELECT #{limit_string}#{select_string} ' + 
+            'FROM (SELECT ROW_NUMBER() OVER (ORDER BY #{order_string}) AS [rn], #{sql.strip}) AS [_rnt] ' + 
+            'WHERE [_rnt].[rn] > #{offset}'
           # Assembly
           sql.sub! /SELECT/i, ''
           sql.replace instance_eval("%|#{window_template}|")

@@ -35,6 +35,7 @@ on a local branch of our remote tracking branch.
 = SQL Server Todo
   
   2370 tests, 8467 assertions, 31 failures, 34 errors
+  2370 tests, 8446 assertions, 16 failures, 53 errors
   
   * SQL Server Test Cases
     x eager_association_test_sqlserver.rb     (2) Limit offset stuff.
@@ -67,11 +68,11 @@ on a local branch of our remote tracking branch.
 
 = Arel Todo
 
-  338 examples, 2 failures, 3 pending
+  338 examples, 0 failures, 3 pending
   
   * unit/relations
-    • skip_spec.rb
-    • take_spec.rb
+    • skip_spec.rb  (try adding more, maybe with order)
+    • take_spec.rb  (try adding more, maybe with order)
 
 
   * Review/remove our long winded add_limit_offset!
