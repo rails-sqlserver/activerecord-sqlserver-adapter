@@ -34,15 +34,13 @@ on a local branch of our remote tracking branch.
 
 = SQL Server Todo
   
-  2370 tests, 8467 assertions, 31 failures, 34 errors
-  2370 tests, 8446 assertions, 16 failures, 53 errors
+  2364 tests, 9480 assertions, 9 failures, 48 errors
   
   * SQL Server Test Cases
     x eager_association_test_sqlserver.rb     (2) Limit offset stuff.
     x inheritance_test_sqlserver.rb           (1) Recheck orig.
     x method_scoping_test_sqlserver.rb        (1) Recheck orig.
-    √ named_scope_test_sqlserver.rb           (0) Recheck orig.
-    x offset_and_limit_test_sqlserver.rb      (10) Offset/Limit stuff.
+    √ offset_and_limit_test_sqlserver.rb      Would prefer a few more cases.
   
   * Verify coerced tests
     Undefined coerced test: EagerAssociationTest#test_eager_with_has_many_and_limit_and_high_offset_and_multiple_array_conditions
@@ -57,7 +55,6 @@ on a local branch of our remote tracking branch.
     Undefined coerced test: NestedScopingTest#test_merged_scoped_find
     Undefined coerced test: MigrationTest#test_add_column_not_null_without_default
     Undefined coerced test: ChangeTableMigrationsTest#test_string_creates_string_column
-    Undefined coerced test: NamedScopeTest#test_named_scopes_honor_current_scopes_from_when_defined
     Undefined coerced test: QueryCacheTest#test_cache_does_not_wrap_string_results_in_arrays
   * Move all sqlserver_adapter/core_ext files to sqlserver/core_ext.
   * Make sure the repair special columns was good to go.

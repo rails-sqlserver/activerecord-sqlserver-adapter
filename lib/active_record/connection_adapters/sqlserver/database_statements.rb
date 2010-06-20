@@ -51,7 +51,7 @@ module ActiveRecord
           primary_key = options[:primary_key]
           table_name = options[:table_name]
           # Template strings
-          limit_string = "TOP (#{limit}) " if limit
+          limit_string = "TOP (#{limit}) " if limit.present?
           select_string = select_clauses.join(', ').gsub(%r|\[#{table_name}\]\.|,'[_rnt].')
           order_string = order_clauses.present? ? order_clauses.join(', ') : [quote_table_name(table_name),quote_column_name(primary_key)].join('.')
           window_template = 
