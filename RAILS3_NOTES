@@ -34,7 +34,7 @@ on a local branch of our remote tracking branch.
 
 = SQL Server Todo
   
-  2364 tests, 9480 assertions, 9 failures, 48 errors
+  2364 tests, 8447 assertions, 8 failures, 47 errors
   
   * SQL Server Test Cases
     x eager_association_test_sqlserver.rb     (2) Limit offset stuff.

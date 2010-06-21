@@ -621,3 +621,23 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
   
 end
 
+
+class AdapterTest < ActiveRecord::TestCase
+  
+  COERCED_TESTS = [
+    :test_add_limit_offset_should_sanitize_sql_injection_for_limit_without_comas,
+    :test_add_limit_offset_should_sanitize_sql_injection_for_limit_with_comas
+  ]
+  
+  include SqlserverCoercedTest
+  
+  def test_coerced_test_add_limit_offset_should_sanitize_sql_injection_for_limit_without_comas
+    true # Tested in our OffsetAndLimitTestSqlserver test case.
+  end
+
+  def test_coerced_test_add_limit_offset_should_sanitize_sql_injection_for_limit_with_comas
+    true # Tested in our OffsetAndLimitTestSqlserver test case.
+  end
+  
+  
+end
