@@ -34,13 +34,11 @@ on a local branch of our remote tracking branch.
 
 = SQL Server Todo
   
-  2364 tests, 8447 assertions, 8 failures, 47 errors
+  2364 tests, 9484 assertions, 7 failures, 44 errors
   
   * SQL Server Test Cases
-    x eager_association_test_sqlserver.rb     (2) Limit offset stuff.
     x inheritance_test_sqlserver.rb           (1) Recheck orig.
     x method_scoping_test_sqlserver.rb        (1) Recheck orig.
-    √ offset_and_limit_test_sqlserver.rb      Would prefer a few more cases.
   
   * Verify coerced tests
     Undefined coerced test: EagerAssociationTest#test_eager_with_has_many_and_limit_and_high_offset_and_multiple_array_conditions

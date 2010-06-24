@@ -41,7 +41,10 @@ class OffsetAndLimitTestSqlserver < ActiveRecord::TestCase
 
     should 'alter SQL to limit number of records returned offset by specified amount' do
       sql = %|SELECT TOP (3) [_rnt].* 
-              FROM (SELECT ROW_NUMBER() OVER (ORDER BY [books].[id]) AS [rn], [books].* FROM [books]) AS [_rnt]
+              FROM (
+                SELECT ROW_NUMBER() OVER (ORDER BY [books].[id]) AS [rn], [books].* 
+                FROM [books]
+              ) AS [_rnt]
               WHERE [_rnt].[rn] > 5|.squish
       assert_sql(sql) { Book.limit(3).offset(5).all }
     end
