@@ -1,6 +1,6 @@
 require 'active_record'
 require 'active_record/connection_adapters/abstract_adapter'
-require 'active_record/connection_adapters/sqlserver_adapter/core_ext/active_record'
+require 'active_record/connection_adapters/sqlserver/core_ext/active_record'
 require 'active_record/connection_adapters/sqlserver/database_limits'
 require 'active_record/connection_adapters/sqlserver/database_statements'
 require 'active_record/connection_adapters/sqlserver/schema_statements'
@@ -20,7 +20,7 @@ module ActiveRecord
       case mode
       when :odbc
         require_library_or_gem 'odbc' unless defined?(ODBC)
-        require 'active_record/connection_adapters/sqlserver_adapter/core_ext/odbc'
+        require 'active_record/connection_adapters/sqlserver/core_ext/odbc'
         raise ArgumentError, 'Missing :dsn configuration.' unless config.has_key?(:dsn)
       when :adonet
         require 'System.Data'

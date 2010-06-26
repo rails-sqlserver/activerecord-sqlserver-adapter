@@ -54,7 +54,6 @@ on a local branch of our remote tracking branch.
     Undefined coerced test: MigrationTest#test_add_column_not_null_without_default
     Undefined coerced test: ChangeTableMigrationsTest#test_string_creates_string_column
     Undefined coerced test: QueryCacheTest#test_cache_does_not_wrap_string_results_in_arrays
-  * Move all sqlserver_adapter/core_ext files to sqlserver/core_ext.
   * Make sure the repair special columns was good to go.
   * Possibly remove 2000 support and query methods.
   * Make sure Gemspec is good.
