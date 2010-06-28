@@ -96,6 +96,10 @@ module ActiveRecord
         sql_type =~ /nvarchar|ntext|nchar/i
       end
       
+      def default_function
+        @sqlserver_options[:default_function]
+      end
+      
       def table_name
         @sqlserver_options[:table_name]
       end
@@ -535,6 +539,14 @@ module ActiveRecord
         limit = match_data[1]
         where_sql.sub!(limit,'')
         "WHERE #{quoted_primary_key} IN (SELECT #{limit} #{quoted_primary_key} FROM #{quoted_table_name} #{where_sql})"
+      end
+      
+      def newid_function
+        select_value "SELECT NEWID()"
+      end
+      
+      def newsequentialid_function
+        select_value "SELECT NEWSEQUENTIALID()"
       end
       
       # SCHEMA STATEMENTS ========================================#
@@ -1209,6 +1221,9 @@ module ActiveRecord
           end
           ci[:default_value] = case ci[:default_value]
                                when nil, '(null)', '(NULL)'
+                                 nil
+                               when /\A\((\w+\(\))\)\Z/
+                                 ci[:default_function] = $1
                                  nil
                                else
                                  match_data = ci[:default_value].match(/\A\(+N?'?(.*?)'?\)+\Z/m)

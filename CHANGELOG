@@ -1,6 +1,14 @@
 
 MASTER
 
+* 2.3.9
+
+* Add support for default function values in schema reflection. Allows for uniqueidentifier default 
+values like NEWID(). These are not automatically inserted into the INSERT statement as of yet, that 
+could be done user side on a before save callback now. Includes new #newid_function and 
+#newsequentialid_function on the connection for helping. Resolves tikcet #42. [Ken Collins]
+
+
 * 2.3.8
 
 * Properly quote all database names in rake helper methods. [Ken Collins]

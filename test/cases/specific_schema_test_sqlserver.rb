@@ -1,7 +1,15 @@
 require 'cases/sqlserver_helper'
 
 class StringDefault < ActiveRecord::Base; end;
-class SqlServerEdgeSchema < ActiveRecord::Base; end;
+class SqlServerEdgeSchema < ActiveRecord::Base
+  attr_accessor :new_id_setting
+  before_create :set_new_id
+  protected
+  def set_new_id
+    self[:guid_newid] ||= connection.newid_function if new_id_setting
+    true
+  end
+end
 
 class SpecificSchemaTestSqlserver < ActiveRecord::TestCase
   
@@ -91,7 +99,47 @@ class SpecificSchemaTestSqlserver < ActiveRecord::TestCase
       
     end
     
+    context 'with uniqueidentifier column' do
+
+      setup do
+        @newid = ActiveRecord::Base.connection.newid_function
+        assert_guid @newid
+      end
+
+      should 'allow a simple insert and read of a column without a default function' do
+        obj = @edge_class.create! :guid => @newid
+        assert_equal @newid, @edge_class.find(obj.id).guid
+      end
+      
+      should 'record the default function name in the column definition but still show a nil real default, will use one day for insert/update' do
+        newid_column = @edge_class.columns_hash['guid_newid']
+        assert newid_column.default_function.present?
+        assert_nil newid_column.default
+        assert_equal 'newid()', newid_column.default_function
+        unless ActiveRecord::Base.connection.sqlserver_2000?
+          newseqid_column = @edge_class.columns_hash['guid_newseqid']
+          assert newseqid_column.default_function.present?
+          assert_nil newseqid_column.default
+          assert_equal 'newsequentialid()', newseqid_column.default_function
+        end
+      end
+      
+      should 'use model callback to set get a new guid' do
+        obj = @edge_class.new
+        obj.new_id_setting = true
+        obj.save!
+        assert_guid obj.guid_newid
+      end
+
+    end
+    
   end
   
+  
+  protected
+  
+  def assert_guid(guid)
+    assert_match %r|\w{8}-\w{4}-\w{4}-\w{4}-\w{12}|, guid
+  end
   
 end
