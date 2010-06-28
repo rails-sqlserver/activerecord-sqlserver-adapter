@@ -12,10 +12,10 @@ namespace :sqlserver do
       Rake::TestTask.new(mode) do |t|
         t.libs << "test"
         t.libs << "test/connections/native_sqlserver#{mode == 'adonet' ? '' : "_#{mode}"}"
-        t.libs << "../../../rails/activerecord/test/"
-        t.test_files = (
+        t.libs << "#{ENV['RAILS_SOURCE']}/activerecord/test"
+        t.test_files = \
           Dir.glob("test/cases/**/*_test_sqlserver.rb").sort + 
-          Dir.glob("../../../rails/activerecord/test/**/*_test.rb").sort )
+          Dir.glob("#{ENV['RAILS_SOURCE']}/activerecord/test/cases/**/*_test.rb").sort
         t.verbose = true
       end
       

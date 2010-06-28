@@ -1,20 +1,21 @@
+
+SQLSERVER_TEST_ROOT       = File.expand_path(File.join(File.dirname(__FILE__),'..'))
+SQLSERVER_ASSETS_ROOT     = File.expand_path(File.join(SQLSERVER_TEST_ROOT,'assets'))
+SQLSERVER_FIXTURES_ROOT   = File.expand_path(File.join(SQLSERVER_TEST_ROOT,'fixtures'))
+SQLSERVER_MIGRATIONS_ROOT = File.expand_path(File.join(SQLSERVER_TEST_ROOT,'migrations'))
+SQLSERVER_SCHEMA_ROOT     = File.expand_path(File.join(SQLSERVER_TEST_ROOT,'schema'))
+ACTIVERECORD_TEST_ROOT    = File.expand_path(File.join(ENV['RAILS_SOURCE'],'activerecord','test'))
+
 require 'rubygems'
 require 'shoulda'
 require 'mocha'
 [ File.expand_path(File.join(File.dirname(__FILE__),'..','..','test')),
   File.expand_path(File.join(File.dirname(__FILE__),'..','..','test','connections','native_sqlserver_odbc')),
-  File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','..','..','rails','activerecord','test'))
+  File.expand_path(File.join(ENV['RAILS_SOURCE'],'activerecord','test'))
 ].each{ |lib| $:.unshift(lib) unless $:.include?(lib) } if ENV['TM_DIRECTORY']
 require 'cases/helper'
 require 'models/topic'
 require 'active_record/version'
-
-SQLSERVER_TEST_ROOT       = File.expand_path(File.join(File.dirname(__FILE__),'..'))
-SQLSERVER_ASSETS_ROOT     = SQLSERVER_TEST_ROOT + "/assets"
-SQLSERVER_FIXTURES_ROOT   = SQLSERVER_TEST_ROOT + "/fixtures"
-SQLSERVER_MIGRATIONS_ROOT = SQLSERVER_TEST_ROOT + "/migrations"
-SQLSERVER_SCHEMA_ROOT     = SQLSERVER_TEST_ROOT + "/schema"
-ACTIVERECORD_TEST_ROOT    = File.expand_path(SQLSERVER_TEST_ROOT + "/../../../../rails/activerecord/test/")
 
 ActiveRecord::Migration.verbose = false
 
