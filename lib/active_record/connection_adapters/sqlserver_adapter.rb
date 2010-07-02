@@ -207,6 +207,10 @@ module ActiveRecord
         true
       end
       
+      def supports_count_distinct?
+        true
+      end
+      
       def supports_ddl_transactions?
         true
       end
