@@ -38,6 +38,11 @@ on a local branch of our remote tracking branch.
   
   /opt/local/bin/ruby -I"lib:test:test/connections/native_sqlserver_odbc:/Users/kencollins/Repositories/rails/activerecord/test" "/opt/local/lib/ruby/gems/1.8/gems/rake-0.8.7/lib/rake/rake_test_loader.rb" "test/cases/aaaa_create_tables_test_sqlserver.rb" "test/cases/table_name_test_sqlserver.rb"
   
+  calculations.rb     L:126 M:construct_relation_for_association_calculations
+  finder_methods.rb   L:188 M:construct_relation_for_association_calculations
+  finder_methods.rb   L:200 M:apply_join_dependency
+  finder_methods.rb   L:217 M:construct_limited_ids_condition
+  
   # Post.preload(:comments).to_a
   # SELECT [posts].* FROM [posts]
   # SELECT [comments].* FROM [comments] WHERE ([comments].post_id IN (1,2,3,4,5,6,7))
