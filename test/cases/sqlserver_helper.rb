@@ -20,13 +20,6 @@ require 'cases/helper'
 require 'models/topic'
 require 'active_record/version'
 
-# SQLSERVER_TEST_ROOT       = File.expand_path(File.join(File.dirname(__FILE__),'..'))
-# SQLSERVER_ASSETS_ROOT     = SQLSERVER_TEST_ROOT + "/assets"
-# SQLSERVER_FIXTURES_ROOT   = SQLSERVER_TEST_ROOT + "/fixtures"
-# SQLSERVER_MIGRATIONS_ROOT = SQLSERVER_TEST_ROOT + "/migrations"
-# SQLSERVER_SCHEMA_ROOT     = SQLSERVER_TEST_ROOT + "/schema"
-# ACTIVERECORD_TEST_ROOT    = File.expand_path(File.join(ENV['RAILS_SOURCE'],'activerecord','test'))
-
 ActiveRecord::Migration.verbose = false
 
 # Defining our classes in one place as well as soem core tests that need coercing date/time types.
