@@ -3,6 +3,8 @@ MASTER
 
 * 2.3.9
 
+* The remove_column conforms to ArgumentError exceptions. [Ken Collins]
+
 * Add support for default function values in schema reflection. Allows for uniqueidentifier default 
 values like NEWID(). These are not automatically inserted into the INSERT statement as of yet, that 
 could be done user side on a before save callback now. Includes new #newid_function and 

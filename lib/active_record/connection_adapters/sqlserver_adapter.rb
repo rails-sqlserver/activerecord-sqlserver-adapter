@@ -659,6 +659,7 @@ module ActiveRecord
       end
       
       def remove_column(table_name, *column_names)
+        raise ArgumentError.new("You must specify at least one column name.  Example: remove_column(:people, :first_name)") if column_names.empty?
         column_names.flatten.each do |column_name|
           remove_check_constraints(table_name, column_name)
           remove_default_constraint(table_name, column_name)

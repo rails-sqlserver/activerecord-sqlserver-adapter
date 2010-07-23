@@ -21,3 +21,52 @@ the full path of that repo.
 Define a user named 'rails' in SQL Server with all privileges granted for the 
 test databases. Use an empty password for said user.
 
+
+== Current Notes
+  
+  Ruby                RubyODBC
+  -----------------------------
+  ruby-1.8.6-p388     0.99991
+  ruby-1.8.7-p299     0.99991
+  ree-1.8.7-2010.02   0.99991
+  ruby-1.9.1-p378     0.99991
+  ruby-1.9.2-head
+
+
+=== (ruby-1.8.6-p388) - 0 failures, 4 errors
+
+  Current Path
+  https://rails.lighthouseapp.com/projects/8994/tickets/5188-bug-in-method_missing-for-associationcollections-dynamic-create_by_-for-186
+
+
+=== (ruby-1.8.7-p299) - 0 failures, 0 errors
+
+  PASS!
+
+
+=== ree-1.8.7-2010.02) - 0 failures, 0 errors
+
+  PASS!
+
+
+=== (ruby-1.9.1-p378) - 0 failures, 1 errors
+
+  1) Error:
+test: For dueling concurrent connections should that second lock waits. (PessimisticLockingTestSqlserver):
+fatal: deadlock detected
+    ~/repos/activerecord-sqlserver-adapter/test/cases/pessimistic_locking_test_sqlserver.rb:118:in `join'
+    ~/repos/activerecord-sqlserver-adapter/test/cases/pessimistic_locking_test_sqlserver.rb:118:in `duel'
+    ~/repos/activerecord-sqlserver-adapter/test/cases/pessimistic_locking_test_sqlserver.rb:91:in `block (3 levels) in <class:PessimisticLockingTestSqlserver>'
+    ~/repos/activerecord-sqlserver-adapter/test/cases/pessimistic_locking_test_sqlserver.rb:90:in `each'
+    ~/repos/activerecord-sqlserver-adapter/test/cases/pessimistic_locking_test_sqlserver.rb:90:in `any?'
+    ~/repos/activerecord-sqlserver-adapter/test/cases/pessimistic_locking_test_sqlserver.rb:90:in `block (2 levels) in <class:PessimisticLockingTestSqlserver>'
+    ~/.rvm/gems/ruby-1.9.1-p378@global/gems/shoulda-2.10.3/lib/shoulda/context.rb:362:in `call'
+    ~/.rvm/gems/ruby-1.9.1-p378@global/gems/shoulda-2.10.3/lib/shoulda/context.rb:362:in `block in create_test_from_should_hash'
+    ~/.rvm/gems/ruby-1.9.1-p378@global/gems/mocha-0.9.8/lib/mocha/integration/mini_test/version_131_and_above.rb:26:in `run'
+    ~/repos/rails/activesupport/lib/active_support/testing/setup_and_teardown.rb:24:in `run'
+
+
+
+
+
+
