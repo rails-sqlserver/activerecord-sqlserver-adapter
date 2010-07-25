@@ -1,8 +1,8 @@
 
 = SQL Server Testing Setup
 
-  1) Clone adapter http://github.com/rails-sqlserver/2000-2005-adapter
-  2) Switch to remote tracking branch "3.0.0.beta1" or the latest beta version.
+  1) Clone adapter http://github.com/rails-sqlserver/2000-2005-adapter.
+  2) The master branch is the one under development for rails 3.
   3) Set the ARSQLSERVER_SOURCE environment variable with the path of this repo.
 
 = Arel Testing Setup
