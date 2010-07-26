@@ -1,7 +1,6 @@
 source :rubygems
 
-gem 'arel', :path => ENV["AREL_SOURCE"] if ENV["AREL_SOURCE"]
-gem 'activerecord', :path => ENV['RAILS_SOURCE']
+gemspec :path => ENV['RAILS_SOURCE']
 
 group :development do
   gem 'rake'

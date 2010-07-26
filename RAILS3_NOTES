@@ -9,7 +9,7 @@
 
   1) Clone our fork of Arel. http://github.com/rails-sqlserver/arel
   2) Switch to remote tracking branch "sqlserver"
-  3) Set the AREL_SOURCE environment variable with path of this repo.
+  3) Set the AREL environment variable with path of this repo.
 
 = Rails
 

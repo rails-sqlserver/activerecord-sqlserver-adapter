@@ -1,11 +1,11 @@
 Gem::Specification.new do |s|
   s.name     = "activerecord-sqlserver-adapter"
-  s.version  = "3.0.0.beta1"
-  s.date     = "2010-06-07"
-  s.summary  = "SQL Server 2000, 2005 and 2008 Adapter For Rails."
+  s.version  = "3.0.0.beta.1"
+  s.date     = "2010-07-26"
+  s.summary  = "SQL Server 2005 and 2008 Adapter For Rails."
   s.email    = "ken@metaskills.net"
   s.homepage = "http://github.com/rails-sqlserver"
-  s.description = "SQL Server 2000, 2005 and 2008 Adapter For Rails."
+  s.description = "SQL Server 2005 and 2008 Adapter For Rails."
   s.has_rdoc = true
   s.authors  = ["Ken Collins","Murray Steele","Shawn Balestracci","Joe Rafaniello","Tom Ward"]
   s.files    = [
