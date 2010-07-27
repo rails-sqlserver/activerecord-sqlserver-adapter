@@ -37,7 +37,6 @@ http://wiki.github.com/rails-sqlserver/2000-2005-adapter/rails-db-rake-tasks
 Because this adapter is primarily coded to SQL Server 2000/2005, it does not take advantage of many of the things in 2008 that would speed up the code. At some point in the future there will be a branch of this code that is specifically targeted for 2008. That adapter version will remove much of the dirty innards of this version that are meant to code around many previous SQL Server 2000/2005 short comings, the biggest being no limit/offset.
 
 
-
 ==== Date/Time Data Type Hinting
 
 Both SQL Server 2000 and 2005 do not include native data types for just 'date' or 'time', it only has 'datetime'. To pass the ActiveRecord tests we implemented two simple class methods that can teach your models to coerce column information to be cast correctly. Simply past a list of symbols to either the <tt>coerce_sqlserver_date</tt> or <tt>coerce_sqlserver_time</tt> methods that correspond to 'datetime' columns that need to be cast correctly.
@@ -49,11 +48,13 @@ Both SQL Server 2000 and 2005 do not include native data types for just 'date' o
 
 This implementation has some limitations. To date we can only coerce date/time types for models that conform to the expected ActiveRecord class to table naming convention. So a table of 'foo_bar_widgets' will look for coerced types in the FooBarWidget class if it exists.
 
+
 ==== Executing Stored Procedures
 
 Every class that sub classes ActiveRecord::Base will now have an execute_procedure class method to use. This method takes the name of the stored procedure which can be a string or symbol and any number of variables to pass to the procedure. Arguments will automatically be quoted per the connection's standards as normal. For example.
 
   Account.execute_procedure :update_totals, 'admin', nil, true
+
 
 ==== Native Data Type Support
 
@@ -124,6 +125,7 @@ By default all queries to the INFORMATION_SCHEMA table is silenced. If you think
 
   ActiveRecord::ConnectionAdapters::SQLServerAdapter.log_info_schema_queries = true
 
+
 ==== Auto Connecting
 
 By default the adapter will auto connect to lost DB connections. For every query it will retry at intervals of 2, 4, 8, 16 and 32 seconds. During each retry it will callback out to ActiveRecord::Base.did_retry_sqlserver_connection(connection,count). When all retries fail, it will callback to ActiveRecord::Base.did_lose_sqlserver_connection(connection). Both implementations of these methods are to write to the rails logger, however, they make great override points for notifications like Hoptoad. If you want to disable automatic reconnections use the following in an initializer.
@@ -131,9 +133,11 @@ By default the adapter will auto connect to lost DB connections. For every query
   ActiveRecord::ConnectionAdapters::SQLServerAdapter.auto_connect = false
 
 
+
 == Versions
 
 It is our goal to match the adapter version with each version of rails. However we will track our own tiny version independent of ActiveRecord. For example, an adapter version of 2.2.x will work on any 2.2.x version of ActiveRecord. This convention will be used in both the Git tags as well as the Rubygems versioning.
+
 
 
 == Installation
@@ -151,6 +155,8 @@ Here are some external links for libraries and/or tutorials on how to install an
 * http://www.ch-werner.de/rubyodbc/
 
 
+
+
 == IronRuby ADONET Mode
 
 A few details on this implementation. All that is needed in your database.yml configuration file is "mode: adonet" vs "odbc" and if you are running IronRuby, the connection will be native. You can also specify an "integrated_security: true" option in your configuration, remember to remove the username/password options too. To use this adapter, you will not need need ANY DBI middle layer or special extension gems to the adapter. 
@@ -164,6 +170,7 @@ Currently IronRuby is passing most of the ActiveRecord and Adapter tests. Here i
 http://gist.github.com/381101
 
 
+
 == Contributing
 
 If you’d like to contribute a feature or bugfix, thanks! To make sure your fix/feature has a high chance of being added, please read the following guidelines. First, ask on the Google list, IRC, or post a ticket on github issues. Second, make sure there are tests! We will not accept any patch that is not tested. Please read the RUNNING_UNIT_TESTS file for the details of how to run the unit tests.
@@ -173,9 +180,10 @@ If you’d like to contribute a feature or bugfix, thanks! To make sure your fix
 * IRC Room: #rails-sqlserver on irc.freenode.net
 
 
-== Credits
 
-Many many people have contributed. If you do not see your name here and it should be let us know.
+== Credits & Contributions
+
+Many many people have contributed. If you do not see your name here and it should be let us know. Also, many thanks go out to those that have pledged financial contributions.
 
 * Ken Collins
 * Murray Steele
@@ -184,7 +192,8 @@ Many many people have contributed. If you do not see your name here and it shoul
 * Tom Ward
 
 
+
 == License
 
-Copyright © 2008. It is free software, and may be redistributed under the terms specified in the MIT-LICENSE file.
+Copyright © 2008-2010. It is free software, and may be redistributed under the terms specified in the MIT-LICENSE file.
 
