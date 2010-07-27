@@ -106,7 +106,7 @@ class ConnectionTestSqlserver < ActiveRecord::TestCase
     should 'not auto reconnect when setting is off' do
       with_auto_connect(false) do
         @connection.disconnect!
-        assert_raise(ActiveRecord::StatementInvalid) { Topic.count }
+        assert_raise(ActiveRecord::LostConnection) { Topic.count }
       end
     end
     

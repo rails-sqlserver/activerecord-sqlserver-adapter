@@ -3,6 +3,7 @@ require 'active_record/connection_adapters/abstract_adapter'
 require 'active_record/connection_adapters/sqlserver/core_ext/active_record'
 require 'active_record/connection_adapters/sqlserver/database_limits'
 require 'active_record/connection_adapters/sqlserver/database_statements'
+require 'active_record/connection_adapters/sqlserver/errors'
 require 'active_record/connection_adapters/sqlserver/schema_statements'
 require 'active_record/connection_adapters/sqlserver/quoting'
 require 'active_support/core_ext/kernel/requires'
@@ -165,19 +166,12 @@ module ActiveRecord
       include Sqlserver::DatabaseStatements
       include Sqlserver::SchemaStatements
       include Sqlserver::DatabaseLimits
+      include Sqlserver::Errors
       
       ADAPTER_NAME                = 'SQLServer'.freeze
-      VERSION                     = '3.0.0.beta1'.freeze
+      VERSION                     = '3.0.0.beta.1'.freeze
       DATABASE_VERSION_REGEXP     = /Microsoft SQL Server\s+(\d{4})/
       SUPPORTED_VERSIONS          = [2000,2005,2008].freeze
-      LOST_CONNECTION_EXCEPTIONS  = {
-        :odbc   => ['ODBC::Error'],
-        :adonet => ['TypeError','System::Data::SqlClient::SqlException']
-      }
-      LOST_CONNECTION_MESSAGES    = {
-        :odbc   => [/link failure/, /server failed/, /connection was already closed/, /invalid handle/i],
-        :adonet => [/current state is closed/, /network-related/]
-      }
       
       cattr_accessor :native_text_database_type, :native_binary_database_type, :native_string_database_type,
                      :log_info_schema_queries, :enable_default_unicode_types, :auto_connect
@@ -331,6 +325,21 @@ module ActiveRecord
             
       protected
       
+      # === Abstract Adapter (Misc Support) =========================== #
+      
+      def translate_exception(e, message)
+        case message
+        when /cannot insert duplicate key .* with unique index/i
+          RecordNotUnique.new(message,e)
+        when /conflicted with the foreign key constraint/i
+          InvalidForeignKey.new(message,e)
+        when *lost_connection_messages
+          LostConnection.new(message,e)
+        else
+          super
+        end
+      end
+      
       # === SQLServer Specific (Connection Management) ================ #
       
       def connect
@@ -369,22 +378,11 @@ module ActiveRecord
         end if block_given?
       end
       
-      def lost_connection_exceptions
-        exceptions = LOST_CONNECTION_EXCEPTIONS[connection_mode]
-        @lost_connection_exceptions ||= exceptions ? exceptions.map(&:constantize) : []
-      end
-      
-      def lost_connection_messages
-        LOST_CONNECTION_MESSAGES[connection_mode]
-      end
-      
       def with_auto_reconnect
         begin
           yield
-        rescue *lost_connection_exceptions => e
-          if lost_connection_messages.any? { |lcm| e.message =~ lcm }
-            retry if auto_reconnected?
-          end
+        rescue Exception => e
+          retry if translate_exception(e,e.message).is_a?(LostConnection) && auto_reconnected?
           raise
         end
       end
