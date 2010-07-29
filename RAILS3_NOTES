@@ -1,29 +1,8 @@
 
 = SQL Server Testing Setup
 
-  1) Clone adapter http://github.com/rails-sqlserver/2000-2005-adapter.
-  2) The master branch is the one under development for rails 3.
-
-= Rails & Arel Testing Setup
-
-  1) Clone rails.
-  2) Creat a local topic branch, maybe something like sqlserver_3.0.0.beta
-  3) Apply the following diff, till we push this upstream. http://gist.github.com/443568
-  4) Set the RAILS_SOURCE environment variable with the path of this repo.
-  5) It is optional, but you can set an AREL environment variable to the official 
-     git fork of arel at rails/arel. As of now there is no need to do this as our 
-     Gemfile will source this and we currently host our own compiler in this project.
-
-= Testing Last Steps And Notes
-
-So bundler manages the dependencies now and if you have set the correct environment 
-variables then all dependency paths for development should be resolved. Please use 
-the latest 1.0.0 beta of Bundler. Since we put bundler as a development dependency in 
-the adapter, all you need to do is run "rake test" after bundling.
-
-Remember you have to set an environment variable for the DSN of the adapter, see the ODBC
-connection information for details. Lastly, it is typically good practice to do your work 
-on a local branch of our remote tracking branch.
+  Create a local topic branch, maybe something like sqlserver_3.0.0.beta
+  Apply the following diff, till we push this upstream. http://gist.github.com/443568
 
 
 
