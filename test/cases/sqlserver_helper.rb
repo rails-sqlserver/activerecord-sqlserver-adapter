@@ -11,7 +11,7 @@ require 'bundler'
 Bundler.setup
 require 'shoulda'
 require 'mocha'
-require 'ruby-debug'
+begin ; require 'ruby-debug' ; rescue LoadError ; end
 [ File.expand_path(File.join(File.dirname(__FILE__),'..','..','test')),
   File.expand_path(File.join(File.dirname(__FILE__),'..','..','test','connections','native_sqlserver_odbc')),
   File.expand_path(File.join(ENV['RAILS_SOURCE'],'activerecord','test'))
