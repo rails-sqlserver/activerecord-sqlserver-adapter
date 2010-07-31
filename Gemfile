@@ -1,6 +1,8 @@
 source :rubygems
 
 gemspec :path => ENV['RAILS_SOURCE']
+gem 'arel', :path => ENV['AREL'] if ENV['AREL']
+
 
 group :development do
   gem 'rake', '>= 0.8.7'
