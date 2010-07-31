@@ -41,7 +41,7 @@
     - Undefined coerced test: EagerAssociationTest#test_count_with_include
     - Undefined coerced test: AttributeMethodsTest#test_typecast_attribute_from_select_to_false
     - Undefined coerced test: AttributeMethodsTest#test_typecast_attribute_from_select_to_true
-    - Undefined coerced test: BasicsTest#test_read_attributes_before_type_cast_on_datetime
+    √ Undefined coerced test: BasicsTest#test_read_attributes_before_type_cast_on_datetime
     - Undefined coerced test: CalculationsTest#test_should_sum_expression
     - Undefined coerced test: InheritanceTest#test_a_bad_type_column
     - Undefined coerced test: InheritanceTest#test_eager_load_belongs_to_primary_key_quoting
@@ -53,6 +53,13 @@
   * Make sure the repair special columns was good to go.
   * Possibly remove 2000 support and query methods.
   * Make sure Gemspec is good.
+
+
+
+= Rails Todo
+
+  Patch duplicate quote_table_name in:
+  /Users/kencollins/Repositories/rails/activerecord/lib/active_record/connection_adapters/abstract_adapter.rb:96
 
 
 

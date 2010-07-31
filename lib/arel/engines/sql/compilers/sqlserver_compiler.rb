@@ -95,7 +95,7 @@ module Arel
       end
       
       def limited_update_conditions(conditions,taken)
-        quoted_primary_key = engine.quote_column_name(relation.primary_key)
+        quoted_primary_key = engine.connection.quote_column_name(relation.primary_key)
         conditions = " #{conditions}".strip
         build_query \
           "WHERE #{quoted_primary_key} IN",
