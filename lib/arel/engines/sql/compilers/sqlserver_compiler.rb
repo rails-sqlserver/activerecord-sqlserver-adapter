@@ -37,14 +37,21 @@ module Arel
         relation.select_clauses.size == 1 && relation.select_clauses.first.include?('DISTINCT')
       end
       
+      def all_select_clauses_aliased?
+        relation.select_clauses.all? do |sc|
+          sc.split(',').all? { |c| c.include?(' AS ') }
+        end
+      end
+      
       def select_sql_without_skipped(windowed=false)
+        selects = relation.select_clauses
         joins   = relation.joins(self)
         wheres  = relation.where_clauses
         groups  = relation.group_clauses
         havings = relation.having_clauses
         orders  = relation.order_clauses
-        select_clause = windowed ? relation.select_clauses.map{ |sc| bare_select_clause(sc) }.join(', ') : 
-          "SELECT #{taken_clause if taken_only?}#{relation.select_clauses.join(', ')}"
+        select_clause = windowed ? selects.map{ |sc| select_clause_without_expression(sc) }.join(', ') : 
+          "SELECT #{taken_clause if taken_only?}#{selects.join(', ')}"
         build_query(
           select_clause,
           "FROM #{relation.from_clauses}",
@@ -74,10 +81,12 @@ module Arel
             sc.sub! table_name_from_select_clause(sc), '_rnt'
             sc.strip!
           end)
-        elsif relation.join?
-          
+        elsif relation.join? && all_select_clauses_aliased?
+          relation.select_clauses.map do |sc|
+            sc.split(',').map { |c| c.split(' AS ').last.strip  }.join(', ')
+          end
         else
-          relation.select_clauses.map do |sc| 
+          relation.select_clauses.map do |sc|
             sc.gsub /\[#{relation.table.name}\]\./, '[_rnt].'
           end
         end
@@ -110,19 +119,26 @@ module Arel
         engine.connection.primary_key(table_name)
       end
       
-      def bare_select_clause(sc)
-        i = sc.strip.rindex(' ')
-        i ? sc.from(i).strip : sc
+      def select_clause_without_expression(sc)
+        sc.split(',').map do |c|
+          c.strip!
+          c.sub!(/^(COUNT|SUM|MAX|MIN|AVG)\s*(\((.*)\))?/,'\3')
+          c.sub!(/^DISTINCT\s*/,'')
+          c.sub!(/TOP\s*\(\d+\)\s*/i,'')
+          c.strip
+        end.join(', ')
       end
       
       def table_name_from_select_clause(sc)
-        parts = bare_select_clause(sc).split('.')
+        parts = select_clause_without_expression(sc).split('.')
         tn = parts.third ? parts.second : (parts.second ? parts.first : nil)
         tn ? tn.tr('[]','') : nil
       end
 
       def table_names_from_select_clauses
-        relation.select_clauses.map{ |sc| table_name_from_select_clause(sc) }.compact.uniq
+        relation.select_clauses.map do |sc|
+          sc.split(',').map { table_name_from_select_clause(sc) }
+        end.flatten.compact.uniq
       end
       
     end
