@@ -65,12 +65,6 @@
 
 = Arel Todo
 
-  338 examples, 0 failures, 3 pending
-  
-  * unit/relations
-    • skip_spec.rb  (try adding more, maybe with order)
-    • take_spec.rb  (try adding more, maybe with order)
-
 
   * Review/remove our long winded add_limit_offset!
 

@@ -1,9 +1,10 @@
 require 'cases/sqlserver_helper'
 require 'models/book'
+require 'models/post'
 
 class OffsetAndLimitTestSqlserver < ActiveRecord::TestCase
   
-  class Account < ActiveRecord::Base; end
+  fixtures :posts
   
   setup     :create_10_books
   teardown  :destroy_all_books
@@ -49,19 +50,27 @@ class OffsetAndLimitTestSqlserver < ActiveRecord::TestCase
       assert_sql(sql) { Book.limit(3).offset(5).all }
     end
     
-    should_eventually 'add locks to deepest sub select in limit offset sql that has a limited tally' do
-      options = { :limit => 3, :offset => 5, :lock => 'WITH (NOLOCK)' }
-      select_sql = 'SELECT * FROM books'
-      expected_sql = "SELECT * FROM (SELECT TOP 3 * FROM (SELECT TOP 8 * FROM books WITH (NOLOCK)) AS tmp1) AS tmp2"
-      @connection.add_limit_offset! select_sql, options
-      assert_equal expected_sql, @connection.add_lock!(select_sql,options)
+    should 'add locks to deepest sub select' do
+      pattern = /FROM \[books\] WITH \(NOLOCK\)/
+      assert_sql(pattern) { Book.all :limit => 3, :offset => 5, :lock => 'WITH (NOLOCK)' }
+      assert_sql(pattern) { Book.count :limit => 3, :offset => 5, :lock => 'WITH (NOLOCK)' }
     end
     
-    should_eventually 'not create invalid SQL with subquery SELECTs with TOP' do
-      options = { :limit => 5, :offset => 1 }
-      subquery_select_sql = 'SELECT *, (SELECT TOP (1) [id] FROM [books]) AS [book_id] FROM [books]'
-      expected_sql = "SELECT * FROM (SELECT TOP 5 * FROM (SELECT TOP 6 *, (SELECT TOP 1 id FROM books) AS book_id FROM books) AS tmp1) AS tmp2"
-      assert_equal expected_sql, @connection.add_limit_offset!(subquery_select_sql,options)
+    context 'with count' do
+
+      should 'pass a gauntlet of window tests' do
+        assert_equal 7, Post.count
+        assert_equal 1, Post.limit(1).offset(1).size
+        assert_equal 1, Post.limit(1).offset(5).size
+        assert_equal 1, Post.limit(1).offset(6).size
+        assert_equal 0, Post.limit(1).offset(7).size
+        assert_equal 3, Post.limit(3).offset(4).size
+        assert_equal 2, Post.limit(3).offset(5).size
+        assert_equal 1, Post.limit(3).offset(6).size
+        assert_equal 0, Post.limit(3).offset(7).size
+        assert_equal 0, Post.limit(3).offset(8).size
+      end
+
     end
     
   end
@@ -70,6 +79,7 @@ class OffsetAndLimitTestSqlserver < ActiveRecord::TestCase
   protected
   
   def create_10_books
+    Book.delete_all
     @books = (1..10).map {|i| Book.create!}
   end
   

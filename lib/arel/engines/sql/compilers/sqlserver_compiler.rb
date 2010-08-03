@@ -12,7 +12,13 @@ module Arel
     class SQLServerCompiler < GenericCompiler
       
       def select_sql
-        relation.skipped ? select_sql_with_skipped : select_sql_without_skipped
+        if complex_count_sql?
+          select_sql_with_complex_count
+        elsif relation.skipped
+          select_sql_with_skipped
+        else
+          select_sql_without_skipped
+        end
       end
       
       def delete_sql
@@ -24,6 +30,12 @@ module Arel
       
       
       protected
+      
+      def complex_count_sql?
+        projections = relation.projections
+        Count === projections.first && projections.size == 1 &&
+          (relation.taken.present? || relation.wheres.present?) && relation.joins(self).blank?
+      end
       
       def taken_only?
         relation.taken.present? && relation.skipped.blank?
@@ -41,6 +53,31 @@ module Arel
         relation.select_clauses.all? do |sc|
           sc.split(',').all? { |c| c.include?(' AS ') }
         end
+      end
+      
+      def select_sql_with_complex_count
+        joins   = relation.joins(self)
+        wheres  = relation.where_clauses
+        groups  = relation.group_clauses
+        havings = relation.having_clauses
+        orders  = relation.order_clauses
+        taken   = relation.taken.to_i
+        skipped = relation.skipped.to_i
+        top_clause = "TOP (#{taken+skipped}) " if relation.taken.present?
+        build_query \
+          "SELECT COUNT([count]) AS [count_id]",
+          "FROM (",
+            "SELECT #{top_clause}ROW_NUMBER() OVER (ORDER BY #{rowtable_order_clauses.join(', ')}) AS [rn],",
+            "1 AS [count]",
+            "FROM #{relation.from_clauses}",
+            (locked unless locked.blank?),
+            (joins unless joins.blank?),
+            ("WHERE #{wheres.join(' AND ')}" unless wheres.blank?),
+            ("GROUP BY #{groups.join(', ')}" unless groups.blank?),
+            ("HAVING #{havings.join(' AND ')}" unless havings.blank?),
+            ("ORDER BY #{orders.join(', ')}" unless orders.blank?),
+          ") AS [_rnt]",
+          "WHERE [_rnt].[rn] > #{relation.skipped.to_i}"
       end
       
       def select_sql_without_skipped(windowed=false)

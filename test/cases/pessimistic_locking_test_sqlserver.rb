@@ -64,12 +64,10 @@ class PessimisticLockingTestSqlserver < ActiveRecord::TestCase
       20.times { |n| Person.create!(:first_name => "Thing_#{n}") }
     end
     
-    should_eventually 'cope with un-locked paginated results' do
-      tally_not_locked = %r|SELECT count\(\*\) as TotalRows from \(SELECT TOP 1000000000 \* FROM \[people\]\s+WITH \(NOLOCK\) \) tally|
-      inner_tmp_not_locked = %r|SELECT TOP 15 \* FROM \[people\] WITH \(NOLOCK\)|
-      # Currently association limiting is not locked like the parent.
-      association_limiting_not_locked = %r|SELECT \[readers\]\.\* FROM \[readers\] WITH \(NOLOCK\) WHERE \(\[readers\]\.person_id IN \(1,2,3,4,5\)\)|
-      assert_sql(tally_not_locked,inner_tmp_not_locked) do
+    should 'cope with eager loading un-locked paginated' do
+      eager_ids_sql = /SELECT DISTINCT TOP \(5\).*FROM \[people\] WITH \(NOLOCK\)/
+      loader_sql = /FROM \[people\] WITH \(NOLOCK\).*WHERE \(\[people\].\[id\] IN/
+      assert_sql(eager_ids_sql,loader_sql) do
         Person.all(:include => :readers, :lock => 'WITH (NOLOCK)', :limit => 5, :offset => 10)
       end
     end
