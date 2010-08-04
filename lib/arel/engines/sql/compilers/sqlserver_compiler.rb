@@ -50,7 +50,7 @@ module Arel
       end
       
       def single_distinct_select?
-        relation.select_clauses.size == 1 && relation.select_clauses.first.include?('DISTINCT')
+        relation.select_clauses.size == 1 && relation.select_clauses.first.to_s.include?('DISTINCT')
       end
       
       def all_select_clauses_aliased?
