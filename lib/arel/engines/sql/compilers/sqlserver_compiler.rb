@@ -45,6 +45,10 @@ module Arel
         "TOP (#{relation.taken.to_i}) "
       end
       
+      def eager_limiting_select?
+        single_distinct_select? && taken_only? && relation.group_clauses.blank?
+      end
+      
       def single_distinct_select?
         relation.select_clauses.size == 1 && relation.select_clauses.first.include?('DISTINCT')
       end
@@ -87,10 +91,24 @@ module Arel
         groups  = relation.group_clauses
         havings = relation.having_clauses
         orders  = relation.order_clauses
-        select_clause = windowed ? selects.map{ |sc| select_clause_without_expression(sc) }.join(', ') : 
-          "SELECT #{taken_clause if taken_only?}#{selects.join(', ')}"
+        if windowed
+          selects = selects.map{ |sc| select_clause_without_expression(sc) }
+        elsif eager_limiting_select?
+          groups = selects.map { |sc| select_clause_without_expression(sc) }
+          selects = selects.map { |sc| "#{taken_clause}#{select_clause_without_expression(sc)}" }
+          orders = orders.map do |oc|
+            oc.split(',').reject(&:blank?).map do |c|
+              max = c =~ /desc\s*/i
+              c = select_clause_without_expression(c).sub(/(asc|desc)/i,'').strip
+              max ? "MAX(#{c})" : "MIN(#{c})"
+            end.join(', ')
+          end
+        elsif taken_only?
+          fsc = "#{taken_clause}#{selects.first}"
+          selects = selects.tap { |sc| sc.shift ; sc.unshift(fsc) }
+        end
         build_query(
-          select_clause,
+          (windowed ? selects.join(', ') : "SELECT #{selects.join(', ')}"),
           "FROM #{relation.from_clauses}",
           (locked unless locked.blank?),
           (joins unless joins.blank?),

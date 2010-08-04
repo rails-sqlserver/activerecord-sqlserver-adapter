@@ -212,12 +212,7 @@
       end
     end
     
-    def order_to_min_set(order)
-      orders_dirs = orders_and_dirs_set(order)
-      orders_dirs.map do |o,d|
-        "MIN(#{o}) #{d}".strip
-      end.join(', ')
-    end
+
     
     context 'dealing with various orders SQL snippets' do
       
@@ -274,8 +269,12 @@
       sql << "GROUP BY #{columns} ORDER BY #{order_to_min_set(options[:order])}"
     end
     
-    
-    
+    def order_to_min_set(order)
+      orders_dirs = orders_and_dirs_set(order)
+      orders_dirs.map do |o,d|
+        "MIN(#{o}) #{d}".strip
+      end.join(', ')
+    end
     
     def orders_and_dirs_set(order)
       orders = order.sub('ORDER BY','').split(',').map(&:strip).reject(&:blank?)
