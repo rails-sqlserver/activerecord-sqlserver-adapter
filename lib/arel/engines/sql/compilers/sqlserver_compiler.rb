@@ -33,7 +33,7 @@ module Arel
       
       def complex_count_sql?
         projections = relation.projections
-        Count === projections.first && projections.size == 1 &&
+        projections.first.is_a?(Arel::Count) && projections.size == 1 &&
           (relation.taken.present? || relation.wheres.present?) && relation.joins(self).blank?
       end
       
@@ -60,7 +60,7 @@ module Arel
       end
       
       def select_sql_with_complex_count
-        joins   = relation.joins(self)
+        joins   = correlated_safe_joins
         wheres  = relation.where_clauses
         groups  = relation.group_clauses
         havings = relation.having_clauses
@@ -71,7 +71,7 @@ module Arel
         build_query \
           "SELECT COUNT([count]) AS [count_id]",
           "FROM (",
-            "SELECT #{top_clause}ROW_NUMBER() OVER (ORDER BY #{rowtable_order_clauses.join(', ')}) AS [rn],",
+            "SELECT #{top_clause}ROW_NUMBER() OVER (ORDER BY #{unique_orders(rowtable_order_clauses).join(', ')}) AS [rn],",
             "1 AS [count]",
             "FROM #{relation.from_clauses}",
             (locked unless locked.blank?),
@@ -79,27 +79,27 @@ module Arel
             ("WHERE #{wheres.join(' AND ')}" unless wheres.blank?),
             ("GROUP BY #{groups.join(', ')}" unless groups.blank?),
             ("HAVING #{havings.join(' AND ')}" unless havings.blank?),
-            ("ORDER BY #{orders.join(', ')}" unless orders.blank?),
+            ("ORDER BY #{unique_orders(orders).join(', ')}" unless orders.blank?),
           ") AS [_rnt]",
           "WHERE [_rnt].[rn] > #{relation.skipped.to_i}"
       end
       
       def select_sql_without_skipped(windowed=false)
         selects = relation.select_clauses
-        joins   = relation.joins(self)
+        joins   = correlated_safe_joins
         wheres  = relation.where_clauses
         groups  = relation.group_clauses
         havings = relation.having_clauses
         orders  = relation.order_clauses
         if windowed
-          selects = selects.map{ |sc| select_clause_without_expression(sc) }
+          selects = selects.map{ |sc| clause_without_expression(sc) }
         elsif eager_limiting_select?
-          groups = selects.map { |sc| select_clause_without_expression(sc) }
-          selects = selects.map { |sc| "#{taken_clause}#{select_clause_without_expression(sc)}" }
+          groups = selects.map { |sc| clause_without_expression(sc) }
+          selects = selects.map { |sc| "#{taken_clause}#{clause_without_expression(sc)}" }
           orders = orders.map do |oc|
             oc.split(',').reject(&:blank?).map do |c|
               max = c =~ /desc\s*/i
-              c = select_clause_without_expression(c).sub(/(asc|desc)/i,'').strip
+              c = clause_without_expression(c).sub(/(asc|desc)/i,'').strip
               max ? "MAX(#{c})" : "MIN(#{c})"
             end.join(', ')
           end
@@ -115,7 +115,7 @@ module Arel
           ("WHERE #{wheres.join(' AND ')}" unless wheres.blank?),
           ("GROUP BY #{groups.join(', ')}" unless groups.blank?),
           ("HAVING #{havings.join(' AND ')}" unless havings.blank?),
-          ("ORDER BY #{orders.join(', ')}" if orders.present? && !windowed))
+          ("ORDER BY #{unique_orders(orders).join(', ')}" if orders.present? && !windowed))
       end
       
       def select_sql_with_skipped
@@ -123,7 +123,7 @@ module Arel
         build_query \
           "SELECT #{tc}#{rowtable_select_clauses.join(', ')}",
           "FROM (",
-            "SELECT ROW_NUMBER() OVER (ORDER BY #{rowtable_order_clauses.join(', ')}) AS [rn],",
+            "SELECT ROW_NUMBER() OVER (ORDER BY #{unique_orders(rowtable_order_clauses).join(', ')}) AS [rn],",
             select_sql_without_skipped(true),
           ") AS [_rnt]",
           "WHERE [_rnt].[rn] > #{relation.skipped.to_i}"
@@ -174,8 +174,8 @@ module Arel
         engine.connection.primary_key(table_name)
       end
       
-      def select_clause_without_expression(sc)
-        sc.split(',').map do |c|
+      def clause_without_expression(clause)
+        clause.to_s.split(',').map do |c|
           c.strip!
           c.sub!(/^(COUNT|SUM|MAX|MIN|AVG)\s*(\((.*)\))?/,'\3')
           c.sub!(/^DISTINCT\s*/,'')
@@ -184,8 +184,12 @@ module Arel
         end.join(', ')
       end
       
+      def unqualify_table_name(table_name)
+        table_name.to_s.split('.').last.tr('[]','')
+      end
+      
       def table_name_from_select_clause(sc)
-        parts = select_clause_without_expression(sc).split('.')
+        parts = clause_without_expression(sc).split('.')
         tn = parts.third ? parts.second : (parts.second ? parts.first : nil)
         tn ? tn.tr('[]','') : nil
       end
@@ -194,6 +198,62 @@ module Arel
         relation.select_clauses.map do |sc|
           sc.split(',').map { table_name_from_select_clause(sc) }
         end.flatten.compact.uniq
+      end
+      
+      def unique_orders(orders)
+        existing_columns = {}
+        orders.inject([]) do |queued_orders, order|
+          table_column, dir = clause_without_expression(order).split
+          table_column = table_column.tr('[]','').split('.')
+          table, column = table_column.size == 2 ? table_column : table_column.unshift('')
+          existing_columns[table] ||= []
+          unless existing_columns[table].include?(column)
+            existing_columns[table] << column
+            queued_orders << order 
+          end
+          queued_orders
+        end
+      end
+      
+      def correlated_safe_joins
+        joins = relation.joins(self)
+        if joins.present?
+          find_and_fix_uncorrelated_joins
+          relation.joins(self)
+        else
+          joins
+        end
+      end
+      
+      def find_and_fix_uncorrelated_joins
+        join_relation = relation
+        while join_relation.present?
+          return join_relation if uncorrelated_inner_join_relation?(join_relation)
+          join_relation = join_relation.relation rescue nil
+        end
+      end
+
+      def uncorrelated_inner_join_relation?(r)
+        if r.is_a?(Arel::StringJoin) && r.relation1.is_a?(Arel::OuterJoin) && 
+            r.relation2.is_a?(String) && r.relation2.starts_with?('INNER JOIN')
+          outter_join_table1 = r.relation1.relation1.table
+          outter_join_table2 = r.relation1.relation2.table
+          string_join_table_info = r.relation2.split(' ON ').first.sub('INNER JOIN ','')
+          return nil if string_join_table_info.include?(' AS ') # Assume someone did something right.
+          string_join_table_name = unqualify_table_name(string_join_table_info)
+          uncorrelated_table1 = string_join_table_name == outter_join_table1.name && string_join_table_name == outter_join_table1.alias.name
+          uncorrelated_table2 = string_join_table_name == outter_join_table2.name && string_join_table_name == outter_join_table2.alias.name
+          if uncorrelated_table1 || uncorrelated_table2
+            on_index = r.relation2.index(' ON ')
+            r.relation2.insert on_index, " AS [#{string_join_table_name}_crltd]"
+            r.relation2.sub! "[#{string_join_table_name}].", "[#{string_join_table_name}_crltd]."
+            return r
+          else
+            return nil
+          end
+        end
+      rescue
+        nil
       end
       
     end

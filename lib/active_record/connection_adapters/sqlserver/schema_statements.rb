@@ -252,7 +252,7 @@ module ActiveRecord
         end
         
         def unqualify_table_name(table_name)
-          table_name.to_s.split('.').last.gsub(/[\[\]]/,'')
+          table_name.to_s.split('.').last.tr('[]','')
         end
 
         def unqualify_db_name(table_name)
