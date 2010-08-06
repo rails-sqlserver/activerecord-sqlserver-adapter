@@ -45,6 +45,10 @@ module Arel
         "TOP (#{relation.taken.to_i}) "
       end
       
+      def expression_select?
+        relation.select_clauses.any? { |sc| sc.match /(COUNT|SUM|MAX|MIN|AVG)\s*\(.*\)/ }
+      end
+      
       def eager_limiting_select?
         single_distinct_select? && taken_only? && relation.group_clauses.blank?
       end
@@ -92,7 +96,7 @@ module Arel
         havings = relation.having_clauses
         orders  = relation.order_clauses
         if windowed
-          selects = selects.map{ |sc| clause_without_expression(sc) }
+          selects = expression_select? ? selects : selects.map{ |sc| clause_without_expression(sc) }          
         elsif eager_limiting_select?
           groups = selects.map { |sc| clause_without_expression(sc) }
           selects = selects.map { |sc| "#{taken_clause}#{clause_without_expression(sc)}" }
@@ -140,6 +144,8 @@ module Arel
           relation.select_clauses.map do |sc|
             sc.split(',').map { |c| c.split(' AS ').last.strip  }.join(', ')
           end
+        elsif expression_select?
+          ['*']
         else
           relation.select_clauses.map do |sc|
             sc.gsub /\[#{relation.table.name}\]\./, '[__rnt].'
