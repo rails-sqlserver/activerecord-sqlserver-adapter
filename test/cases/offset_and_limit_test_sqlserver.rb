@@ -25,7 +25,7 @@ class OffsetAndLimitTestSqlserver < ActiveRecord::TestCase
   context 'When selecting with offset' do
 
     should 'have no limit (top) if only offset is passed' do
-      assert_sql(/SELECT \[_rnt\]\.\* FROM.*WHERE \[_rnt\]\.\[rn\] > 1/) { Book.all(:offset=>1) }
+      assert_sql(/SELECT \[__rnt\]\.\* FROM.*WHERE \[__rnt\]\.\[__rn\] > 1/) { Book.all(:offset=>1) }
     end
 
   end
@@ -33,20 +33,20 @@ class OffsetAndLimitTestSqlserver < ActiveRecord::TestCase
   context 'When selecting with limit and offset' do
     
     should 'only allow integers for offset' do
-      assert_sql(/WHERE \[_rnt\]\.\[rn\] > 0/) { Book.limit(10).offset('five').all }
+      assert_sql(/WHERE \[__rnt\]\.\[__rn\] > 0/) { Book.limit(10).offset('five').all }
     end
     
     should 'convert strings which look like integers to integers' do
-      assert_sql(/WHERE \[_rnt\]\.\[rn\] > 5/) { Book.limit(10).offset('5').all }
+      assert_sql(/WHERE \[__rnt\]\.\[__rn\] > 5/) { Book.limit(10).offset('5').all }
     end
 
     should 'alter SQL to limit number of records returned offset by specified amount' do
-      sql = %|SELECT TOP (3) [_rnt].* 
+      sql = %|SELECT TOP (3) [__rnt].* 
               FROM (
-                SELECT ROW_NUMBER() OVER (ORDER BY [books].[id]) AS [rn], [books].* 
+                SELECT ROW_NUMBER() OVER (ORDER BY [books].[id]) AS [__rn], [books].* 
                 FROM [books]
-              ) AS [_rnt]
-              WHERE [_rnt].[rn] > 5|.squish
+              ) AS [__rnt]
+              WHERE [__rnt].[__rn] > 5|.squish
       assert_sql(sql) { Book.limit(3).offset(5).all }
     end
     

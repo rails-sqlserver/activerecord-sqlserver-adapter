@@ -71,7 +71,7 @@ module Arel
         build_query \
           "SELECT COUNT([count]) AS [count_id]",
           "FROM (",
-            "SELECT #{top_clause}ROW_NUMBER() OVER (ORDER BY #{unique_orders(rowtable_order_clauses).join(', ')}) AS [rn],",
+            "SELECT #{top_clause}ROW_NUMBER() OVER (ORDER BY #{unique_orders(rowtable_order_clauses).join(', ')}) AS [__rn],",
             "1 AS [count]",
             "FROM #{relation.from_clauses}",
             (locked unless locked.blank?),
@@ -80,8 +80,8 @@ module Arel
             ("GROUP BY #{groups.join(', ')}" unless groups.blank?),
             ("HAVING #{havings.join(' AND ')}" unless havings.blank?),
             ("ORDER BY #{unique_orders(orders).join(', ')}" unless orders.blank?),
-          ") AS [_rnt]",
-          "WHERE [_rnt].[rn] > #{relation.skipped.to_i}"
+          ") AS [__rnt]",
+          "WHERE [__rnt].[__rn] > #{relation.skipped.to_i}"
       end
       
       def select_sql_without_skipped(windowed=false)
@@ -123,17 +123,17 @@ module Arel
         build_query \
           "SELECT #{tc}#{rowtable_select_clauses.join(', ')}",
           "FROM (",
-            "SELECT ROW_NUMBER() OVER (ORDER BY #{unique_orders(rowtable_order_clauses).join(', ')}) AS [rn],",
+            "SELECT ROW_NUMBER() OVER (ORDER BY #{unique_orders(rowtable_order_clauses).join(', ')}) AS [__rn],",
             select_sql_without_skipped(true),
-          ") AS [_rnt]",
-          "WHERE [_rnt].[rn] > #{relation.skipped.to_i}"
+          ") AS [__rnt]",
+          "WHERE [__rnt].[__rn] > #{relation.skipped.to_i}"
       end
       
       def rowtable_select_clauses
         if single_distinct_select?
           ::Array.wrap(relation.select_clauses.first.dup.tap do |sc|
             sc.sub! 'DISTINCT', "DISTINCT #{taken_clause if relation.taken.present?}".strip
-            sc.sub! table_name_from_select_clause(sc), '_rnt'
+            sc.sub! table_name_from_select_clause(sc), '__rnt'
             sc.strip!
           end)
         elsif relation.join? && all_select_clauses_aliased?
@@ -142,7 +142,7 @@ module Arel
           end
         else
           relation.select_clauses.map do |sc|
-            sc.gsub /\[#{relation.table.name}\]\./, '[_rnt].'
+            sc.gsub /\[#{relation.table.name}\]\./, '[__rnt].'
           end
         end
       end
