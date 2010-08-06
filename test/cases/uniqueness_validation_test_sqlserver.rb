@@ -1,13 +1,14 @@
+# encoding: utf-8
 require 'cases/sqlserver_helper'
 
-class ValidationsTestSqlserver < ActiveRecord::TestCase
+class UniquenessValidationTestSqlserver < ActiveRecord::TestCase
 end
 
-class ValidationsTest < ActiveRecord::TestCase
+class UniquenessValidationTest < ActiveRecord::TestCase
   
-  COERCED_TESTS = [:test_validate_uniqueness_with_limit_and_utf8]
+  # COERCED_TESTS = [:test_validate_uniqueness_with_limit_and_utf8]
   
-  include SqlserverCoercedTest
+  # include SqlserverCoercedTest
   
   # This test is tricky to pass. The validation SQL would generate something like this:
   # 
@@ -27,9 +28,9 @@ class ValidationsTest < ActiveRecord::TestCase
   # code to infer if the passed in string is indeed a national/unicde type. Perhaps in rails 3
   # and using AREL this might get better, but I do not see a solution right now.
   # 
-  def test_coerced_test_validate_uniqueness_with_limit_and_utf8
-    assert true
-  end
+  # def test_coerced_test_validate_uniqueness_with_limit_and_utf8
+  #   assert true
+  # end
   
 end
 

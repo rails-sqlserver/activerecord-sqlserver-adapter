@@ -1,33 +1,21 @@
 require 'cases/sqlserver_helper'
-require 'models/topic'
+require 'models/developer'
 
 class AttributeMethodsTestSqlserver < ActiveRecord::TestCase
 end
 
 class AttributeMethodsTest < ActiveRecord::TestCase
   
-  COERCED_TESTS = [
-    :test_typecast_attribute_from_select_to_false,
-    :test_typecast_attribute_from_select_to_true
-  ]
+  COERCED_TESTS = [:test_read_attributes_before_type_cast_on_datetime]
   
   include SqlserverCoercedTest
   
-  fixtures :topics
+  fixtures :developers
   
-  
-  def test_coerced_typecast_attribute_from_select_to_false
-    topic = Topic.create(:title => 'Budget')
-    topic = Topic.find(:first, :select => "topics.*, CASE WHEN 1=2 THEN 1 ELSE 0 END as is_test")
-    assert !topic.is_test?
-  end
-
-  def test_coerced_typecast_attribute_from_select_to_true
-    topic = Topic.create(:title => 'Budget')
-    topic = Topic.find(:first, :select => "topics.*, CASE WHEN 2=2 THEN 1 ELSE 0 END as is_test")
-    assert topic.is_test?
+  def test_coerced_test_read_attributes_before_type_cast_on_datetime
+    developer = Developer.find(:first)
+    assert_equal "#{developer.created_at.to_s(:db)}.000" , developer.attributes_before_type_cast["created_at"]
   end
   
   
 end
-
