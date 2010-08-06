@@ -1,52 +1,31 @@
 
-== Rails SQL Server 2000, 2005 and 2008 Adapter
+== SQL Server 2005 and 2008 Adapter For ActiveRecord
 
-The SQL Server adapter for rails is back for ActiveRecord 2.2 and up! We are currently passing all tests and hope to continue to do so moving forward. 
+The SQL Server adapter for ActiveRecord.
 
 
 == What's New
 
-* Integration with rails :db namespaced rake tasks.
-* IronRuby support using ADONET connection mode.
-* Direct ODBC mode. No DBI anymore, means around 20% faster!
-* Now supports SQL Server 2008 too!
-* Fully tested under 1.9!!! Correctly encodes/decodes UTF-8 types in ruby 1.9 too.
-* Now supports both rails 2.2 & 2.3!!!
-* An ActiveRecord::Base.execute_procedure method that can be used by classes.
-* Enabled support for DDL transactions.
-* Micro second support. Time#usec is automatically converted to SQL Server's 3.33 millisecond limitation.
-* Datetime data types before type casting are represented correctly. For example: 1998-01-01 23:59:59.997
-* Implementation for #disable_referential_integrity used by ActiveRecord's Fixtures class.
-* Pessimistic locking suppot. See the #add_lock! method for details.
-* Enabled #case_sensitive_equality_operator used by unique validations.
-* Unicode character support for nchar, nvarchar and ntext data types. Configuration option for defaulting all string data types to the unicode safe types.
-* View support for table names, identity inserts, and column defaults.
-* A block method to run queries within a specific isolation level.
-* Automatically reconnects to lost database connections.
+* Version 3.x now supports rails 3!
 
 
 ==== Testing Rake Tasks Support
 
 This is a long story, but if you are not working with a legacy database and you can trust your schema.rb to setup you local development or test database, then we have adapter level support for rails :db rake tasks. Please read this wiki page for full details.
 
-http://wiki.github.com/rails-sqlserver/2000-2005-adapter/rails-db-rake-tasks
-
-
-==== SQL Server 2008 Support
-
-Because this adapter is primarily coded to SQL Server 2000/2005, it does not take advantage of many of the things in 2008 that would speed up the code. At some point in the future there will be a branch of this code that is specifically targeted for 2008. That adapter version will remove much of the dirty innards of this version that are meant to code around many previous SQL Server 2000/2005 short comings, the biggest being no limit/offset.
+http://wiki.github.com/rails-sqlserver/activerecord-sqlserver-adapter/rails-db-rake-tasks
 
 
 ==== Date/Time Data Type Hinting
 
-Both SQL Server 2000 and 2005 do not include native data types for just 'date' or 'time', it only has 'datetime'. To pass the ActiveRecord tests we implemented two simple class methods that can teach your models to coerce column information to be cast correctly. Simply past a list of symbols to either the <tt>coerce_sqlserver_date</tt> or <tt>coerce_sqlserver_time</tt> methods that correspond to 'datetime' columns that need to be cast correctly.
+SQL Server 2005 does not include a native data type for just 'date' or 'time', it only has 'datetime'. To pass the ActiveRecord tests we implemented two simple class methods that can teach your models to coerce column information to be cast correctly. Simply pass a list of symbols to either the <tt>coerce_sqlserver_date</tt> or <tt>coerce_sqlserver_time</tt> methods that correspond to 'datetime' columns that need to be cast correctly.
 
   class Topic < ActiveRecord::Base
     coerce_sqlserver_date :last_read
     coerce_sqlserver_time :bonus_time
   end
 
-This implementation has some limitations. To date we can only coerce date/time types for models that conform to the expected ActiveRecord class to table naming convention. So a table of 'foo_bar_widgets' will look for coerced types in the FooBarWidget class if it exists.
+This implementation has some limitations. To date we can only coerce date/time types for models that conform to the expected ActiveRecord class to table naming conventions. So a table of 'foo_bar_widgets' will look for coerced column types in the FooBarWidget class.
 
 
 ==== Executing Stored Procedures
@@ -64,8 +43,8 @@ Currently the following custom data types have been tested for schema definition
 * nchar
 * nvarchar
 * ntext
-* varchar(max) for SQL Server 2005 only.
-* nvarchar(max) for SQL Server 2005 only.
+* varchar(max)
+* nvarchar(max)
 
 For example:
 
@@ -78,41 +57,30 @@ For example:
     t.column :body2_utf8,     :nvarchar_max   # Creates nvarchar(max)
   end
 
-Manually creating a varchar(max) on SQL Server 2005 is not necessary since this is the default type created when specifying a :text field. As time goes on we will be testing other SQL Server specific data types are handled correctly when created in a migration.
+Manually creating a varchar(max) is not necessary since this is the default type created when specifying a :text field. As time goes on we will be testing other SQL Server specific data types are handled correctly when created in a migration.
 
 
 ==== Native Text/String/Binary Data Type Accessor
 
-To pass the ActiveRecord tests we had to implement an class accessor for the native type created for :text columns. By default any :text column created by migrations will create these native types.
-
-* SQL Server 2000 is 'text'
-* SQL Server 2005 is 'varchar(max)'
-
-During testing this type is set to 'varchar(8000)' for SQL Server 2000. The reason is that rails expects to be able to use SQL = operators on text data types and this is not possible with a native 'text' data type in SQL Server. The default 'varchar(max)' for SQL Server 2005 can be queried using the SQL = operator and has plenty of storage space which is why we made it the default for 2005. If for some reason you want to change the data type created during migrations for any SQL Server version, you can configure this line to your liking in a config/initializers file.
+To pass the ActiveRecord tests we had to implement an class accessor for the native type created for :text columns. By default any :text column created by migrations will create a 'varchar(max)' data type. This type can be queried using the SQL = operator and has plenty of storage space which is why we made it the default. If for some reason you want to change the data type created during migrations you can configure this line to your liking in a config/initializers file.
 
   ActiveRecord::ConnectionAdapters::SQLServerAdapter.native_text_database_type = 'varchar(8000)'
-  
-Also, there is a class attribute setter for the native string database type. This is the same for both SQL Server 2000 and 2005, 'varchar'. However in can be used instead of the #enable_default_unicode_types below for finer grain control over which types you want unicode safe when adding or changing the schema.
+
+Also, there is a class attribute setter for the native string database type. This is the same for all SQL Server versions, 'varchar'. However it can be used instead of the #enable_default_unicode_types below for finer grain control over which types you want unicode safe when adding or changing the schema.
 
   ActiveRecord::ConnectionAdapters::SQLServerAdapter.native_string_database_type = 'nvarchar'
 
-By default any :binary column created by migrations will create these native types
+By default any :binary column created by migrations will create a 'varbinary(max)' data type. This too can be set using an initializer.
 
-* SQL Server 2000 is 'image'
-* SQL Server 2005 is 'varbinary(max)'
+  ActiveRecord::ConnectionAdapters::SQLServerAdapter.native_binary_database_type = 'image'
 
 
 ====  Setting Unicode Types As Default
 
-By default the adapter will use non-unicode safe data types for :string and :text types when DEFINING or CHANGING the schema. If you choose, you can set the following class attribute in a config/initializers file that will change this behavior. When set to true it has the equivalent meaning as the two lower items. These examples show detail level alternatives to achieve similar effects.
+By default the adapter will use non-unicode safe data types for :string and :text types when defining/changing the schema. If you choose, you can set the following class attribute in a config/initializers file that will change this behavior. When set to true it has the equivalent meaning as the two lower items. These examples show detail level alternatives to achieve similar effects.
   
   ActiveRecord::ConnectionAdapters::SQLServerAdapter.enable_default_unicode_types = true
   
-  # SQL Server 2000
-  ActiveRecord::ConnectionAdapters::SQLServerAdapter.native_text_database_type = 'ntext'
-  ActiveRecord::ConnectionAdapters::SQLServerAdapter.native_string_database_type = 'nvarchar'
-  
-  # SQL Server 2005
   ActiveRecord::ConnectionAdapters::SQLServerAdapter.native_text_database_type = 'nvarchar(max)'
   ActiveRecord::ConnectionAdapters::SQLServerAdapter.native_string_database_type = 'nvarchar'
 
@@ -121,7 +89,7 @@ It is important to remember that unicode types in SQL Server have approximately 
 
 ====  Schema Information Logging
 
-By default all queries to the INFORMATION_SCHEMA table is silenced. If you think logging these queries are useful, you can enable it by adding this like to a config/initializers file.
+By default all queries to the INFORMATION_SCHEMA table is silenced. If you think logging these queries are useful, you can enable it by adding this like to a initializer file.
 
   ActiveRecord::ConnectionAdapters::SQLServerAdapter.log_info_schema_queries = true
 
@@ -133,27 +101,24 @@ By default the adapter will auto connect to lost DB connections. For every query
   ActiveRecord::ConnectionAdapters::SQLServerAdapter.auto_connect = false
 
 
-
 == Versions
 
-It is our goal to match the adapter version with each version of rails. However we will track our own tiny version independent of ActiveRecord. For example, an adapter version of 2.2.x will work on any 2.2.x version of ActiveRecord. This convention will be used in both the Git tags as well as the Rubygems versioning.
-
+It is our goal to match the adapter version with each version of rails. However we will track our own tiny version independent of ActiveRecord. For example, an adapter version of 2.3.x will work on any 2.3.x version of ActiveRecord. Version 3.x will track ActiveRecord 3. This convention will be used in both the Git tags as well as the gems versioning.
 
 
 == Installation
 
-You will need Ruby ODBC. If you are using the adapter under 1.9, then you need at least ruby-odbc version 0.9996. ODBC is the preferred mode, however if you are using IronRuby you can use the ADONET connection mode which uses native System.Data connection. Other connection modes may be supported, possibly a straight FreeTDS layer. The sky is the limit now and we have a code that can be accept these optional transports. If you are interested in helping, open a ticket and submit a patch. Or start a conversation on the Google Group.
+You will need Ruby ODBC. If you are using the adapter under 1.9, then you need at least ruby-odbc version 0.99992. ODBC is the preferred mode, however if you are using IronRuby you can use the ADONET connection mode which uses native System.Data connection. Other connection modes may be supported, possibly a straight FreeTDS layer. The sky is the limit for optional transports. If you are interested in helping, open a ticket and submit a patch. Or start a conversation on the Google Group.
 
   $ gem install activerecord-sqlserver-adapter
 
-Optionally configure your gem dependencies in your rails environment.rb file.
+Optionally configure your gem dependencies in your Gemfile.
 
-  config.gem 'activerecord-sqlserver-adapter', :version => 'x.x.xx'
+  gem 'activerecord-sqlserver-adapter', '3.x.xx'
 
-Here are some external links for libraries and/or tutorials on how to install any other additional components to use this adapter. If you know of a good one that we can include here, just let us know.
+If you have any troubles installing the lower level libraries for the adapter, please consult the wiki pages for various platform installation guides. Tons of good info can be found and we ask that you contribute too!
 
-* http://www.ch-werner.de/rubyodbc/
-
+http://wiki.github.com/rails-sqlserver/activerecord-sqlserver-adapter/platform-installation
 
 
 
@@ -175,7 +140,7 @@ http://gist.github.com/381101
 
 If you’d like to contribute a feature or bugfix, thanks! To make sure your fix/feature has a high chance of being added, please read the following guidelines. First, ask on the Google list, IRC, or post a ticket on github issues. Second, make sure there are tests! We will not accept any patch that is not tested. Please read the RUNNING_UNIT_TESTS file for the details of how to run the unit tests.
 
-* Github: http://github.com/rails-sqlserver
+* Github: http://github.com/rails-sqlserver/activerecord-sqlserver-adapter
 * Google Group: http://groups.google.com/group/rails-sqlserver-adapter
 * IRC Room: #rails-sqlserver on irc.freenode.net
 

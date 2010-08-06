@@ -16,8 +16,8 @@ DSN of the adapter, see the ODBC connection information for details.
 
 = Cloning The Repos
 
-Clone adapter git://github.com/rails-sqlserver/2000-2005-adapter.git. The master 
-branch is the one under development for rails 3, track the repos 2-3-stable 
+Clone adapter git://github.com/rails-sqlserver/activerecord-sqlserver-adapter.git. 
+The master branch is the one under development for rails 3, track the repos 2-3-stable 
 branch for 2.x development.
 
 The tests of this adapter depend on the existence of the rails source which can 
