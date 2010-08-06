@@ -89,7 +89,7 @@ class PessimisticLockingTestSqlserver < ActiveRecord::TestCase
         first, second = duel(zzz) { Person.find 1, :lock => true }
         second.end > first.end
       }
-    end if RUBY_VERSION < '1.9'
+    end unless ruby_19?
     
   end
   

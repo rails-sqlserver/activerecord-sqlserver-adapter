@@ -68,28 +68,22 @@ class ColumnTestSqlserver < ActiveRecord::TestCase
     should 'have correct simplified types' do
       assert_equal :string, @char.type
       assert_equal :string, @char10.type
-      if sqlserver_2005? || sqlserver_2008?
-        assert_equal :text, @varcharmax.type, @varcharmax.inspect
-        assert_equal :text, @varcharmax10.type, @varcharmax10.inspect
-      end
+      assert_equal :text, @varcharmax.type, @varcharmax.inspect
+      assert_equal :text, @varcharmax10.type, @varcharmax10.inspect
     end
     
     should 'have correct #sql_type per schema definition' do
       assert_equal 'char(1)',     @char.sql_type,       'Specifing a char type with no limit is 1 by SQL Server standards.'
       assert_equal 'char(10)',    @char10.sql_type,      @char10.inspect
-      if sqlserver_2005? || sqlserver_2008?
-        assert_equal 'varchar(max)', @varcharmax.sql_type,   'A -1 limit should be converted to max (max) type.'
-        assert_equal 'varchar(max)', @varcharmax10.sql_type, 'A -1 limit should be converted to max (max) type.'
-      end
+      assert_equal 'varchar(max)', @varcharmax.sql_type,   'A -1 limit should be converted to max (max) type.'
+      assert_equal 'varchar(max)', @varcharmax10.sql_type, 'A -1 limit should be converted to max (max) type.'
     end
     
     should 'have correct #limit per schema definition' do
       assert_equal 1,   @char.limit
       assert_equal 10,  @char10.limit
-      if sqlserver_2005? || sqlserver_2008?
-        assert_equal nil, @varcharmax.limit,   'Limits on max types are moot and we should let rails know that.'
-        assert_equal nil, @varcharmax10.limit, 'Limits on max types are moot and we should let rails know that.'
-      end
+      assert_equal nil, @varcharmax.limit,   'Limits on max types are moot and we should let rails know that.'
+      assert_equal nil, @varcharmax10.limit, 'Limits on max types are moot and we should let rails know that.'
     end
 
   end
@@ -121,10 +115,8 @@ class ColumnTestSqlserver < ActiveRecord::TestCase
       assert_equal :text,   @ntext10.type
       assert_equal :string, @nchar10.type
       assert_equal :string, @nvarchar100.type
-      if sqlserver_2005? || sqlserver_2008?
-        assert_equal :text, @nvarcharmax.type, @nvarcharmax.inspect
-        assert_equal :text, @nvarcharmax10.type, @nvarcharmax10.inspect
-      end
+      assert_equal :text, @nvarcharmax.type, @nvarcharmax.inspect
+      assert_equal :text, @nvarcharmax10.type, @nvarcharmax10.inspect
     end
     
     should 'have correct #sql_type per schema definition' do
@@ -134,10 +126,8 @@ class ColumnTestSqlserver < ActiveRecord::TestCase
       assert_equal 'ntext',         @ntext10.sql_type,     'Even a next with a limit of 10 specified will mean nothing.'
       assert_equal 'nchar(10)',     @nchar10.sql_type,     'An nchar with a limit of 10 needs to have it show up here.'
       assert_equal 'nvarchar(100)', @nvarchar100.sql_type, 'An nvarchar with a specified limit of 100 needs to show it.'
-      if sqlserver_2005? || sqlserver_2008?
-        assert_equal 'nvarchar(max)', @nvarcharmax.sql_type,   'A -1 limit should be converted to max (max) type.'
-        assert_equal 'nvarchar(max)', @nvarcharmax10.sql_type, 'A -1 limit should be converted to max (max) type.'
-      end
+      assert_equal 'nvarchar(max)', @nvarcharmax.sql_type,   'A -1 limit should be converted to max (max) type.'
+      assert_equal 'nvarchar(max)', @nvarcharmax10.sql_type, 'A -1 limit should be converted to max (max) type.'
     end
     
     should 'have correct #limit per schema definition' do
@@ -146,10 +136,8 @@ class ColumnTestSqlserver < ActiveRecord::TestCase
       assert_equal nil, @ntext.limit,       'An ntext column limit is moot, it is a fixed variable length'
       assert_equal 10,  @nchar10.limit
       assert_equal 100, @nvarchar100.limit
-      if sqlserver_2005? || sqlserver_2008?
-        assert_equal nil, @nvarcharmax.limit,   'Limits on max types are moot and we should let rails know that.'
-        assert_equal nil, @nvarcharmax10.limit, 'Limits on max types are moot and we should let rails know that.'
-      end
+      assert_equal nil, @nvarcharmax.limit,   'Limits on max types are moot and we should let rails know that.'
+      assert_equal nil, @nvarcharmax10.limit, 'Limits on max types are moot and we should let rails know that.'
     end
     
   end
@@ -169,7 +157,7 @@ class ColumnTestSqlserver < ActiveRecord::TestCase
     
     should 'use correct #sql_type for different sql server versions' do
       assert_equal 'datetime', @datetime.sql_type
-      if sqlserver_2000? || sqlserver_2005?
+      if sqlserver_2005?
         assert_equal 'datetime', @date.sql_type
         assert_equal 'datetime', @time.sql_type
       else

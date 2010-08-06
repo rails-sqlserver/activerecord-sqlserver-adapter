@@ -26,9 +26,6 @@ module ActiveRecord
       when :adonet
         require 'System.Data'
         raise ArgumentError, 'Missing :database configuration.' unless config.has_key?(:database)
-      when :ado
-        raise NotImplementedError, 'Please use version 2.3.1 of the adapter for ADO connections. Future versions may support ADO.NET.'
-        raise ArgumentError, 'Missing :database configuration.' unless config.has_key?(:database)
       else
         raise ArgumentError, "Unknown connection mode in #{config.inspect}."
       end
@@ -169,9 +166,9 @@ module ActiveRecord
       include Sqlserver::Errors
       
       ADAPTER_NAME                = 'SQLServer'.freeze
-      VERSION                     = '3.0.0.beta.1'.freeze
+      VERSION                     = '3.0.0.rc.1'.freeze
       DATABASE_VERSION_REGEXP     = /Microsoft SQL Server\s+(\d{4})/
-      SUPPORTED_VERSIONS          = [2000,2005,2008].freeze
+      SUPPORTED_VERSIONS          = [2005,2008].freeze
       
       cattr_accessor :native_text_database_type, :native_binary_database_type, :native_string_database_type,
                      :log_info_schema_queries, :enable_default_unicode_types, :auto_connect
@@ -273,10 +270,6 @@ module ActiveRecord
         true
       end
       
-      def sqlserver_2000?
-        database_year == 2000
-      end
-      
       def sqlserver_2005?
         database_year == 2005
       end
@@ -302,12 +295,7 @@ module ActiveRecord
       end
       
       def native_text_database_type
-        @@native_text_database_type || 
-        if sqlserver_2005? || sqlserver_2008?
-          enable_default_unicode_types ? 'nvarchar(max)' : 'varchar(max)'
-        else
-          enable_default_unicode_types ? 'ntext' : 'text'
-        end
+        @@native_text_database_type || enable_default_unicode_types ? 'nvarchar(max)' : 'varchar(max)'
       end
       
       def native_time_database_type
@@ -319,7 +307,7 @@ module ActiveRecord
       end
       
       def native_binary_database_type
-        @@native_binary_database_type || ((sqlserver_2005? || sqlserver_2008?) ? 'varbinary(max)' : 'image')
+        @@native_binary_database_type || 'varbinary(max)'
       end
       
             

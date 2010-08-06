@@ -1,7 +1,7 @@
 Gem::Specification.new do |s|
   s.name     = "activerecord-sqlserver-adapter"
-  s.version  = "3.0.0.beta.1"
-  s.date     = "2010-07-26"
+  s.version  = "3.0.0.rc.1"
+  s.date     = "2010-08-05"
   s.summary  = "SQL Server 2005 and 2008 Adapter For Rails."
   s.email    = "ken@metaskills.net"
   s.homepage = "http://github.com/rails-sqlserver"
@@ -16,13 +16,13 @@ Gem::Specification.new do |s|
     "RUNNING_UNIT_TESTS", 
     "lib/activerecord-sqlserver-adapter.rb",
     "lib/active_record/connection_adapters/sqlserver_adapter.rb",
-    "lib/active_record/connection_adapters/sqlserver_adapter/core_ext/active_record.rb",
-    "lib/active_record/connection_adapters/sqlserver_adapter/core_ext/odbc.rb",
+    "lib/active_record/connection_adapters/sqlserver/core_ext/active_record.rb",
+    "lib/active_record/connection_adapters/sqlserver/core_ext/odbc.rb",
     "lib/active_record/connection_adapters/sqlserver/database_limits.rb",
     "lib/active_record/connection_adapters/sqlserver/database_statements.rb",
     "lib/active_record/connection_adapters/sqlserver/errors.rb",
-    "lib/active_record/connection_adapters/sqlserver/schema_statements.rb",
     "lib/active_record/connection_adapters/sqlserver/quoting.rb",
+    "lib/active_record/connection_adapters/sqlserver/schema_statements.rb",
     "lib/arel/engines/sql/compilers/sqlserver_compiler.rb" ]
   s.test_files = [
     "test/cases/aaaa_create_tables_test_sqlserver.rb",
@@ -37,7 +37,6 @@ Gem::Specification.new do |s|
     "test/cases/inheritance_test_sqlserver.rb",
     "test/cases/method_scoping_test_sqlserver.rb",
     "test/cases/migration_test_sqlserver.rb",
-    "test/cases/named_scope_test_sqlserver.rb",
     "test/cases/offset_and_limit_test_sqlserver.rb",
     "test/cases/pessimistic_locking_test_sqlserver.rb",
     "test/cases/query_cache_test_sqlserver.rb",

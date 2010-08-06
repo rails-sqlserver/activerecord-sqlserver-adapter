@@ -57,7 +57,6 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
       setup do
         @version_regexp = ActiveRecord::ConnectionAdapters::SQLServerAdapter::DATABASE_VERSION_REGEXP
         @supported_version = ActiveRecord::ConnectionAdapters::SQLServerAdapter::SUPPORTED_VERSIONS
-        @sqlserver_2000_string = "Microsoft SQL Server  2000 - 8.00.2039 (Intel X86)"
         @sqlserver_2005_string = "Microsoft SQL Server 2005 - 9.00.3215.00 (Intel X86)"
         @sqlserver_2008_string = "Microsoft SQL Server 2008 (RTM) - 10.0.1600.22 (Intel X86)"
       end
@@ -69,11 +68,6 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
       should 'return a 4 digit year fixnum for #database_year' do
         assert_instance_of Fixnum, @connection.database_year
         assert_contains @supported_version, @connection.database_year
-      end
-      
-      should 'return true to #sqlserver_2000?' do
-        @connection.stubs(:database_version).returns(@sqlserver_2000_string)
-        assert @connection.sqlserver_2000?
       end
       
       should 'return true to #sqlserver_2005?' do
@@ -167,25 +161,15 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
 
       should 'use non-unicode types when set to false' do
         with_enable_default_unicode_types(false) do
-          if sqlserver_2000?
-            assert_equal 'varchar', @connection.native_string_database_type
-            assert_equal 'text', @connection.native_text_database_type
-          elsif sqlserver_2005?
-            assert_equal 'varchar', @connection.native_string_database_type
-            assert_equal 'varchar(max)', @connection.native_text_database_type
-          end
+          assert_equal 'varchar', @connection.native_string_database_type
+          assert_equal 'varchar(max)', @connection.native_text_database_type
         end
       end
       
       should 'use unicode types when set to true' do
         with_enable_default_unicode_types(true) do
-          if sqlserver_2000?
-            assert_equal 'nvarchar', @connection.native_string_database_type
-            assert_equal 'ntext', @connection.native_text_database_type
-          elsif sqlserver_2005?
-            assert_equal 'nvarchar', @connection.native_string_database_type
-            assert_equal 'nvarchar(max)', @connection.native_text_database_type
-          end
+          assert_equal 'nvarchar', @connection.native_string_database_type
+          assert_equal 'nvarchar(max)', @connection.native_text_database_type
         end
       end
 
@@ -409,7 +393,7 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
           assert @dirty_t2, 'Should have a Task record from within block above.'
           assert @dirty_t2.starting, 'Should have a dirty date.'
           assert_nil Task.find(@t2.id).starting, 'Should be nil again from botched transaction above.'
-        end unless active_record_2_point_2? # Transactions in tests are a bit screwy in 2.2.
+        end
         
       end
       

@@ -41,7 +41,7 @@ class SchemaDumperTestSqlserver < ActiveRecord::TestCase
       table_dump('sql_server_strings') do |output|
         assert_match %r{t.text.*varchar_max}, output
       end
-    end if sqlserver_2005? || sqlserver_2008?
+    end
 
   end
   

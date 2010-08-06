@@ -24,7 +24,7 @@ module ActiveRecord
         end
 
         def indexes_per_table
-          sqlserver_2000? ? 249 : 999
+          999
         end
 
         def columns_per_multicolumn_index

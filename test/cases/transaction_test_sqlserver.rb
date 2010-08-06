@@ -75,7 +75,7 @@ class TransactionTestSqlserver < ActiveRecord::TestCase
       assert_equal 0, Ship.connection.open_transactions
     end
     
-  end unless active_record_2_point_2?
+  end
   
   
   
