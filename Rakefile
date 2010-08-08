@@ -61,10 +61,7 @@ namespace :rvm do
     end
   end
   
-  task :debug => :setup do
-    
-  end
-  
+  desc "Shows the command to run tests on all rubie versions."
   task :test => :setup do
     rubies = RUBIES.map { |rubie, info| info[:alias] }
     puts "Run this:\nrvm #{rubies.join(',')} rake test"
