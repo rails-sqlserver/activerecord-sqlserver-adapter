@@ -58,7 +58,7 @@ module SqlserverCoercedTest
     end
     def method_added(method)
       if coerced_tests && coerced_tests.include?(method)
-        undef_method(method)
+        undef_method(method) rescue nil
         STDOUT.puts("Undefined coerced test: #{self.name}##{method}")
       end
     end
@@ -94,6 +94,7 @@ module ActiveRecord
       def sqlserver_2005? ; ActiveRecord::Base.connection.sqlserver_2005? ; end
       def sqlserver_2008? ; ActiveRecord::Base.connection.sqlserver_2008? ; end
       def ruby_19? ; RUBY_VERSION >= '1.9' ; end
+      def quote_values_as_utf8? ; ActiveRecord::Base.connection.quote_value_as_utf8?('') ; end
     end
     def assert_sql(*patterns_to_match)
       $queries_executed = []
@@ -108,6 +109,23 @@ module ActiveRecord
     def sqlserver_2005? ; self.class.sqlserver_2005? ; end
     def sqlserver_2008? ; self.class.sqlserver_2008? ; end
     def ruby_19? ; self.class.ruby_19? ; end
+    def quote_values_as_utf8? ; self.class.quote_values_as_utf8? ; end
+    def with_enable_default_unicode_types?
+      ActiveRecord::ConnectionAdapters::SQLServerAdapter.enable_default_unicode_types.is_a?(TrueClass)
+    end
+    def with_enable_default_unicode_types(setting)
+      old_setting = ActiveRecord::ConnectionAdapters::SQLServerAdapter.enable_default_unicode_types
+      old_text = ActiveRecord::ConnectionAdapters::SQLServerAdapter.native_text_database_type
+      old_string = ActiveRecord::ConnectionAdapters::SQLServerAdapter.native_string_database_type
+      ActiveRecord::ConnectionAdapters::SQLServerAdapter.enable_default_unicode_types = setting
+      ActiveRecord::ConnectionAdapters::SQLServerAdapter.native_text_database_type = nil
+      ActiveRecord::ConnectionAdapters::SQLServerAdapter.native_string_database_type = nil
+      yield
+    ensure
+      ActiveRecord::ConnectionAdapters::SQLServerAdapter.enable_default_unicode_types = old_setting
+      ActiveRecord::ConnectionAdapters::SQLServerAdapter.native_text_database_type = old_text
+      ActiveRecord::ConnectionAdapters::SQLServerAdapter.native_string_database_type = old_string
+    end
   end
 end
 

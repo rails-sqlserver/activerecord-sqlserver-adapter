@@ -3,42 +3,35 @@ require 'rake/testtask'
 require 'rake/rdoctask'
 
 
-desc 'Default runs tests for the adapters ODBC mode.'
-task :test do
-  test = Rake::Task['sqlserver:test:odbc']
-  test.invoke
-end
+task :test => ['test:odbc']
 
-
-namespace :sqlserver do
+namespace :test do
   
-  namespace :test do
-    
-    ['odbc','adonet'].each do |mode|
+  ['odbc','adonet'].each do |mode|
 
-      Rake::TestTask.new(mode) do |t|
-        t.libs << "test"
-        t.libs << "test/connections/native_sqlserver#{mode == 'adonet' ? '' : "_#{mode}"}"
-        t.libs << "#{ENV['RAILS_SOURCE']}/activerecord/test"
-        t.test_files = \
-          Dir.glob("test/cases/**/*_test_sqlserver.rb").sort + 
-          (Dir.glob("#{ENV['RAILS_SOURCE']}/activerecord/test/cases/**/*_test.rb") - 
-           Dir.glob("#{ENV['RAILS_SOURCE']}/activerecord/test/cases/adapters/**/*_test.rb")).sort
-        t.verbose = true
-      end
-      
-    end
-
-    desc 'Test with unicode types enabled, uses ODBC mode.'
-    task :unicode_types do
+    Rake::TestTask.new(mode) do |t|
       ENV['ENABLE_DEFAULT_UNICODE_TYPES'] = 'true'
-      test = Rake::Task['sqlserver:test:odbc']
-      test.invoke
+      t.libs << "test"
+      t.libs << "test/connections/native_sqlserver#{mode == 'adonet' ? '' : "_#{mode}"}"
+      t.libs << "#{ENV['RAILS_SOURCE']}/activerecord/test"
+      t.test_files = \
+        Dir.glob("test/cases/**/*_test_sqlserver.rb").sort + 
+        (Dir.glob("#{ENV['RAILS_SOURCE']}/activerecord/test/cases/**/*_test.rb") - 
+         Dir.glob("#{ENV['RAILS_SOURCE']}/activerecord/test/cases/adapters/**/*_test.rb")).sort
+      t.verbose = true
     end
     
   end
+
+  desc 'Test without unicode types enabled, uses ODBC mode.'
+  task :non_unicode_types do
+    ENV['ENABLE_DEFAULT_UNICODE_TYPES'] = 'false'
+    test = Rake::Task['test:odbc']
+    test.invoke
+  end
   
 end
+
 
 
 namespace :rvm do
@@ -105,7 +98,7 @@ namespace :rvm do
           RVM.run "curl -O http://www.ch-werner.de/rubyodbc/#{odbc}.tar.gz"
           puts "info: RubyODBC extracting clean work directory..."
           RVM.run "tar -xf #{odbc}.tar.gz"
-          RVM.chdir("#{odbc}/ext") do
+          RVM.chdir("#{odbc}/ext/utf8") do
             puts "info: RubyODBC configuring..."
             RVM.ruby 'extconf.rb', "--with-odbc-dir=#{rvm_odbc_dir}"
             puts "info: RubyODBC make and installing for #{rvm_current_name}..."

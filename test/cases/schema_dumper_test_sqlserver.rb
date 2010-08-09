@@ -1,4 +1,5 @@
 require 'cases/sqlserver_helper'
+require 'stringio'
 
 class SchemaDumperTestSqlserver < ActiveRecord::TestCase
   
@@ -46,8 +47,6 @@ class SchemaDumperTestSqlserver < ActiveRecord::TestCase
   end
   
   
-  
-  
   private
   
   def find_all_tables
@@ -70,3 +69,19 @@ class SchemaDumperTestSqlserver < ActiveRecord::TestCase
   end
   
 end
+
+
+class SchemaDumperTest < ActiveRecord::TestCase
+  
+  COERCED_TESTS = [:test_schema_dump_keeps_large_precision_integer_columns_as_decimal]
+  
+  include SqlserverCoercedTest
+  
+  def test_coerced_schema_dump_keeps_large_precision_integer_columns_as_decimal
+    output = standard_dump
+    assert_match %r{t.decimal\s+"atoms_in_universe",\s+:precision => 38,\s+:scale => 0}, output
+  end
+  
+end
+
+

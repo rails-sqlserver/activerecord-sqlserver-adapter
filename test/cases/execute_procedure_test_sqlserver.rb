@@ -21,7 +21,12 @@ class ExecuteProcedureTestSqlserver < ActiveRecord::TestCase
   end
   
   should 'quote bind vars correctly' do
-    assert_sql(/EXEC sp_tables '%sql_server%', NULL, NULL, NULL, 1/) do
+    regex = if quote_values_as_utf8?
+              /EXEC sp_tables N'%sql_server%', NULL, NULL, NULL, 1/
+            else
+              /EXEC sp_tables '%sql_server%', NULL, NULL, NULL, 1/
+            end
+    assert_sql(regex) do
       @klass.execute_procedure :sp_tables, '%sql_server%', nil, nil, nil, true
     end
   end

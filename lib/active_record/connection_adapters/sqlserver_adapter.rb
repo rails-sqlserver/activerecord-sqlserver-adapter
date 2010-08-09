@@ -171,7 +171,8 @@ module ActiveRecord
       SUPPORTED_VERSIONS          = [2005,2008].freeze
       
       cattr_accessor :native_text_database_type, :native_binary_database_type, :native_string_database_type,
-                     :log_info_schema_queries, :enable_default_unicode_types, :auto_connect
+                     :log_info_schema_queries, :enable_default_unicode_types, :auto_connect,
+                     :cs_equality_operator
       
       def initialize(logger,config)
         @connection_options = config
@@ -308,6 +309,10 @@ module ActiveRecord
       
       def native_binary_database_type
         @@native_binary_database_type || 'varbinary(max)'
+      end
+      
+      def cs_equality_operator
+        @@cs_equality_operator || 'COLLATE Latin1_General_CS_AS_WS ='
       end
       
             

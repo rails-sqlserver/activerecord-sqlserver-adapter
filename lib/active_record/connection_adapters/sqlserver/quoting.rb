@@ -8,7 +8,7 @@ module ActiveRecord
           when String, ActiveSupport::Multibyte::Chars
             if column && column.type == :binary
               column.class.string_to_binary(value)
-            elsif column && column.respond_to?(:is_utf8?) && column.is_utf8?
+            elsif quote_value_as_utf8?(value) || column && column.respond_to?(:is_utf8?) && column.is_utf8?
               quoted_utf8_value(value)
             else
               super
@@ -49,6 +49,10 @@ module ActiveRecord
 
         def quoted_utf8_value(value)
           "N'#{quote_string(value)}'"
+        end
+        
+        def quote_value_as_utf8?(value)
+          value.is_utf8? || enable_default_unicode_types
         end
         
       end

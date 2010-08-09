@@ -585,24 +585,6 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
     
   end
   
-  
-  
-  private
-  
-  def with_enable_default_unicode_types(setting)
-    old_setting = ActiveRecord::ConnectionAdapters::SQLServerAdapter.enable_default_unicode_types
-    old_text = ActiveRecord::ConnectionAdapters::SQLServerAdapter.native_text_database_type
-    old_string = ActiveRecord::ConnectionAdapters::SQLServerAdapter.native_string_database_type
-    ActiveRecord::ConnectionAdapters::SQLServerAdapter.enable_default_unicode_types = setting
-    ActiveRecord::ConnectionAdapters::SQLServerAdapter.native_text_database_type = nil
-    ActiveRecord::ConnectionAdapters::SQLServerAdapter.native_string_database_type = nil
-    yield
-  ensure
-    ActiveRecord::ConnectionAdapters::SQLServerAdapter.enable_default_unicode_types = old_setting
-    ActiveRecord::ConnectionAdapters::SQLServerAdapter.native_text_database_type = old_text
-    ActiveRecord::ConnectionAdapters::SQLServerAdapter.native_string_database_type = old_string
-  end
-  
 end
 
 

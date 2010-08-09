@@ -51,7 +51,7 @@ module ActiveRecord
         end
 
         def case_sensitive_equality_operator
-          "COLLATE Latin1_General_CS_AS ="
+          cs_equality_operator
         end
 
         def limited_update_conditions(where_sql, quoted_table_name, quoted_primary_key)
