@@ -40,7 +40,7 @@ namespace :rvm do
     'ruby-1.8.6'      => {:alias => 'sqlsvr186', :odbc => '0.99991'},
     'ruby-1.8.7'      => {:alias => 'sqlsvr187', :odbc => '0.99991'},
     'ruby-1.9.1'      => {:alias => 'sqlsvr191', :odbc => '0.99991'},
-    'ruby-1.9.2'      => {:alias => 'sqlsvr192', :odbc => '0.99992pre3'},
+    'ruby-1.9.2'      => {:alias => 'sqlsvr192', :odbc => '0.99992pre4'},
     'ree-1.8.7'       => {:alias => 'sqlsvrree', :odbc => '0.99991'}
   }
   
@@ -112,10 +112,8 @@ namespace :rvm do
     
     desc "Install development gems using bundler to each rubie version, installing bundler if not already."
     task :bundle => :setup do
-      rvm_each_rubie do
-        rvm_install_gem 'bundler', '1.0.0.rc.5'
-        RVM.run 'bundle install'
-      end
+      rvm_each_rubie(:gemset => 'global') { rvm_install_gem 'bundler', '1.0.0.rc.6' }
+      rvm_each_rubie { RVM.run 'bundle install' }
     end
     
   end
@@ -126,8 +124,8 @@ end
 
 # RVM Helper Methods
 
-def rvm_each_rubie
-  rvm_rubies.each do |rubie|
+def rvm_each_rubie(options={})
+  rvm_rubies(options).each do |rubie|
     RVM.use(rubie)
     yield
   end
@@ -135,8 +133,9 @@ ensure
   RVM.reset_current!
 end
 
-def rvm_rubies
-  RUBIES.keys.map{ |rubie| "#{rubie}@#{rvm_gemset_name}" }
+def rvm_rubies(options={})
+  gemset = options[:gemset] || rvm_gemset_name
+  RUBIES.keys.map{ |rubie| "#{rubie}@#{gemset}" }
 end
 
 def rvm_current_rubie_info
