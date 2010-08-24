@@ -189,8 +189,9 @@ module ActiveRecord
         
         # === SQLServer Specific (Executing) ============================ #
 
-        def do_execute(sql,name=nil)
-          log(sql, name || 'EXECUTE') do
+        def do_execute(sql, name = nil)
+          name ||= 'EXECUTE'
+          log(sql, name) do
             with_auto_reconnect { raw_connection_do(sql) }
           end
         end
@@ -255,7 +256,7 @@ module ActiveRecord
           end
           rows = results.inject([]) do |rows,row|
             row.each_with_index do |value, i|
-              if value.is_a? ODBC::TimeStamp
+              if value.is_a? raw_connection.class.parent::TimeStamp
                 row[i] = value.to_sqlserver_string
               end
             end

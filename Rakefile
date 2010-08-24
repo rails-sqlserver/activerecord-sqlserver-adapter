@@ -40,7 +40,7 @@ namespace :rvm do
     'ruby-1.8.6'      => {:alias => 'sqlsvr186', :odbc => '0.99991'},
     'ruby-1.8.7'      => {:alias => 'sqlsvr187', :odbc => '0.99991'},
     'ruby-1.9.1'      => {:alias => 'sqlsvr191', :odbc => '0.99991'},
-    'ruby-1.9.2-rc2'  => {:alias => 'sqlsvr192', :odbc => '0.99992pre3'},
+    'ruby-1.9.2'      => {:alias => 'sqlsvr192', :odbc => '0.99992pre3'},
     'ree-1.8.7'       => {:alias => 'sqlsvrree', :odbc => '0.99991'}
   }
   
@@ -98,11 +98,13 @@ namespace :rvm do
           RVM.run "curl -O http://www.ch-werner.de/rubyodbc/#{odbc}.tar.gz"
           puts "info: RubyODBC extracting clean work directory..."
           RVM.run "tar -xf #{odbc}.tar.gz"
-          RVM.chdir("#{odbc}/ext/utf8") do
-            puts "info: RubyODBC configuring..."
-            RVM.ruby 'extconf.rb', "--with-odbc-dir=#{rvm_odbc_dir}"
-            puts "info: RubyODBC make and installing for #{rvm_current_name}..."
-            RVM.run "make && make install"
+          ['ext','ext/utf8'].each do |extdir|
+            RVM.chdir("#{odbc}/#{extdir}") do
+              puts "info: RubyODBC configuring in #{extdir}..."
+              RVM.ruby 'extconf.rb', "--with-odbc-dir=#{rvm_odbc_dir}"
+              puts "info: RubyODBC make and installing for #{rvm_current_name}..."
+              RVM.run "make && make install"
+            end
           end
         end
       end
@@ -111,7 +113,7 @@ namespace :rvm do
     desc "Install development gems using bundler to each rubie version, installing bundler if not already."
     task :bundle => :setup do
       rvm_each_rubie do
-        rvm_install_gem 'bundler', '1.0.0.rc.3'
+        rvm_install_gem 'bundler', '1.0.0.rc.5'
         RVM.run 'bundle install'
       end
     end

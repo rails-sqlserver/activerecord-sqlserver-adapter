@@ -91,6 +91,7 @@ end
 module ActiveRecord 
   class TestCase < ActiveSupport::TestCase
     class << self
+      def connection_mode_odbc? ; ActiveRecord::Base.connection.send(:connection_mode) == :odbc ; end
       def sqlserver_2005? ; ActiveRecord::Base.connection.sqlserver_2005? ; end
       def sqlserver_2008? ; ActiveRecord::Base.connection.sqlserver_2008? ; end
       def ruby_19? ; RUBY_VERSION >= '1.9' ; end
@@ -106,6 +107,7 @@ module ActiveRecord
       end
       assert failed_patterns.empty?, "Query pattern(s) #{failed_patterns.map(&:inspect).join(', ')} not found in:\n#{$queries_executed.inspect}"
     end
+    def connection_mode_odbc? ; self.class.connection_mode_odbc? ; end
     def sqlserver_2005? ; self.class.sqlserver_2005? ; end
     def sqlserver_2008? ; self.class.sqlserver_2008? ; end
     def ruby_19? ; self.class.ruby_19? ; end

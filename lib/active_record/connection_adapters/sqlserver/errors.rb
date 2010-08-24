@@ -8,7 +8,7 @@ module ActiveRecord
       module Errors
         
         LOST_CONNECTION_EXCEPTIONS  = {
-          :odbc   => ['ODBC::Error'],
+          :odbc   => ['ODBC::Error','ODBC_UTF8::Error','ODBC_NONE::Error'],
           :adonet => ['TypeError','System::Data::SqlClient::SqlException']
         }.freeze
         
@@ -20,7 +20,7 @@ module ActiveRecord
         
         def lost_connection_exceptions
           exceptions = LOST_CONNECTION_EXCEPTIONS[connection_mode]
-          @lost_connection_exceptions ||= exceptions ? exceptions.map(&:constantize) : []
+          @lost_connection_exceptions ||= exceptions ? exceptions.map{ |e| e.constantize rescue nil }.compact : []
         end
         
         def lost_connection_messages

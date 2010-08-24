@@ -20,9 +20,18 @@ module ActiveRecord
       mode = config[:mode].to_s.downcase.underscore.to_sym
       case mode
       when :odbc
-        require_library_or_gem 'odbc' unless defined?(ODBC)
-        require 'active_record/connection_adapters/sqlserver/core_ext/odbc'
         raise ArgumentError, 'Missing :dsn configuration.' unless config.has_key?(:dsn)
+        if RUBY_VERSION < '1.9'
+          require_library_or_gem 'odbc'
+        else
+          begin
+            # TODO: [ODBC] Change this to 'odbc_utf8'
+            require_library_or_gem 'odbc'
+          rescue LoadError
+            require_library_or_gem 'odbc'
+          end
+        end unless ['::ODBC','::ODBC_UTF8','::ODBC_NONE'].any? { |odbc_ns| odbc_ns.constantize rescue nil }
+        require 'active_record/connection_adapters/sqlserver/core_ext/odbc'
       when :adonet
         require 'System.Data'
         raise ArgumentError, 'Missing :database configuration.' unless config.has_key?(:database)
@@ -315,7 +324,7 @@ module ActiveRecord
         @@cs_equality_operator || 'COLLATE Latin1_General_CS_AS_WS ='
       end
       
-            
+      
       protected
       
       # === Abstract Adapter (Misc Support) =========================== #
@@ -339,7 +348,8 @@ module ActiveRecord
         config = @connection_options
         @connection = case connection_mode
                       when :odbc
-                        ODBC.connect config[:dsn], config[:username], config[:password]
+                        odbc = ['::ODBC','::ODBC_UTF8','::ODBC_NONE'].detect{ |odbc_ns| odbc_ns.constantize rescue nil }.constantize
+                        odbc.connect config[:dsn], config[:username], config[:password]
                       when :adonet
                         System::Data::SqlClient::SqlConnection.new.tap do |connection|
                           connection.connection_string = System::Data::SqlClient::SqlConnectionStringBuilder.new.tap do |cs|

@@ -37,3 +37,11 @@ be able to run "rake test" which will load all the adapter tests followed by the
 core ActiveRecord tests. Lastly, it is typically good practice to do your work 
 on a local branch of our remote tracking branch.
 
+
+= Current Patches
+
+These patches may need to be applied in a local topic branch of whatever stable 
+branch you are testing of rails.
+
+  * 3-0-stable https://rails.lighthouseapp.com/projects/8994/tickets/5333
+
