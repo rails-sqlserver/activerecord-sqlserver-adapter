@@ -256,7 +256,7 @@ module ActiveRecord
           end
           rows = results.inject([]) do |rows,row|
             row.each_with_index do |value, i|
-              if value.is_a? raw_connection.class.parent::TimeStamp
+              if value.respond_to?(:to_sqlserver_string)
                 row[i] = value.to_sqlserver_string
               end
             end
