@@ -6,4 +6,4 @@ doc/
 *.gem
 .bundle
 Gemfile.lock
-
+test/profile/output/*

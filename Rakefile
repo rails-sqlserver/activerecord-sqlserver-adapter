@@ -1,23 +1,33 @@
 require 'rake'
 require 'rake/testtask'
 require 'rake/rdoctask'
+begin ; require 'ruby-prof' ; rescue LoadError ; end
+
+
+def test_libs(mode='odbc')
+  ['lib',
+   'test',
+   "test/connections/native_sqlserver#{mode == 'adonet' ? '' : "_#{mode}"}",
+   "#{ENV['RAILS_SOURCE']}/activerecord/test"]
+end
+
+def test_files
+  Dir.glob("test/cases/**/*_test_sqlserver.rb").sort + 
+  (Dir.glob("#{ENV['RAILS_SOURCE']}/activerecord/test/cases/**/*_test.rb") - 
+   Dir.glob("#{ENV['RAILS_SOURCE']}/activerecord/test/cases/adapters/**/*_test.rb")).sort
+end
 
 
 task :test => ['test:odbc']
 
+
 namespace :test do
   
   ['odbc','adonet'].each do |mode|
-
+    
     Rake::TestTask.new(mode) do |t|
-      ENV['ENABLE_DEFAULT_UNICODE_TYPES'] = 'true'
-      t.libs << "test"
-      t.libs << "test/connections/native_sqlserver#{mode == 'adonet' ? '' : "_#{mode}"}"
-      t.libs << "#{ENV['RAILS_SOURCE']}/activerecord/test"
-      t.test_files = \
-        Dir.glob("test/cases/**/*_test_sqlserver.rb").sort + 
-        (Dir.glob("#{ENV['RAILS_SOURCE']}/activerecord/test/cases/**/*_test.rb") - 
-         Dir.glob("#{ENV['RAILS_SOURCE']}/activerecord/test/cases/adapters/**/*_test.rb")).sort
+      t.libs = test_libs(mode)
+      t.test_files = test_files
       t.verbose = true
     end
     
@@ -32,6 +42,22 @@ namespace :test do
   
 end
 
+
+namespace :profile do
+  
+  ['odbc','adonet'].each do |mode|
+    namespace mode.to_sym do
+      
+      Rake::TestTask.new('connection') do |t|
+        t.libs = test_libs(mode)
+        t.test_files = ["test/profile/connection.rb"]
+        t.verbose = true
+      end 
+      
+    end
+  end
+  
+end if defined?(RubyProf)
 
 
 namespace :rvm do

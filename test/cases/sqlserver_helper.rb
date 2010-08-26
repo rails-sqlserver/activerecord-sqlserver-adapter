@@ -67,7 +67,7 @@ end
 
 # Set weather to test unicode string defaults or not. Used from rake task.
 
-if ENV['ENABLE_DEFAULT_UNICODE_TYPES'] == 'true'
+if ENV['ENABLE_DEFAULT_UNICODE_TYPES'] != 'false'
   puts "With enabled unicode string types"
   ActiveRecord::ConnectionAdapters::SQLServerAdapter.enable_default_unicode_types = true
 end
