@@ -60,8 +60,8 @@ module ActiveRecord
           return [] if table_name.blank?
           cache_key = unqualify_table_name(table_name)
           @sqlserver_columns_cache[cache_key] ||= column_definitions(table_name).collect do |ci|
-            sqlserver_options = ci.except(:name,:default_value,:type,:null).merge(:database_year=>database_year)
-            SQLServerColumn.new ci[:name], ci[:default_value], ci[:type], ci[:null], sqlserver_options
+            sqlserver_options = ci.except('name','default_value','type','null').merge('database_year'=>database_year)
+            SQLServerColumn.new ci['name'], ci['default_value'], ci['type'], ci['null'], sqlserver_options
           end
         end
 
@@ -185,7 +185,7 @@ module ActiveRecord
             CASE
               WHEN columns.IS_NULLABLE = 'YES' THEN 1
               ELSE NULL
-            end as is_nullable,
+            END as is_nullable,
             CASE
               WHEN COLUMNPROPERTY(OBJECT_ID(columns.TABLE_SCHEMA+'.'+columns.TABLE_NAME), columns.COLUMN_NAME, 'IsIdentity') = 0 THEN NULL
               ELSE 1
@@ -196,31 +196,30 @@ module ActiveRecord
           }.gsub(/[ \t\r\n]+/,' ')
           results = info_schema_query { select(sql,nil) }
           results.collect do |ci|
-            ci.symbolize_keys!
-            ci[:type] = case ci[:type]
-                        when /^bit|image|text|ntext|datetime$/
-                          ci[:type]
-                        when /^numeric|decimal$/i
-                          "#{ci[:type]}(#{ci[:numeric_precision]},#{ci[:numeric_scale]})"
-                        when /^char|nchar|varchar|nvarchar|varbinary|bigint|int|smallint$/
-                          ci[:length].to_i == -1 ? "#{ci[:type]}(max)" : "#{ci[:type]}(#{ci[:length]})"
-                        else
-                          ci[:type]
-                        end
-            if ci[:default_value].nil? && views.include?(table_name)
+            ci['type'] = case ci['type']
+                         when /^bit|image|text|ntext|datetime$/
+                           ci['type']
+                         when /^numeric|decimal$/i
+                           "#{ci['type']}(#{ci['numeric_precision']},#{ci['numeric_scale']})"
+                         when /^char|nchar|varchar|nvarchar|varbinary|bigint|int|smallint$/
+                           ci['length'].to_i == -1 ? "#{ci['type']}(max)" : "#{ci['type']}(#{ci['length']})"
+                         else
+                           ci['type']
+                         end
+            if ci['default_value'].nil? && views.include?(table_name)
               real_table_name = table_name_or_views_table_name(table_name)
-              real_column_name = views_real_column_name(table_name,ci[:name])
+              real_column_name = views_real_column_name(table_name,ci['name'])
               col_default_sql = "SELECT c.COLUMN_DEFAULT FROM #{db_name_with_period}INFORMATION_SCHEMA.COLUMNS c WHERE c.TABLE_NAME = '#{real_table_name}' AND c.COLUMN_NAME = '#{real_column_name}'"
-              ci[:default_value] = info_schema_query { select_value(col_default_sql) }
+              ci['default_value'] = info_schema_query { select_value(col_default_sql) }
             end
-            ci[:default_value] = case ci[:default_value]
+            ci['default_value'] = case ci['default_value']
                                  when nil, '(null)', '(NULL)'
                                    nil
                                  else
-                                   match_data = ci[:default_value].match(/\A\(+N?'?(.*?)'?\)+\Z/m)
+                                   match_data = ci['default_value'].match(/\A\(+N?'?(.*?)'?\)+\Z/m)
                                    match_data ? match_data[1] : nil
                                  end
-            ci[:null] = ci[:is_nullable].to_i == 1 ; ci.delete(:is_nullable)
+            ci['null'] = ci['is_nullable'].to_i == 1 ; ci.delete('is_nullable')
             ci
           end
         end

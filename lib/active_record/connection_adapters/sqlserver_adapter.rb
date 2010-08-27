@@ -97,7 +97,7 @@ module ActiveRecord
       end
       
       def is_identity?
-        @sqlserver_options[:is_identity]
+        @sqlserver_options['is_identity']
       end
       
       def is_utf8?
@@ -105,7 +105,7 @@ module ActiveRecord
       end
       
       def table_name
-        @sqlserver_options[:table_name]
+        @sqlserver_options['table_name']
       end
       
       def table_klass
@@ -118,7 +118,7 @@ module ActiveRecord
       end
       
       def database_year
-        @sqlserver_options[:database_year]
+        @sqlserver_options['database_year']
       end
       
       

@@ -20,17 +20,6 @@ class ExecuteProcedureTestSqlserver < ActiveRecord::TestCase
     assert_equal 'TABLE', table_info[:TABLE_TYPE], "Table Info: #{table_info.inspect}"
   end
   
-  should 'quote bind vars correctly' do
-    regex = if quote_values_as_utf8?
-              /EXEC sp_tables N'%sql_server%', NULL, NULL, NULL, 1/
-            else
-              /EXEC sp_tables '%sql_server%', NULL, NULL, NULL, 1/
-            end
-    assert_sql(regex) do
-      @klass.execute_procedure :sp_tables, '%sql_server%', nil, nil, nil, true
-    end
-  end
-  
   should 'allow multiple result sets to be returned' do
     results1, results2 = @klass.execute_procedure('sp_helpconstraint','accounts')
     assert_instance_of Array, results1

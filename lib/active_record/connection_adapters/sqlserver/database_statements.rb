@@ -4,7 +4,7 @@ module ActiveRecord
       module DatabaseStatements
 
         def select_rows(sql, name = nil)
-          raw_select(sql,name).first.last
+          raw_select sql, name, true
         end
 
         def execute(sql, name = nil, skip_logging = false)
@@ -66,13 +66,21 @@ module ActiveRecord
         def execute_procedure(proc_name, *variables)
           vars = variables.map{ |v| quote(v) }.join(', ')
           sql = "EXEC #{proc_name} #{vars}".strip
-          select(sql,'Execute Procedure').inject([]) do |results,row|
-            if row.kind_of?(Array)
-              results << row.inject([]) { |rs,r| rs << r.with_indifferent_access }
-            else
-              results << row.with_indifferent_access
+          results = []
+          log(sql,'Execute Procedure') do
+            raw_connection_run(sql) do |handle|
+              get_rows = lambda {
+                rows = handle_to_names_and_values(handle,false)
+                rows.each_with_index { |r,i| rows[i] = r.with_indifferent_access }
+                results << rows
+              }
+              get_rows.call
+              while handle_more_results?(handle)
+                get_rows.call
+              end
             end
           end
+          results.many? ? results : results.first
         end
         
         def use_database(database=nil)
@@ -154,12 +162,7 @@ module ActiveRecord
         protected
         
         def select(sql, name = nil)
-          fields_and_row_sets = raw_select(sql,name)
-          final_result_set = fields_and_row_sets.inject([]) do |rs,fields_and_rows|
-            fields, rows = fields_and_rows
-            rs << zip_fields_and_rows(fields,rows)
-          end
-          final_result_set.many? ? final_result_set : final_result_set.first
+          raw_select(sql,name)
         end
         
         def insert_sql(sql, name = nil, pk = nil, id_value = nil, sequence_name = nil)
@@ -175,16 +178,6 @@ module ActiveRecord
         
         def valid_isolation_levels
           ["READ COMMITTED", "READ UNCOMMITTED", "REPEATABLE READ", "SERIALIZABLE", "SNAPSHOT"]
-        end
-        
-        def zip_fields_and_rows(fields, rows)
-          rows.inject([]) do |results,row|
-            row_hash = {}
-            fields.each_with_index do |f, i|
-              row_hash[f] = row[i]
-            end
-            results << row_hash
-          end
         end
         
         # === SQLServer Specific (Executing) ============================ #
@@ -207,26 +200,15 @@ module ActiveRecord
         
         # === SQLServer Specific (Selecting) ============================ #
 
-        def raw_select(sql, name = nil)
-          fields_and_row_sets = []
+        def raw_select(sql, name=nil, rows_only=false)
           log(sql,name) do
             begin
               handle = raw_connection_run(sql)
-              loop do
-                fields_and_rows = case connection_mode
-                                  when :odbc
-                                    handle_to_fields_and_rows_odbc(handle)
-                                  when :adonet
-                                    handle_to_fields_and_rows_adonet(handle)
-                                  end
-                fields_and_row_sets << fields_and_rows
-                break unless handle_more_results?(handle)
-              end
+              handle_to_names_and_values(handle, rows_only)
             ensure
               finish_statement_handle(handle)
             end
           end
-          fields_and_row_sets
         end
         
         def raw_connection_run(sql)
@@ -248,24 +230,46 @@ module ActiveRecord
             handle.next_result
           end
         end
-
-        def handle_to_fields_and_rows_odbc(handle)
-          fields = handle.columns(true).map { |c| c.name }
-          results = handle.inject([]) do |rows,row|
-            rows << row.inject([]) { |values,value| values << value }
+        
+        def handle_to_names_and_values(handle, rows_only)
+          case connection_mode
+          when :odbc
+            handle_to_names_and_values_odbc(handle, rows_only)
+          when :adonet
+            handle_to_names_and_values_adonet(handle, rows_only)
           end
-          rows = results.inject([]) do |rows,row|
-            row.each_with_index do |value, i|
-              if value.respond_to?(:to_sqlserver_string)
-                row[i] = value.to_sqlserver_string
-              end
-            end
-            rows << row
-          end
-          [fields,rows]
         end
 
-        def handle_to_fields_and_rows_adonet(handle)
+        def handle_to_names_and_values_odbc(handle, rows_only)
+          rows = handle.fetch_all || []
+          if rows_only
+            rows.each do |row|
+              i = 0
+              while i < row.size
+                v = row[i]
+                row[i] = v.to_sqlserver_string if v.respond_to?(:to_sqlserver_string)
+                i += 1
+              end
+            end
+            rows
+          else
+            names = handle.columns(true).map{ |c| c.name }
+            names_and_values = []
+            rows.each do |row|
+              h = {}
+              i = 0
+              while i < row.size
+                v = row[i]
+                h[names[i]] = v.respond_to?(:to_sqlserver_string) ? v.to_sqlserver_string : v
+                i += 1
+              end
+              names_and_values << h
+            end
+            names_and_values
+          end
+        end
+
+        def handle_to_names_and_values_adonet(handle, rows_only)
           if handle.has_rows
             fields = []
             rows = []

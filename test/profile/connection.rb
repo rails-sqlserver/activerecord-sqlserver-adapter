@@ -11,8 +11,6 @@ class ProfileConnectionCase < ActiveRecord::TestCase
   end
   
   def test_select
-    # Ruby 1.8.7 p302 
-    # 6.180643
     ruby_profile :connection_select do
       1000.times { @connection.send :select, "SELECT [topics].* FROM [topics]" }
     end
