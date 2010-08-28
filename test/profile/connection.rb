@@ -11,8 +11,9 @@ class ProfileConnectionCase < ActiveRecord::TestCase
   end
   
   def test_select
+    select_statement = "SELECT [topics].* FROM [topics]"
     ruby_profile :connection_select do
-      1000.times { @connection.send :select, "SELECT [topics].* FROM [topics]" }
+      1000.times { @connection.send :select, select_statement }
     end
   end
   

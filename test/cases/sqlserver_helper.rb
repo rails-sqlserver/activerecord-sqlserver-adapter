@@ -20,6 +20,8 @@ require 'cases/helper'
 require 'models/topic'
 require 'active_record/version'
 
+GC.copy_on_write_friendly = true if GC.respond_to?(:copy_on_write_friendly?)
+
 ActiveRecord::Migration.verbose = false
 
 # Defining our classes in one place as well as soem core tests that need coercing date/time types.

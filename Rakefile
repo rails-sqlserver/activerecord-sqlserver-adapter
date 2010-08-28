@@ -1,7 +1,6 @@
 require 'rake'
 require 'rake/testtask'
 require 'rake/rdoctask'
-begin ; require 'ruby-prof' ; rescue LoadError ; end
 
 
 def test_libs(mode='odbc')
@@ -57,7 +56,7 @@ namespace :profile do
     end
   end
   
-end if defined?(RubyProf)
+end
 
 
 namespace :rvm do
