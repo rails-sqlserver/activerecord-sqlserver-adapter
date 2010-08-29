@@ -2,9 +2,14 @@ module ActiveRecord
   module ConnectionAdapters
     module Sqlserver
       module DatabaseStatements
-
+        
+        def select_one(sql, name = nil)
+          result = raw_select sql, name, :fetch => :one
+          (result && result.first.present?) ? result.first : nil
+        end
+        
         def select_rows(sql, name = nil)
-          raw_select sql, name, true
+          raw_select sql, name, :fetch => :rows
         end
 
         def execute(sql, name = nil, skip_logging = false)
@@ -70,7 +75,7 @@ module ActiveRecord
           log(sql,'Execute Procedure') do
             raw_connection_run(sql) do |handle|
               get_rows = lambda {
-                rows = handle_to_names_and_values(handle,false)
+                rows = handle_to_names_and_values handle, :fetch => :all
                 rows.each_with_index { |r,i| rows[i] = r.with_indifferent_access }
                 results << rows
               }
@@ -162,7 +167,7 @@ module ActiveRecord
         protected
         
         def select(sql, name = nil)
-          raw_select(sql,name)
+          raw_select sql, name, :fetch => :all
         end
         
         def insert_sql(sql, name = nil, pk = nil, id_value = nil, sequence_name = nil)
@@ -200,11 +205,11 @@ module ActiveRecord
         
         # === SQLServer Specific (Selecting) ============================ #
 
-        def raw_select(sql, name=nil, rows_only=false)
+        def raw_select(sql, name=nil, options={})
           log(sql,name) do
             begin
               handle = raw_connection_run(sql)
-              handle_to_names_and_values(handle, rows_only)
+              handle_to_names_and_values(handle, options)
             ensure
               finish_statement_handle(handle)
             end
@@ -231,28 +236,24 @@ module ActiveRecord
           end
         end
         
-        def handle_to_names_and_values(handle, rows_only)
+        def handle_to_names_and_values(handle, options={})
           case connection_mode
           when :odbc
-            handle_to_names_and_values_odbc(handle, rows_only)
+            handle_to_names_and_values_odbc(handle, options)
           when :adonet
-            handle_to_names_and_values_adonet(handle, rows_only)
+            handle_to_names_and_values_adonet(handle, options)
           end
         end
 
-        def handle_to_names_and_values_odbc(handle, rows_only)
-          rows = handle.fetch_all || []
-          if rows_only
-            rows.each do |row|
-              i = 0
-              while i < row.size
-                v = row[i]
-                row[i] = v.to_sqlserver_string if v.respond_to?(:to_sqlserver_string)
-                i += 1
-              end
-            end
-            rows
-          else
+        def handle_to_names_and_values_odbc(handle, options={})
+          case options[:fetch]
+          when :all, :one
+            rows = if options[:fetch] == :all
+                     handle.fetch_all || []
+                   else
+                     row = handle.fetch
+                     row ? [row] : [[]]                     
+                   end
             names = handle.columns(true).map{ |c| c.name }
             names_and_values = []
             rows.each do |row|
@@ -266,10 +267,21 @@ module ActiveRecord
               names_and_values << h
             end
             names_and_values
+          when :rows
+            rows = handle.fetch_all || []
+            rows.each do |row|
+              i = 0
+              while i < row.size
+                v = row[i]
+                row[i] = v.to_sqlserver_string if v.respond_to?(:to_sqlserver_string)
+                i += 1
+              end
+            end
+            rows
           end
         end
 
-        def handle_to_names_and_values_adonet(handle, rows_only)
+        def handle_to_names_and_values_adonet(handle, options={})
           if handle.has_rows
             fields = []
             rows = []

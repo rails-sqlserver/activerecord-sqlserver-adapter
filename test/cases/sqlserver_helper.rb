@@ -82,10 +82,10 @@ ActiveRecord::Base.connection.class.class_eval do
 end
 
 ActiveRecord::ConnectionAdapters::SQLServerAdapter.class_eval do
-  def raw_select_with_query_record(sql, name=nil, rows_only=false)
+  def raw_select_with_query_record(sql, name=nil, options={})
     $queries_executed ||= []
     $queries_executed << sql unless IGNORED_SQL.any? { |r| sql =~ r }
-    raw_select_without_query_record(sql,name,rows_only)
+    raw_select_without_query_record(sql,name,options)
   end
   alias_method_chain :raw_select, :query_record
 end

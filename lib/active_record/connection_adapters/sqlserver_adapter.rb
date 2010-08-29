@@ -4,6 +4,7 @@ require 'active_record/connection_adapters/sqlserver/core_ext/active_record'
 require 'active_record/connection_adapters/sqlserver/database_limits'
 require 'active_record/connection_adapters/sqlserver/database_statements'
 require 'active_record/connection_adapters/sqlserver/errors'
+require 'active_record/connection_adapters/sqlserver/query_cache'
 require 'active_record/connection_adapters/sqlserver/schema_statements'
 require 'active_record/connection_adapters/sqlserver/quoting'
 require 'active_support/core_ext/kernel/requires'
@@ -172,6 +173,7 @@ module ActiveRecord
       include Sqlserver::DatabaseStatements
       include Sqlserver::SchemaStatements
       include Sqlserver::DatabaseLimits
+      include Sqlserver::QueryCache
       include Sqlserver::Errors
       
       ADAPTER_NAME                = 'SQLServer'.freeze
