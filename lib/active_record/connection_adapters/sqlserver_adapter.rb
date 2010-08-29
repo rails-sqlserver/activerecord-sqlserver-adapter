@@ -59,7 +59,7 @@ module ActiveRecord
     class SQLServerColumn < Column
             
       def initialize(name, default, sql_type = nil, null = true, sqlserver_options = {})
-        @sqlserver_options = sqlserver_options
+        @sqlserver_options = sqlserver_options.symbolize_keys
         super(name, default, sql_type, null)
       end
       
@@ -98,7 +98,7 @@ module ActiveRecord
       end
       
       def is_identity?
-        @sqlserver_options['is_identity']
+        @sqlserver_options[:is_identity]
       end
       
       def is_utf8?
@@ -106,7 +106,7 @@ module ActiveRecord
       end
       
       def table_name
-        @sqlserver_options['table_name']
+        @sqlserver_options[:table_name]
       end
       
       def table_klass
@@ -119,7 +119,7 @@ module ActiveRecord
       end
       
       def database_year
-        @sqlserver_options['database_year']
+        @sqlserver_options[:database_year]
       end
       
       

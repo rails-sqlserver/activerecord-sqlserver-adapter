@@ -41,12 +41,13 @@ module ActiveRecord
         def indexes(table_name, name = nil)
           unquoted_table_name = unqualify_table_name(table_name)
           select("EXEC sp_helpindex #{quote_table_name(unquoted_table_name)}",name).inject([]) do |indexes,index|
-            if index['index_description'] =~ /primary key/
+            index = index.with_indifferent_access
+            if index[:index_description] =~ /primary key/
               indexes
             else
-              name    = index['index_name']
-              unique  = index['index_description'] =~ /unique/
-              columns = index['index_keys'].split(',').map do |column|
+              name    = index[:index_name]
+              unique  = index[:index_description] =~ /unique/
+              columns = index[:index_keys].split(',').map do |column|
                 column.strip!
                 column.gsub! '(-)', '' if column.ends_with?('(-)')
                 column
@@ -60,8 +61,8 @@ module ActiveRecord
           return [] if table_name.blank?
           cache_key = unqualify_table_name(table_name)
           @sqlserver_columns_cache[cache_key] ||= column_definitions(table_name).collect do |ci|
-            sqlserver_options = ci.except('name','default_value','type','null').merge('database_year'=>database_year)
-            SQLServerColumn.new ci['name'], ci['default_value'], ci['type'], ci['null'], sqlserver_options
+            sqlserver_options = ci.except(:name,:default_value,:type,:null).merge(:database_year=>database_year)
+            SQLServerColumn.new ci[:name], ci[:default_value], ci[:type], ci[:null], sqlserver_options
           end
         end
 
@@ -196,30 +197,31 @@ module ActiveRecord
           }.gsub(/[ \t\r\n]+/,' ')
           results = info_schema_query { select(sql,nil) }
           results.collect do |ci|
-            ci['type'] = case ci['type']
+            ci = ci.symbolize_keys
+            ci[:type] = case ci[:type]
                          when /^bit|image|text|ntext|datetime$/
-                           ci['type']
+                           ci[:type]
                          when /^numeric|decimal$/i
-                           "#{ci['type']}(#{ci['numeric_precision']},#{ci['numeric_scale']})"
+                           "#{ci[:type]}(#{ci[:numeric_precision]},#{ci[:numeric_scale]})"
                          when /^char|nchar|varchar|nvarchar|varbinary|bigint|int|smallint$/
-                           ci['length'].to_i == -1 ? "#{ci['type']}(max)" : "#{ci['type']}(#{ci['length']})"
+                           ci[:length].to_i == -1 ? "#{ci[:type]}(max)" : "#{ci[:type]}(#{ci[:length]})"
                          else
-                           ci['type']
+                           ci[:type]
                          end
-            if ci['default_value'].nil? && views.include?(table_name)
+            if ci[:default_value].nil? && views.include?(table_name)
               real_table_name = table_name_or_views_table_name(table_name)
-              real_column_name = views_real_column_name(table_name,ci['name'])
+              real_column_name = views_real_column_name(table_name,ci[:name])
               col_default_sql = "SELECT c.COLUMN_DEFAULT FROM #{db_name_with_period}INFORMATION_SCHEMA.COLUMNS c WHERE c.TABLE_NAME = '#{real_table_name}' AND c.COLUMN_NAME = '#{real_column_name}'"
-              ci['default_value'] = info_schema_query { select_value(col_default_sql) }
+              ci[:default_value] = info_schema_query { select_value(col_default_sql) }
             end
-            ci['default_value'] = case ci['default_value']
+            ci[:default_value] = case ci[:default_value]
                                  when nil, '(null)', '(NULL)'
                                    nil
                                  else
-                                   match_data = ci['default_value'].match(/\A\(+N?'?(.*?)'?\)+\Z/m)
+                                   match_data = ci[:default_value].match(/\A\(+N?'?(.*?)'?\)+\Z/m)
                                    match_data ? match_data[1] : nil
                                  end
-            ci['null'] = ci['is_nullable'].to_i == 1 ; ci.delete('is_nullable')
+            ci[:null] = ci[:is_nullable].to_i == 1 ; ci.delete(:is_nullable)
             ci
           end
         end
@@ -293,8 +295,9 @@ module ActiveRecord
           @sqlserver_view_information_cache[table_name] ||= begin
             view_info = info_schema_query { select_one("SELECT * FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_NAME = '#{table_name}'") }
             if view_info
-              if view_info['VIEW_DEFINITION'].blank? || view_info['VIEW_DEFINITION'].length == 4000
-                view_info['VIEW_DEFINITION'] = info_schema_query { select_values("EXEC sp_helptext #{table_name}").join }
+              view_info = view_info.with_indifferent_access
+              if view_info[:VIEW_DEFINITION].blank? || view_info[:VIEW_DEFINITION].length == 4000
+                view_info[:VIEW_DEFINITION] = info_schema_query { select_values("EXEC sp_helptext #{table_name}").join }
               end
             end
             view_info
@@ -307,7 +310,7 @@ module ActiveRecord
         end
         
         def views_real_column_name(table_name,column_name)
-          view_definition = view_information(table_name)['VIEW_DEFINITION']
+          view_definition = view_information(table_name)[:VIEW_DEFINITION]
           match_data = view_definition.match(/([\w-]*)\s+as\s+#{column_name}/im)
           match_data ? match_data[1] : column_name
         end

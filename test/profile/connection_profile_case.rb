@@ -2,7 +2,7 @@ require 'profile/helper'
 require 'models/topic'
 require 'models/reply'
 
-class ProfileConnectionCase < ActiveRecord::TestCase
+class ConnectionProfileCase < ActiveRecord::TestCase
   
   fixtures :topics
   

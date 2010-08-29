@@ -47,11 +47,17 @@ namespace :profile do
   ['odbc','adonet'].each do |mode|
     namespace mode.to_sym do
       
-      Rake::TestTask.new('connection') do |t|
-        t.libs = test_libs(mode)
-        t.test_files = ["test/profile/connection.rb"]
-        t.verbose = true
-      end 
+      Dir.glob("test/profile/*_profile_case.rb").sort.each do |test_file|
+        
+        profile_case = File.basename(test_file).sub('_profile_case.rb','')
+        
+        Rake::TestTask.new(profile_case) do |t|
+          t.libs = test_libs(mode)
+          t.test_files = [test_file]
+          t.verbose = true
+        end
+        
+      end
       
     end
   end
