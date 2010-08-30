@@ -45,7 +45,7 @@ module ActiveRecord
     class SQLServerColumn < Column
             
       def initialize(name, default, sql_type = nil, null = true, sqlserver_options = {})
-        @sqlserver_options = sqlserver_options
+        @sqlserver_options = sqlserver_options.symbolize_keys
         super(name, default, sql_type, null)
       end
       
@@ -398,8 +398,22 @@ module ActiveRecord
         end if block_given?
       end
       
+      def select_one(sql, name = nil)
+        result = raw_select sql, name, :fetch => :one
+        (result && result.first.present?) ? result.first : nil
+      end
+      
+      def select_one_with_query_cache(*args)
+        if @query_cache_enabled
+          cache_sql(args.first) { select_one_without_query_cache(*args) }
+        else
+          select_one_without_query_cache(*args)
+        end
+      end
+      alias_method_chain :select_one, :query_cache
+      
       def select_rows(sql, name = nil)
-        raw_select(sql,name).first.last
+        raw_select sql, name, :fetch => :rows
       end
       
       def execute(sql, name = nil, skip_logging = false)
@@ -413,13 +427,21 @@ module ActiveRecord
       def execute_procedure(proc_name, *variables)
         vars = variables.map{ |v| quote(v) }.join(', ')
         sql = "EXEC #{proc_name} #{vars}".strip
-        select(sql,'Execute Procedure',true).inject([]) do |results,row|
-          if row.kind_of?(Array)
-            results << row.inject([]) { |rs,r| rs << r.with_indifferent_access }
-          else
-            results << row.with_indifferent_access
+        results = []
+        log(sql,'Execute Procedure') do
+          raw_connection_run(sql) do |handle|
+            get_rows = lambda {
+              rows = handle_to_names_and_values handle, :fetch => :all
+              rows.each_with_index { |r,i| rows[i] = r.with_indifferent_access }
+              results << rows
+            }
+            get_rows.call
+            while handle_more_results?(handle)
+              get_rows.call
+            end
           end
         end
+        results.many? ? results : results.first
       end
       
       def use_database(database=nil)
@@ -595,8 +617,9 @@ module ActiveRecord
         @sqlserver_view_information_cache[table_name] ||= begin
           view_info = info_schema_query { select_one("SELECT * FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_NAME = '#{table_name}'") }
           if view_info
-            if view_info['VIEW_DEFINITION'].blank? || view_info['VIEW_DEFINITION'].length == 4000
-              view_info['VIEW_DEFINITION'] = info_schema_query { select_values("EXEC sp_helptext #{table_name}").join }
+            view_info = view_info.with_indifferent_access
+            if view_info[:VIEW_DEFINITION].blank? || view_info[:VIEW_DEFINITION].length == 4000
+              view_info[:VIEW_DEFINITION] = info_schema_query { select_values("EXEC sp_helptext #{table_name}").join }
             end
           end
           view_info
@@ -615,12 +638,13 @@ module ActiveRecord
       def indexes(table_name, name = nil)
         unquoted_table_name = unqualify_table_name(table_name)
         select("EXEC sp_helpindex #{quote_table_name(unquoted_table_name)}",name).inject([]) do |indexes,index|
-          if index['index_description'] =~ /primary key/
+          index = index.with_indifferent_access
+          if index[:index_description] =~ /primary key/
             indexes
           else
-            name    = index['index_name']
-            unique  = index['index_description'] =~ /unique/
-            columns = index['index_keys'].split(',').map do |column|
+            name    = index[:index_name]
+            unique  = index[:index_description] =~ /unique/
+            columns = index[:index_keys].split(',').map do |column|
               column.strip!
               column.gsub! '(-)', '' if column.ends_with?('(-)')
               column
@@ -908,24 +932,8 @@ module ActiveRecord
       
       # DATABASE STATEMENTS ======================================
       
-      def select(sql, name = nil, ignore_special_columns = false)
-        repair_special_columns(sql) unless ignore_special_columns
-        fields_and_row_sets = raw_select(sql,name)
-        final_result_set = fields_and_row_sets.inject([]) do |rs,fields_and_rows|
-          fields, rows = fields_and_rows
-          rs << zip_fields_and_rows(fields,rows)
-        end
-        final_result_set.many? ? final_result_set : final_result_set.first
-      end
-      
-      def zip_fields_and_rows(fields, rows)
-        rows.inject([]) do |results,row|
-          row_hash = {}
-          fields.each_with_index do |f, i|
-            row_hash[f] = row[i]
-          end
-          results << row_hash
-        end
+      def select(sql, name = nil)
+        raw_select sql, name, :fetch => :all
       end
       
       def insert_sql(sql, name = nil, pk = nil, id_value = nil, sequence_name = nil)
@@ -947,26 +955,15 @@ module ActiveRecord
         end
       end
       
-      def raw_select(sql, name = nil)
-        fields_and_row_sets = []
+      def raw_select(sql, name=nil, options={})
         log(sql,name) do
           begin
             handle = raw_connection_run(sql)
-            loop do
-              fields_and_rows = case connection_mode
-                                when :odbc
-                                  handle_to_fields_and_rows_odbc(handle)
-                                when :adonet
-                                  handle_to_fields_and_rows_adonet(handle)
-                                end
-              fields_and_row_sets << fields_and_rows
-              break unless handle_more_results?(handle)
-            end
+            handle_to_names_and_values(handle, options)
           ensure
             finish_statement_handle(handle)
           end
         end
-        fields_and_row_sets
       end
       
       def handle_more_results?(handle)
@@ -978,23 +975,52 @@ module ActiveRecord
         end
       end
       
-      def handle_to_fields_and_rows_odbc(handle)
-        fields = handle.columns(true).map { |c| c.name }
-        results = handle.inject([]) do |rows,row|
-          rows << row.inject([]) { |values,value| values << value }
+      def handle_to_names_and_values(handle, options={})
+        case connection_mode
+        when :odbc
+          handle_to_names_and_values_odbc(handle, options)
+        when :adonet
+          handle_to_names_and_values_adonet(handle, options)
         end
-        rows = results.inject([]) do |rows,row|
-          row.each_with_index do |value, i|
-            if value.is_a? ODBC::TimeStamp
-              row[i] = value.to_sqlserver_string
+      end
+
+      def handle_to_names_and_values_odbc(handle, options={})
+        case options[:fetch]
+        when :all, :one
+          rows = if options[:fetch] == :all
+                   handle.fetch_all || []
+                 else
+                   row = handle.fetch
+                   row ? [row] : [[]]                     
+                 end
+          names = handle.columns(true).map{ |c| c.name }
+          names_and_values = []
+          rows.each do |row|
+            h = {}
+            i = 0
+            while i < row.size
+              v = row[i]
+              h[names[i]] = v.respond_to?(:to_sqlserver_string) ? v.to_sqlserver_string : v
+              i += 1
+            end
+            names_and_values << h
+          end
+          names_and_values
+        when :rows
+          rows = handle.fetch_all || []
+          rows.each do |row|
+            i = 0
+            while i < row.size
+              v = row[i]
+              row[i] = v.to_sqlserver_string if v.respond_to?(:to_sqlserver_string)
+              i += 1
             end
           end
-          rows << row
+          rows
         end
-        [fields,rows]
       end
-      
-      def handle_to_fields_and_rows_adonet(handle)
+
+      def handle_to_names_and_values_adonet(handle, options={})
         if handle.has_rows
           fields = []
           rows = []
@@ -1142,7 +1168,7 @@ module ActiveRecord
       end
       
       def views_real_column_name(table_name,column_name)
-        view_definition = view_information(table_name)['VIEW_DEFINITION']
+        view_definition = view_information(table_name)[:VIEW_DEFINITION]
         match_data = view_definition.match(/([\w-]*)\s+as\s+#{column_name}/im)
         match_data ? match_data[1] : column_name
       end
@@ -1192,7 +1218,7 @@ module ActiveRecord
           CASE
             WHEN columns.IS_NULLABLE = 'YES' THEN 1
             ELSE NULL
-          end as is_nullable,
+          END as is_nullable,
           CASE
             WHEN COLUMNPROPERTY(OBJECT_ID(columns.TABLE_SCHEMA+'.'+columns.TABLE_NAME), columns.COLUMN_NAME, 'IsIdentity') = 0 THEN NULL
             ELSE 1
@@ -1201,9 +1227,9 @@ module ActiveRecord
           WHERE columns.TABLE_NAME = '#{table_name}'
           ORDER BY columns.ordinal_position
         }.gsub(/[ \t\r\n]+/,' ')
-        results = info_schema_query { select(sql,nil,true) }
+        results = info_schema_query { select(sql,nil) }
         results.collect do |ci|
-          ci.symbolize_keys!
+          ci = ci.symbolize_keys
           ci[:type] = case ci[:type]
                       when /^bit|image|text|ntext|datetime$/
                         ci[:type]

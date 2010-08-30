@@ -69,7 +69,7 @@ end
 
 # Set weather to test unicode string defaults or not. Used from rake task.
 
-if ENV['ENABLE_DEFAULT_UNICODE_TYPES'] == 'true'
+if ENV['ENABLE_DEFAULT_UNICODE_TYPES'] != 'false'
   puts "With enabled unicode string types"
   ActiveRecord::ConnectionAdapters::SQLServerAdapter.enable_default_unicode_types = true
 end
@@ -93,10 +93,10 @@ ActiveRecord::Base.connection.class.class_eval do
 end
 
 ActiveRecord::ConnectionAdapters::SQLServerAdapter.class_eval do
-  def raw_select_with_query_record(sql, name = nil)
+  def raw_select_with_query_record(sql, name=nil, options={})
     $queries_executed ||= []
     $queries_executed << sql unless IGNORED_SQL.any? { |r| sql =~ r }
-    raw_select_without_query_record(sql,name)
+    raw_select_without_query_record(sql,name,options)
   end
   alias_method_chain :raw_select, :query_record
 end
