@@ -115,6 +115,14 @@ module ActiveRecord
           end if block_given?
         end
         
+        def newid_function
+          select_value "SELECT NEWID()"
+        end
+        
+        def newsequentialid_function
+          select_value "SELECT NEWSEQUENTIALID()"
+        end
+        
         # === SQLServer Specific (Rake/Test Helpers) ==================== #
         
         def recreate_database

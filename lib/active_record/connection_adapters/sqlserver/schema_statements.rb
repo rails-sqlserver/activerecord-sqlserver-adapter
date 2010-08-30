@@ -217,6 +217,9 @@ module ActiveRecord
             ci[:default_value] = case ci[:default_value]
                                  when nil, '(null)', '(NULL)'
                                    nil
+                                 when /\A\((\w+\(\))\)\Z/
+                                   ci[:default_function] = $1
+                                   nil
                                  else
                                    match_data = ci[:default_value].match(/\A\(+N?'?(.*?)'?\)+\Z/m)
                                    match_data ? match_data[1] : nil

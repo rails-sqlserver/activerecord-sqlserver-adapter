@@ -63,7 +63,11 @@ ActiveRecord::Schema.define do
     t.string :description
     t.column :bigint, :bigint
     t.column :tinyint, :tinyint
+    t.column :guid, :uniqueidentifier
   end
+  
+  execute %|ALTER TABLE [sql_server_edge_schemas] ADD [guid_newid] uniqueidentifier DEFAULT NEWID();|
+  execute %|ALTER TABLE [sql_server_edge_schemas] ADD [guid_newseqid] uniqueidentifier DEFAULT NEWSEQUENTIALID();|
   
   execute "IF EXISTS (SELECT TABLE_NAME FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_NAME = 'customers_view') DROP VIEW customers_view"
   execute <<-CUSTOMERSVIEW

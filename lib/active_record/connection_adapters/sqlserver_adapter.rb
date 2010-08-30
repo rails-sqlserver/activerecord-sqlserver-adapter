@@ -105,6 +105,10 @@ module ActiveRecord
         sql_type =~ /nvarchar|ntext|nchar/i
       end
       
+      def default_function
+        @sqlserver_options[:default_function]
+      end
+      
       def table_name
         @sqlserver_options[:table_name]
       end

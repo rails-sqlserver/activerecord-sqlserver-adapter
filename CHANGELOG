@@ -1,6 +1,11 @@
 
 MASTER
 
+* 3.0.0
+
+* Release rails 3 version!
+
+
 * 2.3.8
 
 * Properly quote all database names in rake helper methods. [Ken Collins]
@@ -15,7 +20,7 @@ MASTER
 
 * Allow DNS's to not contain a database and use what is in database.yml [Marco Mastrodonato]
 
-* Rake tasks methods for vanallia rails :db namespace parity. [Ken Collins]
+* Rake tasks methods for vanilla rails :db namespace parity. [Ken Collins]
 
 * IronRuby integrated security fixes [Jimmy Schementi]
 
@@ -40,7 +45,7 @@ MASTER
 
 * Qualify INFORMATION_SCHEMA.COLUMNS with a correct period DB name if present.
 
-* Allow adapter to return multipe results sets, for example from stored procedures. [Chris Hall]
+* Allow adapter to return multiple results sets, for example from stored procedures. [Chris Hall]
 
 
 * 2.3.4
