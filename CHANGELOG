@@ -1,10 +1,8 @@
 
-MASTER
-
-* Include new raw connection interfaces developed and optimized under the 3.0 branch.
-
 
 * 2.3.9
+
+* Include new raw connection interfaces developed and optimized under the 3.0 branch.
 
 * The remove_column conforms to ArgumentError exceptions. [Ken Collins]
 
