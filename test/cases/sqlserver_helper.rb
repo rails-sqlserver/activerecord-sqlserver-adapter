@@ -7,8 +7,11 @@ SQLSERVER_SCHEMA_ROOT     = File.expand_path(File.join(SQLSERVER_TEST_ROOT,'sche
 ACTIVERECORD_TEST_ROOT    = File.expand_path(File.join(ENV['RAILS_SOURCE'],'activerecord','test'))
 
 require 'rubygems'
+require 'bundler'
+Bundler.setup
 require 'shoulda'
 require 'mocha'
+begin ; require 'ruby-debug' ; rescue LoadError ; end
 [ File.expand_path(File.join(File.dirname(__FILE__),'..','..','test')),
   File.expand_path(File.join(File.dirname(__FILE__),'..','..','test','connections','native_sqlserver_odbc')),
   File.expand_path(File.join(ENV['RAILS_SOURCE'],'activerecord','test'))
@@ -16,6 +19,8 @@ require 'mocha'
 require 'cases/helper'
 require 'models/topic'
 require 'active_record/version'
+
+GC.copy_on_write_friendly = true if GC.respond_to?(:copy_on_write_friendly?)
 
 ActiveRecord::Migration.verbose = false
 
