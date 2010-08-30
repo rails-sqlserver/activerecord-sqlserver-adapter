@@ -34,25 +34,3 @@ class ActiveRecord::TestCase
   end
   
 end
-
-# RubyProf::FlatPrinter         Creates a flat report in text format 
-# RubyProf::GraphPrinter        Creates a call graph report in text format 
-# RubyProf::GraphHtmlPrinter    Creates a call graph report in HTML (separate files per thread) 
-
-# RubyProf::PROCESS_TIME        process time
-# RubyProf::WALL_TIME           wall time
-# RubyProf::CPU_TIME            cpu time
-# RubyProf::ALLOCATIONS         object allocations
-# RubyProf::MEMORY              memory usage
-# RubyProf::GC_RUNS             garbage collections runs
-# RubyProf::GC_TIME             garbage collection time
-
-# RubyProf.measure_mode = RubyProf::PROCESS_TIME
-# RubyProf.measure_mode = RubyProf::WALL_TIME
-# RubyProf.measure_mode = RubyProf::CPU_TIME
-# RubyProf.measure_mode = RubyProf::ALLOCATIONS
-# RubyProf.measure_mode = RubyProf::MEMORY
-# RubyProf.measure_mode = RubyProf::GC_RUNS
-# RubyProf.measure_mode = RubyProf::GC_TIME
-
-

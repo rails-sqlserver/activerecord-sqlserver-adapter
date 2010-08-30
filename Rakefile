@@ -143,7 +143,7 @@ namespace :rvm do
     
     desc "Install development gems using bundler to each rubie version, installing bundler if not already."
     task :bundle => :setup do
-      rvm_each_rubie(:gemset => 'global') { rvm_install_gem 'bundler', '1.0.0.rc.6' }
+      rvm_each_rubie(:gemset => 'global') { rvm_install_gem 'bundler' }
       rvm_each_rubie { RVM.run 'bundle install' }
     end
     
