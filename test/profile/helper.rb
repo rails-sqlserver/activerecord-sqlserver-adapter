@@ -1,17 +1,10 @@
 require 'cases/sqlserver_helper'
 require 'ruby-prof'
-require 'memprof'
 
 class ActiveRecord::TestCase
   
   
   protected
-  
-  def mem_profile(*args)
-    Memprof.track do
-      yield
-    end
-  end
   
   def ruby_profile(name)
     result = RubyProf.profile { yield }
