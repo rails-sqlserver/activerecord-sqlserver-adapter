@@ -8,7 +8,6 @@ group :development do
   platforms :mri_18 do
     gem 'ruby-prof', '0.9.1'
     gem 'ruby-debug', '0.10.3'
-    gem 'memprof', '0.3.6'
   end
 end
 
