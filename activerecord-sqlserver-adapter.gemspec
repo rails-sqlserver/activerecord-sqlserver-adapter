@@ -52,4 +52,5 @@ Gem::Specification.new do |s|
     "test/schema/sqlserver_specific_schema.rb" ]
   s.rdoc_options = ["--line-numbers", "--inline-source", "--main", "README.rdoc"]
   s.extra_rdoc_files = ["README.rdoc"]
+  s.add_dependency('activerecord', '~> 2.3')
 end
