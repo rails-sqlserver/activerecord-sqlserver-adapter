@@ -37,6 +37,15 @@ class GcProfileCase < ActiveRecord::TestCase
     end
   end
   
+  def test_columns
+    bench_allocations('columns') do
+      100.times do 
+        Topic.reset_column_information
+        Topic.columns
+      end
+    end
+  end
+  
   
   protected
   
