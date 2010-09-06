@@ -88,12 +88,11 @@ module ActiveRecord
       end
       
       def is_special?
-        # TODO: Not sure if these should be added: varbinary(max), nchar, nvarchar(max)
-        sql_type =~ /^text|ntext|image$/
+        @sql_type =~ /^text|ntext|image$/
       end
       
       def is_utf8?
-        sql_type =~ /nvarchar|ntext|nchar/i
+        @sql_type =~ /nvarchar|ntext|nchar/i
       end
       
       def default_function
@@ -177,7 +176,8 @@ module ActiveRecord
       VERSION                     = '2.3.8'.freeze
       DATABASE_VERSION_REGEXP     = /Microsoft SQL Server\s+(\d{4})/
       SUPPORTED_VERSIONS          = [2000,2005,2008].freeze
-      LIMITABLE_TYPES             = ['string','integer','float','char','nchar','varchar','nvarchar'].freeze
+      LIMITABLE_TYPES             = ['string','integer','float','char','nchar','varchar','nvarchar'].to_set.freeze
+      QUOTED_TRUE, QUOTED_FALSE   = '1', '0'
       LOST_CONNECTION_EXCEPTIONS  = {
         :odbc   => ['ODBC::Error'],
         :adonet => ['TypeError','System::Data::SqlClient::SqlException']
@@ -187,6 +187,7 @@ module ActiveRecord
         :adonet => [/current state is closed/, /network-related/]
       }
       
+      attr_reader    :database_version, :database_year
       cattr_accessor :native_text_database_type, :native_binary_database_type, :native_string_database_type,
                      :log_info_schema_queries, :enable_default_unicode_types, :auto_connect
       
@@ -201,10 +202,13 @@ module ActiveRecord
       def initialize(logger,config)
         @connection_options = config
         connect
-        super(raw_connection, logger)
+        super(@connection, logger)
+        @database_version = info_schema_query { select_value('SELECT @@version') }
+        @database_year = DATABASE_VERSION_REGEXP.match(@database_version)[1].to_i rescue 0
+        initialize_native_database_types
         initialize_sqlserver_caches
         use_database
-        unless SUPPORTED_VERSIONS.include?(database_year)
+        unless SUPPORTED_VERSIONS.include?(@database_year)
           raise NotImplementedError, "Currently, only #{SUPPORTED_VERSIONS.to_sentence} are supported."
         end
       end
@@ -227,28 +231,20 @@ module ActiveRecord
         true
       end
       
-      def database_version
-        @database_version ||= info_schema_query { select_value('SELECT @@version') }
-      end
-      
-      def database_year
-        DATABASE_VERSION_REGEXP.match(database_version)[1].to_i
-      end
-      
       def sqlserver?
         true
       end
       
       def sqlserver_2000?
-        database_year == 2000
+        @database_year == 2000
       end
       
       def sqlserver_2005?
-        database_year == 2005
+        @database_year == 2005
       end
       
       def sqlserver_2008?
-        database_year == 2008
+        @database_year == 2008
       end
       
       def version
@@ -256,7 +252,7 @@ module ActiveRecord
       end
       
       def inspect
-        "#<#{self.class} version: #{version}, year: #{database_year}, connection_options: #{@connection_options.inspect}>"
+        "#<#{self.class} version: #{version}, year: #{@database_year}, connection_options: #{@connection_options.inspect}>"
       end
       
       def auto_connect
@@ -310,21 +306,21 @@ module ActiveRecord
         string.to_s.gsub(/\'/, "''")
       end
       
-      def quote_column_name(column_name)
-        column_name.to_s.split('.').map{ |name| name =~ /^\[.*\]$/ ? name : "[#{name}]" }.join('.')
+      def quote_column_name(name)
+        @sqlserver_quoted_column_and_table_names[name] ||= 
+          name.to_s.split('.').map{ |n| n =~ /^\[.*\]$/ ? n : "[#{n}]" }.join('.')
       end
       
-      def quote_table_name(table_name)
-        return table_name if table_name =~ /^\[.*\]$/
-        quote_column_name(table_name)
+      def quote_table_name(name)
+        quote_column_name(name)
       end
       
       def quoted_true
-        '1'
+        QUOTED_TRUE
       end
 
       def quoted_false
-        '0'
+        QUOTED_FALSE
       end
       
       def quoted_date(value)
@@ -364,11 +360,11 @@ module ActiveRecord
       end
 
       def disconnect!
-        case connection_mode
+        case @connection_options[:mode]
         when :odbc
-          raw_connection.disconnect rescue nil
+          @connection.disconnect rescue nil
         else :adonet
-          raw_connection.close rescue nil
+          @connection.close rescue nil
         end
       end
       
@@ -574,27 +570,7 @@ module ActiveRecord
       # SCHEMA STATEMENTS ========================================#
       
       def native_database_types
-        {
-          :primary_key  => "int NOT NULL IDENTITY(1, 1) PRIMARY KEY",
-          :string       => { :name => native_string_database_type, :limit => 255  },
-          :text         => { :name => native_text_database_type },
-          :integer      => { :name => "int", :limit => 4 },
-          :float        => { :name => "float", :limit => 8 },
-          :decimal      => { :name => "decimal" },
-          :datetime     => { :name => "datetime" },
-          :timestamp    => { :name => "datetime" },
-          :time         => { :name => native_time_database_type },
-          :date         => { :name => native_date_database_type },
-          :binary       => { :name => native_binary_database_type },
-          :boolean      => { :name => "bit"},
-          # These are custom types that may move somewhere else for good schema_dumper.rb hacking to output them.
-          :char         => { :name => 'char' },
-          :varchar_max  => { :name => 'varchar(max)' },
-          :nchar        => { :name => "nchar" },
-          :nvarchar     => { :name => "nvarchar", :limit => 255 },
-          :nvarchar_max => { :name => "nvarchar(max)" },
-          :ntext        => { :name => "ntext" }
-        }
+        ActiveRecord::ConnectionAdapters::SQLServerAdapter::NATIVE_DATABASE_TYPES
       end
       
       def table_alias_length
@@ -835,7 +811,7 @@ module ActiveRecord
       
       def connect
         config = @connection_options
-        @connection = case connection_mode
+        @connection = case @connection_options[:mode]
                       when :odbc
                         ODBC.connect config[:dsn], config[:username], config[:password]
                       when :adonet
@@ -859,17 +835,13 @@ module ActiveRecord
         raise unless @auto_connecting
       end
       
-      def connection_mode
-        @connection_options[:mode]
-      end
-      
       def lost_connection_exceptions
-        exceptions = LOST_CONNECTION_EXCEPTIONS[connection_mode]
+        exceptions = LOST_CONNECTION_EXCEPTIONS[@connection_options[:mode]]
         @lost_connection_exceptions ||= exceptions ? exceptions.map(&:constantize) : []
       end
       
       def lost_connection_messages
-        LOST_CONNECTION_MESSAGES[connection_mode]
+        LOST_CONNECTION_MESSAGES[@connection_options[:mode]]
       end
       
       def with_auto_reconnect
@@ -901,26 +873,26 @@ module ActiveRecord
       
       def raw_connection_run(sql)
         with_auto_reconnect do
-          case connection_mode
+          case @connection_options[:mode]
           when :odbc
-            block_given? ? raw_connection.run_block(sql) { |handle| yield(handle) } : raw_connection.run(sql)
+            block_given? ? @connection.run_block(sql) { |handle| yield(handle) } : @connection.run(sql)
           else :adonet
-            raw_connection.create_command.tap{ |cmd| cmd.command_text = sql }.execute_reader
+            @connection.create_command.tap{ |cmd| cmd.command_text = sql }.execute_reader
           end
         end
       end
       
       def raw_connection_do(sql)
-        case connection_mode
+        case @connection_options[:mode]
         when :odbc
-          raw_connection.do(sql)
+          @connection.do(sql)
         else :adonet
-          raw_connection.create_command.tap{ |cmd| cmd.command_text = sql }.execute_non_query
+          @connection.create_command.tap{ |cmd| cmd.command_text = sql }.execute_non_query
         end
       end
       
       def finish_statement_handle(handle)
-        case connection_mode
+        case @connection_options[:mode]
         when :odbc
           handle.drop if handle && handle.respond_to?(:drop) && !handle.finished?
         when :adonet
@@ -967,7 +939,7 @@ module ActiveRecord
       end
       
       def handle_more_results?(handle)
-        case connection_mode
+        case @connection_options[:mode]
         when :odbc
           handle.more_results
         when :adonet
@@ -976,7 +948,7 @@ module ActiveRecord
       end
       
       def handle_to_names_and_values(handle, options={})
-        case connection_mode
+        case @connection_options[:mode]
         when :odbc
           handle_to_names_and_values_odbc(handle, options)
         when :adonet
@@ -1197,6 +1169,32 @@ module ActiveRecord
         @sqlserver_columns_cache = {} if reset_columns
         @sqlserver_views_cache = nil
         @sqlserver_view_information_cache = {}
+        @sqlserver_quoted_column_and_table_names = {}
+      end
+      
+      def initialize_native_database_types
+        return if defined?(ActiveRecord::ConnectionAdapters::SQLServerAdapter::NATIVE_DATABASE_TYPES)
+        ActiveRecord::ConnectionAdapters::SQLServerAdapter.const_set(:NATIVE_DATABASE_TYPES,{
+          :primary_key  => "int NOT NULL IDENTITY(1,1) PRIMARY KEY",
+          :string       => { :name => native_string_database_type, :limit => 255  },
+          :text         => { :name => native_text_database_type },
+          :integer      => { :name => "int", :limit => 4 },
+          :float        => { :name => "float", :limit => 8 },
+          :decimal      => { :name => "decimal" },
+          :datetime     => { :name => "datetime" },
+          :timestamp    => { :name => "datetime" },
+          :time         => { :name => native_time_database_type },
+          :date         => { :name => native_date_database_type },
+          :binary       => { :name => native_binary_database_type },
+          :boolean      => { :name => "bit"},
+          # These are custom types that may move somewhere else for good schema_dumper.rb hacking to output them.
+          :char         => { :name => 'char' },
+          :varchar_max  => { :name => 'varchar(max)' },
+          :nchar        => { :name => "nchar" },
+          :nvarchar     => { :name => "nvarchar", :limit => 255 },
+          :nvarchar_max => { :name => "nvarchar(max)" },
+          :ntext        => { :name => "ntext" }
+        })
       end
       
       def column_definitions(table_name)
