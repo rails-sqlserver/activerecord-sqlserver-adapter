@@ -20,7 +20,7 @@ module ActiveRecord
         require 'System.Data'
         raise ArgumentError, 'Missing :database configuration.' unless config.has_key?(:database)
       when :ado
-        raise NotImplementedError, 'Please use version 2.3.1 of the adapter for ADO connections. Future versions may support ADO.NET.'
+        raise NotImplementedError, 'Please use version 2.3.1 of the adapter for ADO connections. Future versions support ADO.NET.'
         raise ArgumentError, 'Missing :database configuration.' unless config.has_key?(:database)
       else
         raise ArgumentError, "Unknown connection mode in #{config.inspect}."
