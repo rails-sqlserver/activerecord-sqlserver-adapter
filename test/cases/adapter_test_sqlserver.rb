@@ -70,16 +70,6 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
         assert_contains @supported_version, @connection.database_year
       end
       
-      should 'return true to #sqlserver_2005?' do
-        @connection.stubs(:database_version).returns(@sqlserver_2005_string)
-        assert @connection.sqlserver_2005?
-      end
-      
-      should 'return true to #sqlserver_2008?' do
-        @connection.stubs(:database_version).returns(@sqlserver_2008_string)
-        assert @connection.sqlserver_2008?
-      end
-      
     end
     
     context 'for #unqualify_table_name and #unqualify_db_name' do

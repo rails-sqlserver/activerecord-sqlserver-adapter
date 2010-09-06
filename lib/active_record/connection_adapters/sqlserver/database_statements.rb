@@ -203,11 +203,11 @@ module ActiveRecord
         end
         
         def raw_connection_do(sql)
-          case connection_mode
+          case @connection_options[:mode]
           when :odbc
-            raw_connection.do(sql)
+            @connection.do(sql)
           else :adonet
-            raw_connection.create_command.tap{ |cmd| cmd.command_text = sql }.execute_non_query
+            @connection.create_command.tap{ |cmd| cmd.command_text = sql }.execute_non_query
           end
         end
         
@@ -226,17 +226,17 @@ module ActiveRecord
         
         def raw_connection_run(sql)
           with_auto_reconnect do
-            case connection_mode
+            case @connection_options[:mode]
             when :odbc
-              block_given? ? raw_connection.run_block(sql) { |handle| yield(handle) } : raw_connection.run(sql)
+              block_given? ? @connection.run_block(sql) { |handle| yield(handle) } : @connection.run(sql)
             else :adonet
-              raw_connection.create_command.tap{ |cmd| cmd.command_text = sql }.execute_reader
+              @connection.create_command.tap{ |cmd| cmd.command_text = sql }.execute_reader
             end
           end
         end
         
         def handle_more_results?(handle)
-          case connection_mode
+          case @connection_options[:mode]
           when :odbc
             handle.more_results
           when :adonet
@@ -245,7 +245,7 @@ module ActiveRecord
         end
         
         def handle_to_names_and_values(handle, options={})
-          case connection_mode
+          case @connection_options[:mode]
           when :odbc
             handle_to_names_and_values_odbc(handle, options)
           when :adonet
@@ -320,7 +320,7 @@ module ActiveRecord
         end
         
         def finish_statement_handle(handle)
-          case connection_mode
+          case @connection_options[:mode]
           when :odbc
             handle.drop if handle && handle.respond_to?(:drop) && !handle.finished?
           when :adonet

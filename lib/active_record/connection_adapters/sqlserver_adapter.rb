@@ -102,7 +102,7 @@ module ActiveRecord
       end
       
       def is_utf8?
-        sql_type =~ /nvarchar|ntext|nchar/i
+        @sql_type =~ /nvarchar|ntext|nchar/i
       end
       
       def default_function
@@ -185,6 +185,8 @@ module ActiveRecord
       DATABASE_VERSION_REGEXP     = /Microsoft SQL Server\s+(\d{4})/
       SUPPORTED_VERSIONS          = [2005,2008].freeze
       
+      attr_reader :database_version, :database_year
+      
       cattr_accessor :native_text_database_type, :native_binary_database_type, :native_string_database_type,
                      :log_info_schema_queries, :enable_default_unicode_types, :auto_connect,
                      :cs_equality_operator
@@ -192,10 +194,13 @@ module ActiveRecord
       def initialize(logger,config)
         @connection_options = config
         connect
-        super(raw_connection, logger)
+        super(@connection, logger)
+        @database_version = info_schema_query { select_value('SELECT @@version') }
+        @database_year = DATABASE_VERSION_REGEXP.match(@database_version)[1].to_i rescue 0
+        initialize_native_database_types
         initialize_sqlserver_caches
         use_database
-        unless SUPPORTED_VERSIONS.include?(database_year)
+        unless SUPPORTED_VERSIONS.include?(@database_year)
           raise NotImplementedError, "Currently, only #{SUPPORTED_VERSIONS.to_sentence} are supported."
         end
       end
@@ -249,11 +254,11 @@ module ActiveRecord
       end
 
       def disconnect!
-        case connection_mode
+        case @connection_options[:mode]
         when :odbc
-          raw_connection.disconnect rescue nil
+          @connection.disconnect rescue nil
         else :adonet
-          raw_connection.close rescue nil
+          @connection.close rescue nil
         end
       end
       
@@ -274,24 +279,16 @@ module ActiveRecord
       
       # === SQLServer Specific (DB Reflection) ======================== #
       
-      def database_version
-        @database_version ||= info_schema_query { select_value('SELECT @@version') }
-      end
-      
-      def database_year
-        DATABASE_VERSION_REGEXP.match(database_version)[1].to_i
-      end
-      
       def sqlserver?
         true
       end
       
       def sqlserver_2005?
-        database_year == 2005
+        @database_year == 2005
       end
       
       def sqlserver_2008?
-        database_year == 2008
+        @database_year == 2008
       end
       
       def version
@@ -299,7 +296,7 @@ module ActiveRecord
       end
       
       def inspect
-        "#<#{self.class} version: #{version}, year: #{database_year}, connection_options: #{@connection_options.inspect}>"
+        "#<#{self.class} version: #{version}, year: #{@database_year}, connection_options: #{@connection_options.inspect}>"
       end
       
       def auto_connect
@@ -352,7 +349,7 @@ module ActiveRecord
       
       def connect
         config = @connection_options
-        @connection = case connection_mode
+        @connection = case @connection_options[:mode]
                       when :odbc
                         odbc = ['::ODBC','::ODBC_UTF8','::ODBC_NONE'].detect{ |odbc_ns| odbc_ns.constantize rescue nil }.constantize
                         odbc.connect config[:dsn], config[:username], config[:password]
@@ -410,10 +407,6 @@ module ActiveRecord
         false
       ensure
         @auto_connecting = false
-      end
-      
-      def connection_mode
-        @connection_options[:mode]
       end
             
     end #class SQLServerAdapter < AbstractAdapter

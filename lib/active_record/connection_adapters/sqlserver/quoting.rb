@@ -3,6 +3,8 @@ module ActiveRecord
     module Sqlserver
       module Quoting
         
+        QUOTED_TRUE, QUOTED_FALSE = '1', '0'
+        
         def quote(value, column = nil)
           case value
           when String, ActiveSupport::Multibyte::Chars
@@ -22,21 +24,21 @@ module ActiveRecord
           string.to_s.gsub(/\'/, "''")
         end
 
-        def quote_column_name(column_name)
-          column_name.to_s.split('.').map{ |name| name =~ /^\[.*\]$/ ? name : "[#{name}]" }.join('.')
+        def quote_column_name(name)
+          @sqlserver_quoted_column_and_table_names[name] ||= 
+            name.to_s.split('.').map{ |n| n =~ /^\[.*\]$/ ? n : "[#{n}]" }.join('.')
         end
 
-        def quote_table_name(table_name)
-          return table_name if table_name =~ /^\[.*\]$/
-          quote_column_name(table_name)
+        def quote_table_name(name)
+          quote_column_name(name)
         end
 
         def quoted_true
-          '1'
+          QUOTED_TRUE
         end
 
         def quoted_false
-          '0'
+          QUOTED_FALSE
         end
 
         def quoted_date(value)

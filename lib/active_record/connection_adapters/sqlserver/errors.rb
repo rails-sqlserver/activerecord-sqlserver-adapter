@@ -19,12 +19,12 @@ module ActiveRecord
         
         
         def lost_connection_exceptions
-          exceptions = LOST_CONNECTION_EXCEPTIONS[connection_mode]
+          exceptions = LOST_CONNECTION_EXCEPTIONS[@connection_options[:mode]]
           @lost_connection_exceptions ||= exceptions ? exceptions.map{ |e| e.constantize rescue nil }.compact : []
         end
         
         def lost_connection_messages
-          LOST_CONNECTION_MESSAGES[connection_mode]
+          LOST_CONNECTION_MESSAGES[@connection_options[:mode]]
         end
         
       end

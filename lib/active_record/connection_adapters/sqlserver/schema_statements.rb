@@ -4,27 +4,7 @@ module ActiveRecord
       module SchemaStatements
         
         def native_database_types
-          {
-            :primary_key  => "int NOT NULL IDENTITY(1,1) PRIMARY KEY",
-            :string       => { :name => native_string_database_type, :limit => 255  },
-            :text         => { :name => native_text_database_type },
-            :integer      => { :name => "int", :limit => 4 },
-            :float        => { :name => "float", :limit => 8 },
-            :decimal      => { :name => "decimal" },
-            :datetime     => { :name => "datetime" },
-            :timestamp    => { :name => "datetime" },
-            :time         => { :name => native_time_database_type },
-            :date         => { :name => native_date_database_type },
-            :binary       => { :name => native_binary_database_type },
-            :boolean      => { :name => "bit"},
-            # These are custom types that may move somewhere else for good schema_dumper.rb hacking to output them.
-            :char         => { :name => 'char' },
-            :varchar_max  => { :name => 'varchar(max)' },
-            :nchar        => { :name => "nchar" },
-            :nvarchar     => { :name => "nvarchar", :limit => 255 },
-            :nvarchar_max => { :name => "nvarchar(max)" },
-            :ntext        => { :name => "ntext" }
-          }
+          ActiveRecord::ConnectionAdapters::SQLServerAdapter::NATIVE_DATABASE_TYPES
         end
 
         def tables(name = nil)
@@ -166,6 +146,31 @@ module ActiveRecord
         protected
         
         # === SQLServer Specific ======================================== #
+        
+        def initialize_native_database_types
+          return if defined?(ActiveRecord::ConnectionAdapters::SQLServerAdapter::NATIVE_DATABASE_TYPES)
+          ActiveRecord::ConnectionAdapters::SQLServerAdapter.const_set(:NATIVE_DATABASE_TYPES,{
+            :primary_key  => "int NOT NULL IDENTITY(1,1) PRIMARY KEY",
+            :string       => { :name => native_string_database_type, :limit => 255  },
+            :text         => { :name => native_text_database_type },
+            :integer      => { :name => "int", :limit => 4 },
+            :float        => { :name => "float", :limit => 8 },
+            :decimal      => { :name => "decimal" },
+            :datetime     => { :name => "datetime" },
+            :timestamp    => { :name => "datetime" },
+            :time         => { :name => native_time_database_type },
+            :date         => { :name => native_date_database_type },
+            :binary       => { :name => native_binary_database_type },
+            :boolean      => { :name => "bit"},
+            # These are custom types that may move somewhere else for good schema_dumper.rb hacking to output them.
+            :char         => { :name => 'char' },
+            :varchar_max  => { :name => 'varchar(max)' },
+            :nchar        => { :name => "nchar" },
+            :nvarchar     => { :name => "nvarchar", :limit => 255 },
+            :nvarchar_max => { :name => "nvarchar(max)" },
+            :ntext        => { :name => "ntext" }
+          })
+        end
         
         def column_definitions(table_name)
           db_name = unqualify_db_name(table_name)
@@ -330,6 +335,7 @@ module ActiveRecord
           @sqlserver_columns_cache = {} if reset_columns
           @sqlserver_views_cache = nil
           @sqlserver_view_information_cache = {}
+          @sqlserver_quoted_column_and_table_names = {}
         end
         
         # === SQLServer Specific (Identity Inserts) ===================== #
