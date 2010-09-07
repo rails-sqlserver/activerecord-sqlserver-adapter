@@ -185,7 +185,8 @@ module ActiveRecord
       DATABASE_VERSION_REGEXP     = /Microsoft SQL Server\s+(\d{4})/
       SUPPORTED_VERSIONS          = [2005,2008].freeze
       
-      attr_reader :database_version, :database_year
+      attr_reader :database_version, :database_year,
+                  :connection_supports_native_types
       
       cattr_accessor :native_text_database_type, :native_binary_database_type, :native_string_database_type,
                      :log_info_schema_queries, :enable_default_unicode_types, :auto_connect,
@@ -352,7 +353,13 @@ module ActiveRecord
         @connection = case @connection_options[:mode]
                       when :odbc
                         odbc = ['::ODBC','::ODBC_UTF8','::ODBC_NONE'].detect{ |odbc_ns| odbc_ns.constantize rescue nil }.constantize
-                        odbc.connect config[:dsn], config[:username], config[:password]
+                        odbc.connect(config[:dsn], config[:username], config[:password]).tap do |c|
+                          if c.respond_to?(:use_time)
+                            c.use_time = true
+                            c.use_utc = ActiveRecord::Base.default_timezone == :utc
+                            @connection_supports_native_types = true
+                          end
+                        end
                       when :adonet
                         System::Data::SqlClient::SqlConnection.new.tap do |connection|
                           connection.connection_string = System::Data::SqlClient::SqlConnectionStringBuilder.new.tap do |cs|

@@ -254,29 +254,40 @@ module ActiveRecord
         end
 
         def handle_to_names_and_values_odbc(handle, options={})
+          @connection.use_utc = ActiveRecord::Base.default_timezone == :utc if @connection_supports_native_types
           case options[:fetch]
           when :all, :one
-            rows = if options[:fetch] == :all
-                     handle.fetch_all || []
-                   else
-                     row = handle.fetch
-                     row ? [row] : [[]]                     
-                   end
-            names = handle.columns(true).map{ |c| c.name }
-            names_and_values = []
-            rows.each do |row|
-              h = {}
-              i = 0
-              while i < row.size
-                v = row[i]
-                h[names[i]] = v.respond_to?(:to_sqlserver_string) ? v.to_sqlserver_string : v
-                i += 1
+            if @connection_supports_native_types
+              if options[:fetch] == :all
+                handle.each_hash || []
+              else
+                row = handle.fetch_hash
+                rows = row ? [row] : [[]]                    
               end
-              names_and_values << h
+            else
+              rows = if options[:fetch] == :all
+                       handle.fetch_all || []
+                     else
+                       row = handle.fetch
+                       row ? [row] : [[]]                     
+                     end
+              names = handle.columns(true).map{ |c| c.name }
+              names_and_values = []
+              rows.each do |row|
+                h = {}
+                i = 0
+                while i < row.size
+                  v = row[i]
+                  h[names[i]] = v.respond_to?(:to_sqlserver_string) ? v.to_sqlserver_string : v
+                  i += 1
+                end
+                names_and_values << h
+              end
+              names_and_values
             end
-            names_and_values
           when :rows
             rows = handle.fetch_all || []
+            return rows if @connection_supports_native_types
             rows.each do |row|
               i = 0
               while i < row.size
