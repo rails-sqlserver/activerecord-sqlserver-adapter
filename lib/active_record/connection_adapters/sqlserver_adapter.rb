@@ -187,7 +187,8 @@ module ActiveRecord
         :adonet => [/current state is closed/, /network-related/]
       }
       
-      attr_reader    :database_version, :database_year
+      attr_reader    :database_version, :database_year,
+                     :connection_supports_native_types
       cattr_accessor :native_text_database_type, :native_binary_database_type, :native_string_database_type,
                      :log_info_schema_queries, :enable_default_unicode_types, :auto_connect
       
@@ -813,7 +814,13 @@ module ActiveRecord
         config = @connection_options
         @connection = case @connection_options[:mode]
                       when :odbc
-                        ODBC.connect config[:dsn], config[:username], config[:password]
+                        ODBC.connect(config[:dsn], config[:username], config[:password]).tap do |c|
+                          if c.respond_to?(:use_time)
+                            c.use_time = true
+                            c.use_utc = ActiveRecord::Base.default_timezone == :utc
+                            @connection_supports_native_types = true
+                          end
+                        end
                       when :adonet
                         System::Data::SqlClient::SqlConnection.new.tap do |connection|
                           connection.connection_string = System::Data::SqlClient::SqlConnectionStringBuilder.new.tap do |cs|
@@ -957,29 +964,40 @@ module ActiveRecord
       end
 
       def handle_to_names_and_values_odbc(handle, options={})
+        @connection.use_utc = ActiveRecord::Base.default_timezone == :utc if @connection_supports_native_types
         case options[:fetch]
         when :all, :one
-          rows = if options[:fetch] == :all
-                   handle.fetch_all || []
-                 else
-                   row = handle.fetch
-                   row ? [row] : [[]]                     
-                 end
-          names = handle.columns(true).map{ |c| c.name }
-          names_and_values = []
-          rows.each do |row|
-            h = {}
-            i = 0
-            while i < row.size
-              v = row[i]
-              h[names[i]] = v.respond_to?(:to_sqlserver_string) ? v.to_sqlserver_string : v
-              i += 1
+          if @connection_supports_native_types
+            if options[:fetch] == :all
+              handle.each_hash || []
+            else
+              row = handle.fetch_hash
+              rows = row ? [row] : [[]]                    
             end
-            names_and_values << h
+          else
+            rows = if options[:fetch] == :all
+                     handle.fetch_all || []
+                   else
+                     row = handle.fetch
+                     row ? [row] : [[]]                     
+                   end
+            names = handle.columns(true).map{ |c| c.name }
+            names_and_values = []
+            rows.each do |row|
+              h = {}
+              i = 0
+              while i < row.size
+                v = row[i]
+                h[names[i]] = v.respond_to?(:to_sqlserver_string) ? v.to_sqlserver_string : v
+                i += 1
+              end
+              names_and_values << h
+            end
+            names_and_values
           end
-          names_and_values
         when :rows
           rows = handle.fetch_all || []
+          return rows if @connection_supports_native_types
           rows.each do |row|
             i = 0
             while i < row.size
