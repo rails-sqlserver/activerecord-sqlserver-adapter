@@ -1,6 +1,13 @@
 
 MASTER
 
+* 3.0.1
+
+* Support DSN'less connections. Resolves ticket 38. 
+
+* Support upcoming ruby odbc 0.99992
+
+
 * 3.0.0
 
 * Release rails 3 version!
