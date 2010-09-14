@@ -814,7 +814,15 @@ module ActiveRecord
         config = @connection_options
         @connection = case @connection_options[:mode]
                       when :odbc
-                        ODBC.connect(config[:dsn], config[:username], config[:password]).tap do |c|
+                        if config[:dsn].include?(';')
+                          driver = ODBC::Driver.new.tap do |d|
+                            d.name = config[:dsn_name] || 'Driver1'
+                            driver.attrs = dsn.split(';').map{ |atr| atr.split('=') }.reject{ |kv| kv.size != 2 }.inject({}){ |h,kv| k,v = kv ; h[k] = v ; h }
+                          end
+                          ODBC::Database.new.drvconnect(driver)
+                        else
+                          ODBC.connect config[:dsn], config[:username], config[:password]
+                        end.tap do |c|
                           if c.respond_to?(:use_time)
                             c.use_time = true
                             c.use_utc = ActiveRecord::Base.default_timezone == :utc
