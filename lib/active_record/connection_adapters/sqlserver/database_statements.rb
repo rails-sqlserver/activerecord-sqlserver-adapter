@@ -302,32 +302,51 @@ module ActiveRecord
 
         def handle_to_names_and_values_adonet(handle, options={})
           if handle.has_rows
-            fields = []
+            names = []
             rows = []
-            fields_named = false
+            fields_named = options[:fetch] == :rows
+            one_row_only = options[:fetch] == :one
             while handle.read
               row = []
               handle.visible_field_count.times do |row_index|
                 value = handle.get_value(row_index)
-                value = if value.is_a? System::String
+                value = case value
+                        when System::String
                           value.to_s
-                        elsif value.is_a? System::DBNull
+                        when System::DBNull
                           nil
-                        elsif value.is_a? System::DateTime
-                          value.to_string("yyyy-MM-dd HH:MM:ss.fff").to_s
+                        when System::DateTime
+                          value.to_string("yyyy-MM-dd HH:mm:ss.fff").to_s
+                        when @@array_of_bytes ||= System::Array[System::Byte]
+                          String.new(value)
                         else
                           value
                         end
                 row << value
-                fields << handle.get_name(row_index).to_s unless fields_named
+                names << handle.get_name(row_index).to_s unless fields_named
+                break if one_row_only
               end
               rows << row
               fields_named = true
             end
           else
-            fields, rows = [], []
+            rows = []
           end
-          [fields,rows]
+          if options[:fetch] != :rows
+            names_and_values = []
+            rows.each do |row|
+              h = {}
+              i = 0
+              while i < row.size
+                h[names[i]] = row[i]
+                i += 1
+              end
+              names_and_values << h
+            end
+            names_and_values
+          else
+            rows
+          end
         end
         
         def finish_statement_handle(handle)
