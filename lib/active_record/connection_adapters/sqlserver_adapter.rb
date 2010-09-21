@@ -817,7 +817,7 @@ module ActiveRecord
                         if config[:dsn].include?(';')
                           driver = ODBC::Driver.new.tap do |d|
                             d.name = config[:dsn_name] || 'Driver1'
-                            driver.attrs = dsn.split(';').map{ |atr| atr.split('=') }.reject{ |kv| kv.size != 2 }.inject({}){ |h,kv| k,v = kv ; h[k] = v ; h }
+                            d.attrs = config[:dsn].split(';').map{ |atr| atr.split('=') }.reject{ |kv| kv.size != 2 }.inject({}){ |h,kv| k,v = kv ; h[k] = v ; h }
                           end
                           ODBC::Database.new.drvconnect(driver)
                         else
