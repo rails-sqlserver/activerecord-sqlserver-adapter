@@ -1,4 +1,9 @@
 
+* 3.0.2
+
+* Fix DSN'less code. [Erik Bryn]
+
+
 * 3.0.1
 
 * Support DSN'less connections. Resolves ticket 38. 
