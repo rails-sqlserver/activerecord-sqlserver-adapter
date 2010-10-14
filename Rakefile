@@ -68,11 +68,11 @@ end
 namespace :rvm do
   
   RUBIES = {
-    'ruby-1.8.6'      => {:alias => 'sqlsvr186', :odbc => '0.99991'},
-    'ruby-1.8.7'      => {:alias => 'sqlsvr187', :odbc => '0.99991'},
-    'ruby-1.9.1'      => {:alias => 'sqlsvr191', :odbc => '0.99991'},
-    'ruby-1.9.2'      => {:alias => 'sqlsvr192', :odbc => '0.99992pre6'},
-    'ree-1.8.7'       => {:alias => 'sqlsvrree', :odbc => '0.99991'}
+    'ruby-1.8.6'      => {:alias => 'sqlsvr186', :odbc => '0.99992'},
+    'ruby-1.8.7'      => {:alias => 'sqlsvr187', :odbc => '0.99992'},
+    'ruby-1.9.1'      => {:alias => 'sqlsvr191', :odbc => '0.99992'},
+    'ruby-1.9.2'      => {:alias => 'sqlsvr192', :odbc => '0.99992'},
+    'ree-1.8.7'       => {:alias => 'sqlsvrree', :odbc => '0.99992'}
   }
   
   task :setup do
