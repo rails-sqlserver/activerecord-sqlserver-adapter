@@ -1,4 +1,9 @@
 
+* master *
+
+* Add TinyTDS/dblib connection mode. [Ken Collins]
+
+
 * 3.0.2
 
 * Fix DSN'less code. [Erik Bryn]
