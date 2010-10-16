@@ -20,15 +20,23 @@ class ExecuteProcedureTestSqlserver < ActiveRecord::TestCase
     assert_equal 'TABLE', table_info[:TABLE_TYPE], "Table Info: #{table_info.inspect}"
   end
   
-  should 'allow multiple result sets to be returned' do
-    results1, results2 = @klass.execute_procedure('sp_helpconstraint','accounts')
-    assert_instance_of Array, results1
-    assert_instance_of HashWithIndifferentAccess, results1.first
-    assert results1.first['Object Name']
-    assert_instance_of Array, results2
-    assert_instance_of HashWithIndifferentAccess, results2.first
-    assert results2.first['constraint_name']
-    assert results2.first['constraint_type']
+  if connection_mode_odbc?
+    
+    should 'allow multiple result sets to be returned' do
+      results1, results2 = @klass.execute_procedure('sp_helpconstraint','accounts')
+      assert_instance_of Array, results1
+      assert_instance_of HashWithIndifferentAccess, results1.first
+      assert results1.first['Object Name']
+      assert_instance_of Array, results2
+      assert_instance_of HashWithIndifferentAccess, results2.first
+      assert results2.first['constraint_name']
+      assert results2.first['constraint_type']
+    end
+    
+  else
+    
+    should 'allow multiple result sets to be returned'
+    
   end
   
   

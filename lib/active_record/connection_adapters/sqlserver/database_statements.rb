@@ -71,19 +71,27 @@ module ActiveRecord
         def execute_procedure(proc_name, *variables)
           vars = variables.map{ |v| quote(v) }.join(', ')
           sql = "EXEC #{proc_name} #{vars}".strip
+          name = 'Execute Procedure'
           results = []
-          log(sql,'Execute Procedure') do
-            raw_connection_run(sql) do |handle|
-              get_rows = lambda {
-                rows = handle_to_names_and_values handle, :fetch => :all
-                rows.each_with_index { |r,i| rows[i] = r.with_indifferent_access }
-                results << rows
-              }
-              get_rows.call
-              while handle_more_results?(handle)
+          case @connection_options[:mode]
+          when :dblib
+            results << select(sql, name).map { |r| r.with_indifferent_access }
+          when :odbc
+            log(sql, name) do
+              raw_connection_run(sql) do |handle|
+                get_rows = lambda {
+                  rows = handle_to_names_and_values handle, :fetch => :all
+                  rows.each_with_index { |r,i| rows[i] = r.with_indifferent_access }
+                  results << rows
+                }
                 get_rows.call
+                while handle_more_results?(handle)
+                  get_rows.call
+                end
               end
             end
+          when :adonet
+            results << select(sql, name).map { |r| r.with_indifferent_access }
           end
           results.many? ? results : results.first
         end
@@ -179,7 +187,7 @@ module ActiveRecord
         end
         
         def insert_sql(sql, name = nil, pk = nil, id_value = nil, sequence_name = nil)
-          super || select_value("SELECT SCOPE_IDENTITY() AS Ident")
+          super || select_value("SELECT CAST(SCOPE_IDENTITY() AS bigint) AS Ident")
         end
         
         def update_sql(sql, name = nil)
@@ -204,6 +212,8 @@ module ActiveRecord
         
         def raw_connection_do(sql)
           case @connection_options[:mode]
+          when :dblib
+            @connection.execute(sql).do
           when :odbc
             @connection.do(sql)
           else :adonet
@@ -227,6 +237,8 @@ module ActiveRecord
         def raw_connection_run(sql)
           with_auto_reconnect do
             case @connection_options[:mode]
+            when :dblib
+              @connection.execute(sql)
             when :odbc
               block_given? ? @connection.run_block(sql) { |handle| yield(handle) } : @connection.run(sql)
             else :adonet
@@ -237,6 +249,7 @@ module ActiveRecord
         
         def handle_more_results?(handle)
           case @connection_options[:mode]
+          when :dblib
           when :odbc
             handle.more_results
           when :adonet
@@ -246,13 +259,24 @@ module ActiveRecord
         
         def handle_to_names_and_values(handle, options={})
           case @connection_options[:mode]
+          when :dblib
+            handle_to_names_and_values_dblib(handle, options)
           when :odbc
             handle_to_names_and_values_odbc(handle, options)
           when :adonet
             handle_to_names_and_values_adonet(handle, options)
           end
         end
-
+        
+        def handle_to_names_and_values_dblib(handle, options={})
+          query_options = {}.tap do |qo|
+            qo[:timezone] = ActiveRecord::Base.default_timezone || :utc
+            qo[:first] = true if options[:fetch] == :one
+            qo[:as] = options[:fetch] == :rows ? :array : :hash
+          end
+          handle.each(query_options)
+        end
+        
         def handle_to_names_and_values_odbc(handle, options={})
           @connection.use_utc = ActiveRecord::Base.default_timezone == :utc if @connection_supports_native_types
           case options[:fetch]
@@ -351,6 +375,7 @@ module ActiveRecord
         
         def finish_statement_handle(handle)
           case @connection_options[:mode]
+          when :dblib  
           when :odbc
             handle.drop if handle && handle.respond_to?(:drop) && !handle.finished?
           when :adonet

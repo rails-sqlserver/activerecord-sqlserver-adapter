@@ -20,6 +20,9 @@ module ActiveRecord
       config.reverse_merge! :mode => :odbc, :host => 'localhost', :username => 'sa', :password => ''
       mode = config[:mode].to_s.downcase.underscore.to_sym
       case mode
+      when :dblib
+        raise ArgumentError, 'Missing :dataserver configuration.' unless config.has_key?(:dataserver)
+        require_library_or_gem 'tiny_tds'
       when :odbc
         raise ArgumentError, 'Missing :dsn configuration.' unless config.has_key?(:dsn)
         if RUBY_VERSION < '1.9'
@@ -242,6 +245,15 @@ module ActiveRecord
       # === Abstract Adapter (Connection Management) ================== #
       
       def active?
+        connected = case @connection_options[:mode]
+                    when :dblib
+                      !@connection.closed?
+                    when :odbc
+                      true
+                    else :adonet
+                      true
+                    end
+        return false if !connected
         raw_connection_do("SELECT 1")
         true
       rescue *lost_connection_exceptions
@@ -256,6 +268,8 @@ module ActiveRecord
 
       def disconnect!
         case @connection_options[:mode]
+        when :dblib
+          @connection.close rescue nil
         when :odbc
           @connection.disconnect rescue nil
         else :adonet
@@ -351,6 +365,23 @@ module ActiveRecord
       def connect
         config = @connection_options
         @connection = case @connection_options[:mode]
+                      when :dblib
+                        appname = config[:appname] || Rails.application.class.name.split('::').first rescue nil
+                        encoding = config[:encoding].present? ? config[:encoding] : nil
+                        TinyTds::Client.new({ 
+                          :dataserver    => config[:dataserver],
+                          :username      => config[:username],
+                          :password      => config[:password],
+                          :database      => config[:database],
+                          :appname       => appname,
+                          :login_timeout => config[:dblib_login_timeout],
+                          :timeout       => config[:dblib_timeout],
+                          :encoding      => encoding
+                        }).tap do |client|
+                          client.execute("SET ANSI_DEFAULTS ON").do
+                          client.execute("SET IMPLICIT_TRANSACTIONS OFF").do
+                          client.execute("SET CURSOR_CLOSE_ON_COMMIT OFF").do
+                        end
                       when :odbc
                         odbc = ['::ODBC','::ODBC_UTF8','::ODBC_NONE'].detect{ |odbc_ns| odbc_ns.constantize rescue nil }.constantize
                         if config[:dsn].include?(';')

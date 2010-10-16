@@ -22,7 +22,7 @@ task :test => ['test:odbc']
 
 namespace :test do
   
-  ['odbc','adonet'].each do |mode|
+  ['dblib','odbc','adonet'].each do |mode|
     
     Rake::TestTask.new(mode) do |t|
       t.libs = test_libs(mode)
@@ -44,7 +44,7 @@ end
 
 namespace :profile do
   
-  ['odbc','adonet'].each do |mode|
+  ['dblib','odbc','adonet'].each do |mode|
     namespace mode.to_sym do
       
       Dir.glob("test/profile/*_profile_case.rb").sort.each do |test_file|
