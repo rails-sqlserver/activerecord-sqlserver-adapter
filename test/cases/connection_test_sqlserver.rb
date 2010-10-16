@@ -12,24 +12,6 @@ class ConnectionTestSqlserver < ActiveRecord::TestCase
   end
   
   
-  should 'return finished ODBC statment handle from #execute without block' do
-    assert_all_statements_used_are_closed do
-      @connection.execute('SELECT * FROM [topics]')
-    end
-  end
-  
-  should 'finish ODBC statment handle from #execute with block' do
-    assert_all_statements_used_are_closed do
-      @connection.execute('SELECT * FROM [topics]') { }
-    end
-  end
-  
-  should 'finish connection from #raw_select' do
-    assert_all_statements_used_are_closed do
-      @connection.send(:raw_select,'SELECT * FROM [topics]')
-    end
-  end
-  
   should 'affect rows' do
     topic_data = { 1 => { "content" => "1 updated" }, 2 => { "content" => "2 updated" } }
     updated = Topic.update(topic_data.keys, topic_data.values)
@@ -37,38 +19,6 @@ class ConnectionTestSqlserver < ActiveRecord::TestCase
     assert_equal "1 updated", Topic.find(1).content
     assert_equal "2 updated", Topic.find(2).content
     assert_equal 2, Topic.delete([1, 2])        
-  end
-  
-  should 'execute without block closes statement' do
-    assert_all_statements_used_are_closed do
-      @connection.execute("SELECT 1")
-    end
-  end
-  
-  should 'execute with block closes statement' do
-    assert_all_statements_used_are_closed do
-      @connection.execute("SELECT 1") do |sth|
-        assert !sth.finished?, "Statement should still be alive within block"
-      end
-    end
-  end
-  
-  should 'insert with identity closes statement' do
-    assert_all_statements_used_are_closed do
-      @connection.insert("INSERT INTO accounts ([id], [firm_id],[credit_limit]) values (999, 1, 50)")
-    end
-  end
-  
-  should 'insert without identity closes statement' do
-    assert_all_statements_used_are_closed do
-      @connection.insert("INSERT INTO accounts ([firm_id],[credit_limit]) values (1, 50)")
-    end
-  end
-
-  should 'active closes statement' do
-    assert_all_statements_used_are_closed do
-      @connection.active?
-    end
   end
   
   should 'allow usage of :database connection option to remove setting from dsn' do
@@ -81,6 +31,61 @@ class ConnectionTestSqlserver < ActiveRecord::TestCase
       assert_equal 'activerecord_unittest', @connection.current_database, 'Would default back to connection options'
     end
   end
+  
+  context 'ODBC connection management' do
+
+    should 'return finished ODBC statement handle from #execute without block' do
+      assert_all_odbc_statements_used_are_closed do
+        @connection.execute('SELECT * FROM [topics]')
+      end
+    end
+
+    should 'finish ODBC statement handle from #execute with block' do
+      assert_all_odbc_statements_used_are_closed do
+        @connection.execute('SELECT * FROM [topics]') { }
+      end
+    end
+
+    should 'finish connection from #raw_select' do
+      assert_all_odbc_statements_used_are_closed do
+        @connection.send(:raw_select,'SELECT * FROM [topics]')
+      end
+    end
+
+    should 'execute without block closes statement' do
+      assert_all_odbc_statements_used_are_closed do
+        @connection.execute("SELECT 1")
+      end
+    end
+
+    should 'execute with block closes statement' do
+      assert_all_odbc_statements_used_are_closed do
+        @connection.execute("SELECT 1") do |sth|
+          assert !sth.finished?, "Statement should still be alive within block"
+        end
+      end
+    end
+
+    should 'insert with identity closes statement' do
+      assert_all_odbc_statements_used_are_closed do
+        @connection.insert("INSERT INTO accounts ([id], [firm_id],[credit_limit]) values (999, 1, 50)")
+      end
+    end
+
+    should 'insert without identity closes statement' do
+      assert_all_odbc_statements_used_are_closed do
+        @connection.insert("INSERT INTO accounts ([firm_id],[credit_limit]) values (1, 50)")
+      end
+    end
+
+    should 'active closes statement' do
+      assert_all_odbc_statements_used_are_closed do
+        @connection.active?
+      end
+    end
+
+  end if connection_mode_odbc?
+  
   
   context 'Connection management' do
     
@@ -116,21 +121,18 @@ class ConnectionTestSqlserver < ActiveRecord::TestCase
   
   private
   
-  def assert_all_statements_used_are_closed(&block)
+  def assert_all_odbc_statements_used_are_closed(&block)
+    odbc = @connection.raw_connection.class.parent
     existing_handles = []
-    ObjectSpace.each_object(ODBC::Statement) {|handle| existing_handles << handle}
-    GC.disable
+    ObjectSpace.each_object(odbc::Statement) { |h| existing_handles << h }
+    existing_handle_ids = existing_handles.map(&:object_id)
+    assert existing_handles.all?(&:finished?), "Somewhere before the block some statements were not closed"
+    GC.disable    
     yield
     used_handles = []
-    ObjectSpace.each_object(ODBC::Statement) {|handle| used_handles << handle unless existing_handles.include? handle}
-    assert_block "No statements were used within given block" do
-      used_handles.size > 0
-    end
-    ObjectSpace.each_object(ODBC::Statement) do |handle|
-      assert_block "Statement should have been closed within given block" do
-        handle.finished?
-      end
-    end
+    ObjectSpace.each_object(odbc::Statement) { |h| used_handles << h unless existing_handle_ids.include?(h.object_id) }
+    assert used_handles.size > 0, "No statements were used within given block"
+    assert used_handles.all?(&:finished?), "Statement should have been closed within given block"
   ensure
     GC.enable
   end
