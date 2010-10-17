@@ -13,8 +13,8 @@ module ActiveRecord
         end
 
         def execute(sql, name = nil, skip_logging = false)
-          if table_name = query_requires_identity_insert?(sql)
-            with_identity_insert_enabled(table_name) { do_execute(sql,name) }
+          if id_insert_table_name = query_requires_identity_insert?(sql)
+            with_identity_insert_enabled(id_insert_table_name) { do_execute(sql,name) }
           else
             do_execute(sql,name)
           end
@@ -187,12 +187,24 @@ module ActiveRecord
         end
         
         def insert_sql(sql, name = nil, pk = nil, id_value = nil, sequence_name = nil)
-          super || select_value("SELECT CAST(SCOPE_IDENTITY() AS bigint) AS Ident")
+          @insert_sql = true
+          case @connection_options[:mode]
+          when :dblib
+            execute(sql, name) || id_value
+          else
+            super || select_value("SELECT CAST(SCOPE_IDENTITY() AS bigint) AS Ident")
+          end
         end
         
         def update_sql(sql, name = nil)
-          execute(sql, name)
-          select_value('SELECT @@ROWCOUNT AS AffectedRows')
+          @update_sql = true
+          case @connection_options[:mode]
+          when :dblib
+            execute(sql, name)
+          else
+            execute(sql, name)
+            select_value('SELECT @@ROWCOUNT AS AffectedRows')
+          end
         end
         
         # === SQLServer Specific ======================================== #
@@ -213,12 +225,15 @@ module ActiveRecord
         def raw_connection_do(sql)
           case @connection_options[:mode]
           when :dblib
-            @connection.execute(sql).do
+            @insert_sql ? @connection.execute(sql).insert : @connection.execute(sql).do
           when :odbc
             @connection.do(sql)
           else :adonet
             @connection.create_command.tap{ |cmd| cmd.command_text = sql }.execute_non_query
           end
+        ensure
+          @insert_sql = false
+          @update_sql = false
         end
         
         # === SQLServer Specific (Selecting) ============================ #
