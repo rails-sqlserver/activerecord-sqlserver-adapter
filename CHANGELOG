@@ -1,4 +1,9 @@
 
+* 2-3-stable
+
+* Add TinyTds/dblib connection mode. [Ken Collins]
+
+
 * 2.3.10
 
 * Fix DSN'less code. [Erik Bryn]
