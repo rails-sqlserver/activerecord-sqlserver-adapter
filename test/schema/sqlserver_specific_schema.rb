@@ -25,6 +25,7 @@ ActiveRecord::Schema.define do
     t.column :time,       :time
     t.column :datetime,   :datetime
     t.column :timestamp,  :timestamp
+    t.column :ss_timestamp, :ss_timestamp
     t.column :smalldatetime, :smalldatetime
   end
   

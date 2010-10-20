@@ -6,6 +6,7 @@ The SQL Server adapter for rails is back for ActiveRecord 2.2 and up! We are cur
 
 == What's New
 
+* New dblib connection mode using TinyTds!
 * Integration with rails :db namespaced rake tasks.
 * IronRuby support using ADONET connection mode.
 * Direct ODBC mode. No DBI anymore, means around 20% faster!

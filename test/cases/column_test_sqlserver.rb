@@ -161,6 +161,8 @@ class ColumnTestSqlserver < ActiveRecord::TestCase
       @time = SqlServerChronic.columns_hash['time']
       @datetime = SqlServerChronic.columns_hash['datetime']
       @smalldatetime = SqlServerChronic.columns_hash['smalldatetime']
+      @timestamp = SqlServerChronic.columns_hash['timestamp']
+      @ss_timestamp = SqlServerChronic.columns_hash['ss_timestamp']
     end
 
     should 'have correct simplified type for uncast datetime' do
@@ -182,6 +184,25 @@ class ColumnTestSqlserver < ActiveRecord::TestCase
       assert_equal nil, @date.limit
       assert_equal nil, @time.limit
       assert_equal nil, @datetime.limit
+    end
+    
+    context 'with timestamps' do
+
+      should 'use datetime sql type when using :timestamp in schema statements' do
+        assert_equal :datetime, @timestamp.type
+        assert_equal 'datetime', @timestamp.sql_type
+      end
+      
+      should 'be able to use real sql server timestamp if you really want to' do
+        assert_equal :binary, @ss_timestamp.type
+        assert_equal 'timestamp', @ss_timestamp.sql_type
+      end
+      
+      should 'return :timestamp as a binaryish string' do
+        chronic = SqlServerChronic.create!.reload
+        assert_match %r|\000|, chronic.ss_timestamp
+      end
+
     end
     
     context 'For smalldatetime types' do
