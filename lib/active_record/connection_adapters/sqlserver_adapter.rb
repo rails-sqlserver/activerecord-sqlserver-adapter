@@ -87,8 +87,6 @@ module ActiveRecord
       def type_cast(value)
         if value && type == :string && is_utf8?
           self.class.string_to_utf8_encoding(value)
-        elsif value && type == :timestamp
-          "0x#{value}"
         else
           super
         end
@@ -158,6 +156,7 @@ module ActiveRecord
           when /uniqueidentifier/i  then :string
           when /datetime/i          then simplified_datetime
           when /varchar\(max\)/     then :text
+          when /timestamp/          then :binary
           else super
         end
       end

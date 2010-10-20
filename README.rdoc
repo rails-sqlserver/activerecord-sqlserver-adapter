@@ -6,7 +6,8 @@ The SQL Server adapter for ActiveRecord.
 
 == What's New
 
-* Version 3.x now supports rails 3!
+* New dblib connection mode using TinyTds!
+* Rails 3 support!
 
 
 ==== Testing Rake Tasks Support
