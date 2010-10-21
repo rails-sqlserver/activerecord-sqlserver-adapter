@@ -106,6 +106,7 @@ module ActiveRecord
     class << self
       def connection_mode_dblib? ; ActiveRecord::Base.connection.instance_variable_get(:@connection_options)[:mode] == :dblib ; end
       def connection_mode_odbc? ; ActiveRecord::Base.connection.instance_variable_get(:@connection_options)[:mode] == :odbc ; end
+      def connection_mode_adonet? ; ActiveRecord::Base.connection.instance_variable_get(:@connection_options)[:mode] == :adonet ; end
       def sqlserver_2000? ; ActiveRecord::Base.connection.sqlserver_2000? ; end
       def sqlserver_2005? ; ActiveRecord::Base.connection.sqlserver_2005? ; end
       def sqlserver_2008? ; ActiveRecord::Base.connection.sqlserver_2008? ; end
@@ -125,6 +126,7 @@ module ActiveRecord
     end
     def connection_mode_dblib? ; self.class.connection_mode_dblib? ; end
     def connection_mode_odbc? ; self.class.connection_mode_odbc? ; end
+    def connection_mode_adonet? ; self.class.connection_mode_adonet? ; end
     def sqlserver_2000? ; self.class.sqlserver_2000? ; end
     def sqlserver_2005? ; self.class.sqlserver_2005? ; end
     def sqlserver_2008? ; self.class.sqlserver_2008? ; end
