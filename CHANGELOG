@@ -1,6 +1,9 @@
 * master *
 
+* Simplify encoding support. [Ken Collins]
+
 * Add binary timestamp datatype handling. [Erik Bryn]
+
 
 * 3.0.3
 
