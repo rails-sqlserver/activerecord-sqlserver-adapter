@@ -409,12 +409,17 @@ module ActiveRecord
         vars = variables.map{ |v| quote(v) }.join(', ')
         sql = "EXEC #{proc_name} #{vars}".strip
         name = 'Execute Procedure'
-        results = []
-        case @connection_options[:mode]
-        when :dblib
-          results << select(sql, name).map { |r| r.with_indifferent_access }
-        when :odbc
-          log(sql, name) do
+        log(sql, name) do
+          case @connection_options[:mode]
+          when :dblib
+            result = @connection.execute(sql)
+            result.each(:as => :hash, :cache_rows => true) do |row|
+              r = row.with_indifferent_access
+              yield(r) if block_given?
+            end
+            result.each
+          when :odbc
+            results = []
             raw_connection_run(sql) do |handle|
               get_rows = lambda {
                 rows = handle_to_names_and_values handle, :fetch => :all
@@ -426,11 +431,13 @@ module ActiveRecord
                 get_rows.call
               end
             end
+            results.many? ? results : results.first
+          when :adonet
+            results = []
+            results << select(sql, name).map { |r| r.with_indifferent_access }
+            results.many? ? results : results.first
           end
-        when :adonet
-          results << select(sql, name).map { |r| r.with_indifferent_access }
         end
-        results.many? ? results : results.first
       end
       
       def use_database(database=nil)

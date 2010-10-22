@@ -1,5 +1,7 @@
 * 2-3-stable *
 
+* Add multiple results set support with #execute_procedure for :dblib mode. [Ken Collins]
+
 * Allow unicode conditions strings to be quoted correctly. Like 3.0 branch. [Ken Collins]
 
 * Simplify encoding support. [Ken Collins]
