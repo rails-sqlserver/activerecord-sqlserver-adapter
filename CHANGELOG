@@ -1,5 +1,7 @@
 * master *
 
+* Add multiple results set support with #execute_procedure for :dblib mode. [Ken Collins]
+
 * Simplify encoding support. [Ken Collins]
 
 * Add binary timestamp datatype handling. [Erik Bryn]
