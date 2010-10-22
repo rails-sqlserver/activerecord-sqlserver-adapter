@@ -1,5 +1,7 @@
 * 2-3-stable *
 
+* Allow unicode conditions strings to be quoted correctly. Like 3.0 branch. [Ken Collins]
+
 * Simplify encoding support. [Ken Collins]
 
 * Add binary timestamp datatype handling. [Erik Bryn]

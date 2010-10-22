@@ -269,7 +269,8 @@ module ActiveRecord
         when String, ActiveSupport::Multibyte::Chars
           if column && column.type == :binary
             column.class.string_to_binary(value)
-          elsif column && column.type == :string
+          # elsif column && column.type == :string
+          elsif value.is_utf8? || (column && column.type == :string)
             "N'#{quote_string(value)}'"
           else
             super
