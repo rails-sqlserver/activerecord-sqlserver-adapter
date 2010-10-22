@@ -1,5 +1,7 @@
 * 2-3-stable *
 
+* Simplify encoding support. [Ken Collins]
+
 * Add binary timestamp datatype handling. [Erik Bryn]
 
 

@@ -54,36 +54,14 @@ module ActiveRecord
       
       class << self
         
-        def string_to_utf8_encoding(value)
-          value.force_encoding('UTF-8') rescue value
-        end
-        
         def string_to_binary(value)
-          value = value.dup.force_encoding(Encoding::BINARY) if value.respond_to?(:force_encoding)
          "0x#{value.unpack("H*")[0]}"
         end
         
         def binary_to_string(value)
-          value = value.dup.force_encoding(Encoding::BINARY) if value.respond_to?(:force_encoding)
           value =~ /[^[:xdigit:]]/ ? value : [value].pack('H*')
         end
         
-      end
-      
-      def type_cast(value)
-        if value && type == :string && is_utf8?
-          self.class.string_to_utf8_encoding(value)
-        else
-          super
-        end
-      end
-      
-      def type_cast_code(var_name)
-        if type == :string && is_utf8?
-          "#{self.class.name}.string_to_utf8_encoding(#{var_name})"
-        else
-          super
-        end
       end
       
       def is_identity?
@@ -165,15 +143,7 @@ module ActiveRecord
       
     end #SQLServerColumn
     
-    # In ODBC mode, the adapter requires Ruby ODBC and requires that you specify 
-    # a :dsn option. Ruby ODBC is available at http://www.ch-werner.de/rubyodbc/
-    #
-    # Options:
-    #
-    # * <tt>:username</tt>      -- Defaults to sa.
-    # * <tt>:password</tt>      -- Defaults to blank string.
-    # * <tt>:dsn</tt>           -- An ODBC DSN. (required)
-    # 
+
     class SQLServerAdapter < AbstractAdapter
       
       ADAPTER_NAME                = 'SQLServer'.freeze
@@ -299,8 +269,8 @@ module ActiveRecord
         when String, ActiveSupport::Multibyte::Chars
           if column && column.type == :binary
             column.class.string_to_binary(value)
-          elsif column && column.respond_to?(:is_utf8?) && column.is_utf8?
-            quoted_utf8_value(value)
+          elsif column && column.type == :string
+            "N'#{quote_string(value)}'"
           else
             super
           end
@@ -336,10 +306,6 @@ module ActiveRecord
         else
           super
         end
-      end
-      
-      def quoted_utf8_value(value)
-        "N'#{quote_string(value)}'"
       end
       
       # REFERENTIAL INTEGRITY ====================================#

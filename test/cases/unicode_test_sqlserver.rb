@@ -1,3 +1,4 @@
+# encoding: UTF-8
 require 'cases/sqlserver_helper'
 
 class UnicodeTestSqlserver < ActiveRecord::TestCase
@@ -29,19 +30,22 @@ class UnicodeTestSqlserver < ActiveRecord::TestCase
   context 'Testing unicode data' do
 
     setup do
-      @unicode_data = "\344\270\200\344\272\21434\344\272\224\345\205\255"
-      @encoded_unicode_data = "\344\270\200\344\272\21434\344\272\224\345\205\255".force_encoding('UTF-8') if ruby_19?
+      @unicode_data = "\344\270\200\344\272\21434\344\272\224\345\205\255" # "一二34五六"
     end
 
-    should 'insert into nvarchar field' do
+    should 'insert and retrieve unicode data' do
       assert data = SqlServerUnicode.create!(:nvarchar => @unicode_data)
-      assert_equal @unicode_data, data.reload.nvarchar
+      if connection_mode_dblib?
+        assert_equal "一二34五六", data.reload.nvarchar
+      elsif connection_mode_odbc?
+        assert_equal "一二34五六", data.reload.nvarchar, 'perhaps you are not using the utf8 odbc that does this legwork'
+      elsif connection_mode_adonet?
+        assert_equal "一二34五六", data.reload.nvarchar
+      else
+        raise 'need to add a case for this'
+      end
+      assert_equal Encoding.find('UTF-8'), data.nvarchar.encoding if ruby_19?
     end
-    
-    should 're-encode data on DB reads' do
-      assert data = SqlServerUnicode.create!(:nvarchar => @unicode_data)
-      assert_equal @encoded_unicode_data, data.reload.nvarchar
-    end if ruby_19?
 
   end
   
