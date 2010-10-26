@@ -1,4 +1,5 @@
-* master *
+
+* 3.0.4 *
 
 * Add multiple results set support with #execute_procedure for :dblib mode. [Ken Collins]
 
