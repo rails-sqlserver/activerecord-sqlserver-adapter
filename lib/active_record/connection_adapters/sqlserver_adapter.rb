@@ -346,6 +346,8 @@ module ActiveRecord
         @connection = case @connection_options[:mode]
                       when :dblib
                         appname = config[:appname] || Rails.application.class.name.split('::').first rescue nil
+                        login_timeout = config[:login_timeout].present? ? config[:login_timeout].to_i : nil
+                        timeout = config[:timeout].present? ? config[:timeout].to_i : nil
                         encoding = config[:encoding].present? ? config[:encoding] : nil
                         TinyTds::Client.new({ 
                           :dataserver    => config[:dataserver],
@@ -353,8 +355,8 @@ module ActiveRecord
                           :password      => config[:password],
                           :database      => config[:database],
                           :appname       => appname,
-                          :login_timeout => config[:dblib_login_timeout],
-                          :timeout       => config[:dblib_timeout],
+                          :login_timeout => login_timeout,
+                          :timeout       => timeout,
                           :encoding      => encoding
                         }).tap do |client|
                           client.execute("SET ANSI_DEFAULTS ON").do
