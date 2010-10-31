@@ -347,7 +347,7 @@ module ActiveRecord
                       when :dblib
                         appname = config[:appname] || Rails.application.class.name.split('::').first rescue nil
                         login_timeout = config[:login_timeout].present? ? config[:login_timeout].to_i : nil
-                        timeout = config[:timeout].present? ? config[:timeout].to_i : nil
+                        timeout = config[:timeout].present? ? config[:timeout].to_i/1000 : nil
                         encoding = config[:encoding].present? ? config[:encoding] : nil
                         TinyTds::Client.new({ 
                           :dataserver    => config[:dataserver],
