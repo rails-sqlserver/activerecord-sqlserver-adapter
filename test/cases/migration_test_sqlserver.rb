@@ -84,3 +84,25 @@ class MigrationTest < ActiveRecord::TestCase
   
 end
 
+
+class ChangeTableMigrationsTest < ActiveRecord::TestCase
+  
+  COERCED_TESTS = [:test_string_creates_string_column]
+  
+  include SqlserverCoercedTest
+  
+  def test_coerced_string_creates_string_column
+    with_change_table do |t|
+      @connection.expects(:add_column).with(:delete_me, :foo, coerced_string_column, {})
+      @connection.expects(:add_column).with(:delete_me, :bar, coerced_string_column, {})
+      t.string :foo, :bar
+    end
+  end
+  
+  def coerced_string_column
+    "#{Person.connection.native_string_database_type}(255)"
+  end
+  
+end
+
+

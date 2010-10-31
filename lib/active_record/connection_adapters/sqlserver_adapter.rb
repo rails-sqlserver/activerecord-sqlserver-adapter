@@ -182,7 +182,6 @@ module ActiveRecord
         super(@connection, logger)
         @database_version = info_schema_query { select_value('SELECT @@version') }
         @database_year = DATABASE_VERSION_REGEXP.match(@database_version)[1].to_i rescue 0
-        initialize_native_database_types
         initialize_sqlserver_caches
         use_database
         unless SUPPORTED_VERSIONS.include?(@database_year)
@@ -269,7 +268,6 @@ module ActiveRecord
         when String, ActiveSupport::Multibyte::Chars
           if column && column.type == :binary
             column.class.string_to_binary(value)
-          # elsif column && column.type == :string
           elsif value.is_utf8? || (column && column.type == :string)
             "N'#{quote_string(value)}'"
           else
@@ -417,7 +415,7 @@ module ActiveRecord
               r = row.with_indifferent_access
               yield(r) if block_given?
             end
-            result.each
+            result.each.map{ |row| row.is_a?(Hash) ? row.with_indifferent_access : row }
           when :odbc
             results = []
             raw_connection_run(sql) do |handle|
@@ -570,7 +568,7 @@ module ActiveRecord
       # SCHEMA STATEMENTS ========================================#
       
       def native_database_types
-        ActiveRecord::ConnectionAdapters::SQLServerAdapter::NATIVE_DATABASE_TYPES
+        @native_database_types ||= initialize_native_database_types.freeze
       end
       
       def table_alias_length
@@ -963,7 +961,7 @@ module ActiveRecord
         @update_sql = true
         case @connection_options[:mode]
         when :dblib
-          execute(sql, name)
+          sqlserver_2000? ? execute(sql, name) && select_value('SELECT @@ROWCOUNT AS AffectedRows') : execute(sql, name)
         else
           execute(sql, name)
           select_value('SELECT @@ROWCOUNT AS AffectedRows')
@@ -1268,8 +1266,7 @@ module ActiveRecord
       end
       
       def initialize_native_database_types
-        return if defined?(ActiveRecord::ConnectionAdapters::SQLServerAdapter::NATIVE_DATABASE_TYPES)
-        ActiveRecord::ConnectionAdapters::SQLServerAdapter.const_set(:NATIVE_DATABASE_TYPES,{
+        {
           :primary_key  => "int NOT NULL IDENTITY(1,1) PRIMARY KEY",
           :string       => { :name => native_string_database_type, :limit => 255  },
           :text         => { :name => native_text_database_type },
@@ -1290,7 +1287,7 @@ module ActiveRecord
           :nvarchar_max => { :name => "nvarchar(max)" },
           :ntext        => { :name => "ntext" },
           :ss_timestamp => { :name => 'timestamp'}
-        })
+        }
       end
       
       def column_definitions(table_name)

@@ -237,7 +237,8 @@ class ColumnTestSqlserver < ActiveRecord::TestCase
       
       should 'have column and objects cast to date' do
         assert_equal :date, @date.type, "This column: \n#{@date.inspect}"
-        assert_instance_of Date, @chronic_date.date
+        klass = sqlserver_2008? ? Date : (connection_mode_dblib? ? Time : Date)
+        assert_instance_of klass, @chronic_date.date
       end
       
       should 'have column objects cast to time' do

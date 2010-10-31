@@ -1,4 +1,4 @@
-print "Using SQLServer via ODBC\n"
+print "Using SQLServer via ODBC to #{ENV['ACTIVERECORD_UNITTEST_DSN'] || 'activerecord_unittest'}\n"
 require_dependency 'models/course'
 require 'logger'
 
