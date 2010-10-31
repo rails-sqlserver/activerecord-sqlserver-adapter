@@ -31,13 +31,6 @@ namespace :test do
     end
     
   end
-
-  desc 'Test without unicode types enabled, uses ODBC mode.'
-  task :non_unicode_types do
-    ENV['ENABLE_DEFAULT_UNICODE_TYPES'] = 'false'
-    test = Rake::Task['test:odbc']
-    test.invoke
-  end
   
 end
 

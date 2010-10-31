@@ -4,7 +4,7 @@ module ActiveRecord
       module SchemaStatements
         
         def native_database_types
-          ActiveRecord::ConnectionAdapters::SQLServerAdapter::NATIVE_DATABASE_TYPES
+          @native_database_types ||= initialize_native_database_types.freeze
         end
 
         def tables(name = nil)
@@ -148,8 +148,7 @@ module ActiveRecord
         # === SQLServer Specific ======================================== #
         
         def initialize_native_database_types
-          return if defined?(ActiveRecord::ConnectionAdapters::SQLServerAdapter::NATIVE_DATABASE_TYPES)
-          ActiveRecord::ConnectionAdapters::SQLServerAdapter.const_set(:NATIVE_DATABASE_TYPES,{
+          {
             :primary_key  => "int NOT NULL IDENTITY(1,1) PRIMARY KEY",
             :string       => { :name => native_string_database_type, :limit => 255  },
             :text         => { :name => native_text_database_type },
@@ -170,7 +169,7 @@ module ActiveRecord
             :nvarchar_max => { :name => "nvarchar(max)" },
             :ntext        => { :name => "ntext" },
             :ss_timestamp => { :name => 'timestamp' }
-          })
+          }
         end
         
         def column_definitions(table_name)

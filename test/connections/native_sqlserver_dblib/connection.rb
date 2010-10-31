@@ -1,4 +1,4 @@
-print "Using SQLServer via DBLIB\n"
+print "Using SQLServer via DBLIB to #{ENV['TINYTDS_UNIT_DATASERVER']}\n"
 require_dependency 'models/course'
 require 'logger'
 

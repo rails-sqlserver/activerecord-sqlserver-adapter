@@ -1,6 +1,11 @@
 
 * master * 
 
+
+* 3.0.5 *
+
+* Fixed native database type memoization, now at connection instance level. Fix #execute_procedure for :dblib mode to return indifferent access rows too.
+
 * Make login timeout and query timeout backward database.yml friendly for :dblib mode.
 
 

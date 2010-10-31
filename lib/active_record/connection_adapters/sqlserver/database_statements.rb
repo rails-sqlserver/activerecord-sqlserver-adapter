@@ -80,7 +80,7 @@ module ActiveRecord
                 r = row.with_indifferent_access
                 yield(r) if block_given?
               end
-              result.each
+              result.each.map{ |row| row.is_a?(Hash) ? row.with_indifferent_access : row }
             when :odbc
               results = []
               raw_connection_run(sql) do |handle|

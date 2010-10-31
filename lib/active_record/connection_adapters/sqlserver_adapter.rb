@@ -180,7 +180,6 @@ module ActiveRecord
         super(@connection, logger)
         @database_version = info_schema_query { select_value('SELECT @@version') }
         @database_year = DATABASE_VERSION_REGEXP.match(@database_version)[1].to_i rescue 0
-        initialize_native_database_types
         initialize_sqlserver_caches
         use_database
         unless SUPPORTED_VERSIONS.include?(@database_year)
