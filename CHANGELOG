@@ -1,6 +1,10 @@
 
 * master * 
 
+* 3.0.6 *
+
+* Maintenance release. Lock down to ActiveRecord 3.0.1 using ARel 1.0.0.
+
 
 * 3.0.5 *
 
