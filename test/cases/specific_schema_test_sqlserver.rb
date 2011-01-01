@@ -13,6 +13,15 @@ end
 
 class SpecificSchemaTestSqlserver < ActiveRecord::TestCase
   
+  should 'quote table names properly even when they are views' do
+    obj = SqlServerQuotedTable.create!
+    assert_nothing_raised { SqlServerQuotedTable.first }
+    obj = SqlServerQuotedView1.create!
+    assert_nothing_raised { SqlServerQuotedView1.first }
+    obj = SqlServerQuotedView2.create!
+    assert_nothing_raised { SqlServerQuotedView2.first }
+  end
+
   should 'cope with multi line defaults' do
     default = StringDefault.new
     assert_equal "Some long default with a\nnew line.", default.string_with_multiline_default

@@ -70,6 +70,13 @@ ActiveRecord::Schema.define do
   execute %|ALTER TABLE [sql_server_edge_schemas] ADD [guid_newid] uniqueidentifier DEFAULT NEWID();|
   execute %|ALTER TABLE [sql_server_edge_schemas] ADD [guid_newseqid] uniqueidentifier DEFAULT NEWSEQUENTIALID();|
   
+  create_table 'quoted-table', :force => true do |t|
+  end
+  execute "IF EXISTS (SELECT TABLE_NAME FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_NAME = 'quoted-view1') DROP VIEW [quoted-view1]"
+  execute "CREATE VIEW [quoted-view1] AS SELECT * FROM [quoted-table]"
+  execute "IF EXISTS (SELECT TABLE_NAME FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_NAME = 'quoted-view2') DROP VIEW [quoted-view2]"
+  execute "CREATE VIEW [quoted-view2] AS \n /*#{'x'*4000}}*/ \n SELECT * FROM [quoted-table]"
+  
   execute "IF EXISTS (SELECT TABLE_NAME FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_NAME = 'customers_view') DROP VIEW customers_view"
   execute <<-CUSTOMERSVIEW
     CREATE VIEW customers_view AS

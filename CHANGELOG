@@ -1,6 +1,8 @@
 
 * master * 
 
+* Properly quote table names when reflecting on views.
+
 * Add "dead or not enabled" to :dblib's lost connection messages.
 
 
