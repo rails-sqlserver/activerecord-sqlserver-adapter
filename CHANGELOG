@@ -1,6 +1,7 @@
 
 * 2-3-stable *
 
+* Add "dead or not enabled" to :dblib's lost connection messages.
 
 
 * 2.3.13 *
