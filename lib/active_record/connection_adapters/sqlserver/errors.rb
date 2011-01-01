@@ -14,7 +14,7 @@ module ActiveRecord
         }.freeze
         
         LOST_CONNECTION_MESSAGES    = {
-          :dblib  => [/closed connection/],
+          :dblib  => [/closed connection/, /dead or not enabled/],
           :odbc   => [/link failure/, /server failed/, /connection was already closed/, /invalid handle/i],
           :adonet => [/current state is closed/, /network-related/]
         }.freeze
