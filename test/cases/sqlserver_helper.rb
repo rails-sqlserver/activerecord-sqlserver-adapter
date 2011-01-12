@@ -80,17 +80,14 @@ end
 # Our changes/additions to ActiveRecord test helpers specific for SQL Server.
 
 ActiveRecord::Base.connection.class.class_eval do
-  IGNORED_SQL << %r|SELECT SCOPE_IDENTITY| << %r{INFORMATION_SCHEMA\.(TABLES|VIEWS|COLUMNS)}
-  IGNORED_SQL << %r|SELECT @@IDENTITY| << %r|SELECT @@ROWCOUNT| << %r|SELECT @@version| << %r|SELECT @@TRANCOUNT|
-end
-
-ActiveRecord::ConnectionAdapters::SQLServerAdapter.class_eval do
-  def raw_select_with_query_record(sql, name=nil, options={})
+  IGNORED_SQL << %r|SELECT SCOPE_IDENTITY| << %r{INFORMATION_SCHEMA\.(TABLES|VIEWS|COLUMNS)} << 
+                 %r|SELECT @@IDENTITY| << %r|SELECT @@ROWCOUNT| << %r|SELECT @@version| << %r|SELECT @@TRANCOUNT|
+  def select_with_query_record(sql, name=nil)
     $queries_executed ||= []
     $queries_executed << sql unless IGNORED_SQL.any? { |r| sql =~ r }
-    raw_select_without_query_record(sql,name,options)
+    select_without_query_record(sql, name)
   end
-  alias_method_chain :raw_select, :query_record
+  alias_method_chain :select, :query_record
 end
 
 module ActiveRecord 
@@ -111,7 +108,7 @@ module ActiveRecord
       patterns_to_match.each do |pattern|
         failed_patterns << pattern unless $queries_executed.any?{ |sql| pattern === sql }
       end
-      assert failed_patterns.empty?, "Query pattern(s) #{failed_patterns.map(&:inspect).join(', ')} not found in:\n#{$queries_executed.inspect}"
+      assert failed_patterns.empty?, "Query pattern(s) #{failed_patterns.map{ |p| p.inspect }.join(', ')} not found.#{$queries_executed.size == 0 ? '' : "\nQueries:\n#{$queries_executed.join("\n")}"}"
     end
     def connection_mode_dblib? ; self.class.connection_mode_dblib? ; end
     def connection_mode_odbc? ; self.class.connection_mode_odbc? ; end
