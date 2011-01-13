@@ -3,16 +3,15 @@ require 'models/task'
 require 'models/book'
 require 'models/post'
 
-class BBBBasicTestSqlserver < ActiveRecord::TestCase
+class ScratchTestSqlserver < ActiveRecord::TestCase
   
   fixtures :tasks, :posts
   
   setup :create_10_books
   
   
-  should 'pass limit' do
-    # Book.first
-    Book.count :limit => 3, :offset => 5, :lock => 'WITH (NOLOCK)'
+  should 'pass' do
+    raise Book.all(:offset=>1).inspect
   end
   
   
