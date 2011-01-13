@@ -1,8 +1,22 @@
 module Arel
   
   module Nodes
+    
     class LockWithSQLServer < Arel::Nodes::Unary
     end
+    
+    class Limit < Arel::Nodes::Unary
+      def initialize expr
+        @expr = expr.to_i
+      end
+    end
+    
+    class Offset < Arel::Nodes::Unary
+      def initialize expr
+        @expr = expr.to_i
+      end
+    end
+    
   end
   
   class SelectManager < Arel::TreeManager
@@ -101,7 +115,7 @@ module Arel
         # joins   = correlated_safe_joins
         core = o.cores.first
         orders = rowtable_orders(o)
-        o.limit.expr = o.limit.expr.to_i + o.offset.expr.to_i if o.limit
+        o.limit.expr = o.limit.expr + o.offset.expr if o.limit
         [ "SELECT COUNT([count]) AS [count_id]",
           "FROM (",
             "SELECT",
@@ -186,13 +200,13 @@ module Arel
       end
       
       def projection_without_expression(projection)
-        projection.to_s.split(',').map do |x|
+        Arel::SqlLiteral.new(projection.split(',').map do |x|
           x.strip!
           x.sub!(/^(COUNT|SUM|MAX|MIN|AVG)\s*(\((.*)\))?/,'\3')
           x.sub!(/^DISTINCT\s*/,'')
           x.sub!(/TOP\s*\(\d+\)\s*/i,'')
           x.strip
-        end.join(', ')
+        end.join(', '))
       end
       
     end
