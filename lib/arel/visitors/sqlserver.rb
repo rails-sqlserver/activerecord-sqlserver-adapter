@@ -1,7 +1,27 @@
 module Arel
+  
+  module Nodes
+    class LockWithSQLServer < Arel::Nodes::Unary
+    end
+  end
+  
+  class SelectManager < Arel::TreeManager
+    
+    alias :lock_without_sqlserver :lock
+    
+    def lock(locking=true)
+      if Arel::Visitors::SQLServer === @visitor
+        @ast.lock = Nodes::LockWithSQLServer.new(locking)
+        self
+      else
+        lock_without_sqlserver(locking)
+      end
+    end
+    
+  end
+  
   module Visitors
     class SQLServer < Arel::Visitors::ToSql
-      
       
       private
       
@@ -25,6 +45,21 @@ module Arel
         "TOP (#{visit o.expr})"
       end
       
+      def visit_Arel_Nodes_Lock o
+        "WITH(HOLDLOCK, ROWLOCK)"
+      end
+      
+      def visit_Arel_Nodes_LockWithSQLServer o
+        case o.expr
+        when TrueClass
+          "WITH(HOLDLOCK, ROWLOCK)"
+        when String
+          o.expr
+        else
+          ""
+        end
+      end
+      
       
       # SQLServer ToSql/Visitor (Additions)
       
@@ -34,14 +69,14 @@ module Arel
         if windowed && !function_select_statement?(o)
           projections =  projections.map { |x| projection_without_expression(x) }
         elsif eager_limiting_select?(o)
-          
+          # TODO visit_Arel_Nodes_SelectStatementWithOutOffset - eager_limiting_select
+          raise 'visit_Arel_Nodes_SelectStatementWithOutOffset - eager_limiting_select'
         end
         [ ("SELECT" if !windowed),
           (visit(o.limit) if o.limit && !windowed),
           (projections.map{ |x| visit(x) }.join(', ')),
-          ("FROM #{visit core.froms}" if core.froms),
+          visit(core.source),
           (visit(o.lock) if o.lock),
-          # (joins unless joins.blank?),
           ("WHERE #{core.wheres.map{ |x| visit(x) }.join ' AND ' }" unless core.wheres.empty?),
           ("GROUP BY #{core.groups.map { |x| visit x }.join ', ' }" unless core.groups.empty?),
           (visit(core.having) if core.having),
@@ -58,12 +93,29 @@ module Arel
             "SELECT ROW_NUMBER() OVER (ORDER BY #{orders.map{ |x| visit(x) }.uniq.join(', ')}) AS [__rn],",
             visit_Arel_Nodes_SelectStatementWithOutOffset(o,true),
           ") AS [__rnt]",
-          (visit(o.offset) if o.offset),
+          visit(o.offset),
         ].compact.join ' '
       end
       
       def visit_Arel_Nodes_SelectStatementForComplexCount(o)
-        
+        # joins   = correlated_safe_joins
+        core = o.cores.first
+        orders = rowtable_orders(o)
+        [ "SELECT COUNT([count]) AS [count_id]",
+          "FROM (",
+            "SELECT",
+            (visit(o.limit) if o.limit),
+            "ROW_NUMBER() OVER (ORDER BY #{orders.map{ |x| visit(x) }.uniq.join(', ')}) AS [__rn],",
+            "1 AS [count]",
+            visit(core.source),
+            (visit(o.lock) if o.lock),
+            ("WHERE #{core.wheres.map{ |x| visit(x) }.join ' AND ' }" unless core.wheres.empty?),
+            ("GROUP BY #{core.groups.map { |x| visit x }.join ', ' }" unless core.groups.empty?),
+            (visit(core.having) if core.having),
+            ("ORDER BY #{o.orders.map{ |x| visit(x) }.uniq.join(', ')}" if !o.orders.empty?),
+          ") AS [__rnt]",
+          (visit(o.offset))
+        ].compact.join ' '
       end
       
       
@@ -89,10 +141,14 @@ module Arel
       end
       
       def complex_count_sql?(o)
-        false
-        # projections = relation.projections
-        # projections.first.is_a?(Arel::Count) && projections.size == 1 &&
-        #   (relation.taken.present? || relation.wheres.present?) && relation.joins(self).blank?
+        core = o.cores.first
+        core.projections.size == 1 &&
+          Arel::Nodes::Count === core.projections.first && 
+          (o.limit || !core.wheres.empty?) &&
+          true  # TODO: This was - relation.joins(self).blank?
+                # Consider visit(core.source)
+                # Consider core.from
+                # Consider core.froms
       end
       
       def rowtable_projections(o)
@@ -140,6 +196,7 @@ module Arel
       
     end
   end
+  
 end
 
 Arel::Visitors::VISITORS['sqlserver'] = Arel::Visitors::SQLServer

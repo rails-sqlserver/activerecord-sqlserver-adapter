@@ -11,6 +11,7 @@ class BBBBasicTestSqlserver < ActiveRecord::TestCase
   
   
   should 'pass limit' do
+    # Book.first
     Book.count :limit => 3, :offset => 5, :lock => 'WITH (NOLOCK)'
   end
   
