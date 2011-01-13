@@ -11,7 +11,11 @@ class ScratchTestSqlserver < ActiveRecord::TestCase
   
   
   should 'pass' do
-    raise Book.all(:offset=>1).inspect
+    Book.all :limit => 3, :offset => 5, :lock => 'WITH (NOLOCK)'
+    Book.count :limit => 3, :offset => 5, :lock => 'WITH (NOLOCK)'
+    # pattern = /FROM \[books\] WITH \(NOLOCK\)/
+    # assert_sql(pattern) { Book.all :limit => 3, :offset => 5, :lock => 'WITH (NOLOCK)' }
+    # assert_sql(pattern) { Book.count :limit => 3, :offset => 5, :lock => 'WITH (NOLOCK)' }
   end
   
   

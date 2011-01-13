@@ -82,12 +82,12 @@ end
 ActiveRecord::Base.connection.class.class_eval do
   IGNORED_SQL << %r|SELECT SCOPE_IDENTITY| << %r{INFORMATION_SCHEMA\.(TABLES|VIEWS|COLUMNS)} << 
                  %r|SELECT @@IDENTITY| << %r|SELECT @@ROWCOUNT| << %r|SELECT @@version| << %r|SELECT @@TRANCOUNT|
-  def select_with_query_record(sql, name=nil)
+  def raw_select_with_query_record(sql, name=nil, options={})
     $queries_executed ||= []
     $queries_executed << sql unless IGNORED_SQL.any? { |r| sql =~ r }
-    select_without_query_record(sql, name)
+    raw_select_without_query_record(sql, name, options)
   end
-  alias_method_chain :select, :query_record
+  alias_method_chain :raw_select, :query_record
 end
 
 module ActiveRecord 

@@ -41,17 +41,12 @@ class OffsetAndLimitTestSqlserver < ActiveRecord::TestCase
     end
 
     should 'alter SQL to limit number of records returned offset by specified amount' do
-      sql = %|SELECT TOP (3) [__rnt].* 
-              FROM (
-                SELECT ROW_NUMBER() OVER (ORDER BY [books].[id]) AS [__rn], [books].* 
-                FROM [books]
-              ) AS [__rnt]
-              WHERE [__rnt].[__rn] > 5|.squish
+      sql = %|SELECT TOP (3) [__rnt].* FROM ( SELECT ROW_NUMBER() OVER (ORDER BY [books].[id] ASC) AS [__rn], [books].* FROM [books]  ) AS [__rnt] WHERE [__rnt].[__rn] > 5|
       assert_sql(sql) { Book.limit(3).offset(5).all }
     end
     
     should 'add locks to deepest sub select' do
-      pattern = /FROM \[books\] WITH \(NOLOCK\)/
+      pattern = /FROM \[books\]\s+WITH \(NOLOCK\)/
       assert_sql(pattern) { Book.all :limit => 3, :offset => 5, :lock => 'WITH (NOLOCK)' }
       assert_sql(pattern) { Book.count :limit => 3, :offset => 5, :lock => 'WITH (NOLOCK)' }
     end
