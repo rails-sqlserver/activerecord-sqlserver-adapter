@@ -101,6 +101,7 @@ module Arel
         # joins   = correlated_safe_joins
         core = o.cores.first
         orders = rowtable_orders(o)
+        o.limit.expr = o.limit.expr.to_i + o.offset.expr.to_i if o.limit
         [ "SELECT COUNT([count]) AS [count_id]",
           "FROM (",
             "SELECT",
