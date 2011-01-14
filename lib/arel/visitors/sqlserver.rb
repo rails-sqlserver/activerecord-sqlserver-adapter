@@ -107,7 +107,7 @@ module Arel
             "SELECT ROW_NUMBER() OVER (ORDER BY #{orders.map{ |x| visit(x) }.uniq.join(', ')}) AS [__rn],",
             visit_Arel_Nodes_SelectStatementWithOutOffset(o,true),
           ") AS [__rnt]",
-          visit(o.offset),
+          (visit(o.offset) if o.offset),
         ].compact.join ' '
       end
       
@@ -129,7 +129,7 @@ module Arel
             (visit(core.having) if core.having),
             ("ORDER BY #{o.orders.map{ |x| visit(x) }.uniq.join(', ')}" if !o.orders.empty?),
           ") AS [__rnt]",
-          (visit(o.offset))
+          (visit(o.offset) if o.offset)
         ].compact.join ' '
       end
       
