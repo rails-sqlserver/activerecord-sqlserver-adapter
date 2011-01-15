@@ -26,8 +26,9 @@ class ScratchTestSqlserver < ActiveRecord::TestCase
             :developers, :projects, :developers_projects
   
   should 'pass' do
-    posts = Post.count(:all, :include => [ :author, :comments ], :limit => 2, :offset => 10, :conditions => [ "authors.name = ?", 'David' ])
-    assert_equal 0, posts
+    comments = Comment.find(:all, :include => :post, :limit => 3, :offset => 2, :order => 'comments.id')
+    assert_equal 3, comments.length
+    assert_equal [3,5,6], comments.collect { |c| c.id }
   end
   
   

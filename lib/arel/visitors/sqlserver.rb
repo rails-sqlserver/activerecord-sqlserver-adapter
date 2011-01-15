@@ -200,6 +200,13 @@ module Arel
           ((first_prjn.respond_to?(:distinct) && first_prjn.distinct) || first_prjn.include?('DISTINCT'))
       end
       
+      def all_projections_aliased_in_select_statement?(o)
+        projections = o.cores.first.projections
+        projections.all? do |x|
+          x.split(',').all? { |y| y.include?(' AS ') }
+        end
+      end
+      
       def function_select_statement?(o)
         core = o.cores.first
         core.projections.any? { |x| Arel::Nodes::Function === x }
@@ -248,11 +255,10 @@ module Arel
               p.strip!
             end
           end
-        elsif false # join_in_select_statement?(o) && all_select_clauses_aliased?
-          raise 'TODO: join_in_select_statement?(o) && all_select_clauses_aliased?'
-          # relation.select_clauses.map do |sc|
-          #   sc.split(',').map { |c| c.split(' AS ').last.strip  }.join(', ')
-          # end
+        elsif join_in_select_statement?(o) && all_projections_aliased_in_select_statement?(o)
+          core.projections.map do |x|
+            Arel::Nodes::SqlLiteral.new x.split(',').map{ |y| y.split(' AS ').last.strip }.join(', ')
+          end
         elsif function_select_statement?(o)
           [Arel.star]
         else
