@@ -20,9 +20,13 @@ class ScratchTestSqlserver < ActiveRecord::TestCase
            :authors, :categorizations, :categories, :posts
   
   should 'pass' do
-    combined = Developer.find(:all, :order => 'developers.name, developers.salary')
-    assert_equal combined, Developer.find(:all, :order => ['developers.name', 'developers.salary'])
+    topics = Topic.send(:with_scope, :find => {:limit => 1, :offset => 1, :include => :replies}) do
+      Topic.find(:all, :order => "topics.id")
+    end
+    assert_equal 1, topics.size
+    assert_equal 2, topics.first.id
   end
+  
   
   
 end

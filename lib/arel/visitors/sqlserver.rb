@@ -118,8 +118,8 @@ module Arel
         projections = core.projections
         groups = core.groups
         orders = o.orders.reverse.uniq.reverse
-        if windowed && !function_select_statement?(o)
-          projections =  projections.map { |x| projection_without_expression(x) }
+        if windowed
+          projections = function_select_statement?(o) ? projections : projections.map { |x| projection_without_expression(x) }
         elsif eager_limiting_select_statement?(o)
           raise "visit_Arel_Nodes_SelectStatementWithOutOffset - eager_limiting_select_statement?"
           groups = projections.map { |x| projection_without_expression(x) }
@@ -159,10 +159,9 @@ module Arel
       end
       
       def visit_Arel_Nodes_SelectStatementForComplexCount(o)
-        # joins   = correlated_safe_joins
         core = o.cores.first
-        orders = rowtable_orders(o)
         o.limit.expr = o.limit.expr + (o.offset ? o.offset.expr : 0) if o.limit
+        orders = rowtable_orders(o)
         [ "SELECT COUNT([count]) AS [count_id]",
           "FROM (",
             "SELECT",
@@ -234,14 +233,16 @@ module Arel
       def rowtable_projections(o)
         core = o.cores.first
         if single_distinct_select_statement?(o)
-          raise 'TODO: single_distinct_select_statement'
-          # ::Array.wrap(relation.select_clauses.first.dup.tap do |sc|
-          #   sc.sub! 'DISTINCT', "DISTINCT #{taken_clause if relation.taken.present?}".strip
-          #   sc.sub! table_name_from_select_clause(sc), '__rnt'
-          #   sc.strip!
-          # end)
-        elsif false # relation.join? && all_select_clauses_aliased?
-          raise 'TODO: relation.join? && all_select_clauses_aliased?'
+          tn = table_name_from_select_statement(o)
+          core.projections.map do |x|
+            x.dup.tap do |p|
+              p.sub! 'DISTINCT', "DISTINCT #{visit(o.limit)}".strip if o.limit
+              p.sub! /\[#{tn}\]\./, '[__rnt].'
+              p.strip!
+            end
+          end
+        elsif false # join_in_select_statement?(o) && all_select_clauses_aliased?
+          raise 'TODO: join_in_select_statement?(o) && all_select_clauses_aliased?'
           # relation.select_clauses.map do |sc|
           #   sc.split(',').map { |c| c.split(' AS ').last.strip  }.join(', ')
           # end
@@ -256,7 +257,8 @@ module Arel
       def rowtable_orders(o)
         if !o.orders.empty?
           o.orders
-        elsif false # TODO relation.join?
+        elsif join_in_select_statement?(o)
+          raise 'TODO: rowtable_orders - join_in_select_statement?(o)'
           # table_names_from_select_clauses.map { |tn| quote("#{tn}.#{pk_for_table(tn)}") }
         else
           tn = table_name_from_select_statement(o)
