@@ -26,21 +26,8 @@ class ScratchTestSqlserver < ActiveRecord::TestCase
             :developers, :projects, :developers_projects
   
   should 'pass' do
-    Post.send(:with_scope, :find => { :conditions => "1=1" }) do
-      posts = authors(:david).posts.find(:all,
-        :include    => :comments,
-        :conditions => "comments.body like 'Normal%' OR comments.#{QUOTED_TYPE}= 'SpecialComment'",
-        :limit      => 2
-      )
-      assert_equal 2, posts.size
-
-      count = Post.count(
-        :include    => [ :comments, :author ],
-        :conditions => "authors.name = 'David' AND (comments.body like 'Normal%' OR comments.#{QUOTED_TYPE}= 'SpecialComment')",
-        :limit      => 2
-      )
-      assert_equal count, posts.size
-    end
+    posts = Post.count(:all, :include => [ :author, :comments ], :limit => 2, :offset => 10, :conditions => [ "authors.name = ?", 'David' ])
+    assert_equal 0, posts
   end
   
   

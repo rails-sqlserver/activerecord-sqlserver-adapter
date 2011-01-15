@@ -262,14 +262,13 @@ module Arel
       end
       
       def rowtable_orders(o)
+        core = o.cores.first
         if !o.orders.empty?
           o.orders
         elsif join_in_select_statement?(o)
-          raise 'TODO: rowtable_orders - join_in_select_statement?(o)'
-          # table_names_from_select_clauses.map { |tn| quote("#{tn}.#{pk_for_table(tn)}") }
+          [core.from.primary_key.asc]
         else
-          tn = table_name_from_select_statement(o)
-          [Arel::Table.new(tn, @engine).primary_key.asc]
+          [core.from.primary_key.asc]
         end.reverse.uniq.reverse
       end
       
