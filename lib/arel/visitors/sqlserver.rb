@@ -189,8 +189,15 @@ module Arel
       
       # SQLServer Helpers
       
-      def table_name_from_select_statement(o)
-        o.cores.first.source.left.name
+      def table_from_select_statement(o)
+        core = o.cores.first
+        if Arel::Table === core.from
+          core.from
+        elsif Arel::Nodes::SqlLiteral === core.from
+          Arel::Table.new(core.from, @engine)
+        elsif Arel::Nodes::JoinSource === core.source
+          Arel::Nodes::SqlLiteral === core.source.left ? Arel::Table.new(core.source.left, @engine) : core.source.left
+        end
       end
       
       def single_distinct_select_statement?(o)
@@ -247,7 +254,7 @@ module Arel
       def rowtable_projections(o)
         core = o.cores.first
         if single_distinct_select_statement?(o)
-          tn = table_name_from_select_statement(o)
+          tn = table_from_select_statement(o).name
           core.projections.map do |x|
             x.dup.tap do |p|
               p.sub! 'DISTINCT', "DISTINCT #{visit(o.limit)}".strip if o.limit
@@ -262,7 +269,7 @@ module Arel
         elsif function_select_statement?(o)
           [Arel.star]
         else
-          tn = table_name_from_select_statement(o)
+          tn = table_from_select_statement(o).name
           core.projections.map { |x| x.gsub /\[#{tn}\]\./, '[__rnt].' }
         end
       end
@@ -274,7 +281,7 @@ module Arel
         elsif join_in_select_statement?(o)
           [core.from.primary_key.asc]
         else
-          [core.from.primary_key.asc]
+          [table_from_select_statement(o).primary_key.asc]
         end.reverse.uniq.reverse
       end
       
