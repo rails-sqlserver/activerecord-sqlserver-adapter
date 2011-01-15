@@ -2,21 +2,27 @@ module Arel
   
   module Nodes
     
+    # See the SelectManager#lock method on why this custom class is needed.
     class LockWithSQLServer < Arel::Nodes::Unary
     end
     
+    # In versions of ActiveRecord prior to v3.0.3 limits and offset were always integers via 
+    # a #to_i. Somewhere between ActiveRecord and ARel this is not happening anymore nor are they 
+    # in agreement which should be responsible. Since we need to make sure that these are visited 
+    # correctly and that we can do math with them, these are here to cast to integers.
     class Limit < Arel::Nodes::Unary
       def initialize expr
         @expr = expr.to_i
       end
     end
-    
     class Offset < Arel::Nodes::Unary
       def initialize expr
         @expr = expr.to_i
       end
     end
     
+    # Extending the Ordering class to be comparrison friendly which allows us to call #uniq on a
+    # collection of them. See SelectManager#order for more details.
     class Ordering < Arel::Nodes::Binary
       def hash
         expr.hash
@@ -35,32 +41,38 @@ module Arel
     
     alias :lock_without_sqlserver :lock
     
+    # Getting real Ordering objects is very important for us. We need to be able to call #uniq on 
+    # a colleciton of them reliably as well as using their true object attributes to mutate them 
+    # to grouping objects for the inner sql during a select statment with an offset/rownumber. So this
+    # is here till ActiveRecord & ARel does this for us instead of using SqlLiteral objects.
     def order(*exprs)
       @ast.orders.concat(exprs.map{ |x|
         case x
         when Arel::Attributes::Attribute
           c = engine.connection
           tn = x.relation.table_alias || x.relation.name
-          expr = Nodes::SqlLiteral.new "#{c.quote_table_name(tn)}.#{c.quote_column_name(x.name)}"
-          Nodes::Ordering.new expr
+          expr = Arel::Nodes::SqlLiteral.new "#{c.quote_table_name(tn)}.#{c.quote_column_name(x.name)}"
+          Arel::Nodes::Ordering.new expr
         when String
           x.split(',').map do |s|
             expr, direction = s.split
-            expr = Nodes::SqlLiteral.new(expr)
+            expr = Arel::Nodes::SqlLiteral.new(expr)
             direction = direction =~ /desc/i ? :desc : :asc
-            Nodes::Ordering.new expr, direction
+            Arel::Nodes::Ordering.new expr, direction
           end
         else
-          expr = Nodes::SqlLiteral.new x.to_s
-          Nodes::Ordering.new expr
+          expr = Arel::Nodes::SqlLiteral.new x.to_s
+          Arel::Nodes::Ordering.new expr
         end
       }.flatten)
       self
     end
     
+    # A friendly over ride that allows us to put a special lock object that can have a default or pass 
+    # custom string hints down. See the visit_Arel_Nodes_LockWithSQLServer delegation method.
     def lock(locking=true)
       if Arel::Visitors::SQLServer === @visitor
-        @ast.lock = Nodes::LockWithSQLServer.new(locking)
+        @ast.lock = Arel::Nodes::LockWithSQLServer.new(locking)
         self
       else
         lock_without_sqlserver(locking)
@@ -121,17 +133,12 @@ module Arel
         if windowed
           projections = function_select_statement?(o) ? projections : projections.map { |x| projection_without_expression(x) }
         elsif eager_limiting_select_statement?(o)
-          raise "visit_Arel_Nodes_SelectStatementWithOutOffset - eager_limiting_select_statement?"
           groups = projections.map { |x| projection_without_expression(x) }
           projections = projections.map { |x| projection_without_expression(x) }
-          # TODO: Let's alter objects vs strings and make new order objects
           orders = orders.map do |x|
-            Arel::SqlLiteral.new(x.split(',').reject(&:blank?).map do |c|
-              max = c =~ /desc\s*/i
-              c = clause_without_expression(c).sub(/(asc|desc)/i,'').strip
-              max ? "MAX(#{c})" : "MIN(#{c})"
-            end.join(', '))
-          end          
+            expr = Arel::Nodes::SqlLiteral.new projection_without_expression(x.expr)
+            x.descending? ? Arel::Nodes::Max.new([expr]) : Arel::Nodes::Min.new([expr])
+          end
         end
         [ ("SELECT" if !windowed),
           (visit(o.limit) if o.limit && !windowed),
@@ -266,8 +273,9 @@ module Arel
         end.reverse.uniq.reverse
       end
       
+      # TODO: We use this for grouping too, maybe make Grouping objects vs SqlLiteral.
       def projection_without_expression(projection)
-        Arel::SqlLiteral.new(projection.split(',').map do |x|
+        Arel::Nodes::SqlLiteral.new(projection.split(',').map do |x|
           x.strip!
           x.sub!(/^(COUNT|SUM|MAX|MIN|AVG)\s*(\((.*)\))?/,'\3')
           x.sub!(/^DISTINCT\s*/,'')

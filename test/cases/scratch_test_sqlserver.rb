@@ -1,30 +1,46 @@
 require 'cases/sqlserver_helper'
-require 'models/tagging'
 require 'models/post'
-require 'models/topic'
+require 'models/tagging'
+require 'models/tag'
 require 'models/comment'
-require 'models/reply'
 require 'models/author'
-require 'models/comment'
-require 'models/entrant'
-require 'models/developer'
+require 'models/category'
 require 'models/company'
-require 'models/bird'
-require 'models/car'
-require 'models/engine'
-require 'models/tyre'
+require 'models/person'
+require 'models/reader'
+require 'models/owner'
+require 'models/pet'
+require 'models/reference'
+require 'models/job'
+require 'models/subscriber'
+require 'models/subscription'
+require 'models/book'
+require 'models/developer'
+require 'models/project'
 
 class ScratchTestSqlserver < ActiveRecord::TestCase
 
-  fixtures :topics, :companies, :developers, :projects, :computers, :accounts, :minimalistics, 'warehouse-things', 
-           :authors, :categorizations, :categories, :posts
+  fixtures :posts, :comments, :authors, :author_addresses, :categories, :categories_posts,
+            :companies, :accounts, :tags, :taggings, :people, :readers,
+            :owners, :pets, :author_favorites, :jobs, :references, :subscribers, :subscriptions, :books,
+            :developers, :projects, :developers_projects
   
   should 'pass' do
-    topics = Topic.send(:with_scope, :find => {:limit => 1, :offset => 1, :include => :replies}) do
-      Topic.find(:all, :order => "topics.id")
+    Post.send(:with_scope, :find => { :conditions => "1=1" }) do
+      posts = authors(:david).posts.find(:all,
+        :include    => :comments,
+        :conditions => "comments.body like 'Normal%' OR comments.#{QUOTED_TYPE}= 'SpecialComment'",
+        :limit      => 2
+      )
+      assert_equal 2, posts.size
+
+      count = Post.count(
+        :include    => [ :comments, :author ],
+        :conditions => "authors.name = 'David' AND (comments.body like 'Normal%' OR comments.#{QUOTED_TYPE}= 'SpecialComment')",
+        :limit      => 2
+      )
+      assert_equal count, posts.size
     end
-    assert_equal 1, topics.size
-    assert_equal 2, topics.first.id
   end
   
   
