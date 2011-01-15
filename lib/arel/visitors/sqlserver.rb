@@ -17,11 +17,46 @@ module Arel
       end
     end
     
+    class Ordering < Arel::Nodes::Binary
+      def hash
+        expr.hash
+      end
+      def ==(other)
+        self.class == other.class && self.expr == other.expr
+      end
+      def eql?(other)
+        self == other
+      end
+    end  
+    
   end
   
   class SelectManager < Arel::TreeManager
     
     alias :lock_without_sqlserver :lock
+    
+    def order(*exprs)
+      @ast.orders.concat(exprs.map{ |x|
+        case x
+        when Arel::Attributes::Attribute
+          c = engine.connection
+          tn = x.relation.table_alias || x.relation.name
+          expr = Nodes::SqlLiteral.new "#{c.quote_table_name(tn)}.#{c.quote_column_name(x.name)}"
+          Nodes::Ordering.new expr
+        when String
+          x.split(',').map do |s|
+            expr, direction = s.split
+            expr = Nodes::SqlLiteral.new(expr)
+            direction = direction =~ /desc/i ? :desc : :asc
+            Nodes::Ordering.new expr, direction
+          end
+        else
+          expr = Nodes::SqlLiteral.new x.to_s
+          Nodes::Ordering.new expr
+        end
+      }.flatten)
+      self
+    end
     
     def lock(locking=true)
       if Arel::Visitors::SQLServer === @visitor
@@ -82,7 +117,7 @@ module Arel
         core = o.cores.first
         projections = core.projections
         groups = core.groups
-        orders = o.orders
+        orders = o.orders.reverse.uniq.reverse
         if windowed && !function_select_statement?(o)
           projections =  projections.map { |x| projection_without_expression(x) }
         elsif eager_limiting_select_statement?(o)
@@ -116,7 +151,7 @@ module Arel
           (visit(o.limit) if o.limit && !single_distinct_select_statement?(o)),
           (rowtable_projections(o).map{ |x| visit(x) }.join(', ')),
           "FROM (",
-            "SELECT ROW_NUMBER() OVER (ORDER BY #{orders.map{ |x| visit(x) }.uniq.join(', ')}) AS [__rn],",
+            "SELECT ROW_NUMBER() OVER (ORDER BY #{orders.map{ |x| visit(x) }.join(', ')}) AS [__rn],",
             visit_Arel_Nodes_SelectStatementWithOutOffset(o,true),
           ") AS [__rnt]",
           (visit(o.offset) if o.offset),
@@ -132,14 +167,14 @@ module Arel
           "FROM (",
             "SELECT",
             (visit(o.limit) if o.limit),
-            "ROW_NUMBER() OVER (ORDER BY #{orders.map{ |x| visit(x) }.uniq.join(', ')}) AS [__rn],",
+            "ROW_NUMBER() OVER (ORDER BY #{orders.map{ |x| visit(x) }.join(', ')}) AS [__rn],",
             "1 AS [count]",
             visit(core.source),
             (visit(o.lock) if o.lock),
             ("WHERE #{core.wheres.map{ |x| visit(x) }.join ' AND ' }" unless core.wheres.empty?),
             ("GROUP BY #{core.groups.map { |x| visit x }.join ', ' }" unless core.groups.empty?),
             (visit(core.having) if core.having),
-            ("ORDER BY #{o.orders.map{ |x| visit(x) }.uniq.join(', ')}" if !o.orders.empty?),
+            ("ORDER BY #{o.orders.map{ |x| visit(x) }.join(', ')}" if !o.orders.empty?),
           ") AS [__rnt]",
           (visit(o.offset) if o.offset)
         ].compact.join ' '
@@ -226,7 +261,7 @@ module Arel
         else
           tn = table_name_from_select_statement(o)
           [Arel::Table.new(tn, @engine).primary_key.asc]
-        end
+        end.reverse.uniq.reverse
       end
       
       def projection_without_expression(projection)

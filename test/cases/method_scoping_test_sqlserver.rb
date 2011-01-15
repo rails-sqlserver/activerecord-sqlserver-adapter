@@ -17,7 +17,7 @@ class NestedScopingTest < ActiveRecord::TestCase
     poor_jamis = developers(:poor_jamis)
     Developer.send(:with_scope, :find => { :conditions => "salary < 100000" }) do
       Developer.send(:with_scope, :find => { :offset => 1, :order => 'id asc' }) do
-        assert_sql /ORDER BY id asc/ do
+        assert_sql /ORDER BY id asc/i do
           assert_equal(poor_jamis, Developer.find(:first, :order => 'id asc'))
         end
       end

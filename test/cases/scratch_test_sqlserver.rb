@@ -1,26 +1,27 @@
 require 'cases/sqlserver_helper'
-require 'models/tag'
 require 'models/tagging'
 require 'models/post'
-require 'models/item'
+require 'models/topic'
 require 'models/comment'
+require 'models/reply'
 require 'models/author'
-require 'models/category'
-require 'models/categorization'
-require 'models/vertex'
-require 'models/edge'
-require 'models/book'
-require 'models/citation'
+require 'models/comment'
+require 'models/entrant'
+require 'models/developer'
+require 'models/company'
+require 'models/bird'
+require 'models/car'
+require 'models/engine'
+require 'models/tyre'
 
 class ScratchTestSqlserver < ActiveRecord::TestCase
-  
-  self.use_transactional_fixtures = false
-  
-  fixtures :posts, :authors, :categories, :categorizations, :comments, :tags, :taggings, 
-           :author_favorites, :vertices, :items, :books, :edges
+
+  fixtures :topics, :companies, :developers, :projects, :computers, :accounts, :minimalistics, 'warehouse-things', 
+           :authors, :categorizations, :categories, :posts
   
   should 'pass' do
-    assert_equal 1, posts(:welcome).tags.count
+    combined = Developer.find(:all, :order => 'developers.name, developers.salary')
+    assert_equal combined, Developer.find(:all, :order => ['developers.name', 'developers.salary'])
   end
   
   
