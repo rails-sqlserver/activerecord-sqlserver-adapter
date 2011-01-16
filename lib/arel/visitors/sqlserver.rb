@@ -262,15 +262,23 @@ module Arel
         # return if !join_in_select_statement?(o) || core.source.right.size != 2
         # j1 = core.source.right.first
         # j2 = core.source.right.second
-        return
-        
-        return unless Arel::Nodes::OuterJoin === j1 && Arel::Nodes::StringJoin === j2
-        j1_tn = j1.left.name
-        j2_tn = j2.left.match(/JOIN \[(.*)\].*ON/).try(:[],1)
+        # return unless Arel::Nodes::OuterJoin === j1 && Arel::Nodes::StringJoin === j2
+        # j1_tn = j1.left.name
+        # j2_tn = j2.left.match(/JOIN \[(.*)\].*ON/).try(:[],1)
+        # return unless j1_tn == j2_tn
+        # crltd_tn = "#{j1_tn}_crltd"
+        # j1.left.table_alias = crltd_tn
+        # j1.right.expr.left.relation.table_alias = crltd_tn
+        return if !join_in_select_statement?(o) || !(Arel::Nodes::StringJoin === core.froms)
+        j1 = core.froms.left
+        j2 = core.froms.right
+        return unless Arel::Nodes::OuterJoin === j1 && Arel::Nodes::SqlLiteral === j2 && j2.include?('JOIN ')
+        j1_tn = j1.right.name
+        j2_tn = j2.match(/JOIN \[(.*)\].*ON/).try(:[],1)
         return unless j1_tn == j2_tn
-        crltd_tn = "#{j1_tn}_crltd"
-        j1.left.table_alias = crltd_tn
-        j1.right.expr.left.relation.table_alias = crltd_tn
+        on_index = j2.index(' ON ')
+        j2.insert on_index, " AS [#{j2_tn}_crltd]"
+        j2.sub! "[#{j2_tn}].", "[#{j2_tn}_crltd]."
       end
       
       def rowtable_projections(o)
