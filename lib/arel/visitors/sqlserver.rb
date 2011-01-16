@@ -203,20 +203,17 @@ module Arel
         # elsif Arel::Nodes::JoinSource === core.source
         #   Arel::Nodes::SqlLiteral === core.source.left ? Arel::Table.new(core.source.left, @engine) : core.source.left
         # end
-        if Arel::Table === core.froms
-          core.froms
-        elsif Arel::Nodes::SqlLiteral === core.froms
-          Arel::Table.new(core.froms, @engine)
-        elsif Arel::Nodes::Join === core.froms
-          case x = core.froms.left
+        table_finder = lambda { |x|
+          case x
           when Arel::Table
             x
           when Arel::Nodes::SqlLiteral
             Arel::Table.new(x, @engine)
-          when Arel::Nodes::OuterJoin
-            x.left
+          when Arel::Nodes::Join
+            table_finder.call(x.left)
           end
-        end        
+        }
+        table_finder.call(core.froms)   
       end
       
       def single_distinct_select_statement?(o)
