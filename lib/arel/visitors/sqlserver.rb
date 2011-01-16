@@ -143,7 +143,9 @@ module Arel
         [ ("SELECT" if !windowed),
           (visit(o.limit) if o.limit && !windowed),
           (projections.map{ |x| visit(x) }.join(', ')),
-          visit(core.source),
+          # TODO: [ARel 2.2] Use #from/#source vs. #froms
+          # visit(core.source),
+          ("FROM #{visit core.froms}" if core.froms),
           (visit(o.lock) if o.lock),
           ("WHERE #{core.wheres.map{ |x| visit(x) }.join ' AND ' }" unless core.wheres.empty?),
           ("GROUP BY #{groups.map { |x| visit x }.join ', ' }" unless groups.empty?),
@@ -175,7 +177,9 @@ module Arel
             (visit(o.limit) if o.limit),
             "ROW_NUMBER() OVER (ORDER BY #{orders.map{ |x| visit(x) }.join(', ')}) AS [__rn],",
             "1 AS [count]",
-            visit(core.source),
+            # TODO: [ARel 2.2] Use #from/#source vs. #froms
+            # visit(core.source),
+            ("FROM #{visit core.froms}" if core.froms),
             (visit(o.lock) if o.lock),
             ("WHERE #{core.wheres.map{ |x| visit(x) }.join ' AND ' }" unless core.wheres.empty?),
             ("GROUP BY #{core.groups.map { |x| visit x }.join ', ' }" unless core.groups.empty?),
@@ -191,20 +195,36 @@ module Arel
       
       def table_from_select_statement(o)
         core = o.cores.first
-        if Arel::Table === core.from
-          core.from
-        elsif Arel::Nodes::SqlLiteral === core.from
-          Arel::Table.new(core.from, @engine)
-        elsif Arel::Nodes::JoinSource === core.source
-          Arel::Nodes::SqlLiteral === core.source.left ? Arel::Table.new(core.source.left, @engine) : core.source.left
-        end
+        # TODO: [ARel 2.2] Use #from/#source vs. #froms
+        # if Arel::Table === core.from
+        #   core.from
+        # elsif Arel::Nodes::SqlLiteral === core.from
+        #   Arel::Table.new(core.from, @engine)
+        # elsif Arel::Nodes::JoinSource === core.source
+        #   Arel::Nodes::SqlLiteral === core.source.left ? Arel::Table.new(core.source.left, @engine) : core.source.left
+        # end
+        if Arel::Table === core.froms
+          core.froms
+        elsif Arel::Nodes::SqlLiteral === core.froms
+          Arel::Table.new(core.froms, @engine)
+        elsif Arel::Nodes::Join === core.froms
+          case x = core.froms.left
+          when Arel::Table
+            x
+          when Arel::Nodes::SqlLiteral
+            Arel::Table.new(x, @engine)
+          when Arel::Nodes::OuterJoin
+            x.left
+          end
+        end        
       end
       
       def single_distinct_select_statement?(o)
         projections = o.cores.first.projections
-        first_prjn = projections.first
+        p1 = projections.first
         projections.size == 1 && 
-          ((first_prjn.respond_to?(:distinct) && first_prjn.distinct) || first_prjn.include?('DISTINCT'))
+          ((p1.respond_to?(:distinct) && p1.distinct) || 
+            p1.respond_to?(:include?) && p1.include?('DISTINCT'))
       end
       
       def all_projections_aliased_in_select_statement?(o)
@@ -226,7 +246,9 @@ module Arel
       
       def join_in_select_statement?(o)
         core = o.cores.first
-        core.source.right.any? { |x| Arel::Nodes::Join === x }
+        # TODO: [ARel 2.2] Use #from/#source vs. #froms
+        # core.source.right.any? { |x| Arel::Nodes::Join === x }
+        Arel::Nodes::Join === core.froms
       end
       
       def complex_count_sql?(o)
@@ -239,9 +261,12 @@ module Arel
       
       def find_and_fix_uncorrelated_joins_in_select_statement(o)
         core = o.cores.first
-        return if !join_in_select_statement?(o) || core.source.right.size != 2
-        j1 = core.source.right.first
-        j2 = core.source.right.second
+        # TODO: [ARel 2.2] Use #from/#source vs. #froms
+        # return if !join_in_select_statement?(o) || core.source.right.size != 2
+        # j1 = core.source.right.first
+        # j2 = core.source.right.second
+        return
+        
         return unless Arel::Nodes::OuterJoin === j1 && Arel::Nodes::StringJoin === j2
         j1_tn = j1.left.name
         j2_tn = j2.left.match(/JOIN \[(.*)\].*ON/).try(:[],1)
@@ -267,7 +292,8 @@ module Arel
             Arel::Nodes::SqlLiteral.new x.split(',').map{ |y| y.split(' AS ').last.strip }.join(', ')
           end
         elsif function_select_statement?(o)
-          [Arel.star]
+          # TODO: [ARel 2.2] Use Arel.star
+          [Arel::Nodes::SqlLiteral.new '*']
         else
           tn = table_from_select_statement(o).name
           core.projections.map { |x| x.gsub /\[#{tn}\]\./, '[__rnt].' }
@@ -279,7 +305,7 @@ module Arel
         if !o.orders.empty?
           o.orders
         elsif join_in_select_statement?(o)
-          [core.from.primary_key.asc]
+          [table_from_select_statement(o).primary_key.asc]
         else
           [table_from_select_statement(o).primary_key.asc]
         end.reverse.uniq.reverse
