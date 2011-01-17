@@ -143,10 +143,7 @@ module Arel
         [ ("SELECT" if !windowed),
           (visit(o.limit) if o.limit && !windowed),
           (projections.map{ |x| visit(x) }.join(', ')),
-          # TODO: [ARel 2.2] Use #from/#source vs. #froms
-          # visit(core.source),
-          ("FROM #{visit core.froms}" if core.froms),
-          (visit(o.lock) if o.lock),
+          (source_with_lock_for_select_statement(o)),
           ("WHERE #{core.wheres.map{ |x| visit(x) }.join ' AND ' }" unless core.wheres.empty?),
           ("GROUP BY #{groups.map { |x| visit x }.join ', ' }" unless groups.empty?),
           (visit(core.having) if core.having),
@@ -177,10 +174,7 @@ module Arel
             (visit(o.limit) if o.limit),
             "ROW_NUMBER() OVER (ORDER BY #{orders.map{ |x| visit(x) }.join(', ')}) AS [__rn],",
             "1 AS [count]",
-            # TODO: [ARel 2.2] Use #from/#source vs. #froms
-            # visit(core.source),
-            ("FROM #{visit core.froms}" if core.froms),
-            (visit(o.lock) if o.lock),
+            (source_with_lock_for_select_statement(o)),
             ("WHERE #{core.wheres.map{ |x| visit(x) }.join ' AND ' }" unless core.wheres.empty?),
             ("GROUP BY #{core.groups.map { |x| visit x }.join ', ' }" unless core.groups.empty?),
             (visit(core.having) if core.having),
@@ -192,6 +186,19 @@ module Arel
       
       
       # SQLServer Helpers
+      
+      def source_with_lock_for_select_statement(o)
+        # TODO: [ARel 2.2] Use #from/#source vs. #froms
+        core = o.cores.first
+        source = "FROM #{visit core.froms}" if core.froms
+        if source && o.lock
+          lock = visit o.lock
+          index = source.match(/FROM [\w\[\]\.]+/)[0].length
+          source.insert index, " #{lock}" 
+        else
+          source
+        end
+      end
       
       def table_from_select_statement(o)
         core = o.cores.first
