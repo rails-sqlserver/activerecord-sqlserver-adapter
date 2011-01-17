@@ -6,21 +6,6 @@ module Arel
     class LockWithSQLServer < Arel::Nodes::Unary
     end
 
-    # In versions of ActiveRecord prior to v3.0.3 limits and offset were always integers via
-    # a #to_i. Somewhere between ActiveRecord and ARel this is not happening anymore nor are they
-    # in agreement which should be responsible. Since we need to make sure that these are visited
-    # correctly and that we can do math with them, these are here to cast to integers.
-    class Limit < Arel::Nodes::Unary
-      def initialize expr
-        @expr = expr.to_i
-      end
-    end
-    class Offset < Arel::Nodes::Unary
-      def initialize expr
-        @expr = expr.to_i
-      end
-    end
-
     # Extending the Ordering class to be comparrison friendly which allows us to call #uniq on a
     # collection of them. See SelectManager#order for more details.
     class Ordering < Arel::Nodes::Binary
@@ -166,7 +151,7 @@ module Arel
 
       def visit_Arel_Nodes_SelectStatementForComplexCount(o)
         core = o.cores.first
-        o.limit.expr = o.limit.expr + (o.offset ? o.offset.expr : 0) if o.limit
+        o.limit.expr = o.limit.expr.to_i + (o.offset ? o.offset.expr.to_i : 0) if o.limit
         orders = rowtable_orders(o)
         [ "SELECT COUNT([count]) AS [count_id]",
           "FROM (",
