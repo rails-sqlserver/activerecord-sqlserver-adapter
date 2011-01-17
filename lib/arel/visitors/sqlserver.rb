@@ -35,8 +35,8 @@ module Arel
         case x
         when Arel::Attributes::Attribute
           c = engine.connection
-          tn = x.relation.table_alias || x.relation.name
-          expr = Arel::Nodes::SqlLiteral.new "#{c.quote_table_name(tn)}.#{c.quote_column_name(x.name)}"
+          table = Arel::Table.new(x.relation.table_alias || x.relation.name)
+          expr = table[x.name]
           Arel::Nodes::Ordering.new expr
         when String
           x.split(',').map do |s|
