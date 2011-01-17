@@ -129,7 +129,7 @@ module Arel
         core = o.cores.first
         projections = core.projections
         groups = core.groups
-        orders = o.orders.reverse.uniq.reverse
+        orders = o.orders.uniq
         if windowed
           projections = function_select_statement?(o) ? projections : projections.map { |x| projection_without_expression(x) }
         elsif eager_limiting_select_statement?(o)
@@ -320,7 +320,7 @@ module Arel
           [table_from_select_statement(o).primary_key.asc]
         else
           [table_from_select_statement(o).primary_key.asc]
-        end.reverse.uniq.reverse
+        end.uniq
       end
       
       # TODO: We use this for grouping too, maybe make Grouping objects vs SqlLiteral.
