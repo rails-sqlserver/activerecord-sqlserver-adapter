@@ -1,14 +1,14 @@
 module Arel
-  
+
   module Nodes
-    
+
     # See the SelectManager#lock method on why this custom class is needed.
     class LockWithSQLServer < Arel::Nodes::Unary
     end
-    
-    # In versions of ActiveRecord prior to v3.0.3 limits and offset were always integers via 
-    # a #to_i. Somewhere between ActiveRecord and ARel this is not happening anymore nor are they 
-    # in agreement which should be responsible. Since we need to make sure that these are visited 
+
+    # In versions of ActiveRecord prior to v3.0.3 limits and offset were always integers via
+    # a #to_i. Somewhere between ActiveRecord and ARel this is not happening anymore nor are they
+    # in agreement which should be responsible. Since we need to make sure that these are visited
     # correctly and that we can do math with them, these are here to cast to integers.
     class Limit < Arel::Nodes::Unary
       def initialize expr
@@ -20,7 +20,7 @@ module Arel
         @expr = expr.to_i
       end
     end
-    
+
     # Extending the Ordering class to be comparrison friendly which allows us to call #uniq on a
     # collection of them. See SelectManager#order for more details.
     class Ordering < Arel::Nodes::Binary
@@ -33,16 +33,16 @@ module Arel
       def eql?(other)
         self == other
       end
-    end  
-    
+    end
+
   end
-  
+
   class SelectManager < Arel::TreeManager
-    
+
     alias :lock_without_sqlserver :lock
-    
-    # Getting real Ordering objects is very important for us. We need to be able to call #uniq on 
-    # a colleciton of them reliably as well as using their true object attributes to mutate them 
+
+    # Getting real Ordering objects is very important for us. We need to be able to call #uniq on
+    # a colleciton of them reliably as well as using their true object attributes to mutate them
     # to grouping objects for the inner sql during a select statment with an offset/rownumber. So this
     # is here till ActiveRecord & ARel does this for us instead of using SqlLiteral objects.
     def order(*exprs)
@@ -67,8 +67,8 @@ module Arel
       }.flatten)
       self
     end
-    
-    # A friendly over ride that allows us to put a special lock object that can have a default or pass 
+
+    # A friendly over ride that allows us to put a special lock object that can have a default or pass
     # custom string hints down. See the visit_Arel_Nodes_LockWithSQLServer delegation method.
     def lock(locking=true)
       if Arel::Visitors::SQLServer === @visitor
@@ -78,16 +78,16 @@ module Arel
         lock_without_sqlserver(locking)
       end
     end
-    
+
   end
-  
+
   module Visitors
     class SQLServer < Arel::Visitors::ToSql
-      
+
       private
-      
+
       # SQLServer ToSql/Visitor (Overides)
-      
+
       def visit_Arel_Nodes_SelectStatement(o)
         if complex_count_sql?(o)
           visit_Arel_Nodes_SelectStatementForComplexCount(o)
@@ -97,19 +97,19 @@ module Arel
           visit_Arel_Nodes_SelectStatementWithOutOffset(o)
         end
       end
-      
+
       def visit_Arel_Nodes_Offset(o)
         "WHERE [__rnt].[__rn] > #{visit o.expr}"
       end
-      
+
       def visit_Arel_Nodes_Limit(o)
         "TOP (#{visit o.expr})"
       end
-      
+
       def visit_Arel_Nodes_Lock o
         "WITH(HOLDLOCK, ROWLOCK)"
       end
-      
+
       def visit_Arel_Nodes_LockWithSQLServer o
         case o.expr
         when TrueClass
@@ -120,10 +120,10 @@ module Arel
           ""
         end
       end
-      
-      
+
+
       # SQLServer ToSql/Visitor (Additions)
-      
+
       def visit_Arel_Nodes_SelectStatementWithOutOffset(o, windowed=false)
         find_and_fix_uncorrelated_joins_in_select_statement(o)
         core = o.cores.first
@@ -150,7 +150,7 @@ module Arel
           ("ORDER BY #{orders.map{ |x| visit(x) }.join(', ')}" if !orders.empty? && !windowed)
         ].compact.join ' '
       end
-      
+
       def visit_Arel_Nodes_SelectStatementWithOffset(o)
         orders = rowtable_orders(o)
         [ "SELECT",
@@ -163,7 +163,7 @@ module Arel
           (visit(o.offset) if o.offset),
         ].compact.join ' '
       end
-      
+
       def visit_Arel_Nodes_SelectStatementForComplexCount(o)
         core = o.cores.first
         o.limit.expr = o.limit.expr + (o.offset ? o.offset.expr : 0) if o.limit
@@ -183,10 +183,10 @@ module Arel
           (visit(o.offset) if o.offset)
         ].compact.join ' '
       end
-      
-      
+
+
       # SQLServer Helpers
-      
+
       def source_with_lock_for_select_statement(o)
         # TODO: [ARel 2.2] Use #from/#source vs. #froms
         core = o.cores.first
@@ -194,12 +194,12 @@ module Arel
         if source && o.lock
           lock = visit o.lock
           index = source.match(/FROM [\w\[\]\.]+/)[0].length
-          source.insert index, " #{lock}" 
+          source.insert index, " #{lock}"
         else
           source
         end
       end
-      
+
       def table_from_select_statement(o)
         core = o.cores.first
         # TODO: [ARel 2.2] Use #from/#source vs. #froms
@@ -220,49 +220,49 @@ module Arel
             table_finder.call(x.left)
           end
         }
-        table_finder.call(core.froms)   
+        table_finder.call(core.froms)
       end
-      
+
       def single_distinct_select_statement?(o)
         projections = o.cores.first.projections
         p1 = projections.first
-        projections.size == 1 && 
-          ((p1.respond_to?(:distinct) && p1.distinct) || 
+        projections.size == 1 &&
+          ((p1.respond_to?(:distinct) && p1.distinct) ||
             p1.respond_to?(:include?) && p1.include?('DISTINCT'))
       end
-      
+
       def all_projections_aliased_in_select_statement?(o)
         projections = o.cores.first.projections
         projections.all? do |x|
           x.split(',').all? { |y| y.include?(' AS ') }
         end
       end
-      
+
       def function_select_statement?(o)
         core = o.cores.first
         core.projections.any? { |x| Arel::Nodes::Function === x }
       end
-      
+
       def eager_limiting_select_statement?(o)
         core = o.cores.first
         single_distinct_select_statement?(o) && (o.limit && !o.offset) && core.groups.empty?
       end
-      
+
       def join_in_select_statement?(o)
         core = o.cores.first
         # TODO: [ARel 2.2] Use #from/#source vs. #froms
         # core.source.right.any? { |x| Arel::Nodes::Join === x }
         Arel::Nodes::Join === core.froms
       end
-      
+
       def complex_count_sql?(o)
         core = o.cores.first
         core.projections.size == 1 &&
-          Arel::Nodes::Count === core.projections.first && 
+          Arel::Nodes::Count === core.projections.first &&
           (o.limit || !core.wheres.empty?) &&
           !join_in_select_statement?(o)
       end
-      
+
       def find_and_fix_uncorrelated_joins_in_select_statement(o)
         core = o.cores.first
         # TODO: [ARel 2.2] Use #from/#source vs. #froms
@@ -287,7 +287,7 @@ module Arel
         j2.insert on_index, " AS [#{j2_tn}_crltd]"
         j2.sub! "[#{j2_tn}].", "[#{j2_tn}_crltd]."
       end
-      
+
       def rowtable_projections(o)
         core = o.cores.first
         if single_distinct_select_statement?(o)
@@ -305,13 +305,13 @@ module Arel
           end
         elsif function_select_statement?(o)
           # TODO: [ARel 2.2] Use Arel.star
-          [Arel::Nodes::SqlLiteral.new '*']
+          [Arel::Nodes::SqlLiteral.new('*')]
         else
           tn = table_from_select_statement(o).name
           core.projections.map { |x| x.gsub /\[#{tn}\]\./, '[__rnt].' }
         end
       end
-      
+
       def rowtable_orders(o)
         core = o.cores.first
         if !o.orders.empty?
@@ -322,7 +322,7 @@ module Arel
           [table_from_select_statement(o).primary_key.asc]
         end.uniq
       end
-      
+
       # TODO: We use this for grouping too, maybe make Grouping objects vs SqlLiteral.
       def projection_without_expression(projection)
         Arel::Nodes::SqlLiteral.new(projection.split(',').map do |x|
@@ -333,10 +333,10 @@ module Arel
           x.strip
         end.join(', '))
       end
-      
+
     end
   end
-  
+
 end
 
 Arel::Visitors::VISITORS['sqlserver'] = Arel::Visitors::SQLServer
