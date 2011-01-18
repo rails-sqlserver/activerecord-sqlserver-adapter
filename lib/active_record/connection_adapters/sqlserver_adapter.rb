@@ -104,8 +104,8 @@ module ActiveRecord
         (@table_klass && @table_klass < ActiveRecord::Base) ? @table_klass : nil
       end
       
-      def database_year
-        @sqlserver_options[:database_year]
+      def database_version
+        @sqlserver_options[:database_version]
       end
       
       
@@ -141,7 +141,7 @@ module ActiveRecord
       end
       
       def simplified_datetime
-        if database_year >= 2008
+        if database_version >= 2008
           :datetime
         elsif table_klass && table_klass.coerced_sqlserver_date_columns.include?(name)
           :date
@@ -165,10 +165,9 @@ module ActiveRecord
       
       ADAPTER_NAME                = 'SQLServer'.freeze
       VERSION                     = '3.0.9'.freeze
-      DATABASE_VERSION_REGEXP     = /Microsoft SQL Server\s+(\d{4})/
-      SUPPORTED_VERSIONS          = [2005,2008].freeze
+      SUPPORTED_VERSIONS          = [9, 10, 11].freeze
       
-      attr_reader :database_version, :database_year,
+      attr_reader :database_version, 
                   :connection_supports_native_types
       
       cattr_accessor :native_text_database_type, :native_binary_database_type, :native_string_database_type,
@@ -179,11 +178,10 @@ module ActiveRecord
         @connection_options = config
         connect
         super(@connection, logger)
-        @database_version = info_schema_query { select_value('SELECT @@version') }
-        @database_year = DATABASE_VERSION_REGEXP.match(@database_version)[1].to_i rescue 0
+        @database_version = (info_schema_query { select_value("SELECT SERVERPROPERTY('productversion')") }).to_i
         initialize_sqlserver_caches
         use_database
-        unless SUPPORTED_VERSIONS.include?(@database_year)
+        unless SUPPORTED_VERSIONS.include?(@database_version)
           raise NotImplementedError, "Currently, only #{SUPPORTED_VERSIONS.to_sentence} are supported."
         end
       end
@@ -278,11 +276,11 @@ module ActiveRecord
       end
       
       def sqlserver_2005?
-        @database_year == 2005
+        @database_version == 9
       end
       
       def sqlserver_2008?
-        @database_year == 2008
+        @database_version >= 10
       end
       
       def version
@@ -290,7 +288,7 @@ module ActiveRecord
       end
       
       def inspect
-        "#<#{self.class} version: #{version}, year: #{@database_year}, connection_options: #{@connection_options.inspect}>"
+        "#<#{self.class} version: #{@database_version}, connection_options: #{@connection_options.inspect}>"
       end
       
       def auto_connect

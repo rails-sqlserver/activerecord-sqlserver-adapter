@@ -29,10 +29,6 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
       assert_equal 'SQLServer', @connection.adapter_name
     end
     
-    should 'include version in inspect' do
-      assert_match(/version\: \d.\d/,@connection.inspect)
-    end
-    
     should 'support migrations' do
       assert @connection.supports_migrations?
     end
@@ -55,19 +51,12 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
     context 'for database version' do
       
       setup do
-        @version_regexp = ActiveRecord::ConnectionAdapters::SQLServerAdapter::DATABASE_VERSION_REGEXP
         @supported_version = ActiveRecord::ConnectionAdapters::SQLServerAdapter::SUPPORTED_VERSIONS
-        @sqlserver_2005_string = "Microsoft SQL Server 2005 - 9.00.3215.00 (Intel X86)"
-        @sqlserver_2008_string = "Microsoft SQL Server 2008 (RTM) - 10.0.1600.22 (Intel X86)"
       end
       
-      should 'return a string from #database_version that matches class regexp' do
-        assert_match @version_regexp, @connection.database_version
-      end
-      
-      should 'return a 4 digit year fixnum for #database_year' do
-        assert_instance_of Fixnum, @connection.database_year
-        assert_contains @supported_version, @connection.database_year
+      should 'return a 2 digit version fixnum for #database_version' do
+        assert_instance_of Fixnum, @connection.database_version
+        assert_contains @supported_version, @connection.database_version
       end
       
     end

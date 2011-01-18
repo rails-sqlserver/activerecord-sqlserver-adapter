@@ -41,7 +41,7 @@ module ActiveRecord
           return [] if table_name.blank?
           cache_key = unqualify_table_name(table_name)
           @sqlserver_columns_cache[cache_key] ||= column_definitions(table_name).collect do |ci|
-            sqlserver_options = ci.except(:name,:default_value,:type,:null).merge(:database_year=>database_year)
+            sqlserver_options = ci.except(:name,:default_value,:type,:null).merge(:database_version=>database_version)
             SQLServerColumn.new ci[:name], ci[:default_value], ci[:type], ci[:null], sqlserver_options
           end
         end
