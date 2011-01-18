@@ -16,8 +16,12 @@ class OffsetAndLimitTestSqlserver < ActiveRecord::TestCase
       assert_sql(/SELECT TOP \(10\)/) { Book.limit(10).all }
     end
   
-    should 'only allow integers for limit' do
-      assert_sql(/SELECT TOP \(20\)/) { Book.limit('20-twenty').all }
+    should 'allow sql literal for limit' do
+      assert_sql(/SELECT TOP \(3-2\)/) { Book.limit(Arel.sql('3-2')).all }
+      assert_sql(/SELECT TOP \(SELECT 2 AS \[count\]\)/) do 
+        books = Book.all :limit => Arel.sql('SELECT 2 AS [count]')
+        assert_equal 2, books.size
+      end
     end
   
   end
@@ -25,23 +29,27 @@ class OffsetAndLimitTestSqlserver < ActiveRecord::TestCase
   context 'When selecting with offset' do
 
     should 'have no limit (top) if only offset is passed' do
-      assert_sql(/SELECT \[__rnt\]\.\* FROM.*WHERE \[__rnt\]\.\[__rn\] > 1/) { Book.all(:offset=>1) }
+      assert_sql(/SELECT \[__rnt\]\.\* FROM.*WHERE \[__rnt\]\.\[__rn\] > \(1\)/) { Book.all(:offset=>1) }
     end
 
   end
   
   context 'When selecting with limit and offset' do
     
-    should 'only allow integers for offset' do
-      assert_sql(/WHERE \[__rnt\]\.\[__rn\] > 0/) { Book.limit(10).offset('five').all }
+    should 'allow sql literal for offset' do
+      assert_sql(/WHERE \[__rnt\]\.\[__rn\] > \(3-2\)/) { Book.limit(10).offset(Arel.sql('3-2')).all }
+      assert_sql(/WHERE \[__rnt\]\.\[__rn\] > \(SELECT 8 AS \[count\]\)/) do 
+        books = Book.all :limit => 3, :offset => Arel.sql('SELECT 8 AS [count]')
+        assert_equal 2, books.size, 'remember there are only 10 books and offset is 8'
+      end
     end
     
-    should 'convert strings which look like integers to integers' do
-      assert_sql(/WHERE \[__rnt\]\.\[__rn\] > 5/) { Book.limit(10).offset('5').all }
+    should 'not convert strings which look like integers to integers' do
+      assert_sql(/WHERE \[__rnt\]\.\[__rn\] > \(N'5'\)/) { Book.limit(10).offset('5').all }
     end
 
     should 'alter SQL to limit number of records returned offset by specified amount' do
-      sql = %|SELECT TOP (3) [__rnt].* FROM ( SELECT ROW_NUMBER() OVER (ORDER BY [books].[id] ASC) AS [__rn], [books].* FROM [books] ) AS [__rnt] WHERE [__rnt].[__rn] > 5|
+      sql = %|SELECT TOP (3) [__rnt].* FROM ( SELECT ROW_NUMBER() OVER (ORDER BY [books].[id] ASC) AS [__rn], [books].* FROM [books] ) AS [__rnt] WHERE [__rnt].[__rn] > (5)|
       assert_sql(sql) { Book.limit(3).offset(5).all }
     end
     

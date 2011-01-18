@@ -34,19 +34,18 @@ module Arel
       @ast.orders.concat(exprs.map{ |x|
         case x
         when Arel::Attributes::Attribute
-          c = engine.connection
           table = Arel::Table.new(x.relation.table_alias || x.relation.name)
           expr = table[x.name]
           Arel::Nodes::Ordering.new expr
         when String
           x.split(',').map do |s|
             expr, direction = s.split
-            expr = Arel::Nodes::SqlLiteral.new(expr)
+            expr = Arel.sql(expr)
             direction = direction =~ /desc/i ? :desc : :asc
             Arel::Nodes::Ordering.new expr, direction
           end
         else
-          expr = Arel::Nodes::SqlLiteral.new x.to_s
+          expr = Arel.sql(x.to_s)
           Arel::Nodes::Ordering.new expr
         end
       }.flatten)
@@ -84,7 +83,7 @@ module Arel
       end
 
       def visit_Arel_Nodes_Offset(o)
-        "WHERE [__rnt].[__rn] > #{visit o.expr}"
+        "WHERE [__rnt].[__rn] > (#{visit o.expr})"
       end
 
       def visit_Arel_Nodes_Limit(o)
@@ -121,7 +120,7 @@ module Arel
           groups = projections.map { |x| projection_without_expression(x) }
           projections = projections.map { |x| projection_without_expression(x) }
           orders = orders.map do |x|
-            expr = Arel::Nodes::SqlLiteral.new projection_without_expression(x.expr)
+            expr = Arel.sql projection_without_expression(x.expr)
             x.descending? ? Arel::Nodes::Max.new([expr]) : Arel::Nodes::Min.new([expr])
           end
         end
@@ -151,7 +150,7 @@ module Arel
 
       def visit_Arel_Nodes_SelectStatementForComplexCount(o)
         core = o.cores.first
-        o.limit.expr = o.limit.expr.to_i + (o.offset ? o.offset.expr.to_i : 0) if o.limit
+        o.limit.expr = Arel.sql("#{o.limit.expr} + #{o.offset ? o.offset.expr : 0}") if o.limit
         orders = rowtable_orders(o)
         [ "SELECT COUNT([count]) AS [count_id]",
           "FROM (",
@@ -286,11 +285,11 @@ module Arel
           end
         elsif join_in_select_statement?(o) && all_projections_aliased_in_select_statement?(o)
           core.projections.map do |x|
-            Arel::Nodes::SqlLiteral.new x.split(',').map{ |y| y.split(' AS ').last.strip }.join(', ')
+            Arel.sql x.split(',').map{ |y| y.split(' AS ').last.strip }.join(', ')
           end
         elsif function_select_statement?(o)
           # TODO: [ARel 2.2] Use Arel.star
-          [Arel::Nodes::SqlLiteral.new('*')]
+          [Arel.sql('*')]
         else
           tn = table_from_select_statement(o).name
           core.projections.map { |x| x.gsub /\[#{tn}\]\./, '[__rnt].' }
@@ -310,7 +309,7 @@ module Arel
 
       # TODO: We use this for grouping too, maybe make Grouping objects vs SqlLiteral.
       def projection_without_expression(projection)
-        Arel::Nodes::SqlLiteral.new(projection.split(',').map do |x|
+        Arel.sql(projection.split(',').map do |x|
           x.strip!
           x.sub!(/^(COUNT|SUM|MAX|MIN|AVG)\s*(\((.*)\))?/,'\3')
           x.sub!(/^DISTINCT\s*/,'')
