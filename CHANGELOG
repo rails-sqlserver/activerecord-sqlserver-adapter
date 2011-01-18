@@ -1,4 +1,9 @@
 
+* master *
+
+* Limit and Offset can take SqlLiteral objects now.
+
+
 * 3.0.9 *
 
 * Fix array literal parsing bug for ruby 1.9.
