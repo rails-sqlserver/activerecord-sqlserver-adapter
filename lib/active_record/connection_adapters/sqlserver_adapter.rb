@@ -165,10 +165,9 @@ module ActiveRecord
       
       ADAPTER_NAME                = 'SQLServer'.freeze
       VERSION                     = '3.0.9'.freeze
-      DATABASE_VERSION_REGEXP     = /Microsoft SQL Server\s+(\d{4})/
       SUPPORTED_VERSIONS          = [2005,2008].freeze
       
-      attr_reader :database_version, :database_year,
+      attr_reader :database_version, :database_year, :database_major_version
                   :connection_supports_native_types
       
       cattr_accessor :native_text_database_type, :native_binary_database_type, :native_string_database_type,
@@ -180,7 +179,16 @@ module ActiveRecord
         connect
         super(@connection, logger)
         @database_version = info_schema_query { select_value('SELECT @@version') }
-        @database_year = DATABASE_VERSION_REGEXP.match(@database_version)[1].to_i rescue 0
+        @database_major_version = (info_schema_query { select_value("SELECT SERVERPROPERTY('productversion')") }).to_i
+        
+        @database_year = case @database_major_version
+        when 9
+          2005
+        when 10
+          2008
+        else
+          0
+        end
         initialize_sqlserver_caches
         use_database
         unless SUPPORTED_VERSIONS.include?(@database_year)
@@ -278,11 +286,15 @@ module ActiveRecord
       end
       
       def sqlserver_2005?
-        @database_year == 2005
+        @database_major_version == 9
       end
       
       def sqlserver_2008?
-        @database_year == 2008
+        @database_major_version == 10
+      end
+
+      def supports_sqlserver_2008?
+        @database_major_version >= 10
       end
       
       def version
@@ -306,11 +318,11 @@ module ActiveRecord
       end
       
       def native_time_database_type
-        sqlserver_2008? ? 'time' : 'datetime'
+        supports_sqlserver_2008? ? 'time' : 'datetime'
       end
       
       def native_date_database_type
-        sqlserver_2008? ? 'date' : 'datetime'
+        supports_sqlserver_2008? ? 'date' : 'datetime'
       end
       
       def native_binary_database_type

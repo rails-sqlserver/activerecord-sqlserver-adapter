@@ -55,14 +55,9 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
     context 'for database version' do
       
       setup do
-        @version_regexp = ActiveRecord::ConnectionAdapters::SQLServerAdapter::DATABASE_VERSION_REGEXP
         @supported_version = ActiveRecord::ConnectionAdapters::SQLServerAdapter::SUPPORTED_VERSIONS
         @sqlserver_2005_string = "Microsoft SQL Server 2005 - 9.00.3215.00 (Intel X86)"
         @sqlserver_2008_string = "Microsoft SQL Server 2008 (RTM) - 10.0.1600.22 (Intel X86)"
-      end
-      
-      should 'return a string from #database_version that matches class regexp' do
-        assert_match @version_regexp, @connection.database_version
       end
       
       should 'return a 4 digit year fixnum for #database_year' do
