@@ -3,25 +3,29 @@
 The default names for the test databases are "activerecord_unittest" and 
 "activerecord_unittest2". If you want to use another database name then be sure 
 to update the connection adapter setups you want to test with in 
-test/connections/<your database>/connection.rb. 
+test/connections/<your database>/connection.rb. Define a user named 'rails' 
+in SQL Server with all privileges granted for the test databases. Use an empty 
+password for said user.
 
 The connection files make certain assumptions. For instance, the ODBC connection 
 assumes you have a DSN setup that matches the name of the default database names.
+Review the test/connections/native_sqlserver_#{mode} file you are testing for details.
 
 
 == Requirements
 
-  * gem install shoulda
-  * gem install mocha
+Get the development dependencies.
+
+  $ bundle install
 
 The tests of this adapter depend on the existence of rails checkout. Make sure 
-to checkout remotes/origin/2-3-stable, then make sure to export RAILS_SOURCE to 
-the full path of that repo.
+to checkout remotes/origin/2-3-stable, I suggest using the git_remote_branch to 
+create a personal tracking branch. Then make a local topic branch off of that like
+2-3-stable_sqlserver and commit this patch https://gist.github.com/761508 or you 
+will have around 90 some errors like this.
 
-Define a user named 'rails' in SQL Server with all privileges granted for the 
-test databases. Use an empty password for said user.
-
-
+  "Conversion failed when converting the nvarchar value 'Godfather' to data 
+   type int.: INSERT INTO [items] ([name], [id]) VALUES (N'Godfather', 1)
 
 
 

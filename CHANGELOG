@@ -3,6 +3,10 @@
 
 * Flatten sp_helpconstraint when looking for constraints just in case fks are present. Issue #64.
 
+* Properly quote table names when reflecting on views.
+
+* Add "dead or not enabled" to :dblib's lost connection messages.
+
 
 * 2.3.13 *
 
