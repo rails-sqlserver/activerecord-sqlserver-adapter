@@ -1,6 +1,7 @@
 
 * 2-3-stable *
 
+* Flatten sp_helpconstraint when looking for constraints just in case fks are present. Issue #64.
 
 
 * 2.3.13 *
