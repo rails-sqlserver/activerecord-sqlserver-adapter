@@ -59,6 +59,7 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
         @supported_version = ActiveRecord::ConnectionAdapters::SQLServerAdapter::SUPPORTED_VERSIONS
         @sqlserver_2005_string = "Microsoft SQL Server 2005 - 9.00.3215.00 (Intel X86)"
         @sqlserver_2008_string = "Microsoft SQL Server 2008 (RTM) - 10.0.1600.22 (Intel X86)"
+        @sqlserver_2011_string1 = %|Microsoft SQL Server "Denali" (CTP1) - 11.0.1103.9 (Intel X86) Sep 24 2010 22:02:43 Copyright (c) Microsoft Corporation Enterprise Evaluation Edition on Windows NT 6.0 (Build 6002: Service Pack 2)|
       end
       
       should 'return a string from #database_version that matches class regexp' do
@@ -68,6 +69,10 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
       should 'return a 4 digit year fixnum for #database_year' do
         assert_instance_of Fixnum, @connection.database_year
         assert_contains @supported_version, @connection.database_year
+      end
+      
+      should 'return a code name if year not available' do
+        assert_equal "Denali", @version_regexp.match(@sqlserver_2011_string1)[1]
       end
       
     end

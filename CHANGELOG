@@ -1,6 +1,8 @@
 
 * master *
 
+* Start to support 2011 code named "Denali".
+
 * Limit and Offset can take SqlLiteral objects now.
 
 

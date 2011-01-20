@@ -165,8 +165,8 @@ module ActiveRecord
       
       ADAPTER_NAME                = 'SQLServer'.freeze
       VERSION                     = '3.0.9'.freeze
-      DATABASE_VERSION_REGEXP     = /Microsoft SQL Server\s+(\d{4})/
-      SUPPORTED_VERSIONS          = [2005,2008].freeze
+      DATABASE_VERSION_REGEXP     = /Microsoft SQL Server\s+"?(\d{4}|\w+)"?/
+      SUPPORTED_VERSIONS          = [2005,2008,2011].freeze
       
       attr_reader :database_version, :database_year,
                   :connection_supports_native_types
@@ -180,11 +180,16 @@ module ActiveRecord
         connect
         super(@connection, logger)
         @database_version = info_schema_query { select_value('SELECT @@version') }
-        @database_year = DATABASE_VERSION_REGEXP.match(@database_version)[1].to_i rescue 0
+        @database_year = begin
+                           year = DATABASE_VERSION_REGEXP.match(@database_version)[1]
+                           year == "Denali" ? 2011 : year.to_i
+                         rescue
+                           0
+                         end
         initialize_sqlserver_caches
         use_database
         unless SUPPORTED_VERSIONS.include?(@database_year)
-          raise NotImplementedError, "Currently, only #{SUPPORTED_VERSIONS.to_sentence} are supported."
+          raise NotImplementedError, "Currently, only #{SUPPORTED_VERSIONS.to_sentence} are supported. We got back #{@database_version}."
         end
       end
       
@@ -283,6 +288,10 @@ module ActiveRecord
       
       def sqlserver_2008?
         @database_year == 2008
+      end
+      
+      def sqlserver_2011?
+        @database_year == 2011
       end
       
       def version
