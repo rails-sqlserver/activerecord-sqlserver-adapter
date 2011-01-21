@@ -241,7 +241,7 @@ module ActiveRecord
           end
         end
 
-        def remove_default_constraint(table_name, column_name))
+        def remove_default_constraint(table_name, column_name)
           # If their are foreign keys in this table, we could still get back a 2D array, so flatten just in case.
           select_all("EXEC sp_helpconstraint '#{quote_string(table_name)}','nomsg'").flatten.select do |row|
             row['constraint_type'] == "DEFAULT on column #{column_name}"

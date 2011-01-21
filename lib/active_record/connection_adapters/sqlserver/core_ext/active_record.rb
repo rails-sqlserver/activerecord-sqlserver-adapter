@@ -1,4 +1,5 @@
 require 'active_record/version'
+require 'active_support/core_ext/class/inheritable_attributes'
 
 module ActiveRecord
   module ConnectionAdapters
