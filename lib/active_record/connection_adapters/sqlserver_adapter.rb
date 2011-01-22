@@ -315,11 +315,11 @@ module ActiveRecord
       end
       
       def native_time_database_type
-        sqlserver_2008? ? 'time' : 'datetime'
+        (sqlserver_2008? || sqlserver_2011?) ? 'time' : 'datetime'
       end
       
       def native_date_database_type
-        sqlserver_2008? ? 'date' : 'datetime'
+        (sqlserver_2008? || sqlserver_2011?) ? 'date' : 'datetime'
       end
       
       def native_binary_database_type

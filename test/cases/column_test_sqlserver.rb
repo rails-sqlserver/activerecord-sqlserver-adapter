@@ -220,7 +220,7 @@ class ColumnTestSqlserver < ActiveRecord::TestCase
       end
       
       should 'have an inheritable attribute ' do
-        assert SqlServerChronic.coerced_sqlserver_date_columns.include?('date') unless sqlserver_2008?
+        assert SqlServerChronic.coerced_sqlserver_date_columns.include?('date') unless (sqlserver_2008? || sqlserver_2011?)
       end
       
       should 'have column and objects cast to date' do
