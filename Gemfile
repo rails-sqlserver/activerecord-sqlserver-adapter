@@ -2,11 +2,18 @@
 source :rubygems
 
 gemspec :path => ENV['RAILS_SOURCE']
-gem 'arel', :path => ENV['AREL'] if ENV['AREL']
-gem 'tiny_tds', :path => ENV['TINYTDS_SOURCE'] if ENV['TINYTDS_SOURCE']
+gem 'arel', :path => ENV['AREL']
+
+group :tinytds do
+  if ENV['TINYTDS_SOURCE']
+    gem 'tiny_tds', :path => ENV['TINYTDS_SOURCE']
+  else
+    gem 'tiny_tds'
+  end
+end
 
 group :odbc do
-  gem 'ruby-odbc', '0.99992'
+  gem 'ruby-odbc'
 end
 
 group :development do
