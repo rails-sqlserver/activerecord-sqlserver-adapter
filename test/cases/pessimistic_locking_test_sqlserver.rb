@@ -66,12 +66,12 @@ class PessimisticLockingTestSqlserver < ActiveRecord::TestCase
     
     should 'cope with eager loading un-locked paginated' do
       eager_ids_sql = /SELECT DISTINCT TOP \(5\).*FROM \[people\] WITH \(NOLOCK\)/
-      loader_sql = /FROM \[people\] WITH \(NOLOCK\).*WHERE \(\[people\].\[id\] IN/
+      loader_sql = /FROM \[people\] WITH \(NOLOCK\).*WHERE \[people\]\.\[id\] IN/
       assert_sql(eager_ids_sql,loader_sql) do
         Person.all(:include => :readers, :lock => 'WITH (NOLOCK)', :limit => 5, :offset => 10)
       end
     end
-
+    
   end
   
   
