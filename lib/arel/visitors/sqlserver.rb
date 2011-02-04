@@ -300,10 +300,10 @@ module Arel
         core = o.cores.first
         if !o.orders.empty?
           o.orders
-        elsif join_in_select_statement?(o)
-          [table_from_select_statement(o).primary_key.asc]
         else
-          [table_from_select_statement(o).primary_key.asc]
+          t = table_from_select_statement(o)
+          c = t.primary_key || t.columns.first
+          [c.asc]
         end.uniq
       end
 

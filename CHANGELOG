@@ -1,6 +1,8 @@
 
 * master *
 
+* Fix #rowtable_orders visitor helper to use first column if no pk column was found.
+
 * Flatten sp_helpconstraint when looking for constraints just in case fks are present. Issue #64.
 
 * Start to support 2011 code named "Denali".

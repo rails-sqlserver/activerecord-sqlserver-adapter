@@ -67,6 +67,10 @@ ActiveRecord::Schema.define do
     t.column :guid, :uniqueidentifier
   end
   
+  create_table :no_pk_data, :force => true, :id => false do |t|
+    t.string :name
+  end
+  
   execute %|ALTER TABLE [sql_server_edge_schemas] ADD [guid_newid] uniqueidentifier DEFAULT NEWID();|
   execute %|ALTER TABLE [sql_server_edge_schemas] ADD [guid_newseqid] uniqueidentifier DEFAULT NEWSEQUENTIALID();|
   

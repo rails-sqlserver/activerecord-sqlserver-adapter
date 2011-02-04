@@ -1,5 +1,6 @@
 require 'cases/sqlserver_helper'
 
+class NoPkData < ActiveRecord::Base ; self.table_name = 'no_pk_data' ; end
 class StringDefault < ActiveRecord::Base; end;
 class SqlServerEdgeSchema < ActiveRecord::Base; end;
 class SqlServerEdgeSchema < ActiveRecord::Base
@@ -12,6 +13,12 @@ class SqlServerEdgeSchema < ActiveRecord::Base
 end
 
 class SpecificSchemaTestSqlserver < ActiveRecord::TestCase
+  
+  should 'be able to complex count tables with no primary key' do
+    NoPkData.delete_all
+    10.times { |n| NoPkData.create! :name => "Test#{n}" }
+    assert_equal 1, NoPkData.where(:name => 'Test5').count
+  end
   
   should 'quote table names properly even when they are views' do
     obj = SqlServerQuotedTable.create!
