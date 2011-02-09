@@ -16,14 +16,6 @@ class OffsetAndLimitTestSqlserver < ActiveRecord::TestCase
       assert_sql(/SELECT TOP \(10\)/) { Book.limit(10).all }
     end
   
-    should 'allow sql literal for limit' do
-      assert_sql(/SELECT TOP \(3-2\)/) { Book.limit(Arel.sql('3-2')).all }
-      assert_sql(/SELECT TOP \(SELECT 2 AS \[count\]\)/) do 
-        books = Book.all :limit => Arel.sql('SELECT 2 AS [count]')
-        assert_equal 2, books.size
-      end
-    end
-  
   end
   
   context 'When selecting with offset' do
