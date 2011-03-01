@@ -1,5 +1,5 @@
 
-* master *
+* 3.0.10 *
 
 * Fix #rowtable_orders visitor helper to use first column if no pk column was found.
 
