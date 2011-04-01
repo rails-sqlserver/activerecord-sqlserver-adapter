@@ -17,7 +17,7 @@ def test_files
 end
 
 
-task :test => ['test:odbc']
+task :test => ['test:dblib']
 
 
 namespace :test do
