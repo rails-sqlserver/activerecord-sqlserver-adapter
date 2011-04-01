@@ -3,7 +3,7 @@
 
 * Azure compatibility.
 
-* TinyTDS enhancements for lost connections.
+* TinyTDS enhancements for lost connections. Default connection mode.
 
 
 * 3.0.10 *

@@ -18,7 +18,7 @@ module ActiveRecord
     
     def self.sqlserver_connection(config) #:nodoc:
       config = config.dup.symbolize_keys!
-      config.reverse_merge! :mode => :odbc, :host => 'localhost', :username => 'sa', :password => ''
+      config.reverse_merge! :mode => :dblib, :host => 'localhost', :username => 'sa', :password => ''
       mode = config[:mode].to_s.downcase.underscore.to_sym
       case mode
       when :dblib

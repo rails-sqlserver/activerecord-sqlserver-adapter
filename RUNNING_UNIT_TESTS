@@ -11,7 +11,8 @@ databases. Use an empty password for said user.
 The connection files make certain assumptions. For instance, the ODBC 
 connection assumes you have a DSN setup that matches the name of the default 
 database names. Remember too you have to set an environment variable for the 
-DSN of the adapter, see the ODBC connection information for details.
+DSN of the adapter, see the connection.rb file that matches your connection 
+mode for details.
 
 
 = Cloning The Repos
@@ -63,6 +64,5 @@ on a local branch of our remote tracking branch.
   will explore a patch to rails which disables ambiguous results sets.
 
 * Misc Date/Time object instance matches when using ODBC mode.
-
 
 
