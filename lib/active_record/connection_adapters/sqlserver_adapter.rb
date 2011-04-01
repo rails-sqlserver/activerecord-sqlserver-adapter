@@ -167,7 +167,7 @@ module ActiveRecord
       ADAPTER_NAME                = 'SQLServer'.freeze
       VERSION                     = '3.0.10'.freeze
       DATABASE_VERSION_REGEXP     = /Microsoft SQL Server\s+"?(\d{4}|\w+)"?/
-      SUPPORTED_VERSIONS          = [2005,2008,2011].freeze
+      SUPPORTED_VERSIONS          = [2005,2008,2010,2011].freeze
       
       attr_reader :database_version, :database_year,
                   :connection_supports_native_types
@@ -182,8 +182,13 @@ module ActiveRecord
         super(@connection, logger)
         @database_version = info_schema_query { select_value('SELECT @@version') }
         @database_year = begin
-                           year = DATABASE_VERSION_REGEXP.match(@database_version)[1]
-                           year == "Denali" ? 2011 : year.to_i
+                           if @database_version =~ /Microsoft SQL Azure/i
+                             @sqlserver_azure = true
+                             @database_version.match(/\s(\d{4})\s/)[1].to_i
+                           else
+                             year = DATABASE_VERSION_REGEXP.match(@database_version)[1]
+                             year == "Denali" ? 2011 : year.to_i
+                           end
                          rescue
                            0
                          end
@@ -290,6 +295,10 @@ module ActiveRecord
         @database_year == 2011
       end
       
+      def sqlserver_azure?
+        @sqlserver_azure && @database_year == 2010
+      end
+      
       def version
         self.class::VERSION
       end
@@ -311,11 +320,11 @@ module ActiveRecord
       end
       
       def native_time_database_type
-        sqlserver_2008? ? 'time' : 'datetime'
+        sqlserver_2005? ? 'datetime' : 'time'
       end
       
       def native_date_database_type
-        sqlserver_2008? ? 'date' : 'datetime'
+        sqlserver_2005? ? 'datetime' : 'date'
       end
       
       def native_binary_database_type
@@ -362,11 +371,22 @@ module ActiveRecord
                           :appname       => appname,
                           :login_timeout => login_timeout,
                           :timeout       => timeout,
-                          :encoding      => encoding
+                          :encoding      => encoding,
+                          :azure         => config[:azure]
                         }).tap do |client|
-                          client.execute("SET ANSI_DEFAULTS ON").do
-                          client.execute("SET IMPLICIT_TRANSACTIONS OFF").do
-                          client.execute("SET CURSOR_CLOSE_ON_COMMIT OFF").do
+                          if config[:azure]
+                            client.execute("SET ANSI_NULLS ON").do
+                            client.execute("SET CURSOR_CLOSE_ON_COMMIT OFF").do
+                            client.execute("SET ANSI_NULL_DFLT_ON ON").do
+                            client.execute("SET IMPLICIT_TRANSACTIONS OFF").do
+                            client.execute("SET ANSI_PADDING ON").do
+                            client.execute("SET QUOTED_IDENTIFIER ON")
+                            client.execute("SET ANSI_WARNINGS ON").do
+                          else
+                            client.execute("SET ANSI_DEFAULTS ON").do
+                            client.execute("SET CURSOR_CLOSE_ON_COMMIT OFF").do
+                            client.execute("SET IMPLICIT_TRANSACTIONS OFF").do
+                          end
                         end
                       when :odbc
                         odbc = ['::ODBC','::ODBC_UTF8','::ODBC_NONE'].detect{ |odbc_ns| odbc_ns.constantize rescue nil }.constantize

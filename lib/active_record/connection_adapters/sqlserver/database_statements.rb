@@ -104,6 +104,7 @@ module ActiveRecord
         end
         
         def use_database(database=nil)
+          return if sqlserver_azure?
           database ||= @connection_options[:database]
           do_execute "USE #{quote_table_name(database)}" unless database.blank?
         end

@@ -30,7 +30,7 @@ class ConnectionTestSqlserver < ActiveRecord::TestCase
       @connection.use_database
       assert_equal 'activerecord_unittest', @connection.current_database, 'Would default back to connection options'
     end
-  end
+  end unless sqlserver_azure?
   
   context 'ODBC connection management' do
 

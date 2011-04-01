@@ -98,6 +98,7 @@ module ActiveRecord
       def connection_mode_adonet? ; ActiveRecord::Base.connection.instance_variable_get(:@connection_options)[:mode] == :adonet ; end
       def sqlserver_2005? ; ActiveRecord::Base.connection.sqlserver_2005? ; end
       def sqlserver_2008? ; ActiveRecord::Base.connection.sqlserver_2008? ; end
+      def sqlserver_azure? ; ActiveRecord::Base.connection.sqlserver_azure? ; end
       def ruby_19? ; RUBY_VERSION >= '1.9' ; end
     end
     def assert_sql(*patterns_to_match)
@@ -115,6 +116,7 @@ module ActiveRecord
     def connection_mode_adonet? ; self.class.connection_mode_adonet? ; end
     def sqlserver_2005? ; self.class.sqlserver_2005? ; end
     def sqlserver_2008? ; self.class.sqlserver_2008? ; end
+    def sqlserver_azure? ; self.class.sqlserver_azure? ; end
     def ruby_19? ; self.class.ruby_19? ; end
     def with_enable_default_unicode_types?
       ActiveRecord::ConnectionAdapters::SQLServerAdapter.enable_default_unicode_types.is_a?(TrueClass)

@@ -64,7 +64,7 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
       
       should 'return a string from #database_version that matches class regexp' do
         assert_match @version_regexp, @connection.database_version
-      end
+      end unless sqlserver_azure?
       
       should 'return a 4 digit year fixnum for #database_year' do
         assert_instance_of Fixnum, @connection.database_year
@@ -258,7 +258,7 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
     
     should 'return nil when calling #identity_column for a table_name with no identity' do
       assert_nil @connection.send(:identity_column,Subscriber.table_name)
-    end
+    end unless sqlserver_azure?
     
   end
   
@@ -339,7 +339,7 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
         assert_equal 'read uncommitted', uo[:isolation_level]
       end
       
-    end
+    end unless sqlserver_azure?
 
     context "altering isolation levels" do
       
@@ -390,7 +390,7 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
           assert_nil Task.find(@t2.id).starting, 'Should be nil again from botched transaction above.'
         end
         
-      end
+      end unless sqlserver_azure?
       
     end
     
@@ -432,11 +432,11 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
     
     setup do
       @desc_index_name = 'idx_credit_limit_test_desc'
-      @connection.execute "CREATE INDEX #{@desc_index_name} ON accounts (credit_limit DESC)"
+      @connection.execute "CREATE INDEX [#{@desc_index_name}] ON [accounts] (credit_limit DESC)"
     end
     
     teardown do
-      @connection.execute "DROP INDEX accounts.#{@desc_index_name}"
+      @connection.execute "DROP INDEX [#{@desc_index_name}] ON [accounts]"
     end
     
     should 'have indexes with descending order' do

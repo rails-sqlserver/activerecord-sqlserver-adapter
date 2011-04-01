@@ -184,12 +184,12 @@ class ColumnTestSqlserver < ActiveRecord::TestCase
       should 'be able to use real sql server timestamp if you really want to' do
         assert_equal :binary, @ss_timestamp.type
         assert_equal 'timestamp', @ss_timestamp.sql_type
-      end
+      end unless sqlserver_azure?
       
       should 'return :timestamp as a binaryish string' do
         chronic = SqlServerChronic.create!.reload
         assert_match %r|\000|, chronic.ss_timestamp
-      end
+      end unless sqlserver_azure?
 
     end
     

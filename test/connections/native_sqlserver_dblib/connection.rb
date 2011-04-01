@@ -1,4 +1,4 @@
-print "Using SQLServer via DBLIB to #{ENV['TINYTDS_UNIT_DATASERVER']}\n"
+print "Using SQLServer via DBLIB to #{ENV['ACTIVERECORD_UNITTEST_DATASERVER']}\n"
 require_dependency 'models/course'
 require 'logger'
 
@@ -9,20 +9,22 @@ ActiveRecord::Base.configurations = {
   'arunit' => {
     :adapter    => 'sqlserver',
     :mode       => 'dblib',
-    :dataserver => ENV['TINYTDS_UNIT_DATASERVER'],
-    :username   => 'rails',
-    :password   => '',
+    :dataserver => ENV['ACTIVERECORD_UNITTEST_DATASERVER'],
+    :username   => ENV['ACTIVERECORD_UNITTEST_USER'] || 'rails',
+    :password   => ENV['ACTIVERECORD_UNITTEST_PASS'] || '',
     :database   => 'activerecord_unittest',
-    :appname    => 'SQLServerUnit'
+    :appname    => 'SQLServerAdptrUnit',
+    :azure      => !ENV['ACTIVERECORD_UNITTEST_AZURE'].nil?
   },
   'arunit2' => {
     :adapter    => 'sqlserver',
     :mode       => 'dblib',
-    :dataserver => ENV['TINYTDS_UNIT_DATASERVER'],
-    :username   => 'rails',
-    :password   => '',
+    :dataserver => ENV['ACTIVERECORD_UNITTEST_DATASERVER'],
+    :username   => ENV['ACTIVERECORD_UNITTEST_USER'] || 'rails',
+    :password   => ENV['ACTIVERECORD_UNITTEST_PASS'] || '',
     :database   => 'activerecord_unittest2',
-    :appname    => 'SQLServerUnit2'
+    :appname    => 'SQLServerAdptrUnit2',
+    :azure      => !ENV['ACTIVERECORD_UNITTEST_AZURE'].nil?
   }
 }
 

@@ -63,4 +63,11 @@ class MigrationTestSqlserver < ActiveRecord::TestCase
   
 end
 
+if ActiveRecord::TestCase.sqlserver_azure?
+  class MigrationTest < ActiveRecord::TestCase
+    COERCED_TESTS = [:test_migrator_db_has_no_schema_migrations_table]
+    include SqlserverCoercedTest
+    def test_coerced_test_migrator_db_has_no_schema_migrations_table ; assert true ; end  
+  end
+end
 

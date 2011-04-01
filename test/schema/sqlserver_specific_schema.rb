@@ -25,7 +25,7 @@ ActiveRecord::Schema.define do
     t.column :time,       :time
     t.column :datetime,   :datetime
     t.column :timestamp,  :timestamp
-    t.column :ss_timestamp, :ss_timestamp
+    t.column :ss_timestamp, :ss_timestamp  unless sqlserver_azure?
     t.column :smalldatetime, :smalldatetime
   end
   
@@ -72,7 +72,7 @@ ActiveRecord::Schema.define do
   end
   
   execute %|ALTER TABLE [sql_server_edge_schemas] ADD [guid_newid] uniqueidentifier DEFAULT NEWID();|
-  execute %|ALTER TABLE [sql_server_edge_schemas] ADD [guid_newseqid] uniqueidentifier DEFAULT NEWSEQUENTIALID();|
+  execute %|ALTER TABLE [sql_server_edge_schemas] ADD [guid_newseqid] uniqueidentifier DEFAULT NEWSEQUENTIALID();| unless sqlserver_azure?
   
   create_table 'quoted-table', :force => true do |t|
   end
@@ -102,5 +102,26 @@ ActiveRecord::Schema.define do
       /*#{'x'*4000}}*/
       FROM string_defaults
   STRINGDEFAULTSBIGVIEW
+  
+  if sqlserver_azure?
+    # Azure needs clustered indexes.
+    execute "CREATE CLUSTERED INDEX [idx_schema_migrations_version] ON [schema_migrations] ([version])"
+    execute "CREATE CLUSTERED INDEX [idx_countries_ctryid] ON [countries] ([country_id])"
+    execute "CREATE CLUSTERED INDEX [idx_treaty_id_trtyid] ON [treaties] ([treaty_id])"
+    execute "CREATE CLUSTERED INDEX [idx_no_pk_data_name] ON [no_pk_data] ([name])"
+    execute "CREATE CLUSTERED INDEX [idx_developers_projects_did_pid] ON [developers_projects] ([developer_id],[project_id])"
+    execute "CREATE CLUSTERED INDEX [idx_categories_posts_cid_pid] ON [categories_posts] ([category_id],[post_id])"
+    execute "CREATE CLUSTERED INDEX [idx_dashboards_dashboard_id] ON [dashboards] ([dashboard_id])"
+    execute "CREATE CLUSTERED INDEX [idx_edges_source_id_sink_id] ON [edges] ([source_id],[sink_id])"
+    execute "CREATE CLUSTERED INDEX [idx_goofy_string_id_id] ON [goofy_string_id] ([id])"
+    execute "CREATE CLUSTERED INDEX [idx_lessons_students_lid_sid] ON [lessons_students] ([lesson_id],[student_id])"
+    execute "CREATE CLUSTERED INDEX [idx_mateys_pid_tid] ON [mateys] ([pirate_id],[target_id])"
+    execute "CREATE CLUSTERED INDEX [idx_minivans_minivan_id] ON [minivans] ([minivan_id])"
+    execute "CREATE CLUSTERED INDEX [idx_parrots_pirates_paid_pid] ON [parrots_pirates] ([parrot_id],[pirate_id])"  
+    execute "CREATE CLUSTERED INDEX [idx_parrots_treasures_pid_tid] ON [parrots_treasures] ([parrot_id],[treasure_id])"  
+    execute "CREATE CLUSTERED INDEX [idx_speedometers_speedometer_id] ON [speedometers] ([speedometer_id])"
+    execute "CREATE CLUSTERED INDEX [idx_subscribers_nick] ON [subscribers] ([nick])"
+    execute "CREATE CLUSTERED INDEX [idx_countries_treaties_cid_tid] ON [countries_treaties] ([country_id],[treaty_id])"
+  end
   
 end
