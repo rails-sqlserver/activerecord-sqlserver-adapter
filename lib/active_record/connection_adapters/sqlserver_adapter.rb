@@ -24,6 +24,7 @@ module ActiveRecord
       when :dblib
         raise ArgumentError, 'Missing :dataserver configuration.' unless config.has_key?(:dataserver)
         require_library_or_gem 'tiny_tds'
+        warn("TinyTds v0.4.3 or higher required. Using #{TinyTds::VERSION}") unless TinyTds::Client.instance_methods.include?("active?")
       when :odbc
         raise ArgumentError, 'Missing :dsn configuration.' unless config.has_key?(:dsn)
         if RUBY_VERSION < '1.9'
@@ -229,15 +230,10 @@ module ActiveRecord
       # === Abstract Adapter (Connection Management) ================== #
       
       def active?
-        connected = case @connection_options[:mode]
-                    when :dblib
-                      !@connection.closed?
-                    when :odbc
-                      true
-                    else :adonet
-                      true
-                    end
-        return false if !connected
+        case @connection_options[:mode]
+        when :dblib
+          return @connection.active?
+        end
         raw_connection_do("SELECT 1")
         true
       rescue *lost_connection_exceptions
