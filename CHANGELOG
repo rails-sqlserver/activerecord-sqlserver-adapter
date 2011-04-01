@@ -1,4 +1,9 @@
 
+* 2.3.16 *
+
+* TinyTDS enhancements for lost connections. Default connection mode.
+
+
 * 2.3.15 *
 
 * Version bump due to bad 2.3.14 release.

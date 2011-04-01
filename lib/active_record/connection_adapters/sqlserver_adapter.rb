@@ -9,12 +9,13 @@ module ActiveRecord
     
     def self.sqlserver_connection(config) #:nodoc:
       config = config.dup.symbolize_keys!
-      config.reverse_merge! :mode => :odbc, :host => 'localhost', :username => 'sa', :password => ''
+      config.reverse_merge! :mode => :dblib, :host => 'localhost', :username => 'sa', :password => ''
       mode = config[:mode].to_s.downcase.underscore.to_sym
       case mode
       when :dblib
         raise ArgumentError, 'Missing :dataserver configuration.' unless config.has_key?(:dataserver)
         require_library_or_gem 'tiny_tds'
+        warn("TinyTds v0.4.3 or higher required. Using #{TinyTds::VERSION}") unless TinyTds::Client.instance_methods.include?("active?")
       when :odbc
         require_library_or_gem 'odbc' unless defined?(ODBC)
         require 'active_record/connection_adapters/sqlserver_adapter/core_ext/odbc'
@@ -158,7 +159,7 @@ module ActiveRecord
         :adonet => ['TypeError','System::Data::SqlClient::SqlException']
       }
       LOST_CONNECTION_MESSAGES    = {
-        :dblib  => [/closed connection/, /dead or not enabled/],
+        :dblib  => [/closed connection/, /dead or not enabled/, /server failed/i],
         :odbc   => [/link failure/, /server failed/, /connection was already closed/, /invalid handle/i],
         :adonet => [/current state is closed/, /network-related/]
       }
@@ -319,15 +320,10 @@ module ActiveRecord
       # CONNECTION MANAGEMENT ====================================#
       
       def active?
-        connected = case @connection_options[:mode]
-                    when :dblib
-                      !@connection.closed?
-                    when :odbc
-                      true
-                    else :adonet
-                      true
-                    end
-        return false if !connected
+        case @connection_options[:mode]
+        when :dblib
+          @connection.active?
+        end
         raw_connection_do("SELECT 1")
         true
       rescue *lost_connection_exceptions
