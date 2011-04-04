@@ -1,3 +1,5 @@
+require 'arel'
+
 module Arel
 
   module Nodes
