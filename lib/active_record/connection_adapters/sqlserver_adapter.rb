@@ -24,7 +24,7 @@ module ActiveRecord
       when :dblib
         raise ArgumentError, 'Missing :dataserver configuration.' unless config.has_key?(:dataserver)
         require_library_or_gem 'tiny_tds'
-        warn("TinyTds v0.4.3 or higher required. Using #{TinyTds::VERSION}") unless TinyTds::Client.instance_methods.include?("active?")
+        warn("TinyTds v0.4.3 or higher required. Using #{TinyTds::VERSION}") unless TinyTds::Client.instance_methods.map(&:to_s).include?("active?")
       when :odbc
         raise ArgumentError, 'Missing :dsn configuration.' unless config.has_key?(:dsn)
         if RUBY_VERSION < '1.9'
