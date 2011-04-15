@@ -1,4 +1,9 @@
 
+* 2.3.17 *
+
+* Allow TinyTDS/DBLIB mode to pass down :host/:port config options.
+
+
 * 2.3.16 *
 
 * TinyTDS enhancements for lost connections. Default connection mode.

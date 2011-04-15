@@ -13,7 +13,6 @@ module ActiveRecord
       mode = config[:mode].to_s.downcase.underscore.to_sym
       case mode
       when :dblib
-        raise ArgumentError, 'Missing :dataserver configuration.' unless config.has_key?(:dataserver)
         require_library_or_gem 'tiny_tds'
         warn("TinyTds v0.4.3 or higher required. Using #{TinyTds::VERSION}") unless TinyTds::Client.instance_methods.map(&:to_s).include?("active?")
       when :odbc
@@ -148,7 +147,7 @@ module ActiveRecord
     class SQLServerAdapter < AbstractAdapter
       
       ADAPTER_NAME                = 'SQLServer'.freeze
-      VERSION                     = '2.3.16'.freeze
+      VERSION                     = '2.3.17'.freeze
       DATABASE_VERSION_REGEXP     = /Microsoft SQL Server\s+(\d{4})/
       SUPPORTED_VERSIONS          = [2000,2005,2008].freeze
       LIMITABLE_TYPES             = ['string','integer','float','char','nchar','varchar','nvarchar'].to_set.freeze
@@ -813,6 +812,8 @@ module ActiveRecord
                         encoding = config[:encoding].present? ? config[:encoding] : nil
                         TinyTds::Client.new({ 
                           :dataserver    => config[:dataserver],
+                          :host          => config[:host],
+                          :port          => config[:port],
                           :username      => config[:username],
                           :password      => config[:password],
                           :database      => config[:database],
