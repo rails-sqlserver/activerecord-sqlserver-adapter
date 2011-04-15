@@ -165,7 +165,7 @@ module ActiveRecord
       include Sqlserver::Errors
       
       ADAPTER_NAME                = 'SQLServer'.freeze
-      VERSION                     = '3.0.12'.freeze
+      VERSION                     = '3.0.13'.freeze
       DATABASE_VERSION_REGEXP     = /Microsoft SQL Server\s+"?(\d{4}|\w+)"?/
       SUPPORTED_VERSIONS          = [2005,2008,2010,2011].freeze
       
@@ -365,6 +365,8 @@ module ActiveRecord
                         encoding = config[:encoding].present? ? config[:encoding] : nil
                         TinyTds::Client.new({ 
                           :dataserver    => config[:dataserver],
+                          :host          => config[:host],
+                          :port          => config[:port],
                           :username      => config[:username],
                           :password      => config[:password],
                           :database      => config[:database],
