@@ -281,7 +281,7 @@ module Arel
           core.projections.map do |x|
             x.dup.tap do |p|
               p.sub! 'DISTINCT', "DISTINCT #{visit(o.limit)}".strip if o.limit
-              p.sub! /\[#{tn}\]\./, '[__rnt].'
+              p.gsub! /\[#{tn}\]\./, '[__rnt].'
               p.strip!
             end
           end
