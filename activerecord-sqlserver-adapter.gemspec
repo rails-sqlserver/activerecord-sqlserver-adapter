@@ -12,7 +12,6 @@ Gem::Specification.new do |s|
   
   s.files         = Dir['CHANGELOG', 'MIT-LICENSE', 'README.rdoc', 'lib/**/*' ]
   s.require_path  = 'lib'
-  s.has_rdoc      = true
   s.extra_rdoc_files = ['README.rdoc']
   s.rdoc_options.concat ['--main',  'README.rdoc']
   s.rubyforge_project = 'activerecord-sqlserver-adapter'
