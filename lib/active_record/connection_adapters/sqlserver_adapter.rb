@@ -921,9 +921,6 @@ module ActiveRecord
         else :adonet
           @connection.create_command.tap{ |cmd| cmd.command_text = sql }.execute_non_query
         end
-      ensure
-        @insert_sql = false
-        @update_sql = false
       end
       
       def finish_statement_handle(handle)
@@ -952,6 +949,8 @@ module ActiveRecord
         else
           super || select_value("SELECT CAST(SCOPE_IDENTITY() AS bigint) AS Ident")
         end
+      ensure
+        @insert_sql = false
       end
       
       def update_sql(sql, name = nil)
@@ -963,6 +962,8 @@ module ActiveRecord
           execute(sql, name)
           select_value('SELECT @@ROWCOUNT AS AffectedRows')
         end
+      ensure
+        @update_sql = false
       end
       
       def info_schema_query
