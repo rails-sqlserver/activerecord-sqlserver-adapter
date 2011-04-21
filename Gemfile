@@ -2,6 +2,8 @@
 source :rubygems
 
 gemspec :path => ENV['RAILS_SOURCE']
+# TODO: [Rails31] Remove this rack hack.
+gem 'rack', :git => 'git://github.com/rack/rack.git'  # master e8563a6 2011-03-30
 gem 'arel', :path => ENV['AREL']
 
 group :tinytds do

@@ -1,21 +1,28 @@
+require 'set'
+require 'active_record/base'
 require 'active_record/version'
-require 'active_support/core_ext/class/inheritable_attributes'
+require 'active_support/concern'
+require 'active_support/core_ext/class/attribute'
 
 module ActiveRecord
   module ConnectionAdapters
     module Sqlserver
       module CoreExt
         module ActiveRecord
-
-          def self.included(klass)
-            klass.extend ClassMethods
-            class << klass
+          
+          extend ActiveSupport::Concern
+          
+          included do
+            class_attribute :coerced_sqlserver_date_columns, :coerced_sqlserver_time_columns
+            self.coerced_sqlserver_date_columns = Set.new
+            self.coerced_sqlserver_time_columns = Set.new
+            class << self
               alias_method_chain :reset_column_information, :sqlserver_cache_support
             end
           end
 
           module ClassMethods
-
+            
             def execute_procedure(proc_name, *variables)
               if connection.respond_to?(:execute_procedure)
                 connection.execute_procedure(proc_name,*variables)
@@ -25,19 +32,11 @@ module ActiveRecord
             end
 
             def coerce_sqlserver_date(*attributes)
-              write_inheritable_attribute :coerced_sqlserver_date_columns, Set.new(attributes.map(&:to_s))
+              self.coerced_sqlserver_date_columns += attributes.map(&:to_s)
             end
 
             def coerce_sqlserver_time(*attributes)
-              write_inheritable_attribute :coerced_sqlserver_time_columns, Set.new(attributes.map(&:to_s))
-            end
-
-            def coerced_sqlserver_date_columns
-              read_inheritable_attribute(:coerced_sqlserver_date_columns) || []
-            end
-
-            def coerced_sqlserver_time_columns
-              read_inheritable_attribute(:coerced_sqlserver_time_columns) || []
+              self.coerced_sqlserver_time_columns += attributes.map(&:to_s)
             end
 
             def reset_column_information_with_sqlserver_cache_support
