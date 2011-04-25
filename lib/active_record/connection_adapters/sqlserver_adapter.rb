@@ -5,7 +5,6 @@ require 'active_record/connection_adapters/sqlserver/core_ext/active_record'
 require 'active_record/connection_adapters/sqlserver/database_limits'
 require 'active_record/connection_adapters/sqlserver/database_statements'
 require 'active_record/connection_adapters/sqlserver/errors'
-require 'active_record/connection_adapters/sqlserver/query_cache'
 require 'active_record/connection_adapters/sqlserver/schema_statements'
 require 'active_record/connection_adapters/sqlserver/quoting'
 require 'active_support/core_ext/kernel/requires'
@@ -61,7 +60,7 @@ module ActiveRecord
   module ConnectionAdapters
     
     class SQLServerColumn < Column
-            
+
       def initialize(name, default, sql_type = nil, null = true, sqlserver_options = {})
         @sqlserver_options = sqlserver_options.symbolize_keys
         super(name, default, sql_type, null)
@@ -85,6 +84,14 @@ module ActiveRecord
       
       def is_utf8?
         @sql_type =~ /nvarchar|ntext|nchar/i
+      end
+      
+      def is_integer?
+        @sql_type =~ /int/i
+      end
+      
+      def sql_type_for_statement
+        is_integer? ? sql_type.sub(/\(\d+\)/,'') : sql_type
       end
       
       def default_function
@@ -160,7 +167,6 @@ module ActiveRecord
       include Sqlserver::DatabaseStatements
       include Sqlserver::SchemaStatements
       include Sqlserver::DatabaseLimits
-      include Sqlserver::QueryCache
       include Sqlserver::Errors
       
       ADAPTER_NAME                = 'SQLServer'.freeze
@@ -265,6 +271,11 @@ module ActiveRecord
         remove_database_connections_and_rollback { }
       end
       
+      def clear_cache!
+        # This requires db admin perms and I'm not even sure it is a good idea.
+        # raw_connection_do "DBCC FREEPROCCACHE WITH NO_INFOMSGS" rescue nil
+      end
+      
       # === Abstract Adapter (Misc Support) =========================== #
       
       def pk_and_sequence_for(table_name)
@@ -331,7 +342,7 @@ module ActiveRecord
       end
       
       def cs_equality_operator
-        @@cs_equality_operator || 'COLLATE Latin1_General_CS_AS_WS ='
+        @@cs_equality_operator || 'COLLATE Latin1_General_CS_AS_WS'
       end
       
       

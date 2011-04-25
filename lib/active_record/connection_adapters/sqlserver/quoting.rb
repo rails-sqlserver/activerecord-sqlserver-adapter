@@ -15,6 +15,8 @@ module ActiveRecord
             else
               super
             end
+          when nil
+            column.respond_to?(:sql_type) && column.sql_type == 'timestamp' ? 'DEFAULT' : super
           else
             super
           end
@@ -31,6 +33,14 @@ module ActiveRecord
 
         def quote_table_name(name)
           quote_column_name(name)
+        end
+        
+        def substitute_at(column, index)
+          if column.respond_to?(:sql_type) && column.sql_type == 'timestamp'
+            nil
+          else
+            Arel.sql "@#{index}"
+          end
         end
 
         def quoted_true

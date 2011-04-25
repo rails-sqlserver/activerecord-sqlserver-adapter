@@ -54,16 +54,19 @@ class OffsetAndLimitTestSqlserver < ActiveRecord::TestCase
     context 'with count' do
 
       should 'pass a gauntlet of window tests' do
-        assert_equal 7, Post.count
-        assert_equal 1, Post.limit(1).offset(1).size
-        assert_equal 1, Post.limit(1).offset(5).size
-        assert_equal 1, Post.limit(1).offset(6).size
-        assert_equal 0, Post.limit(1).offset(7).size
-        assert_equal 3, Post.limit(3).offset(4).size
-        assert_equal 2, Post.limit(3).offset(5).size
-        assert_equal 1, Post.limit(3).offset(6).size
-        assert_equal 0, Post.limit(3).offset(7).size
-        assert_equal 0, Post.limit(3).offset(8).size
+        Book.first.destroy
+        Book.first.destroy
+        Book.first.destroy
+        assert_equal 7, Book.count
+        assert_equal 1, Book.limit(1).offset(1).size
+        assert_equal 1, Book.limit(1).offset(5).size
+        assert_equal 1, Book.limit(1).offset(6).size
+        assert_equal 0, Book.limit(1).offset(7).size
+        assert_equal 3, Book.limit(3).offset(4).size
+        assert_equal 2, Book.limit(3).offset(5).size
+        assert_equal 1, Book.limit(3).offset(6).size
+        assert_equal 0, Book.limit(3).offset(7).size
+        assert_equal 0, Book.limit(3).offset(8).size
       end
 
     end

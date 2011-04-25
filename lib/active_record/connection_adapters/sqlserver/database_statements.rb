@@ -3,25 +3,38 @@ module ActiveRecord
     module Sqlserver
       module DatabaseStatements
         
-        def select_one(sql, name = nil)
-          result = raw_select sql, name, :fetch => :one
-          (result && result.first.present?) ? result.first : nil
-        end
-        
         def select_rows(sql, name = nil)
-          raw_select sql, name, :fetch => :rows
+          raw_select sql, name, [], :fetch => :rows
         end
 
-        def execute(sql, name = nil, skip_logging = false)
+        def execute(sql, name = nil)
           if id_insert_table_name = query_requires_identity_insert?(sql)
             with_identity_insert_enabled(id_insert_table_name) { do_execute(sql,name) }
           else
             do_execute(sql,name)
           end
         end
+        
+        def exec_query(sql, name = 'SQL', binds = [])
+          return raw_select(sql, name, binds, :ar_result => true) if binds.empty?
+          if id_insert_table_name = query_requires_identity_insert?(sql)
+            with_identity_insert_enabled(id_insert_table_name) { do_exec_query(sql, name, binds) }
+          else
+            do_exec_query(sql, name, binds)
+          end
+        end
+        
+        def exec_insert(sql, name, binds)
+          sql = "#{sql}; SELECT CAST(SCOPE_IDENTITY() AS bigint) AS Ident"
+          exec_query(sql, name, binds)
+        end
 
         def outside_transaction?
           info_schema_query { select_value("SELECT @@TRANCOUNT") == 0 }
+        end
+        
+        def supports_statement_cache?
+          true
         end
 
         def begin_db_transaction
@@ -55,8 +68,8 @@ module ActiveRecord
           "DEFAULT VALUES"
         end
 
-        def case_sensitive_equality_operator
-          cs_equality_operator
+        def case_sensitive_modifier(node)
+          node.acts_like?(:string) ? Arel::Nodes::Bin.new(node) : node
         end
 
         def limited_update_conditions(where_sql, quoted_table_name, quoted_primary_key)
@@ -190,8 +203,8 @@ module ActiveRecord
         
         protected
         
-        def select(sql, name = nil)
-          raw_select sql, name, :fetch => :all
+        def select(sql, name = nil, binds = [])
+          exec_query(sql, name, binds).to_a
         end
         
         def insert_sql(sql, name = nil, pk = nil, id_value = nil, sequence_name = nil)
@@ -230,6 +243,32 @@ module ActiveRecord
           end
         end
         
+        def do_exec_query(sql, name, binds)
+          statement = quote(sql)
+          names_and_types = []
+          params = []
+          binds.each_with_index do |(column,value),index|
+            ar_column = column.is_a?(ActiveRecord::ConnectionAdapters::Column)
+            next if ar_column && column.sql_type == 'timestamp'
+            v = value
+            names_and_types << if ar_column
+                                 v = value.to_i if column.is_integer?
+                                 "@#{index} #{column.sql_type_for_statement}"
+                               elsif column.acts_like?(:string)
+                                 "@#{index} nvarchar(max)"
+                               elsif column.is_a?(Fixnum)
+                                 v = value.to_i
+                                 "@#{index} int"
+                               else
+                                 raise "Unknown bind columns. We can account for this."
+                               end
+            quoted_value = ar_column ? quote(v,column) : quote(v,nil)
+            params << "@#{index} = #{quoted_value}"
+          end
+          sql = "EXEC sp_executesql #{statement}, #{quote(names_and_types.join(', '))}, #{params.join(', ')}"
+          raw_select sql, name, binds, :ar_result => true
+        end
+        
         def raw_connection_do(sql)
           case @connection_options[:mode]
           when :dblib
@@ -246,8 +285,8 @@ module ActiveRecord
         
         # === SQLServer Specific (Selecting) ============================ #
 
-        def raw_select(sql, name=nil, options={})
-          log(sql,name) do
+        def raw_select(sql, name=nil, binds=[], options={})
+          log(sql,name,binds) do
             begin
               handle = raw_connection_run(sql)
               handle_to_names_and_values(handle, options)
@@ -294,12 +333,13 @@ module ActiveRecord
         def handle_to_names_and_values_dblib(handle, options={})
           query_options = {}.tap do |qo|
             qo[:timezone] = ActiveRecord::Base.default_timezone || :utc
-            qo[:first] = true if options[:fetch] == :one
-            qo[:as] = options[:fetch] == :rows ? :array : :hash
+            qo[:as] = (options[:ar_result] || options[:fetch] == :rows) ? :array : :hash
           end
-          handle.each(query_options)
+          results = handle.each(query_options)
+          options[:ar_result] ? ActiveRecord::Result.new(handle.fields, results) : results
         end
         
+        # TODO [Rails31] Use options[:ar_result]
         def handle_to_names_and_values_odbc(handle, options={})
           @connection.use_utc = ActiveRecord::Base.default_timezone == :utc if @connection_supports_native_types
           case options[:fetch]
@@ -347,12 +387,12 @@ module ActiveRecord
           end
         end
 
+        # TODO [Rails31] Use options[:ar_result]
         def handle_to_names_and_values_adonet(handle, options={})
           if handle.has_rows
             names = []
             rows = []
             fields_named = options[:fetch] == :rows
-            one_row_only = options[:fetch] == :one
             while handle.read
               row = []
               handle.visible_field_count.times do |row_index|
@@ -371,7 +411,6 @@ module ActiveRecord
                         end
                 row << value
                 names << handle.get_name(row_index).to_s unless fields_named
-                break if one_row_only
               end
               rows << row
               fields_named = true
