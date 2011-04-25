@@ -82,7 +82,8 @@ end
 module ActiveRecord
   class SQLCounter
     IGNORED_SQL << %r|SELECT SCOPE_IDENTITY| << %r{INFORMATION_SCHEMA\.(TABLES|VIEWS|COLUMNS)} << 
-                   %r|SELECT @@IDENTITY| << %r|SELECT @@ROWCOUNT| << %r|SELECT @@version| << %r|SELECT @@TRANCOUNT|
+                   %r|SELECT @@IDENTITY| << %r|SELECT @@ROWCOUNT| << %r|SELECT @@version| << %r|SELECT @@TRANCOUNT| <<
+                   %r{(BEGIN|COMMIT|ROLLBACK|SAVE) TRANSACTION}
     
   end
 end

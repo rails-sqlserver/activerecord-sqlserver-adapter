@@ -16,9 +16,6 @@ module ActiveRecord
             class_attribute :coerced_sqlserver_date_columns, :coerced_sqlserver_time_columns
             self.coerced_sqlserver_date_columns = Set.new
             self.coerced_sqlserver_time_columns = Set.new
-            class << self
-              alias_method_chain :reset_column_information, :sqlserver_cache_support
-            end
           end
 
           module ClassMethods
@@ -37,11 +34,6 @@ module ActiveRecord
 
             def coerce_sqlserver_time(*attributes)
               self.coerced_sqlserver_time_columns += attributes.map(&:to_s)
-            end
-
-            def reset_column_information_with_sqlserver_cache_support
-              connection.send(:initialize_sqlserver_caches) if connection.respond_to?(:sqlserver?)
-              reset_column_information_without_sqlserver_cache_support
             end
 
           end

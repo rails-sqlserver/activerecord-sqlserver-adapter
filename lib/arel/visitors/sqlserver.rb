@@ -4,10 +4,6 @@ module Arel
 
   module Nodes
 
-    # See the SelectManager#lock method on why this custom class is needed.
-    class LockWithSQLServer < Arel::Nodes::Unary
-    end
-
     # Extending the Ordering class to be comparrison friendly which allows us to call #uniq on a
     # collection of them. See SelectManager#order for more details.
     class Ordering < Arel::Nodes::Binary
@@ -25,8 +21,6 @@ module Arel
   end
 
   class SelectManager < Arel::TreeManager
-
-    alias :lock_without_sqlserver :lock
 
     # Getting real Ordering objects is very important for us. We need to be able to call #uniq on
     # a colleciton of them reliably as well as using their true object attributes to mutate them
@@ -58,9 +52,17 @@ module Arel
 
     # A friendly over ride that allows us to put a special lock object that can have a default or pass
     # custom string hints down. See the visit_Arel_Nodes_LockWithSQLServer delegation method.
+    alias :lock_without_sqlserver :lock
     def lock(locking=true)
       if Arel::Visitors::SQLServer === @visitor
-        @ast.lock = Arel::Nodes::LockWithSQLServer.new(locking)
+        case locking
+        when true
+          locking = Arel.sql('WITH(HOLDLOCK, ROWLOCK)')
+        when Arel::Nodes::SqlLiteral
+        when String
+          locking = Arel.sql locking
+        end
+        @ast.lock = Arel::Nodes::Lock.new(locking)
         self
       else
         lock_without_sqlserver(locking)
@@ -94,21 +96,13 @@ module Arel
         "TOP (#{visit o.expr})"
       end
 
-      def visit_Arel_Nodes_Lock o
-        "WITH(HOLDLOCK, ROWLOCK)"
+      def visit_Arel_Nodes_Lock(o)
+        visit o.expr
       end
 
-      def visit_Arel_Nodes_LockWithSQLServer o
-        case o.expr
-        when TrueClass
-          "WITH(HOLDLOCK, ROWLOCK)"
-        when String
-          o.expr
-        else
-          ""
-        end
+      def visit_Arel_Nodes_Bin(o)
+        "#{visit o.expr} #{@engine.connection.cs_equality_operator}"
       end
-
 
       # SQLServer ToSql/Visitor (Additions)
 
@@ -127,6 +121,8 @@ module Arel
             expr = Arel.sql projection_without_expression(x.expr)
             x.descending? ? Arel::Nodes::Max.new([expr]) : Arel::Nodes::Min.new([expr])
           end
+        elsif top_one_everything_for_through_join?(o)
+          projections = projections.map { |x| projection_without_expression(x) }
         end
         [ ("SELECT" if !windowed),
           (visit(o.limit) if o.limit && !windowed),
@@ -176,9 +172,8 @@ module Arel
       # SQLServer Helpers
 
       def source_with_lock_for_select_statement(o)
-        # TODO: [ARel 2.2] Use #from/#source vs. #froms
         core = o.cores.first
-        source = "FROM #{visit core.froms}" if core.froms
+        source = visit(core.source).strip if core.source
         if source && o.lock
           lock = visit o.lock
           index = source.match(/FROM [\w\[\]\.]+/)[0].length
@@ -218,11 +213,21 @@ module Arel
           ((p1.respond_to?(:distinct) && p1.distinct) ||
             p1.respond_to?(:include?) && p1.include?('DISTINCT'))
       end
+      
+      def single_distinct_select_everything_statement?(o)
+        single_distinct_select_statement?(o) && visit(o.cores.first.projections.first).ends_with?(".*")
+      end
+      
+      def top_one_everything_for_through_join?(o)
+        single_distinct_select_everything_statement?(o) && 
+          (o.limit && !o.offset) && 
+          join_in_select_statement?(o)
+      end
 
       def all_projections_aliased_in_select_statement?(o)
         projections = o.cores.first.projections
         projections.all? do |x|
-          x.split(',').all? { |y| y.include?(' AS ') }
+          visit(x).split(',').all? { |y| y.include?(' AS ') }
         end
       end
 
@@ -233,21 +238,22 @@ module Arel
 
       def eager_limiting_select_statement?(o)
         core = o.cores.first
-        single_distinct_select_statement?(o) && (o.limit && !o.offset) && core.groups.empty?
+        single_distinct_select_statement?(o) && 
+          (o.limit && !o.offset) && 
+          core.groups.empty? && 
+          !single_distinct_select_everything_statement?(o)
       end
 
       def join_in_select_statement?(o)
         core = o.cores.first
-        # TODO: [ARel 2.2] Use #from/#source vs. #froms
-        # core.source.right.any? { |x| Arel::Nodes::Join === x }
-        Arel::Nodes::Join === core.froms
+        core.source.right.any? { |x| Arel::Nodes::Join === x }
       end
 
       def complex_count_sql?(o)
         core = o.cores.first
         core.projections.size == 1 &&
           Arel::Nodes::Count === core.projections.first &&
-          (o.limit || !core.wheres.empty?) &&
+          o.limit &&
           !join_in_select_statement?(o)
       end
 
@@ -289,14 +295,20 @@ module Arel
           end
         elsif join_in_select_statement?(o) && all_projections_aliased_in_select_statement?(o)
           core.projections.map do |x|
-            Arel.sql x.split(',').map{ |y| y.split(' AS ').last.strip }.join(', ')
+            Arel.sql visit(x).split(',').map{ |y| y.split(' AS ').last.strip }.join(', ')
           end
         elsif function_select_statement?(o)
-          # TODO: [ARel 2.2] Use Arel.star
-          [Arel.sql('*')]
+          [Arel.star]
         else
-          tn = table_from_select_statement(o).name
-          core.projections.map { |x| x.gsub /\[#{tn}\]\./, '[__rnt].' }
+          core.projections.map do |x|
+            if x.respond_to?(:relation)
+              x = x.dup
+              x.relation = x.relation.dup
+              x.relation.instance_variable_set :@table_alias, Arel.sql('[__rnt].*')
+            else
+              x
+            end
+          end
         end
       end
 
@@ -313,7 +325,7 @@ module Arel
 
       # TODO: We use this for grouping too, maybe make Grouping objects vs SqlLiteral.
       def projection_without_expression(projection)
-        Arel.sql(projection.split(',').map do |x|
+        Arel.sql(visit(projection).split(',').map do |x|
           x.strip!
           x.sub!(/^(COUNT|SUM|MAX|MIN|AVG)\s*(\((.*)\))?/,'\3')
           x.sub!(/^DISTINCT\s*/,'')

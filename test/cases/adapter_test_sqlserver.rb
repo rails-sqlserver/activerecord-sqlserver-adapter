@@ -3,6 +3,7 @@ require 'models/task'
 require 'models/reply'
 require 'models/joke'
 require 'models/subscriber'
+require 'models/minimalistic'
 
 class AdapterTestSqlserver < ActiveRecord::TestCase
   
@@ -253,12 +254,22 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
     
     should 'find identity column using #identity_column' do
       joke_id_column = Joke.columns.detect { |c| c.name == 'id' }
-      assert_equal joke_id_column, @connection.send(:identity_column,Joke.table_name)
+      assert_equal joke_id_column.name, @connection.send(:identity_column,Joke.table_name).name
+      assert_equal joke_id_column.sql_type, @connection.send(:identity_column,Joke.table_name).sql_type
     end
     
     should 'return nil when calling #identity_column for a table_name with no identity' do
       assert_nil @connection.send(:identity_column,Subscriber.table_name)
     end unless sqlserver_azure?
+    
+    should 'be able to disable referential integrity' do
+      Minimalistic.delete_all
+      @connection.send :set_identity_insert, Minimalistic.table_name, false
+      @connection.execute_procedure :sp_MSforeachtable, 'ALTER TABLE ? CHECK CONSTRAINT ALL'
+      o = Minimalistic.new
+      o.id = 420
+      o.save!
+    end
     
   end
   
@@ -579,26 +590,5 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
     end
     
   end
-  
-end
-
-
-class AdapterTest < ActiveRecord::TestCase
-  
-  COERCED_TESTS = [
-    :test_add_limit_offset_should_sanitize_sql_injection_for_limit_without_comas,
-    :test_add_limit_offset_should_sanitize_sql_injection_for_limit_with_comas
-  ]
-  
-  include SqlserverCoercedTest
-  
-  def test_coerced_test_add_limit_offset_should_sanitize_sql_injection_for_limit_without_comas
-    true # Tested in our OffsetAndLimitTestSqlserver test case.
-  end
-
-  def test_coerced_test_add_limit_offset_should_sanitize_sql_injection_for_limit_with_comas
-    true # Tested in our OffsetAndLimitTestSqlserver test case.
-  end
-  
   
 end
