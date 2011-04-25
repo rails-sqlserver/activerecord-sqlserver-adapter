@@ -17,12 +17,8 @@ class UnicodeTestSqlserver < ActiveRecord::TestCase
       assert_equal test_string, SqlServerUnicode.find(nvarcharmax_data.id).nvarchar_max
     end
 
-    should 'enforce default nchar_10 limit of 10' do
-      assert_raise(ActiveRecord::StatementInvalid) { SqlServerUnicode.create!(:nchar => '01234567891') }
-    end
-
-    should 'enforce default nvarchar_100 limit of 100' do
-      assert_raise(ActiveRecord::StatementInvalid) { SqlServerUnicode.create!(:nvarchar_100 => '0123456789'*10+'1') }
+    should 'not work with ANSI_WARNINGS for string truncation' do
+      SqlServerUnicode.create!(:nchar_10 => '01234567891')
     end
 
   end

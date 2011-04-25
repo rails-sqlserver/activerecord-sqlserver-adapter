@@ -11,9 +11,13 @@ def test_libs(mode='odbc')
 end
 
 def test_files
-  Dir.glob("test/cases/**/*_test_sqlserver.rb").sort + 
-  (Dir.glob("#{ENV['RAILS_SOURCE']}/activerecord/test/cases/**/*_test.rb") - 
-   Dir.glob("#{ENV['RAILS_SOURCE']}/activerecord/test/cases/adapters/**/*_test.rb")).sort
+  files = Dir.glob("test/cases/**/*_test_sqlserver.rb").sort
+  unless ENV['ACTIVERECORD_UNITTEST_SKIP']
+    ar_cases = Dir.glob("#{ENV['RAILS_SOURCE']}/activerecord/test/cases/**/*_test.rb")
+    adapter_cases = Dir.glob("#{ENV['RAILS_SOURCE']}/activerecord/test/cases/adapters/**/*_test.rb")
+    files << (ar_cases-adapter_cases).sort
+  end
+  files
 end
 
 

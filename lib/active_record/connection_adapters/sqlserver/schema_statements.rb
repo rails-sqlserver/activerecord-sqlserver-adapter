@@ -39,8 +39,8 @@ module ActiveRecord
 
         def columns(table_name, name = nil)
           return [] if table_name.blank?
-          cache_key = columns_cache_key(table_name)
-          @sqlserver_columns_cache[cache_key] ||= column_definitions(table_name).collect do |ci|
+          cache_key = unqualify_table_name(table_name)
+          column_definitions(table_name).collect do |ci|
             sqlserver_options = ci.except(:name,:default_value,:type,:null).merge(:database_year=>database_year)
             SQLServerColumn.new ci[:name], ci[:default_value], ci[:type], ci[:null], sqlserver_options
           end
@@ -198,11 +198,11 @@ module ActiveRecord
               ELSE 1
             END as is_identity
             FROM #{db_name_with_period}INFORMATION_SCHEMA.COLUMNS columns
-            WHERE columns.TABLE_NAME = '#{table_name}'
+            WHERE columns.TABLE_NAME = @0
               AND columns.TABLE_SCHEMA = #{table_schema.nil? ? "schema_name() " : "'#{table_schema}' "}
             ORDER BY columns.ordinal_position
           }.gsub(/[ \t\r\n]+/,' ')
-          results = info_schema_query { select(sql,nil) }
+          results = info_schema_query { do_exec_query(sql, 'InfoSchema::ColumnDefinitions', [['table_name', table_name]]) }
           results.collect do |ci|
             ci = ci.symbolize_keys
             ci[:type] = case ci[:type]
@@ -351,12 +351,10 @@ module ActiveRecord
 
         def remove_sqlserver_columns_cache_for(table_name)
           cache_key = unqualify_table_name(table_name)
-          @sqlserver_columns_cache[cache_key] = nil
           initialize_sqlserver_caches(false)
         end
 
         def initialize_sqlserver_caches(reset_columns=true)
-          @sqlserver_columns_cache = {} if reset_columns
           @sqlserver_views_cache = nil
           @sqlserver_view_information_cache = {}
           @sqlserver_quoted_column_and_table_names = {}
@@ -388,7 +386,7 @@ module ActiveRecord
 
         def set_identity_insert(table_name, enable = true)
           sql = "SET IDENTITY_INSERT #{table_name} #{enable ? 'ON' : 'OFF'}"
-          do_execute(sql,'IDENTITY_INSERT')
+          do_execute sql,'InfoSchema::SetIdentityInsert'
         rescue Exception => e
           raise ActiveRecordError, "IDENTITY_INSERT could not be turned #{enable ? 'ON' : 'OFF'} for table #{table_name}"
         end
