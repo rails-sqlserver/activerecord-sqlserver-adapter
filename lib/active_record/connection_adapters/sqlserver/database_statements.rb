@@ -16,16 +16,16 @@ module ActiveRecord
         end
         
         def exec_query(sql, name = 'SQL', binds = [])
+          return raw_select(sql, name, binds, :ar_result => true) if binds.empty?
           if id_insert_table_name = query_requires_identity_insert?(sql)
-            with_identity_insert_enabled(id_insert_table_name) do
-              binds.empty? ? raw_select(sql, name, binds, :ar_result => true) : do_exec_query(sql, name, binds)
-            end
+            with_identity_insert_enabled(id_insert_table_name) { do_exec_query(sql, name, binds) }
           else
-            binds.empty? ? raw_select(sql, name, binds, :ar_result => true) : do_exec_query(sql, name, binds)
+            do_exec_query(sql, name, binds)
           end
         end
         
         def exec_insert(sql, name, binds)
+          sql = "#{sql}; SELECT CAST(SCOPE_IDENTITY() AS bigint) AS Ident"
           exec_query(sql, name, binds)
         end
 
