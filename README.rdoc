@@ -1,5 +1,5 @@
 
-== SQL Server 2005 and 2008 Adapter For ActiveRecord
+== SQL Server 2005/2008 & Azure Adapter For ActiveRecord
 
 The SQL Server adapter for ActiveRecord.
 
