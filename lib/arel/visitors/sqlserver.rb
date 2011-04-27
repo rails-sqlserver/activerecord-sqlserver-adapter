@@ -27,31 +27,36 @@ module Arel
   class SelectManager < Arel::TreeManager
 
     alias :lock_without_sqlserver :lock
+    alias :order_without_sqlserver :order
 
     # Getting real Ordering objects is very important for us. We need to be able to call #uniq on
     # a colleciton of them reliably as well as using their true object attributes to mutate them
     # to grouping objects for the inner sql during a select statment with an offset/rownumber. So this
     # is here till ActiveRecord & ARel does this for us instead of using SqlLiteral objects.
     def order(*exprs)
-      @ast.orders.concat(exprs.map{ |x|
-        case x
-        when Arel::Attributes::Attribute
-          table = Arel::Table.new(x.relation.table_alias || x.relation.name)
-          expr = table[x.name]
-          Arel::Nodes::Ordering.new expr
-        when String
-          x.split(',').map do |s|
-            expr, direction = s.split
-            expr = Arel.sql(expr)
-            direction = direction =~ /desc/i ? :desc : :asc
-            Arel::Nodes::Ordering.new expr, direction
+      if Arel::Visitors::SQLServer === @visitor
+        @ast.orders.concat(exprs.map{ |x|
+          case x
+          when Arel::Attributes::Attribute
+            table = Arel::Table.new(x.relation.table_alias || x.relation.name)
+            expr = table[x.name]
+            Arel::Nodes::Ordering.new expr
+          when String
+            x.split(',').map do |s|
+              expr, direction = s.split
+              expr = Arel.sql(expr)
+              direction = direction =~ /desc/i ? :desc : :asc
+              Arel::Nodes::Ordering.new expr, direction
+            end
+          else
+            expr = Arel.sql(x.to_s)
+            Arel::Nodes::Ordering.new expr
           end
-        else
-          expr = Arel.sql(x.to_s)
-          Arel::Nodes::Ordering.new expr
-        end
-      }.flatten)
-      self
+        }.flatten)
+        self
+      else
+        order_without_sqlserver(*exprs)
+      end
     end
 
     # A friendly over ride that allows us to put a special lock object that can have a default or pass
