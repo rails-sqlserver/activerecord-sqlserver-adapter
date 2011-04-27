@@ -25,16 +25,7 @@ module ActiveRecord
         warn("TinyTds v0.4.3 or higher required. Using #{TinyTds::VERSION}") unless TinyTds::Client.instance_methods.map(&:to_s).include?("active?")
       when :odbc
         raise ArgumentError, 'Missing :dsn configuration.' unless config.has_key?(:dsn)
-        if RUBY_VERSION < '1.9'
-          require_library_or_gem 'odbc'
-        else
-          begin
-            # TODO: [ODBC] Change this to 'odbc_utf8'
-            require_library_or_gem 'odbc'
-          rescue LoadError
-            require_library_or_gem 'odbc'
-          end
-        end unless ['::ODBC','::ODBC_UTF8','::ODBC_NONE'].any? { |odbc_ns| odbc_ns.constantize rescue nil }
+        require_library_or_gem 'odbc'
         require 'active_record/connection_adapters/sqlserver/core_ext/odbc'
       when :adonet
         require 'System.Data'
@@ -401,20 +392,20 @@ module ActiveRecord
                           end
                         end
                       when :odbc
-                        odbc = ['::ODBC','::ODBC_UTF8','::ODBC_NONE'].detect{ |odbc_ns| odbc_ns.constantize rescue nil }.constantize
                         if config[:dsn].include?(';')
-                          driver = odbc::Driver.new.tap do |d|
+                          driver = ODBC::Driver.new.tap do |d|
                             d.name = config[:dsn_name] || 'Driver1'
                             d.attrs = config[:dsn].split(';').map{ |atr| atr.split('=') }.reject{ |kv| kv.size != 2 }.inject({}){ |h,kv| k,v = kv ; h[k] = v ; h }
                           end
-                          odbc::Database.new.drvconnect(driver)
+                          ODBC::Database.new.drvconnect(driver)
                         else
-                          odbc.connect config[:dsn], config[:username], config[:password]
-                        end.tap do |c|
-                          if c.respond_to?(:use_time)
+                          ODBC.connect config[:dsn], config[:username], config[:password]
+                        end.tap do |c|  
+                          begin
                             c.use_time = true
                             c.use_utc = ActiveRecord::Base.default_timezone == :utc
-                            @connection_supports_native_types = true
+                          rescue Exception => e
+                            warn "Ruby ODBC v0.99992 or higher is required."
                           end
                         end
                       when :adonet

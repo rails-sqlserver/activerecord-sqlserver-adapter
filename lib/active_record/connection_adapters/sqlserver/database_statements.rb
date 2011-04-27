@@ -16,16 +16,16 @@ module ActiveRecord
         end
         
         def exec_query(sql, name = 'SQL', binds = [])
-          return raw_select(sql, name, binds, :ar_result => true) if binds.empty?
           if id_insert_table_name = query_requires_identity_insert?(sql)
-            with_identity_insert_enabled(id_insert_table_name) { do_exec_query(sql, name, binds) }
+            with_identity_insert_enabled(id_insert_table_name) do
+              binds.empty? ? raw_select(sql, name, binds, :ar_result => true) : do_exec_query(sql, name, binds)
+            end
           else
-            do_exec_query(sql, name, binds)
+            binds.empty? ? raw_select(sql, name, binds, :ar_result => true) : do_exec_query(sql, name, binds)
           end
         end
         
         def exec_insert(sql, name, binds)
-          sql = "#{sql}; SELECT CAST(SCOPE_IDENTITY() AS bigint) AS Ident"
           exec_query(sql, name, binds)
         end
 
@@ -208,13 +208,7 @@ module ActiveRecord
         end
         
         def insert_sql(sql, name = nil, pk = nil, id_value = nil, sequence_name = nil)
-          @insert_sql = true
-          case @connection_options[:mode]
-          when :dblib
-            execute(sql, name) || id_value
-          else
-            super || select_value("SELECT CAST(SCOPE_IDENTITY() AS bigint) AS Ident")
-          end
+          super || select_value("SELECT CAST(SCOPE_IDENTITY() AS bigint) AS Ident")
         end
         
         def update_sql(sql, name = nil)
@@ -226,6 +220,15 @@ module ActiveRecord
             execute(sql, name)
             select_value('SELECT @@ROWCOUNT AS AffectedRows')
           end
+        end
+        
+        def sql_for_insert(sql, pk, id_value, sequence_name, binds)
+          sql = "#{sql}; SELECT CAST(SCOPE_IDENTITY() AS bigint) AS Ident" unless binds.empty?
+          super
+        end
+
+        def last_inserted_id(result)
+          super || select_value("SELECT CAST(SCOPE_IDENTITY() AS bigint) AS Ident")
         end
         
         # === SQLServer Specific ======================================== #
@@ -272,14 +275,13 @@ module ActiveRecord
         def raw_connection_do(sql)
           case @connection_options[:mode]
           when :dblib
-            @insert_sql ? @connection.execute(sql).insert : @connection.execute(sql).do
+            @connection.execute(sql).do
           when :odbc
             @connection.do(sql)
           else :adonet
             @connection.create_command.tap{ |cmd| cmd.command_text = sql }.execute_non_query
           end
         ensure
-          @insert_sql = false
           @update_sql = false
         end
         
@@ -341,49 +343,18 @@ module ActiveRecord
         
         # TODO [Rails31] Use options[:ar_result]
         def handle_to_names_and_values_odbc(handle, options={})
-          @connection.use_utc = ActiveRecord::Base.default_timezone == :utc if @connection_supports_native_types
-          case options[:fetch]
-          when :all, :one
-            if @connection_supports_native_types
-              if options[:fetch] == :all
-                handle.each_hash || []
-              else
-                row = handle.fetch_hash
-                rows = row ? [row] : [[]]                    
-              end
-            else
-              rows = if options[:fetch] == :all
-                       handle.fetch_all || []
-                     else
-                       row = handle.fetch
-                       row ? [row] : [[]]                     
-                     end
-              names = handle.columns(true).map{ |c| c.name }
-              names_and_values = []
-              rows.each do |row|
-                h = {}
-                i = 0
-                while i < row.size
-                  v = row[i]
-                  h[names[i]] = v.respond_to?(:to_sqlserver_string) ? v.to_sqlserver_string : v
-                  i += 1
-                end
-                names_and_values << h
-              end
-              names_and_values
-            end
-          when :rows
+          @connection.use_utc = ActiveRecord::Base.default_timezone == :utc
+          if options[:ar_result]
+            columns = handle.columns(true).map { |c| c.name }
             rows = handle.fetch_all || []
-            return rows if @connection_supports_native_types
-            rows.each do |row|
-              i = 0
-              while i < row.size
-                v = row[i]
-                row[i] = v.to_sqlserver_string if v.respond_to?(:to_sqlserver_string)
-                i += 1
-              end
+            ActiveRecord::Result.new(columns, rows)
+          else
+            case options[:fetch]
+            when :all
+              handle.each_hash || []
+            when :rows
+              handle.fetch_all || []
             end
-            rows
           end
         end
 
