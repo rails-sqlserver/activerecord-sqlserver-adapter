@@ -278,9 +278,9 @@ module ActiveRecord
         end
         
         def get_table_name(sql)
-          if sql =~ /^\s*insert\s+into\s+([^\(\s]+)\s*|^\s*update\s+([^\(\s]+)\s*/i
-            $1 || $2
-          elsif sql =~ /from\s+([^\(\s]+)\s*/i
+          if sql =~ /^\s*(INSERT|EXEC sp_executesql N'INSERT)\s+INTO\s+([^\(\s]+)\s*|^\s*update\s+([^\(\s]+)\s*/i
+            $2 || $3
+          elsif sql =~ /FROM\s+([^\(\s]+)\s*/i
             $1
           else
             nil
@@ -366,14 +366,14 @@ module ActiveRecord
           if insert_sql?(sql)
             table_name = get_table_name(sql)
             id_column = identity_column(table_name)
-            id_column && sql =~ /^\s*INSERT[^(]+\([^)]*\b(#{id_column.name})\b,?[^)]*\)/i ? quote_table_name(table_name) : false
+            id_column && sql =~ /^\s*(INSERT|EXEC sp_executesql N'INSERT)[^(]+\([^)]*\b(#{id_column.name})\b,?[^)]*\)/i ? quote_table_name(table_name) : false
           else
             false
           end
         end
         
         def insert_sql?(sql)
-          !(sql =~ /^\s*INSERT/i).nil?
+          !(sql =~ /^\s*(INSERT|EXEC sp_executesql N'INSERT)/i).nil?
         end
         
         def with_identity_insert_enabled(table_name)

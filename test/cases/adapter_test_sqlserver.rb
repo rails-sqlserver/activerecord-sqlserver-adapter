@@ -115,6 +115,7 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
     
     should 'return true to #insert_sql? for inserts only' do
       assert @connection.send(:insert_sql?,'INSERT...')
+      assert @connection.send(:insert_sql?, "EXEC sp_executesql N'INSERT INTO [fk_test_has_fks] ([fk_id]) VALUES (@0); SELECT CAST(SCOPE_IDENTITY() AS bigint) AS Ident', N'@0 int', @0 = 0")
       assert !@connection.send(:insert_sql?,'UPDATE...')
       assert !@connection.send(:insert_sql?,'SELECT...')
     end
@@ -238,12 +239,18 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
       @identity_insert_sql = "INSERT INTO [funny_jokes] ([id],[name]) VALUES(420,'Knock knock')"
       @identity_insert_sql_unquoted = "INSERT INTO funny_jokes (id, name) VALUES(420, 'Knock knock')"
       @identity_insert_sql_unordered = "INSERT INTO [funny_jokes] ([name],[id]) VALUES('Knock knock',420)"
+      @identity_insert_sql_sp = "EXEC sp_executesql N'INSERT INTO [funny_jokes] ([id],[name]) VALUES (@0, @1)', N'@0 int, @1 nvarchar(255)', @0 = 420, @1 = N'Knock knock'"
+      @identity_insert_sql_unquoted_sp = "EXEC sp_executesql N'INSERT INTO [funny_jokes] (id, name) VALUES (@0, @1)', N'@0 int, @1 nvarchar(255)', @0 = 420, @1 = N'Knock knock'"
+      @identity_insert_sql_unordered_sp = "EXEC sp_executesql N'INSERT INTO [funny_jokes] ([name],[id]) VALUES (@0, @1)', N'@0 nvarchar(255), @1  int', @0 = N'Knock knock', @1 = 420"
     end
     
     should 'return quoted table_name to #query_requires_identity_insert? when INSERT sql contains id column' do
       assert_equal '[funny_jokes]', @connection.send(:query_requires_identity_insert?,@identity_insert_sql)
       assert_equal '[funny_jokes]', @connection.send(:query_requires_identity_insert?,@identity_insert_sql_unquoted)
       assert_equal '[funny_jokes]', @connection.send(:query_requires_identity_insert?,@identity_insert_sql_unordered)
+      assert_equal '[funny_jokes]', @connection.send(:query_requires_identity_insert?,@identity_insert_sql_sp)
+      assert_equal '[funny_jokes]', @connection.send(:query_requires_identity_insert?,@identity_insert_sql_unquoted_sp)
+      assert_equal '[funny_jokes]', @connection.send(:query_requires_identity_insert?,@identity_insert_sql_unordered_sp)
     end
     
     should 'return false to #query_requires_identity_insert? for normal SQL' do
@@ -306,9 +313,10 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
     
   end
   
-  context 'When disableing referential integrity' do
+  context 'When disabling referential integrity' do
     
     setup do
+      @connection.disable_referential_integrity { FkTestHasPk.delete_all; FkTestHasFk.delete_all }
       @parent = FkTestHasPk.create!
       @member = FkTestHasFk.create!(:fk_id => @parent.id)
     end
