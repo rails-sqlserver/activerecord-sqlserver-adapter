@@ -1,6 +1,8 @@
 
 * 2.3.18 *
 
+* Warn of possible permission problems if "EXEC sp_helptext..." does not work view. Fixes #73.
+
 * Fix returning of auto-increment identity for TinyTDS driver. [Gregory McIntyre / puyo]
 
 

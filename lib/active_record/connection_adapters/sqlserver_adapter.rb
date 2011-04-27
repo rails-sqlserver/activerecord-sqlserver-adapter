@@ -588,7 +588,13 @@ module ActiveRecord
           if view_info
             view_info = view_info.with_indifferent_access
             if view_info[:VIEW_DEFINITION].blank? || view_info[:VIEW_DEFINITION].length == 4000
-              view_info[:VIEW_DEFINITION] = info_schema_query { select_values("EXEC sp_helptext #{quote_table_name(table_name)}").join }
+              view_info[:VIEW_DEFINITION] = info_schema_query do
+                                              begin
+                                                select_values("EXEC sp_helptext #{quote_table_name(table_name)}").join
+                                              rescue
+                                                warn "No view definition found, possible permissions problem.\nPlease run GRANT VIEW DEFINITION TO your_user;"
+                                              end
+                                            end
             end
           end
           view_info
