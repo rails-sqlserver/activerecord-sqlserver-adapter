@@ -39,11 +39,7 @@ module ActiveRecord
 
         def columns(table_name, name = nil)
           return [] if table_name.blank?
-<<<<<<< HEAD
           cache_key = unqualify_table_name(table_name)
-=======
-          cache_key = columns_cache_key(table_name)
->>>>>>> Pass all tests for DBLIB/TinyTDS connection mode and current state of rails 3.1.
           column_definitions(table_name).collect do |ci|
             sqlserver_options = ci.except(:name,:default_value,:type,:null).merge(:database_year=>database_year)
             SQLServerColumn.new ci[:name], ci[:default_value], ci[:type], ci[:null], sqlserver_options
@@ -202,19 +198,13 @@ module ActiveRecord
               ELSE 1
             END as is_identity
             FROM #{db_name_with_period}INFORMATION_SCHEMA.COLUMNS columns
-<<<<<<< HEAD
             WHERE columns.TABLE_NAME = @0
-=======
-<<<<<<< HEAD
-            WHERE columns.TABLE_NAME = '#{table_name}'
->>>>>>> Pass all tests for DBLIB/TinyTDS connection mode and current state of rails 3.1.
-              AND columns.TABLE_SCHEMA = #{table_schema.nil? ? "schema_name() " : "'#{table_schema}' "}
-=======
-            WHERE columns.TABLE_NAME = @0
->>>>>>> Pass all tests for DBLIB/TinyTDS connection mode and current state of rails 3.1.
+              AND columns.TABLE_SCHEMA = #{table_schema.blank? ? "schema_name()" : "@1"}
             ORDER BY columns.ordinal_position
           }.gsub(/[ \t\r\n]+/,' ')
-          results = info_schema_query { do_exec_query(sql, 'InfoSchema::ColumnDefinitions', [['table_name', table_name]]) }
+          binds = [['table_name', table_name]]
+          binds << ['table_schema',table_schema] unless table_schema.blank?
+          results = info_schema_query { do_exec_query(sql, 'InfoSchema::ColumnDefinitions', binds) }
           results.collect do |ci|
             ci = ci.symbolize_keys
             ci[:type] = case ci[:type]
