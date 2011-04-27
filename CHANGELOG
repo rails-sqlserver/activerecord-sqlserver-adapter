@@ -1,4 +1,9 @@
 
+* 2.3.18 *
+
+* Fix returning of auto-increment identity for TinyTDS driver. [Gregory McIntyre / puyo]
+
+
 * 2.3.17 *
 
 * Allow TinyTDS/DBLIB mode to pass down :host/:port config options.
