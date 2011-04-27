@@ -306,7 +306,13 @@ module ActiveRecord
             if view_info
               view_info = view_info.with_indifferent_access
               if view_info[:VIEW_DEFINITION].blank? || view_info[:VIEW_DEFINITION].length == 4000
-                view_info[:VIEW_DEFINITION] = info_schema_query { select_values("EXEC sp_helptext #{quote_table_name(table_name)}").join }
+                view_info[:VIEW_DEFINITION] = info_schema_query do
+                                                begin
+                                                  select_values("EXEC sp_helptext #{quote_table_name(table_name)}").join
+                                                rescue
+                                                  warn "No view definition found, possible permissions problem.\nPlease run GRANT VIEW DEFINITION TO your_user;"
+                                                end
+                                              end
               end
             end
             view_info
@@ -320,6 +326,7 @@ module ActiveRecord
         
         def views_real_column_name(table_name,column_name)
           view_definition = view_information(table_name)[:VIEW_DEFINITION]
+          
           match_data = view_definition.match(/([\w-]*)\s+as\s+#{column_name}/im)
           match_data ? match_data[1] : column_name
         end
