@@ -351,6 +351,12 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
       assert_nil @connection.send(:identity_column,Subscriber.table_name)
     end
     
+    should 'return retreive auto incremented id column' do
+      joke = Joke.new
+      joke.id = 999
+      joke.save
+      assert_equal 999, joke.id
+    end
   end
   
   context 'For Quoting' do
