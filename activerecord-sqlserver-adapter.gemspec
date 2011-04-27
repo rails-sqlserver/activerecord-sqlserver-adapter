@@ -5,7 +5,6 @@ Gem::Specification.new do |s|
   s.email    = "ken@metaskills.net"
   s.homepage = "http://github.com/rails-sqlserver"
   s.description = "SQL Server 2000, 2005 and 2008 Adapter For Rails."
-  s.has_rdoc = true
   s.authors  = ["Ken Collins","Murray Steele","Shawn Balestracci","Joe Rafaniello","Tom Ward"]
   s.files    = [
     "CHANGELOG", 
