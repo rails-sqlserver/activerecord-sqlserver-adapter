@@ -9,7 +9,7 @@ module ActiveRecord
         
         LOST_CONNECTION_EXCEPTIONS  = {
           :dblib  => ['TinyTds::Error'],
-          :odbc   => ['ODBC::Error','ODBC_UTF8::Error','ODBC_NONE::Error'],
+          :odbc   => ['ODBC::Error'],
           :adonet => ['TypeError','System::Data::SqlClient::SqlException']
         }.freeze
         

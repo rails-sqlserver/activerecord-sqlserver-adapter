@@ -88,7 +88,6 @@ class ColumnTestSqlserver < ActiveRecord::TestCase
 
   end
   
-  
   context 'For all national/unicode columns' do
     
     setup do
