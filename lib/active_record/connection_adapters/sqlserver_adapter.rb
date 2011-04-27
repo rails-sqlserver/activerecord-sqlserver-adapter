@@ -295,7 +295,7 @@ module ActiveRecord
       end
       
       def sqlserver_azure?
-        @sqlserver_azure && @database_year == 2010
+        @sqlserver_azure
       end
       
       def version
