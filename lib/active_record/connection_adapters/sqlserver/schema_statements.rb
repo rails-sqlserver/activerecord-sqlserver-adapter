@@ -9,7 +9,7 @@ module ActiveRecord
 
         def tables(name = nil)
           info_schema_query do
-            select_values "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_NAME <> 'dtproperties'"
+            select_values "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_NAME <> 'dtproperties' AND TABLE_SCHEMA = schema_name()"
           end
         end
 
@@ -39,7 +39,7 @@ module ActiveRecord
 
         def columns(table_name, name = nil)
           return [] if table_name.blank?
-          cache_key = unqualify_table_name(table_name)
+          cache_key = columns_cache_key(table_name)
           @sqlserver_columns_cache[cache_key] ||= column_definitions(table_name).collect do |ci|
             sqlserver_options = ci.except(:name,:default_value,:type,:null).merge(:database_year=>database_year)
             SQLServerColumn.new ci[:name], ci[:default_value], ci[:type], ci[:null], sqlserver_options
@@ -175,6 +175,7 @@ module ActiveRecord
         def column_definitions(table_name)
           db_name = unqualify_db_name(table_name)
           db_name_with_period = "#{db_name}." if db_name
+          table_schema = unqualify_table_schema(table_name)
           table_name = unqualify_table_name(table_name)
           sql = %{
             SELECT
@@ -198,6 +199,7 @@ module ActiveRecord
             END as is_identity
             FROM #{db_name_with_period}INFORMATION_SCHEMA.COLUMNS columns
             WHERE columns.TABLE_NAME = '#{table_name}'
+              AND columns.TABLE_SCHEMA = #{table_schema.nil? ? "schema_name() " : "'#{table_schema}' "}
             ORDER BY columns.ordinal_position
           }.gsub(/[ \t\r\n]+/,' ')
           results = info_schema_query { select(sql,nil) }
@@ -266,6 +268,10 @@ module ActiveRecord
           table_name.to_s.split('.').last.tr('[]','')
         end
 
+        def unqualify_table_schema(table_name)
+          table_name.to_s.split('.')[-2].gsub(/[\[\]]/,'') rescue nil
+        end
+
         def unqualify_db_name(table_name)
           table_names = table_name.to_s.split('.')
           table_names.length == 3 ? table_names.first.tr('[]','') : nil
@@ -332,7 +338,17 @@ module ActiveRecord
         end
         
         # === SQLServer Specific (Column/View Caches) =================== #
-        
+
+        def columns_cache_key(table_name)
+          table_schema = unqualify_table_schema(table_name)
+          table_name = unqualify_table_name(table_name) 
+          if table_schema
+            "#{table_schema}.#{table_name}"  
+          else
+            table_name
+          end
+        end
+
         def remove_sqlserver_columns_cache_for(table_name)
           cache_key = unqualify_table_name(table_name)
           @sqlserver_columns_cache[cache_key] = nil

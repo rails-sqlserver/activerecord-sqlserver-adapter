@@ -102,6 +102,33 @@ ActiveRecord::Schema.define do
       /*#{'x'*4000}}*/
       FROM string_defaults
   STRINGDEFAULTSBIGVIEW
+
+
+  # Another schema.
+  create_table :sql_server_schema_columns, :force => true do |t|
+    t.column :field1 , :integer
+  end
+  execute "IF NOT EXISTS(SELECT * FROM sys.schemas WHERE name = 'test') EXEC sp_executesql N'CREATE SCHEMA test'"
+  execute "IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'sql_server_schema_columns' and TABLE_SCHEMA = 'test') DROP TABLE test.sql_server_schema_columns"
+  execute <<-SIMILIARTABLEINOTHERSCHEMA
+    CREATE TABLE test.sql_server_schema_columns(
+    	id int IDENTITY NOT NULL primary key,
+    	filed_1 int,	
+    	field_2 int,
+    	name varchar(255),
+    	description varchar(1000),
+    	n_name nvarchar(255),
+    	n_description nvarchar(1000)
+    )
+  SIMILIARTABLEINOTHERSCHEMA
+  execute "IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'sql_server_schema_identity' and TABLE_SCHEMA = 'test') DROP TABLE test.sql_server_schema_identity"
+  execute <<-SIMILIARTABLEINOTHERSCHEMA
+    CREATE TABLE test.sql_server_schema_identity(
+    	id int IDENTITY NOT NULL primary key,
+    	filed_1 int
+    )
+  SIMILIARTABLEINOTHERSCHEMA
+  
   
   if sqlserver_azure?
     # Azure needs clustered indexes.
