@@ -1,10 +1,16 @@
 
 source :rubygems
 
-gem 'tiny_tds', :path => (ENV['TINYTDS_SOURCE'] if ENV['TINYTDS_SOURCE'])
+group :tinytds do
+  if ENV['TINYTDS_SOURCE']
+    gem 'tiny_tds', :path => ENV['TINYTDS_SOURCE']
+  else
+    gem 'tiny_tds'
+  end
+end
 
 group :odbc do
-  gem 'ruby-odbc', '0.99992'
+  gem 'ruby-odbc', '~>0.99994'
 end
 
 group :development do
