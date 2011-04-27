@@ -32,7 +32,9 @@ module Arel
     # a colleciton of them reliably as well as using their true object attributes to mutate them
     # to grouping objects for the inner sql during a select statment with an offset/rownumber. So this
     # is here till ActiveRecord & ARel does this for us instead of using SqlLiteral objects.
+    alias :order_without_sqlserver :order
     def order(*exprs)
+      return order_without_sqlserver(*exprs) unless Arel::Visitors::SQLServer === @visitor
       @ast.orders.concat(exprs.map{ |x|
         case x
         when Arel::Attributes::Attribute
