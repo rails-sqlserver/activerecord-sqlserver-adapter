@@ -15,18 +15,26 @@ module ActiveRecord
           end
         end
         
-        def exec_query(sql, name = 'SQL', binds = [])
-          if id_insert_table_name = query_requires_identity_insert?(sql)
-            with_identity_insert_enabled(id_insert_table_name) do
-              binds.empty? ? raw_select(sql, name, binds, :ar_result => true) : do_exec_query(sql, name, binds)
-            end
+        def exec_query(sql, name = 'SQL', binds = [], sqlserver_options = {})
+          if id_insert_table_name = sqlserver_options[:insert] ? query_requires_identity_insert?(sql) : nil
+            with_identity_insert_enabled(id_insert_table_name) { do_exec_query(sql, name, binds) }
           else
-            binds.empty? ? raw_select(sql, name, binds, :ar_result => true) : do_exec_query(sql, name, binds)
+            do_exec_query(sql, name, binds)
           end
         end
         
         def exec_insert(sql, name, binds)
-          exec_query(sql, name, binds)
+          exec_query sql, name, binds, :insert => true
+        end
+        
+        def exec_delete(sql, name, binds)
+          sql << "; SELECT @@ROWCOUNT AS AffectedRows"
+          super.rows.first.first
+        end
+
+        def exec_update(sql, name, binds)
+          sql << "; SELECT @@ROWCOUNT AS AffectedRows"
+          super.rows.first.first
         end
 
         def outside_transaction?
@@ -70,13 +78,6 @@ module ActiveRecord
 
         def case_sensitive_modifier(node)
           node.acts_like?(:string) ? Arel::Nodes::Bin.new(node) : node
-        end
-
-        def limited_update_conditions(where_sql, quoted_table_name, quoted_primary_key)
-          match_data = where_sql.match(/^(.*?[\]\) ])WHERE[\[\( ]/)
-          limit = match_data[1]
-          where_sql.sub!(limit,'')
-          "WHERE #{quoted_primary_key} IN (SELECT #{limit} #{quoted_primary_key} FROM #{quoted_table_name} #{where_sql})"
         end
         
         # === SQLServer Specific ======================================== #
@@ -207,23 +208,8 @@ module ActiveRecord
           exec_query(sql, name, binds).to_a
         end
         
-        def insert_sql(sql, name = nil, pk = nil, id_value = nil, sequence_name = nil)
-          super || select_value("SELECT CAST(SCOPE_IDENTITY() AS bigint) AS Ident")
-        end
-        
-        def update_sql(sql, name = nil)
-          @update_sql = true
-          case @connection_options[:mode]
-          when :dblib
-            execute(sql, name)
-          else
-            execute(sql, name)
-            select_value('SELECT @@ROWCOUNT AS AffectedRows')
-          end
-        end
-        
         def sql_for_insert(sql, pk, id_value, sequence_name, binds)
-          sql = "#{sql}; SELECT CAST(SCOPE_IDENTITY() AS bigint) AS Ident" unless binds.empty?
+          sql = "#{sql}; SELECT CAST(SCOPE_IDENTITY() AS bigint) AS Ident"# unless binds.empty?
           super
         end
 
@@ -268,7 +254,8 @@ module ActiveRecord
             quoted_value = ar_column ? quote(v,column) : quote(v,nil)
             params << "@#{index} = #{quoted_value}"
           end
-          sql = "EXEC sp_executesql #{statement}, #{quote(names_and_types.join(', '))}, #{params.join(', ')}"
+          sql = "EXEC sp_executesql #{statement}"
+          sql << ", #{quote(names_and_types.join(', '))}, #{params.join(', ')}" unless binds.empty?
           raw_select sql, name, binds, :ar_result => true
         end
         
@@ -341,7 +328,6 @@ module ActiveRecord
           options[:ar_result] ? ActiveRecord::Result.new(handle.fields, results) : results
         end
         
-        # TODO [Rails31] Use options[:ar_result]
         def handle_to_names_and_values_odbc(handle, options={})
           @connection.use_utc = ActiveRecord::Base.default_timezone == :utc
           if options[:ar_result]
@@ -358,7 +344,6 @@ module ActiveRecord
           end
         end
 
-        # TODO [Rails31] Use options[:ar_result]
         def handle_to_names_and_values_adonet(handle, options={})
           if handle.has_rows
             names = []

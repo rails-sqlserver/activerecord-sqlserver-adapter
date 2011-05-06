@@ -22,7 +22,7 @@ end
 
 
 task :test => ['test:dblib']
-
+task :default => [:test]
 
 namespace :test do
   
