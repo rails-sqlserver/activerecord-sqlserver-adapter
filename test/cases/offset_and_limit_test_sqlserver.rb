@@ -37,11 +37,11 @@ class OffsetAndLimitTestSqlserver < ActiveRecord::TestCase
     end
     
     should 'not convert strings which look like integers to integers' do
-      assert_sql(/WHERE \[__rnt\]\.\[__rn\] > \(N'5'\)/) { Book.limit(10).offset('5').all }
+      assert_sql(/WHERE \[__rnt\]\.\[__rn\] > \(N''5''\)/) { Book.limit(10).offset('5').all }
     end
 
     should 'alter SQL to limit number of records returned offset by specified amount' do
-      sql = %|SELECT TOP (3) [__rnt].* FROM ( SELECT ROW_NUMBER() OVER (ORDER BY [books].[id] ASC) AS [__rn], [books].* FROM [books] ) AS [__rnt] WHERE [__rnt].[__rn] > (5)|
+      sql = %|EXEC sp_executesql N'SELECT TOP (3) [__rnt].* FROM ( SELECT ROW_NUMBER() OVER (ORDER BY [books].[id] ASC) AS [__rn], [books].* FROM [books] ) AS [__rnt] WHERE [__rnt].[__rn] > (5)'|
       assert_sql(sql) { Book.limit(3).offset(5).all }
     end
     

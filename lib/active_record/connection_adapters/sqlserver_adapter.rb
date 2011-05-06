@@ -161,7 +161,7 @@ module ActiveRecord
       include Sqlserver::Errors
       
       ADAPTER_NAME                = 'SQLServer'.freeze
-      VERSION                     = '3.0.15'.freeze
+      VERSION                     = '3.1.0.beta1'.freeze
       DATABASE_VERSION_REGEXP     = /Microsoft SQL Server\s+"?(\d{4}|\w+)"?/
       SUPPORTED_VERSIONS          = [2005,2008,2010,2011].freeze
       
