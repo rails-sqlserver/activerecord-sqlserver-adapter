@@ -16,7 +16,7 @@ Gem::Specification.new do |s|
   s.rdoc_options.concat ['--main',  'README.rdoc']
   s.rubyforge_project = 'activerecord-sqlserver-adapter'
   
-  s.add_dependency('activerecord', '~> 3.0.3')
-  s.add_dependency('arel', '~> 2.0.7')
+  s.add_dependency('activerecord', '~> 3.1.0.beta1')
+  s.add_dependency('arel', '~> 2.1.0')
 end
 
