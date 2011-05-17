@@ -39,30 +39,14 @@ module ActiveRecord
 
         def columns(table_name, name = nil)
           return [] if table_name.blank?
-          cache_key = unqualify_table_name(table_name)
           column_definitions(table_name).collect do |ci|
             sqlserver_options = ci.except(:name,:default_value,:type,:null).merge(:database_year=>database_year)
             SQLServerColumn.new ci[:name], ci[:default_value], ci[:type], ci[:null], sqlserver_options
           end
         end
 
-        def create_table(table_name, options = {})
-          super
-          remove_sqlserver_columns_cache_for(table_name)
-        end
-
         def rename_table(table_name, new_name)
           do_execute "EXEC sp_rename '#{table_name}', '#{new_name}'"
-        end
-
-        def drop_table(table_name, options = {})
-          super
-          remove_sqlserver_columns_cache_for(table_name)
-        end
-
-        def add_column(table_name, column_name, type, options = {})
-          super
-          remove_sqlserver_columns_cache_for(table_name)
         end
 
         def remove_column(table_name, *column_names)
@@ -73,7 +57,6 @@ module ActiveRecord
             remove_indexes(table_name, column_name)
             do_execute "ALTER TABLE #{quote_table_name(table_name)} DROP COLUMN #{quote_column_name(column_name)}"
           end
-          remove_sqlserver_columns_cache_for(table_name)
         end
 
         def change_column(table_name, column_name, type, options = {})
@@ -86,23 +69,19 @@ module ActiveRecord
            	remove_default_constraint(table_name,column_name)
           end
           if options_include_default?(options)
-            remove_sqlserver_columns_cache_for(table_name)
             sql_commands << "ALTER TABLE #{quote_table_name(table_name)} ADD CONSTRAINT #{default_constraint_name(table_name,column_name)} DEFAULT #{quote(options[:default])} FOR #{quote_column_name(column_name)}"
           end
           sql_commands.each { |c| do_execute(c) }
-          remove_sqlserver_columns_cache_for(table_name)
         end
 
         def change_column_default(table_name, column_name, default)
           remove_default_constraint(table_name, column_name)
           do_execute "ALTER TABLE #{quote_table_name(table_name)} ADD CONSTRAINT #{default_constraint_name(table_name, column_name)} DEFAULT #{quote(default)} FOR #{quote_column_name(column_name)}"
-          remove_sqlserver_columns_cache_for(table_name)
         end
 
         def rename_column(table_name, column_name, new_column_name)
           detect_column_for!(table_name,column_name)
           do_execute "EXEC sp_rename '#{table_name}.#{column_name}', '#{new_column_name}', 'COLUMN'"
-          remove_sqlserver_columns_cache_for(table_name)
         end
         
         def remove_index!(table_name, index_name)
@@ -340,21 +319,6 @@ module ActiveRecord
         end
         
         # === SQLServer Specific (Column/View Caches) =================== #
-
-        def columns_cache_key(table_name)
-          table_schema = unqualify_table_schema(table_name)
-          table_name = unqualify_table_name(table_name) 
-          if table_schema
-            "#{table_schema}.#{table_name}"  
-          else
-            table_name
-          end
-        end
-
-        def remove_sqlserver_columns_cache_for(table_name)
-          cache_key = unqualify_table_name(table_name)
-          initialize_sqlserver_caches(false)
-        end
 
         def initialize_sqlserver_caches(reset_columns=true)
           @sqlserver_views_cache = nil
