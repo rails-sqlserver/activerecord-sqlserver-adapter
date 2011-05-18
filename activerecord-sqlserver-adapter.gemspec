@@ -2,7 +2,7 @@
 Gem::Specification.new do |s|
   s.platform      = Gem::Platform::RUBY
   s.name          = "activerecord-sqlserver-adapter"
-  s.version       = "3.1.0.beta1"
+  s.version       = "3.1.0.beta2"
   s.summary       = "SQL Server 2005 and 2008 Adapter For ActiveRecord."
   s.description   = "SQL Server 2005 and 2008 Adapter For ActiveRecord"
   
@@ -16,7 +16,7 @@ Gem::Specification.new do |s|
   s.rdoc_options.concat ['--main',  'README.rdoc']
   s.rubyforge_project = 'activerecord-sqlserver-adapter'
   
-  s.add_dependency('activerecord', '~> 3.0.3')
-  s.add_dependency('arel', '~> 2.0.7')
+  s.add_dependency('activerecord', '~> 3.1.0')
+  s.add_dependency('arel', '~> 2.1.0')
 end
 
