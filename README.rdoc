@@ -6,8 +6,8 @@ The SQL Server adapter for ActiveRecord.
 
 == What's New
 
+* Rails 3.1 prepared statement support leverages cached query plans.
 * New dblib connection mode using TinyTds!
-* Rails 3 support!
 
 
 ==== Testing Rake Tasks Support
