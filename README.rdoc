@@ -172,5 +172,5 @@ http://pledgie.com/campaigns/11630
 
 == License
 
-Copyright © 2008-2010. It is free software, and may be redistributed under the terms specified in the MIT-LICENSE file.
+Copyright © 2008-2011. It is free software, and may be redistributed under the terms specified in the MIT-LICENSE file.
 
