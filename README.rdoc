@@ -7,6 +7,7 @@ The SQL Server adapter for ActiveRecord.
 == What's New
 
 * Rails 3.1 prepared statement support leverages cached query plans.
+* New #lowercase_schema_reflection configuration option for legacy DBs.
 * New dblib connection mode using TinyTds!
 
 
@@ -88,7 +89,14 @@ By default the adapter will use non-unicode safe data types for :string and :tex
 It is important to remember that unicode types in SQL Server have approximately half the storage capacity as their counter parts. So where a normal string would max out at (8000) a unicode string will top off at (4000).
 
 
-====  Schema Information Logging
+==== Force Schema To Lowercase
+
+Although it is not necessary, the Ruby convention is to use lowercase method names. If your database schema is in upper or mixed case, we can force all table and column names during the schema reflection process to be lowercase. Add this to your config/initializers file for the adapter.
+
+  ActiveRecord::ConnectionAdapters::SQLServerAdapter.lowercase_schema_reflection = true
+
+
+==== Schema Information Logging
 
 By default all queries to the INFORMATION_SCHEMA table is silenced. If you think logging these queries are useful, you can enable it by adding this like to a initializer file.
 

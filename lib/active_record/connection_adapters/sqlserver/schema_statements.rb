@@ -9,7 +9,7 @@ module ActiveRecord
 
         def tables(name = nil)
           info_schema_query do
-            select_values "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_NAME <> 'dtproperties' AND TABLE_SCHEMA = schema_name()"
+            select_values "SELECT #{lowercase_schema_reflection_sql('TABLE_NAME')} FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_NAME <> 'dtproperties' AND TABLE_SCHEMA = schema_name()"
           end
         end
 
@@ -118,7 +118,7 @@ module ActiveRecord
         
         def views(name = nil)
           @sqlserver_views_cache ||= 
-            info_schema_query { select_values("SELECT TABLE_NAME FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_NAME NOT IN ('sysconstraints','syssegments')") }
+            info_schema_query { select_values("SELECT #{lowercase_schema_reflection_sql('TABLE_NAME')} FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_NAME NOT IN ('sysconstraints','syssegments')") }
         end
         
         
@@ -158,24 +158,24 @@ module ActiveRecord
           table_name = unqualify_table_name(table_name)
           sql = %{
             SELECT
-            columns.TABLE_NAME as table_name,
-            columns.COLUMN_NAME as name,
-            columns.DATA_TYPE as type,
-            columns.COLUMN_DEFAULT as default_value,
-            columns.NUMERIC_SCALE as numeric_scale,
-            columns.NUMERIC_PRECISION as numeric_precision,
+            #{lowercase_schema_reflection_sql('columns.TABLE_NAME')} AS table_name,
+            #{lowercase_schema_reflection_sql('columns.COLUMN_NAME')} AS name,
+            columns.DATA_TYPE AS type,
+            columns.COLUMN_DEFAULT AS default_value,
+            columns.NUMERIC_SCALE AS numeric_scale,
+            columns.NUMERIC_PRECISION AS numeric_precision,
             CASE
               WHEN columns.DATA_TYPE IN ('nchar','nvarchar') THEN columns.CHARACTER_MAXIMUM_LENGTH
               ELSE COL_LENGTH(columns.TABLE_SCHEMA+'.'+columns.TABLE_NAME, columns.COLUMN_NAME)
-            END as length,
+            END AS length,
             CASE
               WHEN columns.IS_NULLABLE = 'YES' THEN 1
               ELSE NULL
-            END as is_nullable,
+            END AS is_nullable,
             CASE
               WHEN COLUMNPROPERTY(OBJECT_ID(columns.TABLE_SCHEMA+'.'+columns.TABLE_NAME), columns.COLUMN_NAME, 'IsIdentity') = 0 THEN NULL
               ELSE 1
-            END as is_identity
+            END AS is_identity
             FROM #{db_name_with_period}INFORMATION_SCHEMA.COLUMNS columns
             WHERE columns.TABLE_NAME = @0
               AND columns.TABLE_SCHEMA = #{table_schema.blank? ? "schema_name()" : "@1"}
@@ -279,6 +279,10 @@ module ActiveRecord
           column
         end
         
+        def lowercase_schema_reflection_sql(node)
+          lowercase_schema_reflection ? "LOWER(#{node})" : node
+        end
+        
         # === SQLServer Specific (View Reflection) ====================== #
         
         def view_table_name(table_name)
@@ -313,14 +317,13 @@ module ActiveRecord
         
         def views_real_column_name(table_name,column_name)
           view_definition = view_information(table_name)[:VIEW_DEFINITION]
-          
           match_data = view_definition.match(/([\w-]*)\s+as\s+#{column_name}/im)
           match_data ? match_data[1] : column_name
         end
         
         # === SQLServer Specific (Column/View Caches) =================== #
 
-        def initialize_sqlserver_caches(reset_columns=true)
+        def initialize_sqlserver_caches
           @sqlserver_views_cache = nil
           @sqlserver_view_information_cache = {}
           @sqlserver_quoted_column_and_table_names = {}

@@ -79,7 +79,7 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
     end
     
     context 'for #unqualify_table_name and #unqualify_db_name' do
-
+    
       setup do
         @expected_table_name = 'baz'
         @expected_db_name = 'foo'
@@ -110,7 +110,7 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
             "This qualifed_table_name #{qtn} did not unqualify the db_name correctly."
         end
       end
-
+    
     end
     
     should 'return true to #insert_sql? for inserts only' do
@@ -121,32 +121,32 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
     end
     
     context 'for #get_table_name' do
-
+    
       should 'return quoted table name from basic INSERT, UPDATE and SELECT statements' do
         assert_equal '[funny_jokes]', @connection.send(:get_table_name,@basic_insert_sql)
         assert_equal '[customers]', @connection.send(:get_table_name,@basic_update_sql)
         assert_equal '[customers]', @connection.send(:get_table_name,@basic_select_sql)
       end
-
+    
     end
     
     context 'with different language' do
-
+    
       teardown do
         @connection.execute("SET LANGUAGE us_english") rescue nil
       end
-
+    
       should_eventually 'do a date insertion when language is german' do
         @connection.execute("SET LANGUAGE deutsch")
         assert_nothing_raised do
           Task.create(:starting => Time.utc(2000, 1, 31, 5, 42, 0), :ending => Date.new(2006, 12, 31))
         end
       end
-
+    
     end
     
     context 'testing #enable_default_unicode_types configuration' do
-
+    
       should 'use non-unicode types when set to false' do
         with_enable_default_unicode_types(false) do
           assert_equal 'varchar', @connection.native_string_database_type
@@ -160,9 +160,38 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
           assert_equal 'nvarchar(max)', @connection.native_text_database_type
         end
       end
-
+    
     end
     
+    context 'testing #lowercase_schema_reflection' do
+
+      setup do
+        UpperTestDefault.delete_all
+        UpperTestDefault.create :COLUMN1 => 'Got a minute?', :COLUMN2 => 419
+        UpperTestDefault.create :COLUMN1 => 'Favorite number?', :COLUMN2 => 69
+      end
+      
+      teardown do
+        @connection.lowercase_schema_reflection = false
+      end
+
+      should 'not lowercase schema reflection by default' do
+        assert UpperTestDefault.columns_hash['COLUMN1']
+        assert_equal 'Got a minute?', UpperTestDefault.first.COLUMN1
+        assert_equal 'Favorite number?', UpperTestDefault.last.COLUMN1
+        assert UpperTestDefault.columns_hash['COLUMN2']
+      end
+      
+      should 'lowercase schema reflection when set' do
+        @connection.lowercase_schema_reflection = true
+        UpperTestLowered.reset_column_information
+        assert UpperTestLowered.columns_hash['column1']
+        assert_equal 'Got a minute?', UpperTestLowered.first.column1
+        assert_equal 'Favorite number?', UpperTestLowered.last.column1
+        assert UpperTestLowered.columns_hash['column2']
+      end
+
+    end
     
   end
   
@@ -187,23 +216,23 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
       end
       
       context 'finding existing DB objects' do
-
+  
         should 'find 003 millisecond in the DB with before and after casting' do
           existing_003 = SqlServerChronic.find_by_datetime!(@db_datetime_003)
           assert_equal @db_datetime_003, existing_003.datetime_before_type_cast if existing_003.datetime_before_type_cast.is_a?(String)
           assert_equal 3000, existing_003.datetime.usec, 'A 003 millisecond in SQL Server is 3000 microseconds'
         end
-
+  
         should 'find 123 millisecond in the DB with before and after casting' do
           existing_123 = SqlServerChronic.find_by_datetime!(@db_datetime_123)
           assert_equal @db_datetime_123, existing_123.datetime_before_type_cast if existing_123.datetime_before_type_cast.is_a?(String)
           assert_equal 123000, existing_123.datetime.usec, 'A 123 millisecond in SQL Server is 123000 microseconds'
         end
-
+  
       end
       
       context 'saving new datetime objects' do
-
+  
         should 'truncate 123456 usec to just 123 in the DB cast back to 123000' do
           @time.stubs(:usec).returns(123456)
           saved = SqlServerChronic.create!(:datetime => @time).reload
@@ -350,7 +379,7 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
       end
       
     end unless sqlserver_azure?
-
+  
     context "altering isolation levels" do
       
       should "barf if the requested isolation level is not valid" do
@@ -458,7 +487,7 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
   context 'For views' do
     
     context 'using @connection.views' do
-
+  
       should 'return an array' do
         assert_instance_of Array, @connection.views
       end
@@ -559,7 +588,7 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
     end
     
     context 'doing identity inserts' do
-
+  
       setup do
         @view_insert_sql = "INSERT INTO [customers_view] ([id],[name],[balance]) VALUES (420,'Microsoft',0)"
       end
@@ -572,11 +601,11 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
         assert_nothing_raised { @connection.execute(@view_insert_sql) }
         assert CustomersView.find(420)
       end
-
+  
     end
     
     context 'that have more than 4000 chars for their defintion' do
-
+  
       should 'cope with null returned for the defintion' do
         assert_nothing_raised() { StringDefaultsBigView.columns }
       end
@@ -585,7 +614,7 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
         assert_equal 'null', StringDefaultsBigView.new.pretend_null, 
           StringDefaultsBigView.columns_hash['pretend_null'].inspect
       end
-
+  
     end
     
   end
