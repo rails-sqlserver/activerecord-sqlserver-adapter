@@ -7,6 +7,7 @@ The SQL Server adapter for ActiveRecord.
 == What's New
 
 * Rails 3.1 prepared statement support leverages cached query plans.
+* Default unicode datatypes! Disable with #enable_default_unicode_types to false.
 * New #lowercase_schema_reflection configuration option for legacy DBs.
 * New dblib connection mode using TinyTds!
 
@@ -79,12 +80,17 @@ By default any :binary column created by migrations will create a 'varbinary(max
 
 ====  Setting Unicode Types As Default
 
-By default the adapter will use non-unicode safe data types for :string and :text types when defining/changing the schema. If you choose, you can set the following class attribute in a config/initializers file that will change this behavior. When set to true it has the equivalent meaning as the two lower items. These examples show detail level alternatives to achieve similar effects.
+By default the adapter will use unicode safe data types for :string and :text types when defining/changing the schema!!! This was changed in version 3.1 since it is about time we push better unicode support and since we default to TinyTDS (DBLIB) which supports unicode queries and data. If you choose, you can set the following class attribute in a config/initializers file that will disable this behavior. 
   
+  # Default
   ActiveRecord::ConnectionAdapters::SQLServerAdapter.enable_default_unicode_types = true
-  
   ActiveRecord::ConnectionAdapters::SQLServerAdapter.native_text_database_type = 'nvarchar(max)'
   ActiveRecord::ConnectionAdapters::SQLServerAdapter.native_string_database_type = 'nvarchar'
+  
+  # Disabled
+  ActiveRecord::ConnectionAdapters::SQLServerAdapter.enable_default_unicode_types = false
+  ActiveRecord::ConnectionAdapters::SQLServerAdapter.native_text_database_type = 'varchar(max)'
+  ActiveRecord::ConnectionAdapters::SQLServerAdapter.native_string_database_type = 'varchar'
 
 It is important to remember that unicode types in SQL Server have approximately half the storage capacity as their counter parts. So where a normal string would max out at (8000) a unicode string will top off at (4000).
 

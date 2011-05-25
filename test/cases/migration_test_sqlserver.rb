@@ -71,3 +71,14 @@ if ActiveRecord::TestCase.sqlserver_azure?
   end
 end
 
+class ChangeTableMigrationsTest < ActiveRecord::TestCase
+  COERCED_TESTS = [:test_string_creates_string_column]
+  include SqlserverCoercedTest
+  def test_coerced_string_creates_string_column
+    with_change_table do |t|
+      @connection.expects(:add_column).with(:delete_me, :foo, 'nvarchar(255)', {})
+      @connection.expects(:add_column).with(:delete_me, :bar, 'nvarchar(255)', {})
+      t.string :foo, :bar
+    end
+  end
+end
