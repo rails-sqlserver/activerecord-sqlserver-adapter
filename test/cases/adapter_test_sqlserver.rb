@@ -4,10 +4,11 @@ require 'models/reply'
 require 'models/joke'
 require 'models/subscriber'
 require 'models/minimalistic'
+require 'models/post'
 
 class AdapterTestSqlserver < ActiveRecord::TestCase
   
-  fixtures :tasks
+  fixtures :tasks, :posts
     
   def setup
     @connection = ActiveRecord::Base.connection
@@ -17,6 +18,12 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
   end
   
   context 'For abstract behavior' do
+    
+    should 'not mangel complex order clauses' do
+      xyz_order = "CASE WHEN [title] LIKE N'XYZ%' THEN 0 ELSE 1 END"
+      xyz_post = Post.create :title => 'XYZ Post', :body => 'Test cased orders.'
+      assert_equal xyz_post, Post.order(Arel::Nodes::Ordering.new(Arel.sql(xyz_order))).first
+    end
     
     should 'have a 128 max #table_alias_length' do
       assert @connection.table_alias_length <= 128

@@ -1,6 +1,8 @@
 
 * 3.1.0 *
 
+* Allow complex order objects to not be molested by our visitor overrides. Fixes #99
+
 * Default unicode datatypes!
 
 * New #lowercase_schema_reflection configuration that allows you to downcase all tables and columns.
