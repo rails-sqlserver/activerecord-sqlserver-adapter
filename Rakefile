@@ -2,8 +2,10 @@ require 'rake'
 require 'rake/testtask'
 require 'rake/rdoctask'
 
+# Notes for cross compile:
+# $ gcla ; bundle install ; rake compile ; rake cross compile ; rake cross native gem
 
-def test_libs(mode='odbc')
+def test_libs(mode='dblib')
   ['lib',
    'test',
    "test/connections/native_sqlserver#{mode == 'adonet' ? '' : "_#{mode}"}",

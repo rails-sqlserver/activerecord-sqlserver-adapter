@@ -325,13 +325,14 @@ module ActiveRecord
             qo[:as] = (options[:ar_result] || options[:fetch] == :rows) ? :array : :hash
           end
           results = handle.each(query_options)
-          options[:ar_result] ? ActiveRecord::Result.new(handle.fields, results) : results
+          columns = lowercase_schema_reflection ? handle.fields.map { |c| c.downcase } : handle.fields
+          options[:ar_result] ? ActiveRecord::Result.new(columns, results) : results
         end
         
         def handle_to_names_and_values_odbc(handle, options={})
           @connection.use_utc = ActiveRecord::Base.default_timezone == :utc
           if options[:ar_result]
-            columns = handle.columns(true).map { |c| c.name }
+            columns = lowercase_schema_reflection ? handle.columns(true).map { |c| c.name.downcase } : handle.columns(true).map { |c| c.name }
             rows = handle.fetch_all || []
             ActiveRecord::Result.new(columns, rows)
           else

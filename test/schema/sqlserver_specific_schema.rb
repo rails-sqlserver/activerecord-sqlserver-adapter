@@ -1,5 +1,10 @@
 ActiveRecord::Schema.define do
   
+  create_table :UPPER_TESTS, :force => true do |t|
+    t.column :COLUMN1, :string
+    t.column :COLUMN2, :integer
+  end
+  
   create_table :table_with_real_columns, :force => true do |t|
     t.column :real_number, :real
   end

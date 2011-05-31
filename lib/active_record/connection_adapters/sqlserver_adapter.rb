@@ -161,16 +161,18 @@ module ActiveRecord
       include Sqlserver::Errors
       
       ADAPTER_NAME                = 'SQLServer'.freeze
-      VERSION                     = '3.1.0.rc1'.freeze
+      VERSION                     = '3.1.0'.freeze
       DATABASE_VERSION_REGEXP     = /Microsoft SQL Server\s+"?(\d{4}|\w+)"?/
       SUPPORTED_VERSIONS          = [2005,2008,2010,2011].freeze
       
-      attr_reader :database_version, :database_year,
-                  :connection_supports_native_types
+      attr_reader :database_version, :database_year
       
       cattr_accessor :native_text_database_type, :native_binary_database_type, :native_string_database_type,
                      :log_info_schema_queries, :enable_default_unicode_types, :auto_connect,
-                     :cs_equality_operator
+                     :cs_equality_operator, :lowercase_schema_reflection
+      
+      self.enable_default_unicode_types = true
+      
       
       def initialize(logger,config)
         @connection_options = config
@@ -263,8 +265,7 @@ module ActiveRecord
       end
       
       def clear_cache!
-        # This requires db admin perms and I'm not even sure it is a good idea.
-        # raw_connection_do "DBCC FREEPROCCACHE WITH NO_INFOMSGS" rescue nil
+        initialize_sqlserver_caches
       end
       
       # === Abstract Adapter (Misc Support) =========================== #

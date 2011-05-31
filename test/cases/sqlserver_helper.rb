@@ -26,6 +26,8 @@ ActiveRecord::Migration.verbose = false
 
 # Defining our classes in one place as well as soem core tests that need coercing date/time types.
 
+class UpperTestDefault < ActiveRecord::Base ; self.table_name = 'UPPER_TESTS' ; end
+class UpperTestLowered < ActiveRecord::Base ; self.table_name = 'upper_tests' ; end
 class TableWithRealColumn < ActiveRecord::Base; end
 class FkTestHasFk < ActiveRecord::Base ; end
 class FkTestHasPk < ActiveRecord::Base ; end
@@ -70,12 +72,6 @@ module SqlserverCoercedTest
   end
 end
 
-# Set weather to test unicode string defaults or not. Used from rake task.
-
-if ENV['ENABLE_DEFAULT_UNICODE_TYPES'] != 'false'
-  puts "With enabled unicode string types"
-  ActiveRecord::ConnectionAdapters::SQLServerAdapter.enable_default_unicode_types = true
-end
 
 # Our changes/additions to ActiveRecord test helpers specific for SQL Server.
 
