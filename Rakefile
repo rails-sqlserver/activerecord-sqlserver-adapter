@@ -19,7 +19,7 @@ def test_files
     adapter_cases = Dir.glob("#{ENV['RAILS_SOURCE']}/activerecord/test/cases/adapters/**/*_test.rb")
     files << (ar_cases-adapter_cases).sort
   end
-  files
+  files.flatten
 end
 
 
@@ -27,19 +27,19 @@ task :test => ['test:dblib']
 task :default => [:test]
 
 namespace :test do
-  
+
   ['dblib','odbc','adonet'].each do |mode|
-    
+
     Rake::TestTask.new(mode) do |t|
       t.libs = test_libs(mode)
       t.test_files = test_files
       t.verbose = true
     end
-    
+
   end
 
-  namespace :mirroring do 
-    
+  namespace :mirroring do
+
     ['dblib','odbc'].each do |mode|
       Rake::TestTask.new("#{mode}") do |t|
         t.libs = test_libs(mode)
@@ -47,32 +47,32 @@ namespace :test do
         t.verbose = true
       end
     end
-    
+
   end
 
 end
 
 
 namespace :profile do
-  
+
   ['dblib','odbc','adonet'].each do |mode|
     namespace mode.to_sym do
-      
+
       Dir.glob("test/profile/*_profile_case.rb").sort.each do |test_file|
-        
+
         profile_case = File.basename(test_file).sub('_profile_case.rb','')
-        
+
         Rake::TestTask.new(profile_case) do |t|
           t.libs = test_libs(mode)
           t.test_files = [test_file]
           t.verbose = true
         end
-        
+
       end
-      
+
     end
   end
-  
+
 end
 
 
