@@ -1,19 +1,16 @@
-This adapter has basic support for database mirroring. 
+This adapter has basic support for database mirroring.
 In case of failed connection to primary server, adapter will try to connect to mirror.
 
-Configuration for dblib mode, add :dataserver_mirror key to your database.yml:
-  ...
-  :dataserver        => "primary_server",
-	:mirror
-    :dataserver      => "mirror_sql_server",
-  ...
+Add :mirror section to your database.yml with mirror server specific connection params:
 
-Configuration for dblib mode, add :dsn_mirror key to your database.yml:
-  ...
-  :dsn        => "dsn_for_primary_server",
-	:mirror
-    :dsn      => "dsn_for_mirror_sql_server",
-  ...
+    :adapter => 'sqlserver',
+    :mode => 'dblib',
+    :username => 'rails',
+    :password => '',
+    :database => 'activerecord_unittest_mirroring',
+    :dataserver => 'primary_server',
+    :mirror
+      :dataserver => 'mirror_sql_server'
 
 
 To run tests:
@@ -21,28 +18,28 @@ To run tests:
 1. Set up mirrored database:
    - create 'activerecord_unittest_mirroring' database,
    - add 'rails' user as database owner
-   - configure mirror to other server 
+   - configure mirror to other server
    - create same (rails) user on another server with same sid
 
 2. Set up environment:
-   - for dblib mode 
-     ENV['ACTIVERECORD_UNITTEST_DATASERVER_PRIMARY'] 
-     ENV['ACTIVERECORD_UNITTEST_DATASERVER_MIRROR']  
+   - for dblib mode
+     ENV['ACTIVERECORD_UNITTEST_DATASERVER_PRIMARY']
+     ENV['ACTIVERECORD_UNITTEST_DATASERVER_MIRROR']
    - for odbc
-     ENV['ACTIVERECORD_UNITTEST_DSN_PRIMARY'] 
+     ENV['ACTIVERECORD_UNITTEST_DSN_PRIMARY']
      ENV['ACTIVERECORD_UNITTEST_DSN_MIRROR']
 
 3. Run tests:
-   - for dblib mode: 
+   - for dblib mode:
      rake test:mirroring:dblib
-   - for odbc mode: 
+   - for odbc mode:
      rake test:mirroring:odbc
 
 Test will create table 'programmers', insert a record, force failover to mirror server, insert second record, force failover back to primary, and insert third record.
 
 
 There are few mirroring introspection methods added to every active record class:
-  - db_mirroring_status 
+  - db_mirroring_status
   - db_mirroring_active?
   - db_mirroring_synchronized?
-  - server_name 
+  - server_name
