@@ -7,15 +7,20 @@ module ActiveRecord
           @native_database_types ||= initialize_native_database_types.freeze
         end
 
-        def tables(name = nil)
+        def tables(name = nil, schema = nil)
           info_schema_query do
-            select_values "SELECT #{lowercase_schema_reflection_sql('TABLE_NAME')} FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_NAME <> 'dtproperties' AND TABLE_SCHEMA = schema_name()"
+            select_values "SELECT #{lowercase_schema_reflection_sql('TABLE_NAME')} FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_NAME <> 'dtproperties' AND TABLE_SCHEMA = #{schema.blank? ? "schema_name()" : "#{quote(schema)}"}"
           end
+        end
+        
+        def tables_in_schema(table_schema)
+          table_schema.blank? ? [] : tables(nil,table_schema)
         end
 
         def table_exists?(table_name)
+          table_schema = unqualify_table_schema(table_name)
           unquoted_table_name = unqualify_table_name(table_name)
-          super || tables.include?(unquoted_table_name) || views.include?(unquoted_table_name)
+          super || tables.include?(unquoted_table_name) || views.include?(unquoted_table_name) || tables_in_schema(table_schema).include?(unquoted_table_name)
         end
 
         def indexes(table_name, name = nil)
@@ -150,36 +155,41 @@ module ActiveRecord
             :ss_timestamp => { :name => 'timestamp' }
           }
         end
-        
+
         def column_definitions(table_name)
           db_name = unqualify_db_name(table_name)
           db_name_with_period = "#{db_name}." if db_name
           table_schema = unqualify_table_schema(table_name)
           table_name = unqualify_table_name(table_name)
           sql = %{
-            SELECT
+            SELECT DISTINCT 
             #{lowercase_schema_reflection_sql('columns.TABLE_NAME')} AS table_name,
             #{lowercase_schema_reflection_sql('columns.COLUMN_NAME')} AS name,
             columns.DATA_TYPE AS type,
             columns.COLUMN_DEFAULT AS default_value,
             columns.NUMERIC_SCALE AS numeric_scale,
             columns.NUMERIC_PRECISION AS numeric_precision,
+            columns.ordinal_position,
             CASE
               WHEN columns.DATA_TYPE IN ('nchar','nvarchar') THEN columns.CHARACTER_MAXIMUM_LENGTH
               ELSE COL_LENGTH(columns.TABLE_SCHEMA+'.'+columns.TABLE_NAME, columns.COLUMN_NAME)
-            END AS length,
+            END AS [length],
             CASE
               WHEN columns.IS_NULLABLE = 'YES' THEN 1
               ELSE NULL
-            END AS is_nullable,
-            CASE
-              WHEN COLUMNPROPERTY(OBJECT_ID(columns.TABLE_SCHEMA+'.'+columns.TABLE_NAME), columns.COLUMN_NAME, 'IsIdentity') = 0 THEN NULL
-              ELSE 1
-            END AS is_identity
+            END AS [is_nullable],
+            CASE 
+              WHEN CCU.COLUMN_NAME IS NOT NULL AND TC.CONSTRAINT_TYPE = N'PRIMARY KEY' THEN 1
+              WHEN COLUMNPROPERTY(OBJECT_ID(columns.TABLE_SCHEMA+'.'+columns.TABLE_NAME), columns.COLUMN_NAME, 'IsIdentity') = 1 THEN 1
+              ELSE NULL
+            END AS [is_identity]
             FROM #{db_name_with_period}INFORMATION_SCHEMA.COLUMNS columns
+            LEFT OUTER JOIN #{db_name_with_period}INFORMATION_SCHEMA.TABLE_CONSTRAINTS AS TC ON TC.TABLE_NAME = columns.TABLE_NAME AND TC.CONSTRAINT_TYPE = N'PRIMARY KEY' 
+            LEFT OUTER JOIN #{db_name_with_period}INFORMATION_SCHEMA.CONSTRAINT_COLUMN_USAGE AS CCU ON TC.CONSTRAINT_NAME = CCU.CONSTRAINT_NAME AND CCU.COLUMN_NAME = columns.COLUMN_NAME
             WHERE columns.TABLE_NAME = @0
               AND columns.TABLE_SCHEMA = #{table_schema.blank? ? "schema_name()" : "@1"}
             ORDER BY columns.ordinal_position
+            
           }.gsub(/[ \t\r\n]+/,' ')
           binds = [['table_name', table_name]]
           binds << ['table_schema',table_schema] unless table_schema.blank?
@@ -213,6 +223,7 @@ module ActiveRecord
                                    match_data ? match_data[1] : nil
                                  end
             ci[:null] = ci[:is_nullable].to_i == 1 ; ci.delete(:is_nullable)
+            ci[:is_identity] = ci[:is_identity].to_i == 1
             ci
           end
         end
@@ -361,7 +372,7 @@ module ActiveRecord
         end
 
         def identity_column(table_name)
-          columns(table_name).detect(&:is_identity?)
+          columns(table_name).detect(&:primary) || columns(table_name).detect(&:is_identity?)
         end
 
       end

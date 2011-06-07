@@ -540,7 +540,6 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
         
         should 'find identity column' do
           assert CustomersView.columns_hash['id'].primary
-          assert CustomersView.columns_hash['id'].is_identity?
         end
         
         should 'find default values' do
@@ -573,7 +572,6 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
         
         should 'find identity column' do
           assert StringDefaultsView.columns_hash['id'].primary
-          assert StringDefaultsView.columns_hash['id'].is_identity?
         end
         
         should 'find default values' do

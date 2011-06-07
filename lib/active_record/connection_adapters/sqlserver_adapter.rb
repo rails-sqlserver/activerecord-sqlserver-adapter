@@ -55,6 +55,7 @@ module ActiveRecord
       def initialize(name, default, sql_type = nil, null = true, sqlserver_options = {})
         @sqlserver_options = sqlserver_options.symbolize_keys
         super(name, default, sql_type, null)
+        @primary = @sqlserver_options[:is_identity]
       end
       
       class << self
