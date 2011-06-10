@@ -1,6 +1,5 @@
 require 'rake'
 require 'rake/testtask'
-require 'rake/rdoctask'
 
 # Notes for cross compile:
 # $ gcla ; bundle install ; rake compile ; rake cross compile ; rake cross native gem
@@ -17,7 +16,7 @@ def test_files
   unless ENV['ACTIVERECORD_UNITTEST_SKIP']
     ar_cases = Dir.glob("#{ENV['RAILS_SOURCE']}/activerecord/test/cases/**/*_test.rb")
     adapter_cases = Dir.glob("#{ENV['RAILS_SOURCE']}/activerecord/test/cases/adapters/**/*_test.rb")
-    files << (ar_cases-adapter_cases).sort
+    files += (ar_cases-adapter_cases).sort
   end
   files
 end

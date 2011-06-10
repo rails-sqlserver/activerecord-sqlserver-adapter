@@ -72,11 +72,11 @@ module ActiveRecord
       end
       
       def is_utf8?
-        @sql_type =~ /nvarchar|ntext|nchar/i
+        !!(@sql_type =~ /nvarchar|ntext|nchar/i)
       end
       
       def is_integer?
-        @sql_type =~ /int/i
+        !!(@sql_type =~ /int/i)
       end
       
       def sql_type_for_statement

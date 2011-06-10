@@ -7,25 +7,20 @@ module ActiveRecord
           @native_database_types ||= initialize_native_database_types.freeze
         end
 
-        def tables(name = nil, schema = nil)
+        def tables(name = nil, table_type = 'BASE TABLE')
           info_schema_query do
-            select_values "SELECT #{lowercase_schema_reflection_sql('TABLE_NAME')} FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_NAME <> 'dtproperties' AND TABLE_SCHEMA = #{schema.blank? ? "schema_name()" : "#{quote(schema)}"}"
+            select_values "SELECT #{lowercase_schema_reflection_sql('TABLE_NAME')} FROM INFORMATION_SCHEMA.TABLES #{"WHERE TABLE_TYPE = '#{table_type}'" if table_type} ORDER BY TABLE_NAME"
           end
-        end
-        
-        def tables_in_schema(table_schema)
-          table_schema.blank? ? [] : tables(nil,table_schema)
         end
 
         def table_exists?(table_name)
-          table_schema = unqualify_table_schema(table_name)
           unquoted_table_name = unqualify_table_name(table_name)
-          super || tables.include?(unquoted_table_name) || views.include?(unquoted_table_name) || tables_in_schema(table_schema).include?(unquoted_table_name)
+          super || tables.include?(unquoted_table_name) || views.include?(unquoted_table_name)
         end
 
         def indexes(table_name, name = nil)
-          unquoted_table_name = unqualify_table_name(table_name)
-          select("EXEC sp_helpindex #{quote_table_name(unquoted_table_name)}",name).inject([]) do |indexes,index|
+          data = select("EXEC sp_helpindex #{quote(table_name)}",name) rescue []
+          data.inject([]) do |indexes,index|
             index = index.with_indifferent_access
             if index[:index_description] =~ /primary key/
               indexes
@@ -141,8 +136,7 @@ module ActiveRecord
         # === SQLServer Specific ======================================== #
         
         def views(name = nil)
-          @sqlserver_views_cache ||= 
-            info_schema_query { select_values("SELECT #{lowercase_schema_reflection_sql('TABLE_NAME')} FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_NAME NOT IN ('sysconstraints','syssegments')") }
+          @sqlserver_views_cache ||= tables(name,'VIEW')
         end
         
         

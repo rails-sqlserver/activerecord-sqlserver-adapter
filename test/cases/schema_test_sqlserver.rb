@@ -22,7 +22,6 @@ class SchemaTestSqlserver < ActiveRecord::TestCase
   context 'When table is in non-dbo schema' do
     
     should 'work with #table_exists?' do
-      assert @connection.tables_in_schema('test').include?('sql_server_schema_natural_id')
       assert @connection.table_exists?('test.sql_server_schema_natural_id')
     end
     

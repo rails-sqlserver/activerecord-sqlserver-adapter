@@ -237,7 +237,7 @@ module ActiveRecord
             next if ar_column && column.sql_type == 'timestamp'
             v = value
             names_and_types << if ar_column
-                                 v = value.to_i if column.is_integer?
+                                 v = value.to_i if column.is_integer? && value.present?
                                  "@#{index} #{column.sql_type_for_statement}"
                                elsif column.acts_like?(:string)
                                  "@#{index} nvarchar(max)"
