@@ -23,6 +23,8 @@ require 'active_record/version'
 GC.copy_on_write_friendly = true if GC.respond_to?(:copy_on_write_friendly?)
 
 ActiveRecord::Migration.verbose = false
+ActiveRecord::Base.logger = Logger.new(File.expand_path(File.join(SQLSERVER_TEST_ROOT,'debug.log')))
+ActiveRecord::Base.logger.level = 0
 
 # Defining our classes in one place as well as soem core tests that need coercing date/time types.
 
@@ -89,7 +91,6 @@ module ActiveRecord
     class << self
       def connection_mode_dblib? ; ActiveRecord::Base.connection.instance_variable_get(:@connection_options)[:mode] == :dblib ; end
       def connection_mode_odbc? ; ActiveRecord::Base.connection.instance_variable_get(:@connection_options)[:mode] == :odbc ; end
-      def connection_mode_adonet? ; ActiveRecord::Base.connection.instance_variable_get(:@connection_options)[:mode] == :adonet ; end
       def sqlserver_2005? ; ActiveRecord::Base.connection.sqlserver_2005? ; end
       def sqlserver_2008? ; ActiveRecord::Base.connection.sqlserver_2008? ; end
       def sqlserver_azure? ; ActiveRecord::Base.connection.sqlserver_azure? ; end
@@ -97,7 +98,6 @@ module ActiveRecord
     end
     def connection_mode_dblib? ; self.class.connection_mode_dblib? ; end
     def connection_mode_odbc? ; self.class.connection_mode_odbc? ; end
-    def connection_mode_adonet? ; self.class.connection_mode_adonet? ; end
     def sqlserver_2005? ; self.class.sqlserver_2005? ; end
     def sqlserver_2008? ; self.class.sqlserver_2008? ; end
     def sqlserver_azure? ; self.class.sqlserver_azure? ; end

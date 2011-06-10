@@ -8,7 +8,6 @@ require 'rake/rdoctask'
 def test_libs(mode='dblib')
   ['lib',
    'test',
-   "test/connections/native_sqlserver#{mode == 'adonet' ? '' : "_#{mode}"}",
    "#{ENV['RAILS_SOURCE']}/activerecord/test"]
 end
 
@@ -28,9 +27,10 @@ task :default => [:test]
 
 namespace :test do
   
-  ['dblib','odbc','adonet'].each do |mode|
+  ['dblib','odbc'].each do |mode|
     
     Rake::TestTask.new(mode) do |t|
+      ENV.send :[]=, 'ARCONN', mode
       t.libs = test_libs(mode)
       t.test_files = test_files
       t.verbose = true
@@ -43,7 +43,7 @@ end
 
 namespace :profile do
   
-  ['dblib','odbc','adonet'].each do |mode|
+  ['dblib','odbc'].each do |mode|
     namespace mode.to_sym do
       
       Dir.glob("test/profile/*_profile_case.rb").sort.each do |test_file|

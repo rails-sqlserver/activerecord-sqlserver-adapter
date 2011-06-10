@@ -1,6 +1,8 @@
 
 * 3.1.0 *
 
+* Remove totally broken ADONET connection mode. Want it back, submit a patch.
+
 * Schema reflection now finds primary key for all occasions. Fixed #60 [Boško Ivanišević]
 
 * Allow complex order objects to not be molested by our visitor overrides. Fixes #99

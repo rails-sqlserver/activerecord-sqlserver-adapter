@@ -109,10 +109,6 @@ module ActiveRecord
                 end
               end
               results.many? ? results : results.first
-            when :adonet
-              results = []
-              results << select(sql, name).map { |r| r.with_indifferent_access }
-              results.many? ? results : results.first
             end
           end
         end
@@ -265,8 +261,6 @@ module ActiveRecord
             @connection.execute(sql).do
           when :odbc
             @connection.do(sql)
-          else :adonet
-            @connection.create_command.tap{ |cmd| cmd.command_text = sql }.execute_non_query
           end
         ensure
           @update_sql = false
@@ -292,8 +286,6 @@ module ActiveRecord
               @connection.execute(sql)
             when :odbc
               block_given? ? @connection.run_block(sql) { |handle| yield(handle) } : @connection.run(sql)
-            else :adonet
-              @connection.create_command.tap{ |cmd| cmd.command_text = sql }.execute_reader
             end
           end
         end
@@ -303,8 +295,6 @@ module ActiveRecord
           when :dblib
           when :odbc
             handle.more_results
-          when :adonet
-            handle.next_result
           end
         end
         
@@ -314,8 +304,6 @@ module ActiveRecord
             handle_to_names_and_values_dblib(handle, options)
           when :odbc
             handle_to_names_and_values_odbc(handle, options)
-          when :adonet
-            handle_to_names_and_values_adonet(handle, options)
           end
         end
         
@@ -344,62 +332,12 @@ module ActiveRecord
             end
           end
         end
-
-        def handle_to_names_and_values_adonet(handle, options={})
-          if handle.has_rows
-            names = []
-            rows = []
-            fields_named = options[:fetch] == :rows
-            while handle.read
-              row = []
-              handle.visible_field_count.times do |row_index|
-                value = handle.get_value(row_index)
-                value = case value
-                        when System::String
-                          value.to_s
-                        when System::DBNull
-                          nil
-                        when System::DateTime
-                          value.to_string("yyyy-MM-dd HH:mm:ss.fff").to_s
-                        when @@array_of_bytes ||= System::Array[System::Byte]
-                          String.new(value)
-                        else
-                          value
-                        end
-                row << value
-                names << handle.get_name(row_index).to_s unless fields_named
-              end
-              rows << row
-              fields_named = true
-            end
-          else
-            rows = []
-          end
-          if options[:fetch] != :rows
-            names_and_values = []
-            rows.each do |row|
-              h = {}
-              i = 0
-              while i < row.size
-                h[names[i]] = row[i]
-                i += 1
-              end
-              names_and_values << h
-            end
-            names_and_values
-          else
-            rows
-          end
-        end
         
         def finish_statement_handle(handle)
           case @connection_options[:mode]
           when :dblib  
           when :odbc
             handle.drop if handle && handle.respond_to?(:drop) && !handle.finished?
-          when :adonet
-            handle.close if handle && handle.respond_to?(:close) && !handle.is_closed
-            handle.dispose if handle && handle.respond_to?(:dispose)
           end
           handle
         end

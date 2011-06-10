@@ -21,15 +21,12 @@ module ActiveRecord
       mode = config[:mode].to_s.downcase.underscore.to_sym
       case mode
       when :dblib
-        require_library_or_gem 'tiny_tds'
+        require 'tiny_tds'
         warn("TinyTds v0.4.3 or higher required. Using #{TinyTds::VERSION}") unless TinyTds::Client.instance_methods.map(&:to_s).include?("active?")
       when :odbc
         raise ArgumentError, 'Missing :dsn configuration.' unless config.has_key?(:dsn)
-        require_library_or_gem 'odbc'
+        require 'odbc'
         require 'active_record/connection_adapters/sqlserver/core_ext/odbc'
-      when :adonet
-        require 'System.Data'
-        raise ArgumentError, 'Missing :database configuration.' unless config.has_key?(:database)
       else
         raise ArgumentError, "Unknown connection mode in #{config.inspect}."
       end
@@ -256,8 +253,6 @@ module ActiveRecord
           @connection.close rescue nil
         when :odbc
           @connection.disconnect rescue nil
-        else :adonet
-          @connection.close rescue nil
         end
       end
       
@@ -409,22 +404,6 @@ module ActiveRecord
                           rescue Exception => e
                             warn "Ruby ODBC v0.99992 or higher is required."
                           end
-                        end
-                      when :adonet
-                        System::Data::SqlClient::SqlConnection.new.tap do |connection|
-                          connection.connection_string = System::Data::SqlClient::SqlConnectionStringBuilder.new.tap do |cs|
-                            if config[:integrated_security]
-                              cs.integrated_security = true
-                            else
-                              cs.user_i_d = config[:username]
-                              cs.password = config[:password]
-                            end
-                            cs.add 'Server', config[:host].to_clr_string
-                            cs.initial_catalog = config[:database]
-                            cs.multiple_active_result_sets = false
-                            cs.pooling = false
-                          end.to_s
-                          connection.open
                         end
                       end
       rescue

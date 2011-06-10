@@ -9,14 +9,12 @@ module ActiveRecord
         
         LOST_CONNECTION_EXCEPTIONS  = {
           :dblib  => ['TinyTds::Error'],
-          :odbc   => ['ODBC::Error'],
-          :adonet => ['TypeError','System::Data::SqlClient::SqlException']
+          :odbc   => ['ODBC::Error']
         }.freeze
         
         LOST_CONNECTION_MESSAGES    = {
           :dblib  => [/closed connection/, /dead or not enabled/, /server failed/i],
-          :odbc   => [/link failure/, /server failed/, /connection was already closed/, /invalid handle/i],
-          :adonet => [/current state is closed/, /network-related/]
+          :odbc   => [/link failure/, /server failed/, /connection was already closed/, /invalid handle/i]
         }.freeze
         
         
