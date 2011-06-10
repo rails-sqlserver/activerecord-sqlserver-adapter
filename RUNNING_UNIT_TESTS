@@ -21,21 +21,17 @@ Clone adapter git://github.com/rails-sqlserver/activerecord-sqlserver-adapter.gi
 The master branch is the one under development for rails 3, track the repos 2-3-stable 
 branch for 2.x development.
 
-The tests of this adapter depend on the existence of the rails and/or arel source 
-which can be cloned at git://github.com/rails/rails.git and git://github.com/rails/arel.git
+The tests of this adapter depend on the existence of the rails which can be cloned at 
+git://github.com/rails/rails.git
 
-Once you have cloned these repos set the RAILS_SOURCE and AREL environment variables
-to their full path. For instance:
+Once you have cloned these repos set the RAILS_SOURCE environment variable to its 
+full path. For instance:
 
   ∴ echo $RAILS_SOURCE
   /Users/kencollins/Repositories/rails
   
-  ∴ echo $AREL
-  /Users/kencollins/Repositories/arel
-
 Do not forget to checkout the version tags of each repo that match either our gemspec 
-or what version your tests target. For instance, v3.0.3 tag for ActiveRecord and 
-v2.0.7 for ARel. 
+or what version your tests target. For instance, v3.0.3 tag for Rails/ActiveRecord.
 
 
 = Setup Connection Mode
