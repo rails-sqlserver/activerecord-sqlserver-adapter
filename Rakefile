@@ -8,6 +8,7 @@ require 'rake/rdoctask'
 def test_libs(mode='dblib')
   ['lib',
    'test',
+   "test/connections/#{mode}",
    "#{ENV['RAILS_SOURCE']}/activerecord/test"]
 end
 
@@ -21,7 +22,6 @@ def test_files
   files
 end
 
-
 task :test => ['test:dblib']
 task :default => [:test]
 
@@ -30,7 +30,6 @@ namespace :test do
   ['dblib','odbc'].each do |mode|
     
     Rake::TestTask.new(mode) do |t|
-      ENV.send :[]=, 'ARCONN', mode
       t.libs = test_libs(mode)
       t.test_files = test_files
       t.verbose = true
