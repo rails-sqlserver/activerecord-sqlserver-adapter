@@ -54,7 +54,7 @@ module ActiveRecord
           do_execute "EXEC sp_rename '#{table_name}', '#{new_name}'"
         end
         
-        def drop_table(table_name, options = {})
+        def drop_table(table_name)
           super
           clear_cache!
         end
