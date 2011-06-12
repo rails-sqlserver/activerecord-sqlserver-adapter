@@ -7,7 +7,6 @@ require 'rake/testtask'
 def test_libs(mode='dblib')
   ['lib',
    'test',
-   "test/connections/#{mode}",
    "#{ENV['RAILS_SOURCE']}/activerecord/test"]
 end
 
@@ -24,6 +23,7 @@ end
 task :test => ['test:dblib']
 task :default => [:test]
 
+
 namespace :test do
   
   ['dblib','odbc'].each do |mode|
@@ -36,7 +36,18 @@ namespace :test do
     
   end
   
+  task 'dblib:env' do
+    ENV['ARCONN'] = 'dblib'
+  end
+  
+  task 'odbc:env' do 
+    ENV['ARCONN'] = 'odbc'
+  end
+  
 end
+
+task 'test:dblib' => 'test:dblib:env'
+task 'test:odbc' => 'test:odbc:env'
 
 
 namespace :profile do

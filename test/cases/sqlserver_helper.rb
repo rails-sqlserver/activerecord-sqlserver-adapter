@@ -5,6 +5,7 @@ SQLSERVER_FIXTURES_ROOT   = File.expand_path(File.join(SQLSERVER_TEST_ROOT,'fixt
 SQLSERVER_MIGRATIONS_ROOT = File.expand_path(File.join(SQLSERVER_TEST_ROOT,'migrations'))
 SQLSERVER_SCHEMA_ROOT     = File.expand_path(File.join(SQLSERVER_TEST_ROOT,'schema'))
 ACTIVERECORD_TEST_ROOT    = File.expand_path(File.join(ENV['RAILS_SOURCE'],'activerecord','test'))
+ENV['ARCONFIG']           = File.expand_path(File.join(SQLSERVER_TEST_ROOT,'config.yml'))
 
 require 'rubygems'
 require 'bundler'
@@ -81,8 +82,10 @@ end
 
 module ActiveRecord
   class SQLCounter
-    IGNORED_SQL << %r|SELECT SCOPE_IDENTITY| << %r{INFORMATION_SCHEMA\.(TABLES|VIEWS|COLUMNS)} << 
-                   %r|SELECT @@version| << %r|SELECT @@TRANCOUNT| << %r{(BEGIN|COMMIT|ROLLBACK|SAVE) TRANSACTION}
+    self.ignored_sql =  [ 
+      %r|SELECT SCOPE_IDENTITY|, %r{INFORMATION_SCHEMA\.(TABLES|VIEWS|COLUMNS)},
+      %r|SELECT @@version|, %r|SELECT @@TRANCOUNT|, %r{(BEGIN|COMMIT|ROLLBACK|SAVE) TRANSACTION}
+    ]
   end
 end
 
