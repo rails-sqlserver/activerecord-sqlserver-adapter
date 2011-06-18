@@ -179,6 +179,8 @@ module ActiveRecord
               retry_count += 1
               remove_database_connections_and_rollback(database)
               retry
+            elsif err.message =~ /does not exist/i
+              nil
             else
               raise
             end
