@@ -1,4 +1,9 @@
 
+* 2.3.19 *
+
+* Allow drop_database to be called even when DB does not exist.
+
+
 * 2.3.18 *
 
 * Warn of possible permission problems if "EXEC sp_helptext..." does not work view. Fixes #73.
