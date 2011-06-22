@@ -182,7 +182,7 @@ Up-to-date list of contributors: http://github.com/rails-sqlserver/activerecord-
 * jeremydurham (Jeremy Durham)
 
 === Donators
-http://pledgie.com/campaigns/11630
+http://pledgie.com/campaigns/15531
 
 == License
 
