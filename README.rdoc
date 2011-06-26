@@ -137,20 +137,6 @@ http://wiki.github.com/rails-sqlserver/activerecord-sqlserver-adapter/platform-i
 
 
 
-== IronRuby ADONET Mode
-
-A few details on this implementation. All that is needed in your database.yml configuration file is "mode: adonet" vs "odbc" and if you are running IronRuby, the connection will be native. You can also specify an "integrated_security: true" option in your configuration, remember to remove the username/password options too. To use this adapter, you will not need need ANY DBI middle layer or special extension gems to the adapter. 
-
-This adapter is opinionated in regards to IronRuby on types going in and out of the DB. For example strings will be String, not System::String and DateTime vs System::Datetime. There are many more examples but the rule of thumb is that the types will be simple types that correlate to a standard Ruby implementation. We enforce this basic rule because it is necessary to pass the tests and let the framework do its job. We recommend sticking to native Ruby types in your application code too.
-
-The adapter establishes a System::Data::SqlClient connection that has both MultipleActiveResultSets (MARS) and Pooling turned off. There are good reasons for this one because the connection would not work otherwise for all the code issued by ActiveRecord. Remember too that ActiveRecord has it's own connection pooling and these underlying features like MARS/Pooling work against the adapter code.
-
-Currently IronRuby is passing most of the ActiveRecord and Adapter tests. Here is a list of the ones remaining. Some are in the adapter's realm and some are in Marshaling area of IronRuby's core to fix. Feel like helping knock these out? Submit a patch to github issues.
-
-http://gist.github.com/381101
-
-
-
 == Contributing
 
 If you’d like to contribute a feature or bugfix, thanks! To make sure your fix/feature has a high chance of being added, please read the following guidelines. First, ask on the Google list, IRC, or post a ticket on github issues. Second, make sure there are tests! We will not accept any patch that is not tested. Please read the RUNNING_UNIT_TESTS file for the details of how to run the unit tests.
