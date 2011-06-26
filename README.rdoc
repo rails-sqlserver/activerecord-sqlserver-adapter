@@ -9,7 +9,7 @@ The SQL Server adapter for ActiveRecord.
 * Rails 3.1 prepared statement support leverages cached query plans.
 * Default unicode datatypes! Disable with #enable_default_unicode_types to false.
 * New #lowercase_schema_reflection configuration option for legacy DBs.
-* New dblib connection mode using TinyTds!
+* New dblib connection mode using TinyTDS! Default mode too!
 
 
 ==== Testing Rake Tasks Support
@@ -118,20 +118,17 @@ By default the adapter will auto connect to lost DB connections. For every query
 
 == Versions
 
-It is our goal to match the adapter version with each version of rails. However we will track our own tiny version independent of ActiveRecord. For example, an adapter version of 2.3.x will work on any 2.3.x version of ActiveRecord. Version 3.x will track ActiveRecord 3. This convention will be used in both the Git tags as well as the gems versioning.
+The adapter follows a rational versioning policy that also tracks ActiveRecord's major and minor version. That means the latest 3.1.x version of the adapter will always work for the latest 3.1.x version of ActiveRecord.
 
 
 == Installation
 
-You will need Ruby ODBC. If you are using the adapter under 1.9, then you need at least ruby-odbc version 0.99992. ODBC is the preferred mode, however if you are using IronRuby you can use the ADONET connection mode which uses native System.Data connection. Other connection modes may be supported, possibly a straight FreeTDS layer. The sky is the limit for optional transports. If you are interested in helping, open a ticket and submit a patch. Or start a conversation on the Google Group.
+The adapter has no strict gem dependencies outside of ActiveRecord. You will have to pick a connection mode, the default is dblib which uses the TinyTDS gem. Just bundle the gem and the adapter will use it.
 
-  $ gem install activerecord-sqlserver-adapter
+  gem 'tiny_tds'
+  gem 'activerecord-sqlserver-adapter', '~> 3.1.0'
 
-Optionally configure your gem dependencies in your Gemfile.
-
-  gem 'activerecord-sqlserver-adapter', '3.x.xx'
-
-If you have any troubles installing the lower level libraries for the adapter, please consult the wiki pages for various platform installation guides. Tons of good info can be found and we ask that you contribute too!
+If you want to use ruby ODBC, please use at least version 0.99992 since that contains fixes for both native types as well as fixes for proper encoding support under 1.9. If you have any troubles installing the lower level libraries for the adapter, please consult the wiki pages for various platform installation guides. Tons of good info can be found and we ask that you contribute too!
 
 http://wiki.github.com/rails-sqlserver/activerecord-sqlserver-adapter/platform-installation
 
