@@ -7,7 +7,6 @@ require 'active_record/connection_adapters/sqlserver/database_statements'
 require 'active_record/connection_adapters/sqlserver/errors'
 require 'active_record/connection_adapters/sqlserver/schema_statements'
 require 'active_record/connection_adapters/sqlserver/quoting'
-require 'active_support/core_ext/kernel/requires'
 require 'active_support/core_ext/string'
 require 'base64'
 
