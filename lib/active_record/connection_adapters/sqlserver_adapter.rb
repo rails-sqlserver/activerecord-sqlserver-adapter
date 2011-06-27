@@ -169,7 +169,7 @@ module ActiveRecord
                      :log_info_schema_queries, :enable_default_unicode_types, :auto_connect,
                      :cs_equality_operator, :lowercase_schema_reflection
       
-      self.enable_default_unicode_types = true
+      @@enable_default_unicode_types = true
       
       
       def initialize(logger,config)
