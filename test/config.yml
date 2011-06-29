@@ -2,7 +2,7 @@ default_connection: dblib
 
 default_connection_info: &default_connection_info
   adapter: sqlserver
-  mode: <%= ENV['ARCONN'] %>
+  mode: <%= ENV['ARCONN'] || 'dblib' %>
   host: <%= ENV['ACTIVERECORD_UNITTEST_DATASERVER'] || 'localhost' %>
   database: activerecord_unittest
   username: <%= ENV['ACTIVERECORD_UNITTEST_USER'] || 'rails' %>

@@ -11,7 +11,7 @@ module Arel
         expr.hash
       end
       def ==(other)
-        self.class == other.class && self.expr == other.expr
+        other.is_a?(Arel::Nodes::Ordering) && self.expr == other.expr
       end
       def eql?(other)
         self == other
@@ -27,26 +27,25 @@ module Arel
     # to grouping objects for the inner sql during a select statment with an offset/rownumber. So this
     # is here till ActiveRecord & ARel does this for us instead of using SqlLiteral objects.
     alias :order_without_sqlserver :order
-    def order(*exprs)
-      return order_without_sqlserver(*exprs) unless Arel::Visitors::SQLServer === @visitor
-      @ast.orders.concat(exprs.map{ |x|
+    def order(*expr)
+      return order_without_sqlserver(*expr) unless Arel::Visitors::SQLServer === @visitor
+      @ast.orders.concat(expr.map{ |x|
         case x
         when Arel::Attributes::Attribute
           table = Arel::Table.new(x.relation.table_alias || x.relation.name)
-          expr = table[x.name]
-          Arel::Nodes::Ordering.new expr
+          e = table[x.name]
+          Arel::Nodes::Ascending.new e
         when Arel::Nodes::Ordering
           x
         when String
           x.split(',').map do |s|
-            expr, direction = s.split
-            expr = Arel.sql(expr)
-            direction = direction =~ /desc/i ? :desc : :asc
-            Arel::Nodes::Ordering.new expr, direction
+            e, d = s.split
+            e = Arel.sql(e)
+            d =~ /desc/i ? Arel::Nodes::Descending.new(e) : Arel::Nodes::Ascending.new(e)
           end
         else
-          expr = Arel.sql(x.to_s)
-          Arel::Nodes::Ordering.new expr
+          e = Arel.sql(x.to_s)
+          Arel::Nodes::Ascending.new e
         end
       }.flatten)
       self
@@ -101,7 +100,17 @@ module Arel
       def visit_Arel_Nodes_Lock(o)
         visit o.expr
       end
-
+      
+      # FIXME: Only needed due to this problem found in 2.1.3
+      # Grepping The AST Can Lead To Problems - https://github.com/rails/arel/issues/66
+      def visit_Arel_Nodes_Ordering(o)
+        if o.respond_to?(:direction)
+          "#{visit o.expr} #{o.ascending? ? 'ASC' : 'DESC'}"
+        else
+          visit o.expr
+        end
+      end
+      
       def visit_Arel_Nodes_Bin(o)
         "#{visit o.expr} #{@engine.connection.cs_equality_operator}"
       end
