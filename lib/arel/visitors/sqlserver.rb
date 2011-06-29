@@ -6,7 +6,7 @@ module Arel
 
     # Extending the Ordering class to be comparrison friendly which allows us to call #uniq on a
     # collection of them. See SelectManager#order for more details.
-    class Ordering < Arel::Nodes::Binary
+    class Ordering < Arel::Nodes::Unary
       def hash
         expr.hash
       end
