@@ -2,7 +2,6 @@
 source :rubygems
 
 gemspec :path => ENV['RAILS_SOURCE']
-gem 'arel', '~> 2.1.4'
 
 if ENV['AREL']
   gem 'arel', :path => ENV['AREL']
