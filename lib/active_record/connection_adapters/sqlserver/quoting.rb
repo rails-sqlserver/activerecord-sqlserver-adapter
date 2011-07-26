@@ -17,6 +17,14 @@ module ActiveRecord
             else
               super
             end
+          when Date, Time
+            if column && column.sql_type == 'datetime'
+              "'#{quoted_datetime(value)}'"
+            elsif column && (column.sql_type == 'datetimeoffset' || column.sql_type == 'time')
+              "'#{quoted_full_iso8601(value)}'"
+            else
+              super
+            end
           when nil
             column.respond_to?(:sql_type) && column.sql_type == 'timestamp' ? 'DEFAULT' : super
           else
@@ -53,12 +61,37 @@ module ActiveRecord
           QUOTED_FALSE
         end
 
+        def quoted_datetime(value)
+          if value.acts_like?(:time)
+            value.is_a?(Date) ? quoted_value_acts_like_time_filter(value).to_time.xmlschema.to(18) : quoted_value_acts_like_time_filter(value).iso8601(3).to(22)
+          else
+            quoted_date(value)
+          end
+        end
+        
+        def quoted_full_iso8601(value)
+          if value.acts_like?(:time)
+            value.is_a?(Date) ? quoted_value_acts_like_time_filter(value).to_time.xmlschema.to(18) : quoted_value_acts_like_time_filter(value).iso8601(7).to(22)
+          else
+            quoted_date(value)
+          end
+        end
+
         def quoted_date(value)
           if value.acts_like?(:time) && value.respond_to?(:usec)
             "#{super}.#{sprintf("%03d",value.usec/1000)}"
+          elsif value.acts_like?(:date)
+            value.to_s(:_sqlserver_dateformat)
           else
             super
           end
+        end
+        
+        protected
+        
+        def quoted_value_acts_like_time_filter(value)
+          zone_conversion_method = ActiveRecord::Base.default_timezone == :utc ? :getutc : :getlocal
+          value.respond_to?(zone_conversion_method) ? value.send(zone_conversion_method) : value
         end
         
       end

@@ -138,13 +138,30 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
     end
     
     context 'with different language' do
-    
+      
+      setup do
+        @default_language = @connection.user_options['language']
+      end
+      
       teardown do
+        @connection.execute("SET LANGUAGE #{@default_language}") rescue nil
+        @connection.send :initialize_dateformatter
+      end
+      
+      should 'memoize users dateformat' do
         @connection.execute("SET LANGUAGE us_english") rescue nil
+        dateformat = @connection.instance_variable_get(:@database_dateformat)
+        assert_equal 'mdy', dateformat
+      end
+      
+      should 'have a dateformatter' do
+        assert Date::DATE_FORMATS[:_sqlserver_dateformat]
+        assert Time::DATE_FORMATS[:_sqlserver_dateformat]
       end
     
-      should_eventually 'do a date insertion when language is german' do
+      should 'do a date insertion when language is german' do
         @connection.execute("SET LANGUAGE deutsch")
+        @connection.send :initialize_dateformatter
         assert_nothing_raised do
           Task.create(:starting => Time.utc(2000, 1, 31, 5, 42, 0), :ending => Date.new(2006, 12, 31))
         end
@@ -241,17 +258,11 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
       context 'saving new datetime objects' do
   
         should 'truncate 123456 usec to just 123 in the DB cast back to 123000' do
-          @time.stubs(:usec).returns(123456)
+          Time.any_instance.stubs :iso8601 => "2011-07-26T12:29:01.123-04:00"
           saved = SqlServerChronic.create!(:datetime => @time).reload
+          saved.reload
           assert_equal '123', saved.datetime_before_type_cast.split('.')[1] if saved.datetime_before_type_cast.is_a?(String)
           assert_equal 123000, saved.datetime.usec
-        end
-        
-        should 'truncate 3001 usec to just 003 in the DB cast back to 3000' do
-          @time.stubs(:usec).returns(3001)
-          saved = SqlServerChronic.create!(:datetime => @time).reload
-          assert_equal '003', saved.datetime_before_type_cast.split('.')[1] if saved.datetime_before_type_cast.is_a?(String)
-          assert_equal 3000, saved.datetime.usec
         end
         
       end

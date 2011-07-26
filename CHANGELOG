@@ -1,6 +1,10 @@
 
 * 3.1.0 *
 
+* Quote most time objects to use ISO8601 format to be multi-language dateformat compatible. The [datetime] data type is
+  automatically limited to milliseconds while [time] & [datetimeoffset] have full support. Even included a Date/Time 
+  ActiveSupport formatter that is used per the language settings of the connection.
+
 * Include a visit_Arel_Nodes_UpdateStatement method in our Arel visitor to add a limit/top for update
   that has order and no limit/top. https://github.com/rails/rails/commit/787194ee43ab1fb0a7dc8bfbbfbd5079b047d833
   

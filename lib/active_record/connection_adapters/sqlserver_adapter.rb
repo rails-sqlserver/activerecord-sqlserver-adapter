@@ -188,6 +188,7 @@ module ActiveRecord
                          rescue
                            0
                          end
+        initialize_dateformatter
         initialize_sqlserver_caches
         use_database
         unless SUPPORTED_VERSIONS.include?(@database_year)
@@ -408,6 +409,15 @@ module ActiveRecord
                       end
       rescue
         raise unless @auto_connecting
+      end
+      
+      def initialize_dateformatter
+        @database_dateformat = user_options['dateformat']
+        a, b, c = @database_dateformat.each_char.to_a
+        [a,b,c].each { |f| f.upcase! if f == 'y' }
+        dateformat = "%#{a}-%#{b}-%#{c}"
+        ::Date::DATE_FORMATS[:_sqlserver_dateformat] = dateformat
+        ::Time::DATE_FORMATS[:_sqlserver_dateformat] = dateformat
       end
       
       def remove_database_connections_and_rollback(database=nil)

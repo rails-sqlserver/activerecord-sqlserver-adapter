@@ -27,7 +27,7 @@ class PersistencesTest < ActiveRecord::TestCase
   
   include SqlserverCoercedTest
   
-  def test_update_all_doesnt_ignore_order
+  def test_coerced_update_all_doesnt_ignore_order
     assert_equal authors(:david).id + 1, authors(:mary).id
     test_update_with_order_succeeds = lambda do |order|
       begin
