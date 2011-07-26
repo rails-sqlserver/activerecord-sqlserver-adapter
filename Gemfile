@@ -4,6 +4,10 @@ source :rubygems
 gemspec :path => ENV['RAILS_SOURCE']
 gem 'arel', '~> 2.1.4'
 
+if ENV['AREL']
+  gem 'arel', :path => ENV['AREL']
+end
+
 group :tinytds do
   if ENV['TINYTDS_SOURCE']
     gem 'tiny_tds', :path => ENV['TINYTDS_SOURCE']
