@@ -101,8 +101,6 @@ module Arel
         visit o.expr
       end
       
-      # FIXME: Only needed due to this problem found in 2.1.3
-      # Grepping The AST Can Lead To Problems - https://github.com/rails/arel/issues/66
       def visit_Arel_Nodes_Ordering(o)
         if o.respond_to?(:direction)
           "#{visit o.expr} #{o.ascending? ? 'ASC' : 'DESC'}"
