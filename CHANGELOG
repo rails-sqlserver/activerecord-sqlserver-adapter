@@ -1,6 +1,9 @@
 
 * 3.1.0 *
 
+* Include a visit_Arel_Nodes_UpdateStatement method in our Arel visitor to add a limit/top for update
+  that has order and no limit/top. https://github.com/rails/rails/commit/787194ee43ab1fb0a7dc8bfbbfbd5079b047d833
+  
 * Allow drop_database to be called even when DB does not exist.
 
 * Remove totally broken ADONET connection mode. Want it back, submit a patch.

@@ -88,6 +88,13 @@ module Arel
           visit_Arel_Nodes_SelectStatementWithOutOffset(o)
         end
       end
+      
+      def visit_Arel_Nodes_UpdateStatement(o)
+        if o.orders.any? && o.limit.nil?
+          o.limit = Nodes::Limit.new(2147483647)
+        end
+        super
+      end
 
       def visit_Arel_Nodes_Offset(o)
         "WHERE [__rnt].[__rn] > (#{visit o.expr})"
