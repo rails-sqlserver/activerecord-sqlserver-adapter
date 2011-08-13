@@ -12,11 +12,6 @@ require 'bundler'
 Bundler.setup
 require 'shoulda'
 require 'mocha'
-begin ; require 'ruby-debug' ; rescue LoadError ; end
-[ File.expand_path(File.join(File.dirname(__FILE__),'..','..','test')),
-  File.expand_path(File.join(File.dirname(__FILE__),'..','..','test','connections','native_sqlserver_odbc')),
-  File.expand_path(File.join(ENV['RAILS_SOURCE'],'activerecord','test'))
-].each{ |lib| $:.unshift(lib) unless $:.include?(lib) } if ENV['TM_DIRECTORY']
 require 'cases/helper'
 require 'models/topic'
 require 'active_record/version'
@@ -92,6 +87,7 @@ end
 module ActiveRecord 
   class TestCase < ActiveSupport::TestCase
     class << self
+      def run_ar_tests? ; ENV['ACTIVERECORD_UNITTEST'].present? ; end
       def connection_mode_dblib? ; ActiveRecord::Base.connection.instance_variable_get(:@connection_options)[:mode] == :dblib ; end
       def connection_mode_odbc? ; ActiveRecord::Base.connection.instance_variable_get(:@connection_options)[:mode] == :odbc ; end
       def sqlserver_2005? ; ActiveRecord::Base.connection.sqlserver_2005? ; end
@@ -99,6 +95,7 @@ module ActiveRecord
       def sqlserver_azure? ; ActiveRecord::Base.connection.sqlserver_azure? ; end
       def ruby_19? ; RUBY_VERSION >= '1.9' ; end
     end
+    def run_ar_tests? ; self.class.run_ar_tests? ; end
     def connection_mode_dblib? ; self.class.connection_mode_dblib? ; end
     def connection_mode_odbc? ; self.class.connection_mode_odbc? ; end
     def sqlserver_2005? ; self.class.sqlserver_2005? ; end

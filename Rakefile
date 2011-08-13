@@ -12,7 +12,7 @@ end
 
 def test_files
   files = Dir.glob("test/cases/**/*_test_sqlserver.rb").sort
-  unless ENV['ACTIVERECORD_UNITTEST_SKIP']
+  if ENV['ACTIVERECORD_UNITTEST']
     ar_cases = Dir.glob("#{ENV['RAILS_SOURCE']}/activerecord/test/cases/**/*_test.rb")
     adapter_cases = Dir.glob("#{ENV['RAILS_SOURCE']}/activerecord/test/cases/adapters/**/*_test.rb")
     files += (ar_cases-adapter_cases).sort

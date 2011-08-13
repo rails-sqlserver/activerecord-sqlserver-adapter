@@ -11,7 +11,7 @@ group :tinytds do
   if ENV['TINYTDS_SOURCE']
     gem 'tiny_tds', :path => ENV['TINYTDS_SOURCE']
   else
-    gem 'tiny_tds'
+    gem 'tiny_tds', '>= 0.4.5'
   end
 end
 
@@ -24,12 +24,5 @@ group :development do
   gem 'mocha', '0.9.8'
   gem 'shoulda', '2.10.3'
   gem 'bench_press'
-  platforms :mri_18 do
-    gem 'ruby-prof', '0.9.1'
-    gem 'ruby-debug', '0.10.3'
-  end
-  platforms :mri_19 do
-    gem 'ruby-debug19', '0.11.6'
-  end
 end
 
