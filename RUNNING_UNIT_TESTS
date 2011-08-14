@@ -1,13 +1,15 @@
 
 = TL;DR
 
+Default testing uses DBLIB with TinyTDS.
+
   * Setup two databases in SQL Server, [activerecord_unittest] and [activerecord_unittest2]
   * Create a [rails] user with an empty password and give it admin perms to both DBs.
   * $ git clone git://github.com/rails-sqlserver/activerecord-sqlserver-adapter.git
   * $ bundle install
-  * $ bundle exec rake test
+  * $ bundle exec rake test ACTIVERECORD_UNITTEST_HOST='my.db.net'
 
-  
+
 = Creating the test databases
 
 The default names for the test databases are "activerecord_unittest" and 
@@ -36,6 +38,25 @@ rails from git://github.com/rails/rails.git and set the RAILS_SOURCE environment
 variable so bundler will use another local path instead.
 
   $ git clone git://github.com/rails-sqlserver/activerecord-sqlserver-adapter.git
+
+
+= Configure DB Connection
+
+Please consult the test/config.yml file which is used to parse the configuration options
+for the DB connections when running tests. This file has overrides for any connection mode 
+that you can set using simple environment variables. Assuming you are using FreeTDS 0.91 
+and above
+
+  $ export ACTIVERECORD_UNITTEST_HOST='my.db.net'   # Defaults to localhost
+  $ export ACTIVERECORD_UNITTEST_PORT='1533'        # Defaults to 1433
+
+If you have FreeTDS 0.82 installed and/or want to use a named dataserver in your freetds.conf file
+
+  $ export ACTIVERECORD_UNITTEST_DATASERVER='mydbname'
+
+These can be passed down to rake too.
+
+  $ bundle exec rake test ACTIVERECORD_UNITTEST_HOST='my.db.net'
 
 
 = Bundling

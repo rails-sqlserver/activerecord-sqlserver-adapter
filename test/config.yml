@@ -3,7 +3,8 @@ default_connection: dblib
 default_connection_info: &default_connection_info
   adapter: sqlserver
   mode: <%= ENV['ARCONN'] || 'dblib' %>
-  host: <%= ENV['ACTIVERECORD_UNITTEST_DATASERVER'] || 'localhost' %>
+  host: <%= ENV['ACTIVERECORD_UNITTEST_HOST'] || 'localhost' %>
+  port: <%= ENV['ACTIVERECORD_UNITTEST_PORT'] %>
   database: activerecord_unittest
   username: <%= ENV['ACTIVERECORD_UNITTEST_USER'] || 'rails' %>
   password: <%= ENV['ACTIVERECORD_UNITTEST_PASS'] || '' %>
@@ -15,10 +16,12 @@ connections:
     arunit:
       <<: *default_connection_info
       appname: SQLServerAdptrUnit
+      dataserver: <%= ENV['ACTIVERECORD_UNITTEST_DATASERVER'] %>
     arunit2:
       <<: *default_connection_info
       database: activerecord_unittest2
       appname: SQLServerAdptrUnit2
+      dataserver: <%= ENV['ACTIVERECORD_UNITTEST_DATASERVER'] %>
 
   odbc:
     arunit:
