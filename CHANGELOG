@@ -1,6 +1,8 @@
 
 * 3.1.0 *
 
+* Make auto reconnect duration configurable. Fixes #109 [David Chelimsky]
+
 * Quote most time objects to use ISO8601 format to be multi-language dateformat compatible. The [datetime] data type is
   automatically limited to milliseconds while [time] & [datetimeoffset] have full support. Even included a Date/Time 
   ActiveSupport formatter that is used per the language settings of the connection.
