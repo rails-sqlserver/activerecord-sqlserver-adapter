@@ -80,5 +80,5 @@ class ChangeTableMigrationsTest < ActiveRecord::TestCase
       @connection.expects(:add_column).with(:delete_me, :bar, 'nvarchar(255)', {})
       t.string :foo, :bar
     end
-  end if run_ar_tests?
+  end
 end

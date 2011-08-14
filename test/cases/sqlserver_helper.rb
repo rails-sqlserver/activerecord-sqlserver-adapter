@@ -4,8 +4,10 @@ SQLSERVER_ASSETS_ROOT     = File.expand_path(File.join(SQLSERVER_TEST_ROOT,'asse
 SQLSERVER_FIXTURES_ROOT   = File.expand_path(File.join(SQLSERVER_TEST_ROOT,'fixtures'))
 SQLSERVER_MIGRATIONS_ROOT = File.expand_path(File.join(SQLSERVER_TEST_ROOT,'migrations'))
 SQLSERVER_SCHEMA_ROOT     = File.expand_path(File.join(SQLSERVER_TEST_ROOT,'schema'))
-ACTIVERECORD_TEST_ROOT    = File.expand_path(File.join(ENV['RAILS_SOURCE'],'activerecord','test'))
+ACTIVERECORD_TEST_ROOT    = File.expand_path(File.join(Gem.loaded_specs['activerecord'].full_gem_path,'test'))
 ENV['ARCONFIG']           = File.expand_path(File.join(SQLSERVER_TEST_ROOT,'config.yml'))
+
+$:.unshift ACTIVERECORD_TEST_ROOT
 
 require 'rubygems'
 require 'bundler'
@@ -87,7 +89,6 @@ end
 module ActiveRecord 
   class TestCase < ActiveSupport::TestCase
     class << self
-      def run_ar_tests? ; ENV['ACTIVERECORD_UNITTEST'].present? ; end
       def connection_mode_dblib? ; ActiveRecord::Base.connection.instance_variable_get(:@connection_options)[:mode] == :dblib ; end
       def connection_mode_odbc? ; ActiveRecord::Base.connection.instance_variable_get(:@connection_options)[:mode] == :odbc ; end
       def sqlserver_2005? ; ActiveRecord::Base.connection.sqlserver_2005? ; end
@@ -95,7 +96,6 @@ module ActiveRecord
       def sqlserver_azure? ; ActiveRecord::Base.connection.sqlserver_azure? ; end
       def ruby_19? ; RUBY_VERSION >= '1.9' ; end
     end
-    def run_ar_tests? ; self.class.run_ar_tests? ; end
     def connection_mode_dblib? ; self.class.connection_mode_dblib? ; end
     def connection_mode_odbc? ; self.class.connection_mode_odbc? ; end
     def sqlserver_2005? ; self.class.sqlserver_2005? ; end

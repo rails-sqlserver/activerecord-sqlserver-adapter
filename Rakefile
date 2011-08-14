@@ -7,16 +7,15 @@ require 'rake/testtask'
 def test_libs(mode='dblib')
   ['lib',
    'test',
-   "#{ENV['RAILS_SOURCE']}/activerecord/test"]
+   "#{File.join(Gem.loaded_specs['activerecord'].full_gem_path,'test')}"]
 end
 
 def test_files
   files = Dir.glob("test/cases/**/*_test_sqlserver.rb").sort
-  if ENV['ACTIVERECORD_UNITTEST']
-    ar_cases = Dir.glob("#{ENV['RAILS_SOURCE']}/activerecord/test/cases/**/*_test.rb")
-    adapter_cases = Dir.glob("#{ENV['RAILS_SOURCE']}/activerecord/test/cases/adapters/**/*_test.rb")
-    files += (ar_cases-adapter_cases).sort
-  end
+  ar_path = Gem.loaded_specs['activerecord'].full_gem_path
+  ar_cases = Dir.glob("#{ar_path}/test/cases/**/*_test.rb")
+  adapter_cases = Dir.glob("#{ar_path}/test/cases/adapters/**/*_test.rb")
+  files += (ar_cases-adapter_cases).sort
   files
 end
 
