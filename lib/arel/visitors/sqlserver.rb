@@ -21,14 +21,16 @@ module Arel
   end
 
   class SelectManager < Arel::TreeManager
-
+    
+    AR_CA_SQLSA_NAME = 'ActiveRecord::ConnectionAdapters::SQLServerAdapter'.freeze
+    
     # Getting real Ordering objects is very important for us. We need to be able to call #uniq on
     # a colleciton of them reliably as well as using their true object attributes to mutate them
     # to grouping objects for the inner sql during a select statment with an offset/rownumber. So this
     # is here till ActiveRecord & ARel does this for us instead of using SqlLiteral objects.
     alias :order_without_sqlserver :order
     def order(*expr)
-      return order_without_sqlserver(*expr) unless Arel::Visitors::SQLServer === @visitor
+      return order_without_sqlserver(*expr) unless engine_activerecord_sqlserver_adapter?
       @ast.orders.concat(expr.map{ |x|
         case x
         when Arel::Attributes::Attribute
@@ -55,7 +57,7 @@ module Arel
     # custom string hints down. See the visit_Arel_Nodes_LockWithSQLServer delegation method.
     alias :lock_without_sqlserver :lock
     def lock(locking=true)
-      if Arel::Visitors::SQLServer === @visitor
+      if engine_activerecord_sqlserver_adapter?
         case locking
         when true
           locking = Arel.sql('WITH(HOLDLOCK, ROWLOCK)')
@@ -69,7 +71,13 @@ module Arel
         lock_without_sqlserver(locking)
       end
     end
-
+    
+    private
+    
+    def engine_activerecord_sqlserver_adapter?
+      @engine.connection && @engine.connection.class.name == AR_CA_SQLSA_NAME
+    end
+    
   end
 
   module Visitors
@@ -117,7 +125,7 @@ module Arel
       end
       
       def visit_Arel_Nodes_Bin(o)
-        "#{visit o.expr} #{@engine.connection.cs_equality_operator}"
+        "#{visit o.expr} #{@connection.cs_equality_operator}"
       end
 
       # SQLServer ToSql/Visitor (Additions)
@@ -189,7 +197,7 @@ module Arel
 
       def source_with_lock_for_select_statement(o)
         core = o.cores.first
-        source = visit(core.source).strip if core.source
+        source = "FROM #{visit(core.source).strip}" if core.source
         if source && o.lock
           lock = visit o.lock
           index = source.match(/FROM [\w\[\]\.]+/)[0].length
@@ -272,6 +280,14 @@ module Arel
           o.limit &&
           !join_in_select_statement?(o)
       end
+      
+      def select_primary_key_sql?(o)
+        core = o.cores.first
+        return false if core.projections.size != 1
+        p = core.projections.first
+        t = table_from_select_statement(o)
+        Arel::Attributes::Attribute === p && t.primary_key && t.primary_key.name == p.name
+      end
 
       def find_and_fix_uncorrelated_joins_in_select_statement(o)
         core = o.cores.first
@@ -315,6 +331,8 @@ module Arel
           end
         elsif function_select_statement?(o)
           [Arel.star]
+        elsif select_primary_key_sql?(o)
+          [Arel.sql("[__rnt].#{quote_column_name(core.projections.first.name)}")]
         else
           core.projections.map do |x|
             if x.respond_to?(:relation)

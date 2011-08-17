@@ -1,8 +1,6 @@
 require 'cases/sqlserver_helper'
 require 'models/binary'
 
-class SqlServerEdgeSchema < ActiveRecord::Base; end;
-
 class ColumnTestSqlserver < ActiveRecord::TestCase
   
   def setup

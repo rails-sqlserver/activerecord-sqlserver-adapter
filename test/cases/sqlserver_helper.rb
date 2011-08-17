@@ -42,6 +42,16 @@ class SqlServerQuotedView1 < ActiveRecord::Base ; self.table_name = 'quoted-view
 class SqlServerQuotedView2 < ActiveRecord::Base ; self.table_name = 'quoted-view2' ; end
 class SqlServerUnicode < ActiveRecord::Base ; end
 class SqlServerString < ActiveRecord::Base ; end
+class NoPkData < ActiveRecord::Base ; self.table_name = 'no_pk_data' ; end
+class StringDefault < ActiveRecord::Base; end
+class SqlServerEdgeSchema < ActiveRecord::Base
+  attr_accessor :new_id_setting
+  before_create :set_new_id
+  protected
+  def set_new_id
+    self[:guid_newid] ||= connection.newid_function if new_id_setting
+  end
+end
 class SqlServerChronic < ActiveRecord::Base
   coerce_sqlserver_date :date
   coerce_sqlserver_time :time

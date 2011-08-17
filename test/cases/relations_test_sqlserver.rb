@@ -27,8 +27,7 @@ class RelationTest < ActiveRecord::TestCase
   COERCED_TESTS = [
     :test_finding_with_cross_table_order_and_limit,
     :test_finding_with_complex_order_and_limit,
-    :test_finding_with_complex_order,
-    :test_count_explicit_columns
+    :test_finding_with_complex_order
   ]
   
   include SqlserverCoercedTest

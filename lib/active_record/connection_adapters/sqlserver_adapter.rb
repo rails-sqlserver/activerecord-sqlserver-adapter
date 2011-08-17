@@ -159,7 +159,7 @@ module ActiveRecord
       include Sqlserver::Errors
       
       ADAPTER_NAME                = 'SQLServer'.freeze
-      VERSION                     = '3.1.0.rc5'.freeze
+      VERSION                     = '3.1.0.rc6'.freeze
       DATABASE_VERSION_REGEXP     = /Microsoft SQL Server\s+"?(\d{4}|\w+)"?/
       SUPPORTED_VERSIONS          = [2005,2008,2010,2011].freeze
       
@@ -171,6 +171,13 @@ module ActiveRecord
       
       self.enable_default_unicode_types = true
       
+      class << self
+        
+        def visitor_for(pool)
+          Arel::Visitors::SQLServer.new(pool)
+        end
+        
+      end
       
       def initialize(logger,config)
         @connection_options = config

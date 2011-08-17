@@ -1,17 +1,5 @@
 require 'cases/sqlserver_helper'
 
-class NoPkData < ActiveRecord::Base ; self.table_name = 'no_pk_data' ; end
-class StringDefault < ActiveRecord::Base; end;
-class SqlServerEdgeSchema < ActiveRecord::Base; end;
-class SqlServerEdgeSchema < ActiveRecord::Base
-  attr_accessor :new_id_setting
-  before_create :set_new_id
-  protected
-  def set_new_id
-    self[:guid_newid] ||= connection.newid_function if new_id_setting
-  end
-end
-
 class SpecificSchemaTestSqlserver < ActiveRecord::TestCase
   
   should 'be able to complex count tables with no primary key' do
@@ -57,6 +45,17 @@ class SpecificSchemaTestSqlserver < ActiveRecord::TestCase
     
     setup do
       @edge_class = SqlServerEdgeSchema
+    end
+    
+    context 'With special quoted column' do
+
+      should 'work as normal' do
+        @edge_class.delete_all
+        r = @edge_class.create! 'crazy]]quote' => 'crazyqoute'
+        assert @edge_class.columns_hash['crazy]]quote']
+        assert_equal r, @edge_class.first(:conditions => {'crazy]]quote' => 'crazyqoute'})
+      end
+
     end
     
     context 'with description column' do

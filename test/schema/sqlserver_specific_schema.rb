@@ -70,6 +70,7 @@ ActiveRecord::Schema.define do
     t.column :bigint, :bigint
     t.column :tinyint, :tinyint
     t.column :guid, :uniqueidentifier
+    t.column 'crazy]]quote', :string
   end
   execute %|ALTER TABLE [sql_server_edge_schemas] ADD [guid_newid] uniqueidentifier DEFAULT NEWID();|
   execute %|ALTER TABLE [sql_server_edge_schemas] ADD [guid_newseqid] uniqueidentifier DEFAULT NEWSEQUENTIALID();| unless sqlserver_azure?
