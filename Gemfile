@@ -14,7 +14,7 @@ group :odbc do
 end
 
 group :development do
-  gem 'rake', '>= 0.8.7'
+  gem 'rake', '0.8.7'
   gem 'mocha', '0.9.8'
   gem 'shoulda', '2.10.3'
   platforms :mri_18 do

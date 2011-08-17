@@ -147,7 +147,7 @@ module ActiveRecord
     class SQLServerAdapter < AbstractAdapter
       
       ADAPTER_NAME                = 'SQLServer'.freeze
-      VERSION                     = '2.3.19'.freeze
+      VERSION                     = '2.3.20'.freeze
       DATABASE_VERSION_REGEXP     = /Microsoft SQL Server\s+(\d{4})/
       SUPPORTED_VERSIONS          = [2000,2005,2008].freeze
       LIMITABLE_TYPES             = ['string','integer','float','char','nchar','varchar','nvarchar'].to_set.freeze
@@ -284,7 +284,7 @@ module ActiveRecord
       
       def quote_column_name(name)
         @sqlserver_quoted_column_and_table_names[name] ||= 
-          name.to_s.split('.').map{ |n| n =~ /^\[.*\]$/ ? n : "[#{n}]" }.join('.')
+          name.to_s.split('.').map{ |n| n =~ /^\[.*\]$/ ? n : "[#{n.to_s.gsub(']', ']]')}]" }.join('.')
       end
       
       def quote_table_name(name)

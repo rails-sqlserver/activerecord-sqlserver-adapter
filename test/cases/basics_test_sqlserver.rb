@@ -8,6 +8,7 @@ end
 class BasicsTest < ActiveRecord::TestCase
   
   COERCED_TESTS = [
+    :test_column_names_are_escaped,
     :test_read_attributes_before_type_cast_on_datetime, 
     :test_preserving_date_objects,
     :test_to_xml ]
@@ -15,6 +16,10 @@ class BasicsTest < ActiveRecord::TestCase
   include SqlserverCoercedTest
   
   fixtures :developers
+  
+  def test_coerced_column_names_are_escaped
+    assert_equal "[foo]]bar]", ActiveRecord::Base.connection.quote_column_name("foo]bar")
+  end
   
   def test_coerced_test_read_attributes_before_type_cast_on_datetime
     developer = Developer.find(:first)

@@ -1,4 +1,9 @@
 
+* 2.3.20 *
+
+* Fixes quote column names and passes tests for ActiveRecord 2.3.14.
+
+
 * 2.3.19 *
 
 * Allow drop_database to be called even when DB does not exist.
