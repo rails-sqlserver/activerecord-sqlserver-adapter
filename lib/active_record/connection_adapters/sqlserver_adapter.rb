@@ -1332,6 +1332,8 @@ module ActiveRecord
                         ci[:type]
                       when /^numeric|decimal$/i
                         "#{ci[:type]}(#{ci[:numeric_precision]},#{ci[:numeric_scale]})"
+                      when /^float|real$/i
+                        "#{ci[:type]}(#{ci[:numeric_precision]})"
                       when /^char|nchar|varchar|nvarchar|varbinary|bigint|int|smallint$/
                         ci[:length].to_i == -1 ? "#{ci[:type]}(max)" : "#{ci[:type]}(#{ci[:length]})"
                       else
