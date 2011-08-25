@@ -5,6 +5,14 @@ ActiveRecord::Schema.define do
     t.column :COLUMN2, :integer
   end
   
+  create_table :float_data, :force => true do |t|
+    t.float   :temperature
+    t.float   :temperature_8, :limit => 8
+    t.float   :temperature_24, :limit => 24
+    t.float   :temperature_32, :limit => 32
+    t.float   :temperature_53, :limit => 53
+  end
+  
   create_table :table_with_real_columns, :force => true do |t|
     t.column :real_number, :real
   end

@@ -79,8 +79,16 @@ module ActiveRecord
         !!(@sql_type =~ /int/i)
       end
       
+      def is_real?
+        !!(@sql_type =~ /real/i)
+      end
+      
       def sql_type_for_statement
-        is_integer? ? sql_type.sub(/\(\d+\)/,'') : sql_type
+        if is_integer? || is_real?
+          sql_type.sub(/\(\d+\)/,'')
+        else
+          sql_type
+        end
       end
       
       def default_function

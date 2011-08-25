@@ -481,6 +481,14 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
         assert_equal 'bigint', @connection.type_to_sql(:integer, 8)
       end
       
+      should 'create floats when no limit supplied' do
+        assert_equal 'float(8)', @connection.type_to_sql(:float)
+      end
+
+      should 'create floats when limit is supplied' do
+        assert_equal 'float(27)', @connection.type_to_sql(:float, 27)
+      end
+      
     end
     
   end

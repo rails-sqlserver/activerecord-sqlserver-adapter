@@ -1,6 +1,8 @@
 
 * 3.1.0 *
 
+* Add support/test around handling of float/real column types [Lucas Maxwell]
+
 * Make auto reconnect duration configurable. Fixes #109 [David Chelimsky]
 
 * Quote most time objects to use ISO8601 format to be multi-language dateformat compatible. The [datetime] data type is
