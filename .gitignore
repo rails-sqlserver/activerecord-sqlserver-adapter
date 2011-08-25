@@ -8,3 +8,4 @@ doc/
 .bundle
 Gemfile.lock
 test/profile/output/*
+.rbenv-version
