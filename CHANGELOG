@@ -1,4 +1,9 @@
 
+* 2.3.21*
+
+* Add support/test around handling of float/real column types [Lucas Maxwell]
+
+
 * 2.3.20 *
 
 * Fixes quote column names and passes tests for ActiveRecord 2.3.14.
