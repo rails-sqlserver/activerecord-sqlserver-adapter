@@ -8,4 +8,4 @@ doc/
 Gemfile.lock
 test/profile/output/*
 .rvmrc
-.rbenv
+.rbenv-version
