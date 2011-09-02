@@ -7,6 +7,8 @@ The SQL Server adapter for ActiveRecord. If you need the adapter for SQL Server 
 == What's New
 
 * Rails 3.1 prepared statement support leverages cached query plans.
+  If you use DBLIB/TinyTDS, you must use FreeTDS 0.91 !!!!!
+  https://github.com/rails-sqlserver/tiny_tds/issues/41
 * We now support your native language date/time formats automatically!
 * Default unicode datatypes! Disable with #enable_default_unicode_types to false.
 * New #lowercase_schema_reflection configuration option for legacy DBs.
