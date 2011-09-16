@@ -41,6 +41,8 @@ module Arel
           table = Arel::Table.new(x.relation.table_alias || x.relation.name)
           expr = table[x.name]
           Arel::Nodes::Ordering.new expr
+        when Arel::Nodes::Ordering
+          x
         when String
           x.split(',').map do |s|
             expr, direction = s.split

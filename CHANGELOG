@@ -1,4 +1,9 @@
 
+* 3-0-stable *
+
+* Allow complex order objects to not be molested by our visitor overrides. Fixes #99
+
+
 * 3.0.15 *
 
 * Way better schema support! Thanks to @ianic! Fixes #61
