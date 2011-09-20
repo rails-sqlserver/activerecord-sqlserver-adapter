@@ -1,5 +1,9 @@
 
-* 3-0-stable *
+* 3.0.17 *
+
+
+
+* 3.0.16 *
 
 * Allow complex order objects to not be molested by our visitor overrides. Fixes #99
 
