@@ -1,6 +1,9 @@
 
 * 3.0.17 *
 
+* Allow :limit/:offset to be used with fully qualified table and column in :select.
+
+* Fix test_count_explicit_columns.
 
 
 * 3.0.16 *

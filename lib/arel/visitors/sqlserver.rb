@@ -293,12 +293,9 @@ module Arel
           core.projections.map do |x|
             Arel.sql x.split(',').map{ |y| y.split(' AS ').last.strip }.join(', ')
           end
-        elsif function_select_statement?(o)
-          # TODO: [ARel 2.2] Use Arel.star
-          [Arel.sql('*')]
         else
-          tn = table_from_select_statement(o).name
-          core.projections.map { |x| x.gsub /\[#{tn}\]\./, '[__rnt].' }
+          # TODO: [ARel 2.2] Use Arel.star
+          [Arel.sql('[__rnt].*')]
         end
       end
 
