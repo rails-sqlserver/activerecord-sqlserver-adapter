@@ -1,6 +1,5 @@
 require 'rake'
 require 'rake/testtask'
-require 'rake/rdoctask'
 
 
 def test_libs(mode='dblib')

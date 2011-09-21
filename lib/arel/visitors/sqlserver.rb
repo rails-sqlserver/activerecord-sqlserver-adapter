@@ -249,7 +249,7 @@ module Arel
         core = o.cores.first
         core.projections.size == 1 &&
           Arel::Nodes::Count === core.projections.first &&
-          (o.limit || !core.wheres.empty?) &&
+          o.limit &&
           !join_in_select_statement?(o)
       end
 

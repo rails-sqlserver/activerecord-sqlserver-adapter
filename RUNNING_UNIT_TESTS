@@ -59,10 +59,6 @@ on a local branch of our remote tracking branch.
 
 = Current Expected Failures
 
-* test_count_explicit_columns(RelationTest) <0> expected but was <7>
-  I believe this failure is actually incorrect for other DBs to be passing and 
-  will explore a patch to rails which disables ambiguous results sets.
-
 * Misc Date/Time object instance matches when using ODBC mode.
 
 
