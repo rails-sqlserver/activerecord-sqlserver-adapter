@@ -7,6 +7,7 @@ require 'active_record/connection_adapters/sqlserver/database_statements'
 require 'active_record/connection_adapters/sqlserver/errors'
 require 'active_record/connection_adapters/sqlserver/schema_statements'
 require 'active_record/connection_adapters/sqlserver/quoting'
+require 'active_record/connection_adapters/sqlserver/version'
 require 'active_support/core_ext/kernel/requires'
 require 'active_support/core_ext/string'
 require 'base64'
@@ -165,9 +166,9 @@ module ActiveRecord
       include Sqlserver::SchemaStatements
       include Sqlserver::DatabaseLimits
       include Sqlserver::Errors
+      include Sqlserver::Version
       
       ADAPTER_NAME                = 'SQLServer'.freeze
-      VERSION                     = '3.1.0'.freeze
       DATABASE_VERSION_REGEXP     = /Microsoft SQL Server\s+"?(\d{4}|\w+)"?/
       SUPPORTED_VERSIONS          = [2005,2008,2010,2011].freeze
       

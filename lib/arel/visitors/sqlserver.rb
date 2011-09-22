@@ -329,20 +329,10 @@ module Arel
           core.projections.map do |x|
             Arel.sql visit(x).split(',').map{ |y| y.split(' AS ').last.strip }.join(', ')
           end
-        elsif function_select_statement?(o)
-          [Arel.star]
         elsif select_primary_key_sql?(o)
           [Arel.sql("[__rnt].#{quote_column_name(core.projections.first.name)}")]
         else
-          core.projections.map do |x|
-            if x.respond_to?(:relation)
-              x = x.dup
-              x.relation = x.relation.dup
-              x.relation.instance_variable_set :@table_alias, Arel.sql('[__rnt].*')
-            else
-              x
-            end
-          end
+          [Arel.sql('[__rnt].*')]
         end
       end
 

@@ -1,4 +1,9 @@
 
+* 3.1.1 *
+
+* Allow :limit/:offset to be used with fully qualified table and column in :select.
+
+
 * 3.1.0 *
 
 * Add support/test around handling of float/real column types [Lucas Maxwell]
