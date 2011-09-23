@@ -522,6 +522,12 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
         assert_contains @connection.views, 'customers_view'
       end
       
+      should 'work with dynamic finders' do
+        name = 'MetaSkills'
+        customer = CustomersView.create! :name => name
+        assert_equal customer, CustomersView.find_by_name(name)
+      end
+      
       should 'not contain system views' do
         systables = ['sysconstraints','syssegments']
         systables.each do |systable|
