@@ -4,6 +4,7 @@ module ActiveRecord
       module Quoting
         
         QUOTED_TRUE, QUOTED_FALSE = '1', '0'
+        QUOTED_STRING_PREFIX = 'N'
         
         def quote(value, column = nil)
           case value
@@ -13,7 +14,7 @@ module ActiveRecord
             elsif column && column.type == :binary
               column.class.string_to_binary(value)
             elsif value.is_utf8? || (column && column.type == :string)
-              "N'#{quote_string(value)}'"
+              "#{quoted_string_prefix}'#{quote_string(value)}'"
             else
               super
             end
@@ -31,7 +32,11 @@ module ActiveRecord
             super
           end
         end
-
+        
+        def quoted_string_prefix
+          QUOTED_STRING_PREFIX
+        end
+        
         def quote_string(string)
           string.to_s.gsub(/\'/, "''")
         end

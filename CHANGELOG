@@ -1,6 +1,9 @@
 
 * 3.1.1 *
 
+* Provide a method to override for the quoted string prefix. Not a config because trumping this method will 
+  have drastically bad results. Fixes #124
+
 * Allow :limit/:offset to be used with fully qualified table and column in :select.
 
 
