@@ -105,6 +105,13 @@ Although it is not necessary, the Ruby convention is to use lowercase method nam
   ActiveRecord::ConnectionAdapters::SQLServerAdapter.lowercase_schema_reflection = true
 
 
+==== Schemas & Users
+
+Depending on your user and schema setup, it may be needed to use a table name prefix of "dbo.". So something like this in your initializer file for ActiveRecord or the adapter.
+
+  ActiveRecord::Base.table_name_prefix = 'dbo.'
+
+
 ==== Schema Information Logging
 
 By default all queries to the INFORMATION_SCHEMA table is silenced. If you think logging these queries are useful, you can enable it by adding this like to a initializer file.
