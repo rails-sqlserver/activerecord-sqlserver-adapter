@@ -114,8 +114,6 @@ module ActiveRecord
       def sqlserver_2000? ; ActiveRecord::Base.connection.sqlserver_2000? ; end
       def sqlserver_2005? ; ActiveRecord::Base.connection.sqlserver_2005? ; end
       def sqlserver_2008? ; ActiveRecord::Base.connection.sqlserver_2008? ; end
-      def active_record_2_point_2? ; ActiveRecord::VERSION::MAJOR == 2 && ActiveRecord::VERSION::MINOR == 2 ; end
-      def active_record_2_point_3? ; ActiveRecord::VERSION::MAJOR == 2 && ActiveRecord::VERSION::MINOR == 3 ; end
       def ruby_19? ; RUBY_VERSION >= '1.9' ; end
     end
     def assert_sql(*patterns_to_match)
@@ -134,8 +132,6 @@ module ActiveRecord
     def sqlserver_2000? ; self.class.sqlserver_2000? ; end
     def sqlserver_2005? ; self.class.sqlserver_2005? ; end
     def sqlserver_2008? ; self.class.sqlserver_2008? ; end
-    def active_record_2_point_2? ; self.class.active_record_2_point_2? ; end
-    def active_record_2_point_3? ; self.class.active_record_2_point_3? ; end
     def ruby_19? ; self.class.ruby_19? ; end
   end
 end

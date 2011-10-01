@@ -485,7 +485,7 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
           assert @dirty_t2, 'Should have a Task record from within block above.'
           assert @dirty_t2.starting, 'Should have a dirty date.'
           assert_nil Task.find(@t2.id).starting, 'Should be nil again from botched transaction above.'
-        end unless active_record_2_point_2? # Transactions in tests are a bit screwy in 2.2.
+        end
         
       end
       
