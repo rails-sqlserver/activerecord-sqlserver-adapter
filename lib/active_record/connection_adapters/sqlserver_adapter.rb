@@ -147,7 +147,7 @@ module ActiveRecord
     class SQLServerAdapter < AbstractAdapter
       
       ADAPTER_NAME                = 'SQLServer'.freeze
-      VERSION                     = '2.3.21'.freeze
+      VERSION                     = '2.3.22'.freeze
       DATABASE_VERSION_REGEXP     = /Microsoft SQL Server\s+(\d{4})/
       SUPPORTED_VERSIONS          = [2000,2005,2008].freeze
       LIMITABLE_TYPES             = ['string','integer','float','char','nchar','varchar','nvarchar'].to_set.freeze
@@ -451,7 +451,7 @@ module ActiveRecord
       end
 
       def rollback_db_transaction
-        do_execute "ROLLBACK TRANSACTION" rescue nil
+        do_execute "IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION"
       end
       
       def create_savepoint

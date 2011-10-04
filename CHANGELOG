@@ -1,5 +1,10 @@
 
-* 2.3.21*
+* 2.3.22 *
+
+* Make #rollback_db_transaction smarter.
+
+ 
+* 2.3.21 *
 
 * Add support/test around handling of float/real column types [Lucas Maxwell]
 
