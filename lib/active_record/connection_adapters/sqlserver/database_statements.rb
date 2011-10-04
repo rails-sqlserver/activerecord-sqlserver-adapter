@@ -33,7 +33,7 @@ module ActiveRecord
         end
 
         def rollback_db_transaction
-          do_execute "ROLLBACK TRANSACTION" rescue nil
+          do_execute "IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION"
         end
 
         def create_savepoint

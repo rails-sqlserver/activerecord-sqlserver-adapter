@@ -1,4 +1,9 @@
 
+* 3.0.18 *
+
+* Make #rollback_db_transaction smarter.
+
+
 * 3.0.17 *
 
 * Allow :limit/:offset to be used with fully qualified table and column in :select.
