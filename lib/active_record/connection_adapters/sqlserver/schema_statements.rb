@@ -14,6 +14,7 @@ module ActiveRecord
         end
 
         def table_exists?(table_name)
+          return false if table_name.blank?
           unquoted_table_name = unqualify_table_name(table_name)
           super || tables.include?(unquoted_table_name) || views.include?(unquoted_table_name)
         end

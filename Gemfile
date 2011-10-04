@@ -7,6 +7,7 @@ else
   spec = eval(File.read('activerecord-sqlserver-adapter.gemspec'))
   ar_version = spec.dependencies.detect{ |d|d.name == 'activerecord' }.requirement.requirements.first.last.version
   gem 'rails', :git => "git://github.com/rails/rails.git", :tag => "v#{ar_version}"
+  gem 'bcrypt-ruby', '~> 3.0.0'
 end
 
 if ENV['AREL']
