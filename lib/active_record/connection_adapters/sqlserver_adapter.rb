@@ -407,6 +407,12 @@ module ActiveRecord
                             client.execute("SET ANSI_DEFAULTS ON").do
                             client.execute("SET CURSOR_CLOSE_ON_COMMIT OFF").do
                             client.execute("SET IMPLICIT_TRANSACTIONS OFF").do
+                            #Custom statements executions for proper session useroptions see http://msdn.microsoft.com/ru-ru/library/ms180065(v=SQL.100).aspx for info
+                            if config[:session_options] && config[:session_options].is_a?(Array)
+                              config[:session_options].each do |opt|
+                                client.execute(opt).do
+                              end
+                            end
                           end
                         end
                       when :odbc
