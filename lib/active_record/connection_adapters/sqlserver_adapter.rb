@@ -164,7 +164,7 @@ module ActiveRecord
       include Sqlserver::Errors
       
       ADAPTER_NAME                = 'SQLServer'.freeze
-      VERSION                     = '3.0.18'.freeze
+      VERSION                     = '3.0.19'.freeze
       DATABASE_VERSION_REGEXP     = /Microsoft SQL Server\s+"?(\d{4}|\w+)"?/
       SUPPORTED_VERSIONS          = [2005,2008,2010,2011].freeze
       
@@ -358,7 +358,7 @@ module ActiveRecord
         config = @connection_options
         @connection = case @connection_options[:mode]
                       when :dblib
-                        appname = config[:appname] || Rails.application.class.name.split('::').first rescue nil
+                        appname = config[:appname] || configure_application_name || Rails.application.class.name.split('::').first rescue nil
                         login_timeout = config[:login_timeout].present? ? config[:login_timeout].to_i : nil
                         timeout = config[:timeout].present? ? config[:timeout].to_i/1000 : nil
                         encoding = config[:encoding].present? ? config[:encoding] : nil
@@ -423,8 +423,22 @@ module ActiveRecord
                           connection.open
                         end
                       end
+        configure_connection
       rescue
         raise unless @auto_connecting
+      end
+      
+      # Override this method so every connection can be configured to your needs.
+      # For example: 
+      #    do_execute "SET TEXTSIZE #{64.megabytes}"
+      #    do_execute "SET CONCAT_NULL_YIELDS_NULL ON"
+      def configure_connection
+      end
+      
+      # Override this method so every connection can have a unique name. Max 30 characters. Used by TinyTDS only.
+      # For example:
+      #    "myapp_#{$$}_#{Thread.current.object_id}".to(29)
+      def configure_application_name
       end
       
       def remove_database_connections_and_rollback(database=nil)

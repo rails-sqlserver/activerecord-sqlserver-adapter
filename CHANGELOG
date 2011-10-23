@@ -1,4 +1,17 @@
 
+* 3.0.19 *
+
+* Create a #configure_connection method that can be overridden. Think "SET TEXTSIZE...".
+
+* Create a #configure_application_name method that can be overridden for unique TinyTDS app names
+  to show up in SQL Server's activity monitor.
+
+* Fixed the #finish_statement_handle to cancel the TinyTDS connection if needed.
+
+* Fix the #indexes method to fail gracefully if sp_helptext permissions fail.
+
+
+
 * 3.0.18 *
 
 * Make #rollback_db_transaction smarter.

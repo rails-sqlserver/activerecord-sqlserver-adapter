@@ -20,7 +20,8 @@ module ActiveRecord
 
         def indexes(table_name, name = nil)
           unquoted_table_name = unqualify_table_name(table_name)
-          select("EXEC sp_helpindex #{quote_table_name(unquoted_table_name)}",name).inject([]) do |indexes,index|
+          data = select("EXEC sp_helpindex #{quote_table_name(unquoted_table_name)}",name) rescue []
+          data.inject([]) do |indexes,index|
             index = index.with_indifferent_access
             if index[:index_description] =~ /primary key/
               indexes
