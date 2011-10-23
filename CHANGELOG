@@ -1,4 +1,13 @@
 
+* 2.3.23 *
+
+* Create a #configure_connection method that can be overridden. Think "SET TEXTSIZE...".
+
+* Fixed the #finish_statement_handle to cancel the TinyTDS connection if needed.
+
+* Fix the #indexes method to fail gracefully if sp_helptext permissions fail.
+
+
 * 2.3.22 *
 
 * Make #rollback_db_transaction smarter.

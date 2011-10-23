@@ -23,6 +23,7 @@ require 'active_record/version'
 GC.copy_on_write_friendly = true if GC.respond_to?(:copy_on_write_friendly?)
 
 ActiveRecord::Migration.verbose = false
+ActiveRecord::ConnectionAdapters::SQLServerAdapter.log_info_schema_queries = true
 
 # Defining our classes in one place as well as soem core tests that need coercing date/time types.
 

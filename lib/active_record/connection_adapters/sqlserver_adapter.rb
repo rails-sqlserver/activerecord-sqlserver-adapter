@@ -147,7 +147,7 @@ module ActiveRecord
     class SQLServerAdapter < AbstractAdapter
       
       ADAPTER_NAME                = 'SQLServer'.freeze
-      VERSION                     = '2.3.22'.freeze
+      VERSION                     = '2.3.23'.freeze
       DATABASE_VERSION_REGEXP     = /Microsoft SQL Server\s+(\d{4})/
       SUPPORTED_VERSIONS          = [2000,2005,2008].freeze
       LIMITABLE_TYPES             = ['string','integer','float','char','nchar','varchar','nvarchar'].to_set.freeze
@@ -612,7 +612,8 @@ module ActiveRecord
       
       def indexes(table_name, name = nil)
         unquoted_table_name = unqualify_table_name(table_name)
-        select("EXEC sp_helpindex #{quote_table_name(unquoted_table_name)}",name).inject([]) do |indexes,index|
+        data = select("EXEC sp_helpindex #{quote_table_name(unquoted_table_name)}",name) rescue []
+        data.inject([]) do |indexes,index|
           index = index.with_indifferent_access
           if index[:index_description] =~ /primary key/
             indexes
@@ -867,8 +868,16 @@ module ActiveRecord
                           connection.open
                         end
                       end
+        configure_connection
       rescue
         raise unless @auto_connecting
+      end
+      
+      # Override this method so every connection can be configured to your needs.
+      # For example: 
+      #    do_execute "SET TEXTSIZE #{64.megabytes}"
+      #    do_execute "SET CONCAT_NULL_YIELDS_NULL ON"
+      def configure_connection
       end
       
       def lost_connection_exceptions
@@ -934,6 +943,7 @@ module ActiveRecord
       def finish_statement_handle(handle)
         case @connection_options[:mode]
         when :dblib
+          handle.cancel if handle
         when :odbc
           handle.drop if handle && handle.respond_to?(:drop) && !handle.finished?
         when :adonet

@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name     = "activerecord-sqlserver-adapter"
-  s.version  = "2.3.22"
+  s.version  = "2.3.23"
   s.summary  = "SQL Server 2000, 2005 and 2008 Adapter For Rails."
   s.email    = "ken@metaskills.net"
   s.homepage = "http://github.com/rails-sqlserver"
