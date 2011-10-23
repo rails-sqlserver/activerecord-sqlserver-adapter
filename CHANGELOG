@@ -1,4 +1,10 @@
 
+* 2.3.24 *
+
+* Create a #configure_application_name method that can be overridden for unique TinyTDS app names
+  to show up in SQL Server's activity monitor.
+
+
 * 2.3.23 *
 
 * Create a #configure_connection method that can be overridden. Think "SET TEXTSIZE...".
