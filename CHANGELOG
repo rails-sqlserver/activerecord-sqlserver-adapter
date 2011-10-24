@@ -1,6 +1,8 @@
 
 * 3.1.2 *
 
+* Fix SQL Azure conflicts with DBCC useroptions. Use new #user_options_xyz methods. [kazamachi]
+
 * Fix identity inserts for tables with natural PKs. [Gian Carlo Pace]
 
 * Create a #configure_connection method that can be overridden. Think "SET TEXTSIZE...".

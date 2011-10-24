@@ -446,7 +446,7 @@ module ActiveRecord
       end
       
       def initialize_dateformatter
-        @database_dateformat = user_options['dateformat']
+        @database_dateformat = user_options_dateformat
         a, b, c = @database_dateformat.each_char.to_a
         [a,b,c].each { |f| f.upcase! if f == 'y' }
         dateformat = "%#{a}-%#{b}-%#{c}"

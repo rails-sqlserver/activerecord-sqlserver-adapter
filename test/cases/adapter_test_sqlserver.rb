@@ -140,7 +140,7 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
     context 'with different language' do
       
       setup do
-        @default_language = @connection.user_options['language']
+        @default_language = @connection.user_options_language
       end
       
       teardown do
@@ -413,14 +413,14 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
           @t2 = tasks(:another_task)
           assert @t1, 'Tasks :first_task should be in AR fixtures'
           assert @t2, 'Tasks :another_task should be in AR fixtures'
-          good_isolation_level = @connection.user_options[:isolation_level].blank? || @connection.user_options[:isolation_level] =~ /read committed/i
-          assert good_isolation_level, "User isolation level is not at a happy starting place: #{@connection.user_options[:isolation_level].inspect}"
+          good_isolation_level = @connection.user_options_isolation_level.blank? || @connection.user_options_isolation_level =~ /read committed/i
+          assert good_isolation_level, "User isolation level is not at a happy starting place: #{@connection.user_options_isolation_level.inspect}"
         end
         
         should 'allow #run_with_isolation_level to not take a block to set it' do
           begin
             @connection.run_with_isolation_level 'READ UNCOMMITTED'
-            assert_match %r|read uncommitted|i, @connection.user_options[:isolation_level]
+            assert_match %r|read uncommitted|i, @connection.user_options_isolation_level
           ensure
             @connection.run_with_isolation_level 'READ COMMITTED'
           end
