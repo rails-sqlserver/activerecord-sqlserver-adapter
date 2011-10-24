@@ -434,8 +434,8 @@ module ActiveRecord
       
       # Override this method so every connection can be configured to your needs.
       # For example: 
-      #    do_execute "SET TEXTSIZE #{64.megabytes}"
-      #    do_execute "SET CONCAT_NULL_YIELDS_NULL ON"
+      #    raw_connection_do "SET TEXTSIZE #{64.megabytes}"
+      #    raw_connection_do "SET CONCAT_NULL_YIELDS_NULL ON"
       def configure_connection
       end
       
