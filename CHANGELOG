@@ -1,4 +1,13 @@
 
+* 3.1.2 *
+
+* Create a #configure_connection method that can be overridden. Think "SET TEXTSIZE...".
+
+* Create a #configure_application_name method that can be overridden for unique TinyTDS app names
+
+* Fixed the #finish_statement_handle to cancel the TinyTDS connection if needed.
+
+
 * 3.1.1 *
 
 * Make #rollback_db_transaction smarter.

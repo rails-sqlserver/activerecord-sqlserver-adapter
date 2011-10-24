@@ -337,7 +337,8 @@ module ActiveRecord
         
         def finish_statement_handle(handle)
           case @connection_options[:mode]
-          when :dblib  
+          when :dblib
+            handle.cancel if handle
           when :odbc
             handle.drop if handle && handle.respond_to?(:drop) && !handle.finished?
           end
