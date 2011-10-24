@@ -153,19 +153,17 @@ We currently conform to an unpublished and non-standard AbstractAdapter interfac
 
 ```ruby
 module ActiveRecord
-  class Base
-    module ConnectionAdapters
-      class SQLServerAdapter < AbstractAdapter
+  module ConnectionAdapters
+    class SQLServerAdapter < AbstractAdapter
 
-        def configure_connection
-          do_execute "SET TEXTSIZE #{64.megabytes}"
-        end
-
-        def configure_application_name
-          "myapp_#{$$}_#{Thread.current.object_id}".to(29)
-        end
-
+      def configure_connection
+        raw_connection_do "SET TEXTSIZE #{64.megabytes}"
       end
+
+      def configure_application_name
+        "myapp_#{$$}_#{Thread.current.object_id}".to(29)
+      end
+
     end
   end
 end
