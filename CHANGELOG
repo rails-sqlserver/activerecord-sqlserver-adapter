@@ -1,6 +1,8 @@
 
 * 3.1.2 *
 
+* Fix identity inserts for tables with natural PKs. [Gian Carlo Pace]
+
 * Create a #configure_connection method that can be overridden. Think "SET TEXTSIZE...".
 
 * Create a #configure_application_name method that can be overridden for unique TinyTDS app names

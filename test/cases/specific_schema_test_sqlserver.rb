@@ -47,7 +47,18 @@ class SpecificSchemaTestSqlserver < ActiveRecord::TestCase
       @edge_class = SqlServerEdgeSchema
     end
     
-    context 'With special quoted column' do
+    context 'with natural primary keys' do
+
+      should 'work with identity inserts' do
+        record = SqlServerNaturalPkData.new :name => 'Test', :description => 'Natural identity inserts.'
+        record.id = '12345ABCDE'
+        assert record.save
+        assert_equal '12345ABCDE', record.reload.id
+      end
+
+    end
+    
+    context 'with special quoted column' do
 
       should 'work as normal' do
         @edge_class.delete_all
