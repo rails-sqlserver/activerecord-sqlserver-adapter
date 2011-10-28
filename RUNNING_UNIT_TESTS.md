@@ -24,12 +24,19 @@ The connection files make certain assumptions. For instance, the ODBC connection
 
 ## Cloning The Repos
 
-Clone adapter git://github.com/rails-sqlserver/activerecord-sqlserver-adapter.git. The master branch is the one under development for rails 3, track the repos 2-3-stable branch for 2.x development.
+Clone adapter git://github.com/rails-sqlserver/activerecord-sqlserver-adapter.git. The master branch is the one under development for Rails 3, track the repos 2-3-stable branch for 2.x development.
 
-The tests of this adapter depend on the existence of the rails which under the 3.1 version and above is automatically cloned for you with bundler. However you can clone rails from git://github.com/rails/rails.git and set the `RAILS_SOURCE` environment variable so bundler will use another local path instead.
+The tests of this adapter depend on the existence of the Rails which under the 3.1 version and above is automatically cloned for you with bundler. However you can clone Rails from git://github.com/rails/rails.git and set the `RAILS_SOURCE` environment variable so bundler will use another local path instead.
 
 ```
 $ git clone git://github.com/rails-sqlserver/activerecord-sqlserver-adapter.git
+```
+
+Optionally, you an just let bundler do all the work and assuming there is a git tag for the Rails version, you can set `RAILS_VERSION` before bundling.
+
+```
+$ export RAILS_VERSION='3.1.1'
+$ bundle install
 ```
 
 
@@ -79,7 +86,7 @@ $ bundle exec rake test:dblib
 $ bundle exec rake test:odbc
 ```
 
-By default, Bundler will download the rails git repo and use the git tag that matches the dependency version in our gemspec. If you want to test another version of rails, you can either temporarily change the :tag for rails in the Gemfile. Likewise, you can clone the rails repo your self to another directory and use the `RAILS_SOURCE` environment variable.
+By default, Bundler will download the Rails git repo and use the git tag that matches the dependency version in our gemspec. If you want to test another version of Rails, you can either temporarily change the :tag for Rails in the Gemfile. Likewise, you can clone the Rails repo your self to another directory and use the `RAILS_SOURCE` environment variable.
 
 
 ## Current Expected Failures
