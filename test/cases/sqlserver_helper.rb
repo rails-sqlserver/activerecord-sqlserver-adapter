@@ -23,7 +23,7 @@ GC.copy_on_write_friendly = true if GC.respond_to?(:copy_on_write_friendly?)
 ActiveRecord::Migration.verbose = false
 ActiveRecord::Base.logger = Logger.new(File.expand_path(File.join(SQLSERVER_TEST_ROOT,'debug.log')))
 ActiveRecord::Base.logger.level = 0
-ActiveRecord::ConnectionAdapters::SQLServerAdapter.log_info_schema_queries = true
+ActiveRecord::ConnectionAdapters::SQLServerAdapter.log_info_schema_queries = false
 
 # Defining our classes in one place as well as soem core tests that need coercing date/time types.
 
@@ -38,6 +38,7 @@ class CustomersView < ActiveRecord::Base ; self.table_name = 'customers_view' ; 
 class StringDefaultsView < ActiveRecord::Base ; self.table_name = 'string_defaults_view' ; end
 class StringDefaultsBigView < ActiveRecord::Base ; self.table_name = 'string_defaults_big_view' ; end
 class SqlServerNaturalPkData < ActiveRecord::Base ; self.table_name = 'natural_pk_data' ; end
+class SqlServerNaturalPkIntData < ActiveRecord::Base ; self.table_name = 'natural_pk_int_data' ; end
 class SqlServerNaturalPkDataSchema < ActiveRecord::Base ; self.table_name = 'test.sql_server_schema_natural_id' ; end
 class SqlServerQuotedTable < ActiveRecord::Base ; self.table_name = 'quoted-table' ; end
 class SqlServerQuotedView1 < ActiveRecord::Base ; self.table_name = 'quoted-view1' ; end

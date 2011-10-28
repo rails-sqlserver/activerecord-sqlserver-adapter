@@ -1,4 +1,10 @@
 
+* 3.1.3 *
+
+* Distinguish between identity and primary key key columns during schema reflection. Allows us 
+  us to only do identity inserts when technically needed. Fixes #139 [chadcf] & [joncanady]
+
+
 * 3.1.2 *
 
 * Fix SQL Azure conflicts with DBCC useroptions. Use new #user_options_xyz methods. [kazamachi]

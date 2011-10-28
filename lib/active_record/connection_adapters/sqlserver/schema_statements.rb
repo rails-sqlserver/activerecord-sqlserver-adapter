@@ -194,6 +194,9 @@ module ActiveRecord
             END AS [is_nullable],
             CASE 
               WHEN CCU.COLUMN_NAME IS NOT NULL AND TC.CONSTRAINT_TYPE = N'PRIMARY KEY' THEN 1
+              ELSE NULL
+            END AS [is_primary],
+            CASE 
               WHEN COLUMNPROPERTY(OBJECT_ID(columns.TABLE_SCHEMA+'.'+columns.TABLE_NAME), columns.COLUMN_NAME, 'IsIdentity') = 1 THEN 1
               ELSE NULL
             END AS [is_identity]
@@ -239,6 +242,7 @@ module ActiveRecord
                                    match_data ? match_data[1] : nil
                                  end
             ci[:null] = ci[:is_nullable].to_i == 1 ; ci.delete(:is_nullable)
+            ci[:is_primary] = ci[:is_primary].to_i == 1
             ci[:is_identity] = ci[:is_identity].to_i == 1
             ci
           end
@@ -363,7 +367,7 @@ module ActiveRecord
           if insert_sql?(sql)
             table_name = get_table_name(sql)
             id_column = identity_column(table_name)
-            id_column && id_column.is_integer? && sql =~ /^\s*(INSERT|EXEC sp_executesql N'INSERT)[^(]+\([^)]*\b(#{id_column.name})\b,?[^)]*\)/i ? quote_table_name(table_name) : false
+            id_column && sql =~ /^\s*(INSERT|EXEC sp_executesql N'INSERT)[^(]+\([^)]*\b(#{id_column.name})\b,?[^)]*\)/i ? quote_table_name(table_name) : false
           else
             false
           end
@@ -389,7 +393,7 @@ module ActiveRecord
         end
 
         def identity_column(table_name)
-          columns(table_name).detect(&:primary) || columns(table_name).detect(&:is_identity?)
+          columns(table_name).detect(&:is_identity?)
         end
 
       end

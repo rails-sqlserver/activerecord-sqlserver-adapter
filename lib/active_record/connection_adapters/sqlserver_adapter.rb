@@ -53,7 +53,7 @@ module ActiveRecord
       def initialize(name, default, sql_type = nil, null = true, sqlserver_options = {})
         @sqlserver_options = sqlserver_options.symbolize_keys
         super(name, default, sql_type, null)
-        @primary = @sqlserver_options[:is_identity]
+        @primary = @sqlserver_options[:is_identity] || @sqlserver_options[:is_primary]
       end
       
       class << self
@@ -70,6 +70,10 @@ module ActiveRecord
       
       def is_identity?
         @sqlserver_options[:is_identity]
+      end
+      
+      def is_primary?
+        @sqlserver_options[:is_primary]
       end
       
       def is_utf8?
@@ -289,7 +293,7 @@ module ActiveRecord
       end
 
       def primary_key(table_name)
-        identity_column(table_name).try(:name)
+        identity_column(table_name).try(:name) || columns(table_name).detect(&:is_primary?).try(:name)
       end
       
       # === SQLServer Specific (DB Reflection) ======================== #

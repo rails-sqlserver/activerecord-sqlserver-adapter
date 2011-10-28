@@ -93,9 +93,19 @@ ActiveRecord::Schema.define do
     	parent_id int,
     	name nvarchar(255),
     	description nvarchar(1000),
-    	legacy_id nvarchar(10) NOT NULL PRIMARY KEY,
+    	legacy_id nvarchar(10) NOT NULL PRIMARY KEY
     )
   NATURALPKTABLESQL
+  
+  execute "IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'natural_pk_int_data') DROP TABLE natural_pk_int_data"
+  execute <<-NATURALPKINTTABLESQL
+    CREATE TABLE natural_pk_int_data(
+      legacy_id int NOT NULL PRIMARY KEY,
+      parent_id int,
+      name nvarchar(255),
+      description nvarchar(1000)
+    )
+  NATURALPKINTTABLESQL
   
   create_table 'quoted-table', :force => true do |t|
   end
