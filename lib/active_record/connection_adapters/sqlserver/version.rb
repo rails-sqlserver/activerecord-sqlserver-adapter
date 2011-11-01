@@ -3,7 +3,7 @@ module ActiveRecord
     module Sqlserver
       module Version
         
-        VERSION = '3.1.3'.freeze
+        VERSION = '3.1.3'
         
       end
     end
