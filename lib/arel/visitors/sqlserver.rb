@@ -138,6 +138,7 @@ module Arel
         orders = o.orders.uniq
         if windowed
           projections = function_select_statement?(o) ? projections : projections.map { |x| projection_without_expression(x) }
+          groups = projections.map { |x| projection_without_expression(x) } if windowed_single_distinct_select_statement?(o) && groups.empty?
         elsif eager_limiting_select_statement?(o)
           groups = projections.map { |x| projection_without_expression(x) }
           projections = projections.map { |x| projection_without_expression(x) }
@@ -162,7 +163,7 @@ module Arel
       def visit_Arel_Nodes_SelectStatementWithOffset(o)
         orders = rowtable_orders(o)
         [ "SELECT",
-          (visit(o.limit) if o.limit && !single_distinct_select_statement?(o)),
+          (visit(o.limit) if o.limit && !windowed_single_distinct_select_statement?(o)),
           (rowtable_projections(o).map{ |x| visit(x) }.join(', ')),
           "FROM (",
             "SELECT ROW_NUMBER() OVER (ORDER BY #{orders.map{ |x| visit(x) }.join(', ')}) AS [__rn],",
@@ -236,6 +237,10 @@ module Arel
         projections.size == 1 &&
           ((p1.respond_to?(:distinct) && p1.distinct) ||
             p1.respond_to?(:include?) && p1.include?('DISTINCT'))
+      end
+      
+      def windowed_single_distinct_select_statement?(o)
+        o.limit && o.offset && single_distinct_select_statement?(o)
       end
       
       def single_distinct_select_everything_statement?(o)
@@ -316,7 +321,17 @@ module Arel
 
       def rowtable_projections(o)
         core = o.cores.first
-        if single_distinct_select_statement?(o)
+        if windowed_single_distinct_select_statement?(o) && core.groups.blank?
+          tn = table_from_select_statement(o).name
+          core.projections.map do |x|
+            x.dup.tap do |p|
+              p.sub! 'DISTINCT', ''
+              p.insert 0, visit(o.limit) if o.limit
+              p.gsub! /\[?#{tn}\]?\./, '[__rnt].'
+              p.strip!
+            end
+          end
+        elsif single_distinct_select_statement?(o)
           tn = table_from_select_statement(o).name
           core.projections.map do |x|
             x.dup.tap do |p|
