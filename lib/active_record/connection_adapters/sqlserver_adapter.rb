@@ -536,6 +536,13 @@ module ActiveRecord
         end
       end
       
+      def disable_auto_reconnect
+        old_auto_connect, self.class.auto_connect = self.class.auto_connect, false
+        yield
+      ensure
+        self.class.auto_connect = old_auto_connect
+      end
+      
       def auto_reconnected?
         return false unless auto_connect
         @auto_connecting = true

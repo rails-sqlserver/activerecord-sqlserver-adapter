@@ -50,7 +50,7 @@ module ActiveRecord
         end
 
         def commit_db_transaction
-          do_execute "COMMIT TRANSACTION"
+          disable_auto_reconnect { do_execute "COMMIT TRANSACTION" }
         end
 
         def rollback_db_transaction
@@ -58,14 +58,14 @@ module ActiveRecord
         end
 
         def create_savepoint
-          do_execute "SAVE TRANSACTION #{current_savepoint_name}"
+          disable_auto_reconnect { do_execute "SAVE TRANSACTION #{current_savepoint_name}" }
         end
 
         def release_savepoint
         end
 
         def rollback_to_savepoint
-          do_execute "ROLLBACK TRANSACTION #{current_savepoint_name}"
+          disable_auto_reconnect { do_execute "ROLLBACK TRANSACTION #{current_savepoint_name}" }
         end
 
         def add_limit_offset!(sql, options)
