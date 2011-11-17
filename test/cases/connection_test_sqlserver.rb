@@ -11,7 +11,6 @@ class ConnectionTestSqlserver < ActiveRecord::TestCase
     @connection = ActiveRecord::Base.connection
   end
   
-  
   should 'affect rows' do
     topic_data = { 1 => { "content" => "1 updated" }, 2 => { "content" => "2 updated" } }
     updated = Topic.update(topic_data.keys, topic_data.values)
@@ -91,6 +90,17 @@ class ConnectionTestSqlserver < ActiveRecord::TestCase
     
     setup do
       assert @connection.active?
+    end
+    
+    if connection_mode_dblib?
+      should 'set spid on connect' do
+        assert @connection.spid.kind_of?(Fixnum)
+      end
+    
+      should 'reset spid on disconnect!' do
+        @connection.disconnect!
+        assert @connection.spid.nil?
+      end
     end
     
     should 'be able to disconnect and reconnect at will' do
