@@ -1,6 +1,10 @@
 
 * master *
 
+* Pass ActiveRecord tests. Made windowed distinct pass all orders to groups.
+  - test_limited_eager_with_multiple_order_columns
+  - test_limited_eager_with_order
+
 * Pass AR tests by moving DISTINCT to GROUP BY in windowed SQL.
   - test_count_eager_with_has_many_and_limit_and_high_offset
   - test_eager_with_has_many_and_limit_and_high_offset

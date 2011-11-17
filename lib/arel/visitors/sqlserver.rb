@@ -139,9 +139,10 @@ module Arel
         if windowed
           projections = function_select_statement?(o) ? projections : projections.map { |x| projection_without_expression(x) }
           groups = projections.map { |x| projection_without_expression(x) } if windowed_single_distinct_select_statement?(o) && groups.empty?
+          groups += orders.map { |x| Arel.sql(x.expr) } if windowed_single_distinct_select_statement?(o)
         elsif eager_limiting_select_statement?(o)
-          groups = projections.map { |x| projection_without_expression(x) }
           projections = projections.map { |x| projection_without_expression(x) }
+          groups = projections.map { |x| projection_without_expression(x) }
           orders = orders.map do |x|
             expr = Arel.sql projection_without_expression(x.expr)
             x.descending? ? Arel::Nodes::Max.new([expr]) : Arel::Nodes::Min.new([expr])
