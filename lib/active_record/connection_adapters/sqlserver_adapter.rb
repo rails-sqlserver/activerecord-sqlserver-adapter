@@ -176,7 +176,7 @@ module ActiveRecord
       DATABASE_VERSION_REGEXP     = /Microsoft SQL Server\s+"?(\d{4}|\w+)"?/
       SUPPORTED_VERSIONS          = [2005,2008,2010,2011].freeze
       
-      attr_reader :database_version, :database_year
+      attr_reader :database_version, :database_year, :spid
       
       cattr_accessor :native_text_database_type, :native_binary_database_type, :native_string_database_type,
                      :log_info_schema_queries, :enable_default_unicode_types, :auto_connect,
@@ -269,6 +269,7 @@ module ActiveRecord
       end
 
       def disconnect!
+        @spid = nil
         case @connection_options[:mode]
         when :dblib
           @connection.close rescue nil
@@ -399,6 +400,7 @@ module ActiveRecord
                           :encoding      => encoding,
                           :azure         => config[:azure]
                         }).tap do |client|
+                          @spid = client.execute("SELECT @@spid").first.values.first
                           if config[:azure]
                             client.execute("SET ANSI_NULLS ON").do
                             client.execute("SET CURSOR_CLOSE_ON_COMMIT OFF").do
