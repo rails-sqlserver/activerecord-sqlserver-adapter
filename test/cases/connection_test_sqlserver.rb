@@ -115,6 +115,45 @@ class ConnectionTestSqlserver < ActiveRecord::TestCase
       end
     end
     
+    context 'testing #disable_auto_reconnect' do
+      should 'when auto reconnect setting is on' do
+        with_auto_connect(true) do
+          @connection.send(:disable_auto_reconnect) do
+            assert !@connection.class.auto_connect
+          end
+          assert @connection.class.auto_connect
+        end
+      end
+      
+      should 'when auto reconnect setting is off' do
+        with_auto_connect(false) do
+          @connection.send(:disable_auto_reconnect) do
+            assert !@connection.class.auto_connect
+          end
+          assert !@connection.class.auto_connect
+        end
+      end
+    end
+    
+    should 'not auto reconnect on commit transaction' do
+      @connection.disconnect!
+      assert_raise(ActiveRecord::LostConnection) { @connection.commit_db_transaction }
+    end
+    
+    should 'gracefully ignore lost connections on rollback transaction' do
+      @connection.disconnect!
+      assert_nothing_raised { @connection.rollback_db_transaction }
+    end
+    
+    should 'not auto reconnect on create savepoint' do
+      @connection.disconnect!
+      assert_raise(ActiveRecord::LostConnection) { @connection.create_savepoint }
+    end
+    
+    should 'not auto reconnect on rollback to savepoint ' do
+      @connection.disconnect!
+      assert_raise(ActiveRecord::LostConnection) { @connection.rollback_to_savepoint }
+    end
   end
   
   
