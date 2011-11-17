@@ -41,6 +41,30 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
       assert_match(/version\: \d.\d/,@connection.inspect)
     end
     
+    should 'include database product level in inspect' do
+      assert_match(/product_level\: "\w+/, @connection.inspect)
+    end
+    
+    should 'include database product version in inspect' do
+      assert_match(/product_version\: "\d+/, @connection.inspect)
+    end
+    
+    should 'include database edition in inspect' do
+      assert_match(/edition\: "\w+/, @connection.inspect)
+    end
+    
+    should 'set database product level' do
+      assert_match(/\w+/, @connection.product_level)
+    end
+    
+    should 'set database product version' do
+      assert_match(/\d+/, @connection.product_version)
+    end
+    
+    should 'set database edition' do
+      assert_match(/\w+/, @connection.edition)
+    end
+    
     should 'support migrations' do
       assert @connection.supports_migrations?
     end

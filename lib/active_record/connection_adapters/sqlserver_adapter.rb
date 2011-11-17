@@ -322,8 +322,20 @@ module ActiveRecord
         self.class::VERSION
       end
       
+      def product_level
+        @product_level ||= info_schema_query { select_value("SELECT CAST(SERVERPROPERTY('productlevel') AS VARCHAR(128))")}
+      end
+      
+      def product_version
+        @product_version ||= info_schema_query { select_value("SELECT CAST(SERVERPROPERTY('productversion') AS VARCHAR(128))")}
+      end
+      
+      def edition
+        @edition ||= info_schema_query { select_value("SELECT CAST(SERVERPROPERTY('edition') AS VARCHAR(128))")}
+      end
+      
       def inspect
-        "#<#{self.class} version: #{version}, year: #{@database_year}, connection_options: #{@connection_options.inspect}>"
+        "#<#{self.class} version: #{version}, year: #{@database_year}, product_level: #{product_level.inspect}, product_version: #{product_version.inspect}, edition: #{edition.inspect}, connection_options: #{@connection_options.inspect}>"
       end
       
       def auto_connect
