@@ -12,7 +12,6 @@ end
 
 def test_files
   return Dir.glob(ENV['TEST_FILES']).sort if ENV['TEST_FILES']
-  
   files = Dir.glob("test/cases/**/*_test_sqlserver.rb").sort
   ar_path = Gem.loaded_specs['activerecord'].full_gem_path
   ar_cases = Dir.glob("#{ar_path}/test/cases/**/*_test.rb")

@@ -92,15 +92,13 @@ class ConnectionTestSqlserver < ActiveRecord::TestCase
       assert @connection.active?
     end
     
-    if connection_mode_dblib?
-      should 'set spid on connect' do
-        assert @connection.spid.kind_of?(Fixnum)
-      end
-    
-      should 'reset spid on disconnect!' do
-        @connection.disconnect!
-        assert @connection.spid.nil?
-      end
+    should 'set spid on connect' do
+      assert_instance_of Fixnum, @connection.spid
+    end
+  
+    should 'reset spid on disconnect!' do
+      @connection.disconnect!
+      assert @connection.spid.nil?
     end
     
     should 'be able to disconnect and reconnect at will' do
@@ -126,6 +124,7 @@ class ConnectionTestSqlserver < ActiveRecord::TestCase
     end
     
     context 'testing #disable_auto_reconnect' do
+      
       should 'when auto reconnect setting is on' do
         with_auto_connect(true) do
           @connection.send(:disable_auto_reconnect) do
@@ -143,6 +142,7 @@ class ConnectionTestSqlserver < ActiveRecord::TestCase
           assert !@connection.class.auto_connect
         end
       end
+      
     end
     
     should 'not auto reconnect on commit transaction' do
@@ -167,13 +167,14 @@ class ConnectionTestSqlserver < ActiveRecord::TestCase
   end
   
   context 'Diagnostics' do
+    
     should 'testing #activity_stats' do
       stats = @connection.activity_stats
-      assert stats.length > 0
-      
+      assert stats.length > 0      
       assert stats.all? { |s| s.has_key?("session_id") }
       assert stats.all? { |s| s["database"] == @connection.current_database }
     end
+    
   end
   
   

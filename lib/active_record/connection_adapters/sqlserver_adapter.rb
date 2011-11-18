@@ -371,52 +371,6 @@ module ActiveRecord
         @@cs_equality_operator || 'COLLATE Latin1_General_CS_AS_WS'
       end
       
-      def activity_stats
-        self.select(<<-EOSQL)
-          SELECT
-             [session_id]    = s.session_id,
-             [user_process]  = CONVERT(CHAR(1), s.is_user_process),
-             [login]         = s.login_name,
-             [database]      = ISNULL(db_name(r.database_id), N''),
-             [task_state]    = ISNULL(t.task_state, N''),
-             [command]       = ISNULL(r.command, N''),
-             [application]   = ISNULL(s.program_name, N''),
-             [wait_time_ms]  = ISNULL(w.wait_duration_ms, 0),
-             [wait_type]     = ISNULL(w.wait_type, N''),
-             [wait_resource] = ISNULL(w.resource_description, N''),
-             [blocked_by]    = ISNULL(CONVERT (varchar, w.blocking_session_id), ''),
-             [head_blocker]  =
-                  CASE
-                      -- session has an active request, is blocked, but is blocking others
-                      WHEN r2.session_id IS NOT NULL AND r.blocking_session_id = 0 THEN '1'
-                      -- session is idle but has an open tran and is blocking others
-                      WHEN r.session_id IS NULL THEN '1'
-                      ELSE ''
-                  END,
-             [total_cpu_ms]   = s.cpu_time,
-             [total_physical_io_mb]   = (s.reads + s.writes) * 8 / 1024,
-             [memory_use_kb]  = s.memory_usage * 8192 / 1024,
-             [open_transactions] = ISNULL(r.open_transaction_count,0),
-             [login_time]     = s.login_time,
-             [last_request_start_time] = s.last_request_start_time,
-             [host_name]      = ISNULL(s.host_name, N''),
-             [net_address]    = ISNULL(c.client_net_address, N''),
-             [execution_context_id] = ISNULL(t.exec_context_id, 0),
-             [request_id]     = ISNULL(r.request_id, 0),
-             [workload_group] = N''
-          FROM sys.dm_exec_sessions s LEFT OUTER JOIN sys.dm_exec_connections c ON (s.session_id = c.session_id)
-          LEFT OUTER JOIN sys.dm_exec_requests r ON (s.session_id = r.session_id)
-          LEFT OUTER JOIN sys.dm_os_tasks t ON (r.session_id = t.session_id AND r.request_id = t.request_id)
-          LEFT OUTER JOIN
-          (SELECT *, ROW_NUMBER() OVER (PARTITION BY waiting_task_address ORDER BY wait_duration_ms DESC) AS row_num
-              FROM sys.dm_os_waiting_tasks
-          ) w ON (t.task_address = w.waiting_task_address) AND w.row_num = 1
-          LEFT OUTER JOIN sys.dm_exec_requests r2 ON (r.session_id = r2.blocking_session_id)
-          WHERE db_name(r.database_id) = '#{current_database}'
-          ORDER BY s.session_id
-        EOSQL
-      end
-      
       protected
       
       # === Abstract Adapter (Misc Support) =========================== #
@@ -457,7 +411,6 @@ module ActiveRecord
                           :encoding      => encoding,
                           :azure         => config[:azure]
                         }).tap do |client|
-                          @spid = client.execute("SELECT @@spid").first.values.first
                           if config[:azure]
                             client.execute("SET ANSI_NULLS ON").do
                             client.execute("SET CURSOR_CLOSE_ON_COMMIT OFF").do
@@ -490,6 +443,7 @@ module ActiveRecord
                           end
                         end
                       end
+        @spid = _raw_select("SELECT @@SPID", :fetch => :rows).first.first
         configure_connection
       rescue
         raise unless @auto_connecting
