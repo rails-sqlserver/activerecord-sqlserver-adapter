@@ -176,7 +176,7 @@ module ActiveRecord
       DATABASE_VERSION_REGEXP     = /Microsoft SQL Server\s+"?(\d{4}|\w+)"?/
       SUPPORTED_VERSIONS          = [2005,2008,2010,2011].freeze
       
-      attr_reader :database_version, :database_year, :spid
+      attr_reader :database_version, :database_year, :spid, :product_level, :product_version, :edition
       
       cattr_accessor :native_text_database_type, :native_binary_database_type, :native_string_database_type,
                      :log_info_schema_queries, :enable_default_unicode_types, :auto_connect,
@@ -323,20 +323,8 @@ module ActiveRecord
         self.class::VERSION
       end
       
-      def product_level
-        @product_level ||= info_schema_query { select_value("SELECT CAST(SERVERPROPERTY('productlevel') AS VARCHAR(128))")}
-      end
-      
-      def product_version
-        @product_version ||= info_schema_query { select_value("SELECT CAST(SERVERPROPERTY('productversion') AS VARCHAR(128))")}
-      end
-      
-      def edition
-        @edition ||= info_schema_query { select_value("SELECT CAST(SERVERPROPERTY('edition') AS VARCHAR(128))")}
-      end
-      
       def inspect
-        "#<#{self.class} version: #{version}, year: #{@database_year}, product_level: #{product_level.inspect}, product_version: #{product_version.inspect}, edition: #{edition.inspect}, connection_options: #{@connection_options.inspect}>"
+        "#<#{self.class} version: #{version}, year: #{@database_year}, product_level: #{@product_level.inspect}, product_version: #{@product_version.inspect}, edition: #{@edition.inspect}, connection_options: #{@connection_options.inspect}>"
       end
       
       def auto_connect
@@ -443,7 +431,10 @@ module ActiveRecord
                           end
                         end
                       end
-        @spid = _raw_select("SELECT @@SPID", :fetch => :rows).first.first
+        @spid             = _raw_select("SELECT @@SPID", :fetch => :rows).first.first
+        @product_level    = _raw_select("SELECT CAST(SERVERPROPERTY('productlevel') AS VARCHAR(128))", :fetch => :rows).first.first
+        @product_version  = _raw_select("SELECT CAST(SERVERPROPERTY('productversion') AS VARCHAR(128))", :fetch => :rows).first.first
+        @edition          = _raw_select("SELECT CAST(SERVERPROPERTY('edition') AS VARCHAR(128))", :fetch => :rows).first.first
         configure_connection
       rescue
         raise unless @auto_connecting
