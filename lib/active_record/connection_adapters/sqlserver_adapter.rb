@@ -208,6 +208,9 @@ module ActiveRecord
                          rescue
                            0
                          end
+        @product_level    = info_schema_query { select_value("SELECT CAST(SERVERPROPERTY('productlevel') AS VARCHAR(128))") }
+        @product_version  = info_schema_query { select_value("SELECT CAST(SERVERPROPERTY('productversion') AS VARCHAR(128))") }
+        @edition          = info_schema_query { select_value("SELECT CAST(SERVERPROPERTY('edition') AS VARCHAR(128))") }
         initialize_dateformatter
         initialize_sqlserver_caches
         use_database
@@ -432,9 +435,6 @@ module ActiveRecord
                         end
                       end
         @spid             = _raw_select("SELECT @@SPID", :fetch => :rows).first.first
-        @product_level    = _raw_select("SELECT CAST(SERVERPROPERTY('productlevel') AS VARCHAR(128))", :fetch => :rows).first.first
-        @product_version  = _raw_select("SELECT CAST(SERVERPROPERTY('productversion') AS VARCHAR(128))", :fetch => :rows).first.first
-        @edition          = _raw_select("SELECT CAST(SERVERPROPERTY('edition') AS VARCHAR(128))", :fetch => :rows).first.first
         configure_connection
       rescue
         raise unless @auto_connecting
