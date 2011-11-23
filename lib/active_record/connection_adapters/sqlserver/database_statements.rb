@@ -77,9 +77,16 @@ module ActiveRecord
             if transaction_open && !outside_transaction?
               transaction_open = false
               decrement_open_transactions
+              # handle deadlock victim retries at the outermost transaction
               if open_transactions == 0
-                rollback_db_transaction
-                rollback_transaction_records(true)
+                if translate_exception(database_transaction_rollback, database_transaction_rollback.message).is_a?(DeadlockVictim)
+                  # SQL Server has already rolled back, so rollback activerecord's history
+                  rollback_transaction_records(true)
+                  retry if retry_deadlock_victim?
+                else
+                  rollback_db_transaction
+                  rollback_transaction_records(true)
+                end
               else
                 rollback_to_savepoint
                 rollback_transaction_records(false)
