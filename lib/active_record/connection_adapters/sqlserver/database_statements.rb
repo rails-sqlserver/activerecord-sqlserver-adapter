@@ -45,7 +45,11 @@ module ActiveRecord
           true
         end
 
-        def transaction(options = {})
+        def transaction(options = {}, &block)
+          retry_deadlock_victim? ? transaction_with_retry_deadlock_victim(options, &block) : super(options, &block)
+        end
+        
+        def transaction_with_retry_deadlock_victim(options = {})
           options.assert_valid_keys :requires_new, :joinable
 
           last_transaction_joinable = defined?(@transaction_joinable) ? @transaction_joinable : nil
@@ -82,7 +86,7 @@ module ActiveRecord
                 if translate_exception(database_transaction_rollback, database_transaction_rollback.message).is_a?(DeadlockVictim)
                   # SQL Server has already rolled back, so rollback activerecord's history
                   rollback_transaction_records(true)
-                  retry if retry_deadlock_victim?
+                  retry
                 else
                   rollback_db_transaction
                   rollback_transaction_records(true)
