@@ -392,7 +392,7 @@ module ActiveRecord
         def do_execute(sql, name = nil)
           name ||= 'EXECUTE'
           log(sql, name) do
-            with_auto_reconnect { raw_connection_do(sql) }
+            with_sqlserver_error_handling { raw_connection_do(sql) }
           end
         end
         
@@ -450,7 +450,7 @@ module ActiveRecord
         end
         
         def raw_connection_run(sql)
-          with_auto_reconnect do
+          with_sqlserver_error_handling do
             case @connection_options[:mode]
             when :dblib
               @connection.execute(sql)

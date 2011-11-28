@@ -488,7 +488,7 @@ module ActiveRecord
         end if block_given?
       end
       
-      def with_auto_reconnect
+      def with_sqlserver_error_handling
         begin
           yield
         rescue Exception => e

@@ -1,6 +1,9 @@
 
 * master *
 
+* Renamed #with_auto_reconnect to #with_sqlserver_error_handling now that it handles both dropped
+  connections and deadlock victim errors. Fixes #150 [Joe Rafaniello]
+
 * Add activity_stats method that mimics the SQL Server Activity Monitor. Fixes #146 [Joe Rafaniello]
 
 * Add methods for sqlserver's #product_version, #product_level, #edition and include them in inspect.
