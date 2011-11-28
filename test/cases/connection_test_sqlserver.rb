@@ -101,6 +101,92 @@ class ConnectionTestSqlserver < ActiveRecord::TestCase
       assert @connection.spid.nil?
     end
     
+    if connection_mode_dblib?
+      context 'with a deadlock victim exception (1205) outside a transaction' do
+        setup do
+          @query = "SELECT 1 as [one]"
+          @expected = @connection.execute(@query)
+        
+          # Execute the query to get a handle of the expected result, which will
+          # be returned after a simulated deadlock victim (1205).
+          raw_conn = @connection.instance_variable_get(:@connection)
+          stubbed_handle = raw_conn.execute(@query)
+          @connection.send(:finish_statement_handle, stubbed_handle)
+          raw_conn.stubs(:execute).raises(deadlock_victim_exception(@query)).then.returns(stubbed_handle)
+        end
+        
+        teardown do
+          @connection.class.retry_deadlock_victim = nil
+        end
+
+        should 'retry by default' do
+          assert_nothing_raised do
+            assert_equal @expected, @connection.execute(@query)
+          end
+        end
+
+        should 'raise ActiveRecord::DeadlockVictim if retry is disabled' do
+          @connection.class.retry_deadlock_victim = false
+          assert_raise(ActiveRecord::DeadlockVictim) do
+            assert_equal @expected, @connection.execute(@query)
+          end
+        end
+      end
+      
+      context 'with a deadlock victim exception (1205) within a transaction' do
+        setup do
+          @query = "SELECT 1 as [one]"
+          @expected = @connection.execute(@query)
+          
+          # "stub" the execute method to simulate raising a deadlock victim exception once
+          @connection.class.class_eval do
+            def execute_with_deadlock_exception(sql, *args)
+              if !@raised_deadlock_exception && sql == "SELECT 1 as [one]"
+                sql = "RAISERROR('Transaction (Process ID #{Process.pid}) was deadlocked on lock resources with another process and has been chosen as the deadlock victim. Rerun the transaction.: #{sql}', 13, 1)"
+                @raised_deadlock_exception = true
+              elsif @raised_deadlock_exception == true && sql =~ /RAISERROR\('Transaction \(Process ID \d+\) was deadlocked on lock resources with another process and has been chosen as the deadlock victim\. Rerun the transaction\.: SELECT 1 as \[one\]', 13, 1\)/
+                sql = "SELECT 1 as [one]"
+              end
+              
+              execute_without_deadlock_exception(sql, *args)
+            end
+            
+            alias :execute_without_deadlock_exception :execute
+            alias :execute :execute_with_deadlock_exception
+          end
+        end
+        
+        teardown do
+          # Cleanup the "stubbed" execute method
+          @connection.class.class_eval do
+            alias :execute :execute_without_deadlock_exception
+            remove_method :execute_with_deadlock_exception
+            remove_method :execute_without_deadlock_exception
+          end
+          
+          @connection.send(:remove_instance_variable, :@raised_deadlock_exception)
+          @connection.class.retry_deadlock_victim = nil
+        end
+        
+        should 'retry by default' do
+          assert_nothing_raised do
+            ActiveRecord::Base.transaction do
+              assert_equal @expected, @connection.execute(@query)
+            end
+          end
+        end
+        
+        should 'raise ActiveRecord::DeadlockVictim if retry disabled' do
+          @connection.class.retry_deadlock_victim = false
+          assert_raise(ActiveRecord::DeadlockVictim) do
+            ActiveRecord::Base.transaction do
+              assert_equal @expected, @connection.execute(@query)
+            end
+          end
+        end
+      end
+    end
+    
     should 'be able to disconnect and reconnect at will' do
       @connection.disconnect!
       assert !@connection.active?
@@ -197,6 +283,15 @@ class ConnectionTestSqlserver < ActiveRecord::TestCase
     GC.enable
   end
   
+  def deadlock_victim_exception(sql)
+    require 'tiny_tds/error'
+    error = TinyTds::Error.new("Transaction (Process ID #{Process.pid}) was deadlocked on lock resources with another process and has been chosen as the deadlock victim. Rerun the transaction.: #{sql}")
+    error.severity = 13
+    error.db_error_number = 1205
+    error
+  end
+  
+
   def with_auto_connect(boolean)
     existing = ActiveRecord::ConnectionAdapters::SQLServerAdapter.auto_connect
     ActiveRecord::ConnectionAdapters::SQLServerAdapter.auto_connect = boolean
