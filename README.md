@@ -6,6 +6,7 @@ The SQL Server adapter for ActiveRecord. If you need the adapter for SQL Server 
 
 ## What's New
 
+* Deadlock victim retry logic using the #retry_deadlock_victim config.
 * Proper interface to configure the connection and TinyTDS app name reported to SQL Server.
 * Rails 3.1 prepared statement support leverages cached query plans.
   If you use DBLIB/TinyTDS, you must use FreeTDS 0.91 !!!!!
@@ -109,6 +110,15 @@ ActiveRecord::ConnectionAdapters::SQLServerAdapter.native_string_database_type =
 ```
 
 It is important to remember that unicode types in SQL Server have approximately half the storage capacity as their counter parts. So where a normal string would max out at (8000) a unicode string will top off at (4000).
+
+
+#### Deadlock Victim Retry
+
+In a config initializer, you can configure the adapter to retry deadlock victims' SQL. Note, this relies on us copying ActiveRecord's `#transaction` method and can be brittle when upgrading. If you think that our version of `#transaction` is out of sync with the version of rails in our gemspec, please open a ticket and let us know. Our custom transaction method can be found in `activerecord/connection_adapters/sqlserver/core_ext/database_statements.rb`.
+
+```ruby
+ActiveRecord::ConnectionAdapters::SQLServerAdapter.retry_deadlock_victim = true
+```
 
 
 #### Force Schema To Lowercase

@@ -1,6 +1,8 @@
 
 * master *
 
+* New deadlock victim retry using the #retry_deadlock_victim config.  [Joe Rafaniello]
+
 * Renamed #with_auto_reconnect to #with_sqlserver_error_handling now that it handles both dropped
   connections and deadlock victim errors. Fixes #150 [Joe Rafaniello]
 

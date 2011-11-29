@@ -2,6 +2,7 @@ require 'arel/visitors/sqlserver'
 require 'active_record'
 require 'active_record/connection_adapters/abstract_adapter'
 require 'active_record/connection_adapters/sqlserver/core_ext/active_record'
+require 'active_record/connection_adapters/sqlserver/core_ext/database_statements'
 require 'active_record/connection_adapters/sqlserver/database_limits'
 require 'active_record/connection_adapters/sqlserver/database_statements'
 require 'active_record/connection_adapters/sqlserver/errors'
@@ -485,7 +486,7 @@ module ActiveRecord
         rescue Exception => e
           case translate_exception(e,e.message)
             when LostConnection; retry if auto_reconnected?
-            when DeadlockVictim; retry if retry_deadlock_victim? && self.open_transactions == 0
+            when DeadlockVictim; retry if retry_deadlock_victim? && open_transactions == 0
           end
           raise
         end
