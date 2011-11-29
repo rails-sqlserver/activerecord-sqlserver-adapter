@@ -179,7 +179,7 @@ module ActiveRecord
       attr_reader :database_version, :database_year, :spid, :product_level, :product_version, :edition
       
       cattr_accessor :native_text_database_type, :native_binary_database_type, :native_string_database_type,
-                     :log_info_schema_queries, :enable_default_unicode_types, :auto_connect,
+                     :log_info_schema_queries, :enable_default_unicode_types, :auto_connect, :retry_deadlock_victim,
                      :cs_equality_operator, :lowercase_schema_reflection, :auto_connect_duration
       
       self.enable_default_unicode_types = true
@@ -338,6 +338,11 @@ module ActiveRecord
         @@auto_connect_duration ||= 10
       end
       
+      def retry_deadlock_victim
+        @@retry_deadlock_victim.is_a?(FalseClass) ? false : true
+      end
+      alias :retry_deadlock_victim? :retry_deadlock_victim
+      
       def native_string_database_type
         @@native_string_database_type || (enable_default_unicode_types ? 'nvarchar' : 'varchar') 
       end
@@ -372,6 +377,8 @@ module ActiveRecord
           RecordNotUnique.new(message,e)
         when /conflicted with the foreign key constraint/i
           InvalidForeignKey.new(message,e)
+        when /has been chosen as the deadlock victim/i
+          DeadlockVictim.new(message,e)
         when *lost_connection_messages
           LostConnection.new(message,e)
         else
@@ -472,11 +479,14 @@ module ActiveRecord
         end if block_given?
       end
       
-      def with_auto_reconnect
+      def with_sqlserver_error_handling
         begin
           yield
         rescue Exception => e
-          retry if translate_exception(e,e.message).is_a?(LostConnection) && auto_reconnected?
+          case translate_exception(e,e.message)
+            when LostConnection; retry if auto_reconnected?
+            when DeadlockVictim; retry if retry_deadlock_victim? && self.open_transactions == 0
+          end
           raise
         end
       end

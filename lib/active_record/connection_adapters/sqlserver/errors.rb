@@ -3,6 +3,9 @@ module ActiveRecord
   class LostConnection < WrappedDatabaseException
   end
   
+  class DeadlockVictim < WrappedDatabaseException
+  end
+  
   module ConnectionAdapters
     module Sqlserver
       module Errors
