@@ -17,6 +17,6 @@ Gem::Specification.new do |s|
   s.require_path  = 'lib'
   s.rubyforge_project = 'activerecord-sqlserver-adapter'
   
-  s.add_dependency('activerecord', '~> 3.1.3')
+  s.add_dependency('activerecord', '~> 3.1.0')
 end
 
