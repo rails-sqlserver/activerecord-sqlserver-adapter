@@ -9,7 +9,7 @@ This process is much easier than it has been before!
 Default testing uses DBLIB with TinyTDS.
 
 * Setup two databases in SQL Server, [activerecord_unittest] and [activerecord_unittest2]
-* Create a [rails] user with an empty password and give it admin perms to both DBs.
+* Create a [rails] user with an empty password and give it a Server Role of sysadmin to both DBs.
 * $ git clone git://github.com/rails-sqlserver/activerecord-sqlserver-adapter.git
 * $ bundle install
 * $ bundle exec rake test ACTIVERECORD_UNITTEST_HOST='my.db.net'
