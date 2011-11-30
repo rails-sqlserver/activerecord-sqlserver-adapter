@@ -55,6 +55,9 @@ class SqlServerEdgeSchema < ActiveRecord::Base
     self[:guid_newid] ||= connection.newid_function if new_id_setting
   end
 end
+class SqlServerDollarTableName < ActiveRecord::Base
+  self.table_name = 'my$strange_table'
+end
 class SqlServerChronic < ActiveRecord::Base
   coerce_sqlserver_date :date
   coerce_sqlserver_time :time

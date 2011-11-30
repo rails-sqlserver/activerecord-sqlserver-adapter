@@ -72,7 +72,11 @@ ActiveRecord::Schema.define do
   create_table :sql_server_binary_types, :force => true do |t|
     # TODO: Add some different native binary types and test.
   end
-  
+
+  create_table 'my$strange_table', :force => true do |t|
+    t.column :number, :real
+  end
+    
   create_table :sql_server_edge_schemas, :force => true do |t|
     t.string :description
     t.column :bigint, :bigint

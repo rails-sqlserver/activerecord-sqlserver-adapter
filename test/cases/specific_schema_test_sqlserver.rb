@@ -164,6 +164,11 @@ class SpecificSchemaTestSqlserver < ActiveRecord::TestCase
 
     end
     
+    context 'with strange table names' do
+      SqlServerDollarTableName.new.save
+      SqlServerDollarTableName.limit(20).offset(1).all
+    end
+    
   end
   
   
