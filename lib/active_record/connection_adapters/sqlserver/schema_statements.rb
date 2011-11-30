@@ -193,7 +193,7 @@ module ActiveRecord
               ELSE NULL
             END AS [is_nullable],
             CASE 
-              WHEN CCU.COLUMN_NAME IS NOT NULL AND TC.CONSTRAINT_TYPE = N'PRIMARY KEY' THEN 1
+              WHEN KCU.COLUMN_NAME IS NOT NULL AND TC.CONSTRAINT_TYPE = N'PRIMARY KEY' THEN 1
               ELSE NULL
             END AS [is_primary],
             CASE 
@@ -201,12 +201,17 @@ module ActiveRecord
               ELSE NULL
             END AS [is_identity]
             FROM #{db_name_with_period}INFORMATION_SCHEMA.COLUMNS columns
-            LEFT OUTER JOIN #{db_name_with_period}INFORMATION_SCHEMA.TABLE_CONSTRAINTS AS TC ON TC.TABLE_NAME = columns.TABLE_NAME AND TC.CONSTRAINT_TYPE = N'PRIMARY KEY' 
-            LEFT OUTER JOIN #{db_name_with_period}INFORMATION_SCHEMA.CONSTRAINT_COLUMN_USAGE AS CCU ON TC.CONSTRAINT_NAME = CCU.CONSTRAINT_NAME AND CCU.COLUMN_NAME = columns.COLUMN_NAME
+            LEFT OUTER JOIN #{db_name_with_period}INFORMATION_SCHEMA.TABLE_CONSTRAINTS AS TC 
+              ON TC.TABLE_NAME = columns.TABLE_NAME 
+              AND TC.CONSTRAINT_TYPE = N'PRIMARY KEY' 
+            LEFT OUTER JOIN #{db_name_with_period}INFORMATION_SCHEMA.KEY_COLUMN_USAGE AS KCU
+              ON KCU.COLUMN_NAME = columns.COLUMN_NAME
+              AND KCU.CONSTRAINT_NAME = TC.CONSTRAINT_NAME
+              AND KCU.CONSTRAINT_CATALOG = TC.CONSTRAINT_CATALOG
+              AND KCU.CONSTRAINT_SCHEMA = TC.CONSTRAINT_SCHEMA
             WHERE columns.TABLE_NAME = @0
               AND columns.TABLE_SCHEMA = #{table_schema.blank? ? "schema_name()" : "@1"}
             ORDER BY columns.ordinal_position
-            
           }.gsub(/[ \t\r\n]+/,' ')
           binds = [['table_name', table_name]]
           binds << ['table_schema',table_schema] unless table_schema.blank?

@@ -1,6 +1,9 @@
 
 * master *
 
+* Use INFORMATION_SCHEMA.KEY_COLUMN_USAGE for schema reflection speed. 
+  Fixes #125. [Wüthrich Hannes @hwuethrich]
+
 * New deadlock victim retry using the #retry_deadlock_victim config.  [Joe Rafaniello]
 
 * Renamed #with_auto_reconnect to #with_sqlserver_error_handling now that it handles both dropped
