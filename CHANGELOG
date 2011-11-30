@@ -1,5 +1,5 @@
 
-* master *
+* 3.1.4 *
 
 * Use INFORMATION_SCHEMA.KEY_COLUMN_USAGE for schema reflection speed. 
   Fixes #125. [Wüthrich Hannes @hwuethrich]
