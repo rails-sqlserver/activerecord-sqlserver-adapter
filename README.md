@@ -221,6 +221,7 @@ Up-to-date list of contributors: http://github.com/rails-sqlserver/activerecord-
 * h-lame (Murray Steele)
 * vegantech
 * cjheath (Clifford Heath)
+* fryguy (Jason Frey)
 * jrafanie (Joe Rafaniello)
 * nerdrew (Andrew Ryan)
 * snowblink (Jonathan Lim)
