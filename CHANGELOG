@@ -4,22 +4,22 @@
 * Use INFORMATION_SCHEMA.KEY_COLUMN_USAGE for schema reflection speed. 
   Fixes #125. [Wüthrich Hannes @hwuethrich]
 
-* New deadlock victim retry using the #retry_deadlock_victim config.  [Joe Rafaniello]
+* New deadlock victim retry using the #retry_deadlock_victim config.  [Jason Frey, Joe Rafaniello]
 
 * Renamed #with_auto_reconnect to #with_sqlserver_error_handling now that it handles both dropped
-  connections and deadlock victim errors. Fixes #150 [Joe Rafaniello]
+  connections and deadlock victim errors. Fixes #150 [Jason Frey, Joe Rafaniello]
 
-* Add activity_stats method that mimics the SQL Server Activity Monitor. Fixes #146 [Joe Rafaniello]
+* Add activity_stats method that mimics the SQL Server Activity Monitor. Fixes #146 [Jason Frey, Joe Rafaniello]
 
 * Add methods for sqlserver's #product_version, #product_level, #edition and include them in inspect.
-  Fixes #145 [Joe Rafaniello]
+  Fixes #145 [Jason Frey, Joe Rafaniello]
   
 * Handle statements that cannot be retried on a new database connection by not reconnecting. 
-  Fixes #147 [Joe Rafaniello]
+  Fixes #147 [Jason Frey, Joe Rafaniello]
   
-* Added connection#spid for debugging. Fixes #144 [Joe Rafaniello]
+* Added connection#spid for debugging. Fixes #144 [Jason Frey, Joe Rafaniello]
 
-* Add ENV['TEST_FILES'] to Rakefile for easy single case tests. [Joe Rafaniello]
+* Add ENV['TEST_FILES'] to Rakefile for easy single case tests. [Jason Frey, Joe Rafaniello]
 
 * Pass ActiveRecord tests. Made windowed distinct pass all orders to groups.
   - test_limited_eager_with_multiple_order_columns
