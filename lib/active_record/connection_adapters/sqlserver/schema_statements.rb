@@ -80,6 +80,7 @@ module ActiveRecord
           sql_commands = []
           column_object = columns(table_name).detect { |c| c.name.to_s == column_name.to_s }
           change_column_sql = "ALTER TABLE #{quote_table_name(table_name)} ALTER COLUMN #{quote_column_name(column_name)} #{type_to_sql(type, options[:limit], options[:precision], options[:scale])}"
+          change_column_sql << " COLLATE #{options[:collate]}" if options.has_key?(:collate) 
           change_column_sql << " NOT NULL" if options[:null] == false
           sql_commands << change_column_sql
           if options_include_default?(options) || (column_object && column_object.type != type.to_sym)
@@ -124,6 +125,11 @@ module ActiveRecord
           end
         end
 
+        def add_column_options!(sql, options) #:nodoc:
+          sql << " COLLATE #{options[:collate]}" if options.has_key?(:collate)          
+          super
+        end
+        
         def change_column_null(table_name, column_name, null, default = nil)
           column = detect_column_for!(table_name,column_name)
           unless null || default.nil?
