@@ -45,6 +45,14 @@ module ActiveRecord
             SQLServerColumn.new ci[:name], ci[:default_value], ci[:type], ci[:null], sqlserver_options
           end
         end
+        def column_exists?(table_name, column_name, type = nil, options = {})
+          columns(table_name).any?{ |c| c.name == column_name.to_s &&
+                                      (!type                 || c.type == type) &&
+                                      (!options[:limit]      || c.limit == options[:limit]) &&
+                                      (!options[:precision]  || c.precision == options[:precision]) &&
+                                      (!options[:scale]      || c.scale == options[:scale]) &&
+                                      (!options[:collate]    || c.scale == options[:collate]) }
+        end
 
         def create_table(table_name, options = {})
           super
@@ -129,13 +137,14 @@ module ActiveRecord
           sql << " COLLATE #{options[:collate]}" if options.has_key?(:collate)          
           super
         end
-        
+
         def change_column_null(table_name, column_name, null, default = nil)
           column = detect_column_for!(table_name,column_name)
           unless null || default.nil?
             do_execute("UPDATE #{quote_table_name(table_name)} SET #{quote_column_name(column_name)}=#{quote(default)} WHERE #{quote_column_name(column_name)} IS NULL")
           end
           sql = "ALTER TABLE #{table_name} ALTER COLUMN #{quote_column_name(column_name)} #{type_to_sql column.type, column.limit, column.precision, column.scale}"
+          sql << " COLLATE #{options[:collate]}" if options.has_key?(:collate) 
           sql << " NOT NULL" unless null
           do_execute sql
         end
