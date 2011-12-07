@@ -41,9 +41,11 @@ module Arel
           x
         when String
           x.split(',').map do |s|
-            e, d = s.split
+            s.strip!
+            d = s =~ /(asc|desc)$/i ? $1.upcase : nil
+            e = d.nil? ? s : s[0...-d.length].strip
             e = Arel.sql(e)
-            d =~ /desc/i ? Arel::Nodes::Descending.new(e) : Arel::Nodes::Ascending.new(e)
+            d && d == "DESC" ? Arel::Nodes::Descending.new(e) : Arel::Nodes::Ascending.new(e)
           end
         else
           e = Arel.sql(x.to_s)
