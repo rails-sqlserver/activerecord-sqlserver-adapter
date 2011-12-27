@@ -50,11 +50,11 @@ There are few mirroring introspection methods added to every active record class
 
  * for dblib mode:
  
-        rake test:mirroring:dblib 
+        bundel exec rake test:mirroring:dblib 
      
  * for odbc mode:
  
-        rake test:mirroring:odbc
+        bundle exec rake test:mirroring:odbc
     
 
 Test will create table 'programmers', insert a record, force failover to mirror server, insert second record, force failover back to primary, and insert third record.
