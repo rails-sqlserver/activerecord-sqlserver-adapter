@@ -1,4 +1,3 @@
-require 'pp'
 #define model
 class Programmer < ActiveRecord::Base 
 end                
@@ -17,6 +16,8 @@ class ForMirroringTests
 end
 
 class MirroringTestSqlserver < ActiveRecord::TestCase
+
+  self.use_transactional_fixtures = false
   
   def setup        
     create_database_schema    
@@ -56,13 +57,13 @@ class MirroringTestSqlserver < ActiveRecord::TestCase
 
   public 
 
-  def test_create    
+  def test_working_with_two_servers
     print_current_server_name
     Programmer.create(:first_name => "Sasa",  :last_name => "Juric")
     assert_equal 1, Programmer.count                                                          
-    
+
     failover
-    
+
     Programmer.create(:first_name => "Goran",  :last_name => "Pizent")    
     assert_equal 2, Programmer.count
     
