@@ -1,17 +1,5 @@
 require 'cases/sqlserver_helper'
 
-class NoPkData < ActiveRecord::Base ; self.table_name = 'no_pk_data' ; end
-class StringDefault < ActiveRecord::Base; end;
-class SqlServerEdgeSchema < ActiveRecord::Base; end;
-class SqlServerEdgeSchema < ActiveRecord::Base
-  attr_accessor :new_id_setting
-  before_create :set_new_id
-  protected
-  def set_new_id
-    self[:guid_newid] ||= connection.newid_function if new_id_setting
-  end
-end
-
 class SpecificSchemaTestSqlserver < ActiveRecord::TestCase
   
   should 'be able to complex count tables with no primary key' do
@@ -57,6 +45,35 @@ class SpecificSchemaTestSqlserver < ActiveRecord::TestCase
     
     setup do
       @edge_class = SqlServerEdgeSchema
+    end
+    
+    context 'with natural primary keys' do
+
+      should 'work with identity inserts' do
+        record = SqlServerNaturalPkData.new :name => 'Test', :description => 'Natural identity inserts.'
+        record.id = '12345ABCDE'
+        assert record.save
+        assert_equal '12345ABCDE', record.reload.id
+      end
+      
+      should 'work with identity inserts when the key is an int' do
+        record = SqlServerNaturalPkIntData.new :name => 'Test', :description => 'Natural identity inserts.'
+        record.id = 12
+        assert record.save
+        assert_equal 12, record.reload.id
+      end
+
+    end
+    
+    context 'with special quoted column' do
+
+      should 'work as normal' do
+        @edge_class.delete_all
+        r = @edge_class.create! 'crazy]]quote' => 'crazyqoute'
+        assert @edge_class.columns_hash['crazy]]quote']
+        assert_equal r, @edge_class.first(:conditions => {'crazy]]quote' => 'crazyqoute'})
+      end
+
     end
     
     context 'with description column' do
@@ -145,6 +162,15 @@ class SpecificSchemaTestSqlserver < ActiveRecord::TestCase
         assert_guid obj.guid_newid
       end
 
+    end
+    
+    context 'with strange table names' do
+      
+      should 'handle dollar symbols' do
+        SqlServerDollarTableName.new.save
+        SqlServerDollarTableName.limit(20).offset(1).all
+      end
+      
     end
     
   end

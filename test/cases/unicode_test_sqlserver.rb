@@ -35,8 +35,6 @@ class UnicodeTestSqlserver < ActiveRecord::TestCase
         assert_equal "一二34五六", data.reload.nvarchar
       elsif connection_mode_odbc?
         assert_equal "一二34五六", data.reload.nvarchar, 'perhaps you are not using the utf8 odbc that does this legwork'
-      elsif connection_mode_adonet?
-        assert_equal "一二34五六", data.reload.nvarchar
       else
         raise 'need to add a case for this'
       end

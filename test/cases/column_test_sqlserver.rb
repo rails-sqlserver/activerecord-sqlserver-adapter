@@ -1,8 +1,6 @@
 require 'cases/sqlserver_helper'
 require 'models/binary'
 
-class SqlServerEdgeSchema < ActiveRecord::Base; end;
-
 class ColumnTestSqlserver < ActiveRecord::TestCase
   
   def setup
@@ -273,6 +271,53 @@ class ColumnTestSqlserver < ActiveRecord::TestCase
       assert_equal [2,0],  [@my_house_population.precision, @my_house_population.scale]
     end
     
+  end
+  
+  context 'For float columns' do
+    # NOTE: float limits are adjusted to 24 or 53 by the database as per
+    # http://msdn.microsoft.com/en-us/library/ms173773.aspx
+    # NOTE: floats with a limit of <= 24 are reduced to reals by sqlserver on creation
+
+    setup do
+      @temperature = FloatData.columns_hash['temperature']
+      @freezing = FloatData.columns_hash['temperature_8']
+      @mild = FloatData.columns_hash['temperature_24']
+      @beach = FloatData.columns_hash['temperature_32']
+      @desert = FloatData.columns_hash['temperature_53']
+    end
+
+    should 'have correct simplified types' do
+      assert_equal :float, @temperature.type
+      assert_equal :float, @freezing.type
+      assert_equal :float, @mild.type
+      assert_equal :float, @beach.type
+      assert_equal :float, @desert.type
+    end
+
+    should 'have correct #sql_type' do
+      assert_equal 'real(24)', @temperature.sql_type
+      assert_equal 'real(24)', @freezing.sql_type
+      assert_equal 'real(24)', @mild.sql_type
+      assert_equal 'float(53)', @beach.sql_type
+      assert_equal 'float(53)',  @desert.sql_type
+    end
+
+    should 'have correct #limit' do
+      assert_equal 24, @temperature.limit
+      assert_equal 24, @freezing.limit
+      assert_equal 24, @mild.limit
+      assert_equal 53, @beach.limit
+      assert_equal 53, @desert.limit
+    end
+
+    should 'return nil precisions and scales' do
+      assert_equal [nil,nil], [@temperature.precision, @temperature.scale]
+      assert_equal [nil,nil], [@freezing.precision, @freezing.scale]
+      assert_equal [nil,nil], [@mild.precision, @mild.scale]
+      assert_equal [nil,nil], [@beach.precision, @beach.scale]
+      assert_equal [nil,nil], [@desert.precision, @desert.scale]
+    end
+
   end
   
   context 'For tinyint columns' do

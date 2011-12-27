@@ -3,6 +3,8 @@ module ActiveRecord
     module Sqlserver
       module DatabaseStatements
         
+        include CoreExt::DatabaseStatements
+        
         def select_rows(sql, name = nil)
           raw_select sql, name, [], :fetch => :rows
         end
@@ -45,27 +47,35 @@ module ActiveRecord
           true
         end
 
+        def transaction(options = {})
+          if retry_deadlock_victim?
+            block_given? ? transaction_with_retry_deadlock_victim(options) { yield } : transaction_with_retry_deadlock_victim(options)
+          else
+            block_given? ? super(options) { yield } : super(options)
+          end
+        end
+
         def begin_db_transaction
           do_execute "BEGIN TRANSACTION"
         end
 
         def commit_db_transaction
-          do_execute "COMMIT TRANSACTION"
+          disable_auto_reconnect { do_execute "COMMIT TRANSACTION" }
         end
 
         def rollback_db_transaction
-          do_execute "ROLLBACK TRANSACTION" rescue nil
+          do_execute "IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION"
         end
 
         def create_savepoint
-          do_execute "SAVE TRANSACTION #{current_savepoint_name}"
+          disable_auto_reconnect { do_execute "SAVE TRANSACTION #{current_savepoint_name}" }
         end
 
         def release_savepoint
         end
 
         def rollback_to_savepoint
-          do_execute "ROLLBACK TRANSACTION #{current_savepoint_name}"
+          disable_auto_reconnect { do_execute "ROLLBACK TRANSACTION #{current_savepoint_name}" }
         end
 
         def add_limit_offset!(sql, options)
@@ -109,10 +119,6 @@ module ActiveRecord
                 end
               end
               results.many? ? results : results.first
-            when :adonet
-              results = []
-              results << select(sql, name).map { |r| r.with_indifferent_access }
-              results.many? ? results : results.first
             end
           end
         end
@@ -124,6 +130,7 @@ module ActiveRecord
         end
         
         def user_options
+          return {} if sqlserver_azure?
           info_schema_query do
             select_rows("dbcc useroptions").inject(HashWithIndifferentAccess.new) do |values,row| 
               set_option = row[0].gsub(/\s+/,'_')
@@ -133,10 +140,45 @@ module ActiveRecord
             end
           end
         end
+        
+        def user_options_dateformat
+          if sqlserver_azure?
+            info_schema_query { select_value "SELECT [dateformat] FROM [sys].[syslanguages] WHERE [langid] = @@LANGID" }
+          else
+            user_options['dateformat']
+          end
+        end
+        
+        def user_options_isolation_level
+          if sqlserver_azure?
+            info_schema_query do
+              sql = %|SELECT CASE [transaction_isolation_level] 
+                      WHEN 0 THEN NULL
+                      WHEN 1 THEN 'READ UNCOMITTED' 
+                      WHEN 2 THEN 'READ COMITTED' 
+                      WHEN 3 THEN 'REPEATABLE' 
+                      WHEN 4 THEN 'SERIALIZABLE' 
+                      WHEN 5 THEN 'SNAPSHOT' END AS [isolation_level] 
+                      FROM [sys].[dm_exec_sessions] 
+                      WHERE [session_id] = @@SPID|.squish
+              select_value(sql)
+            end
+          else
+            user_options['isolation_level']
+          end
+        end
+        
+        def user_options_language
+          if sqlserver_azure?
+            info_schema_query { select_value "SELECT @@LANGUAGE AS [language]" }
+          else
+            user_options['language']
+          end
+        end
 
         def run_with_isolation_level(isolation_level)
           raise ArgumentError, "Invalid isolation level, #{isolation_level}. Supported levels include #{valid_isolation_levels.to_sentence}." if !valid_isolation_levels.include?(isolation_level.upcase)
-          initial_isolation_level = user_options[:isolation_level] || "READ COMMITTED"
+          initial_isolation_level = user_options_isolation_level || "READ COMMITTED"
           do_execute "SET TRANSACTION ISOLATION LEVEL #{isolation_level}"
           begin
             yield 
@@ -151,6 +193,51 @@ module ActiveRecord
         
         def newsequentialid_function
           select_value "SELECT NEWSEQUENTIALID()"
+        end
+        
+        def activity_stats
+          select_all %|
+            SELECT
+               [session_id]    = s.session_id,
+               [user_process]  = CONVERT(CHAR(1), s.is_user_process),
+               [login]         = s.login_name,
+               [database]      = ISNULL(db_name(r.database_id), N''),
+               [task_state]    = ISNULL(t.task_state, N''),
+               [command]       = ISNULL(r.command, N''),
+               [application]   = ISNULL(s.program_name, N''),
+               [wait_time_ms]  = ISNULL(w.wait_duration_ms, 0),
+               [wait_type]     = ISNULL(w.wait_type, N''),
+               [wait_resource] = ISNULL(w.resource_description, N''),
+               [blocked_by]    = ISNULL(CONVERT (varchar, w.blocking_session_id), ''),
+               [head_blocker]  =
+                    CASE
+                        -- session has an active request, is blocked, but is blocking others
+                        WHEN r2.session_id IS NOT NULL AND r.blocking_session_id = 0 THEN '1'
+                        -- session is idle but has an open tran and is blocking others
+                        WHEN r.session_id IS NULL THEN '1'
+                        ELSE ''
+                    END,
+               [total_cpu_ms]   = s.cpu_time,
+               [total_physical_io_mb]   = (s.reads + s.writes) * 8 / 1024,
+               [memory_use_kb]  = s.memory_usage * 8192 / 1024,
+               [open_transactions] = ISNULL(r.open_transaction_count,0),
+               [login_time]     = s.login_time,
+               [last_request_start_time] = s.last_request_start_time,
+               [host_name]      = ISNULL(s.host_name, N''),
+               [net_address]    = ISNULL(c.client_net_address, N''),
+               [execution_context_id] = ISNULL(t.exec_context_id, 0),
+               [request_id]     = ISNULL(r.request_id, 0),
+               [workload_group] = N''
+            FROM sys.dm_exec_sessions s LEFT OUTER JOIN sys.dm_exec_connections c ON (s.session_id = c.session_id)
+            LEFT OUTER JOIN sys.dm_exec_requests r ON (s.session_id = r.session_id)
+            LEFT OUTER JOIN sys.dm_os_tasks t ON (r.session_id = t.session_id AND r.request_id = t.request_id)
+            LEFT OUTER JOIN
+            (SELECT *, ROW_NUMBER() OVER (PARTITION BY waiting_task_address ORDER BY wait_duration_ms DESC) AS row_num
+                FROM sys.dm_os_waiting_tasks
+            ) w ON (t.task_address = w.waiting_task_address) AND w.row_num = 1
+            LEFT OUTER JOIN sys.dm_exec_requests r2 ON (r.session_id = r2.blocking_session_id)
+            WHERE db_name(r.database_id) = '#{current_database}'
+            ORDER BY s.session_id|
         end
         
         # === SQLServer Specific (Rake/Test Helpers) ==================== #
@@ -183,6 +270,8 @@ module ActiveRecord
               retry_count += 1
               remove_database_connections_and_rollback(database)
               retry
+            elsif err.message =~ /does not exist/i
+              nil
             else
               raise
             end
@@ -228,7 +317,7 @@ module ActiveRecord
         def do_execute(sql, name = nil)
           name ||= 'EXECUTE'
           log(sql, name) do
-            with_auto_reconnect { raw_connection_do(sql) }
+            with_sqlserver_error_handling { raw_connection_do(sql) }
           end
         end
         
@@ -241,7 +330,7 @@ module ActiveRecord
             next if ar_column && column.sql_type == 'timestamp'
             v = value
             names_and_types << if ar_column
-                                 v = value.to_i if column.is_integer?
+                                 v = value.to_i if column.is_integer? && value.present?
                                  "@#{index} #{column.sql_type_for_statement}"
                                elsif column.acts_like?(:string)
                                  "@#{index} nvarchar(max)"
@@ -265,8 +354,6 @@ module ActiveRecord
             @connection.execute(sql).do
           when :odbc
             @connection.do(sql)
-          else :adonet
-            @connection.create_command.tap{ |cmd| cmd.command_text = sql }.execute_non_query
           end
         ensure
           @update_sql = false
@@ -275,25 +362,25 @@ module ActiveRecord
         # === SQLServer Specific (Selecting) ============================ #
 
         def raw_select(sql, name=nil, binds=[], options={})
-          log(sql,name,binds) do
-            begin
-              handle = raw_connection_run(sql)
-              handle_to_names_and_values(handle, options)
-            ensure
-              finish_statement_handle(handle)
-            end
+          log(sql,name,binds) { _raw_select(sql, options) }
+        end
+        
+        def _raw_select(sql, options={})
+          begin
+            handle = raw_connection_run(sql)
+            handle_to_names_and_values(handle, options)
+          ensure
+            finish_statement_handle(handle)
           end
         end
         
         def raw_connection_run(sql)
-          with_auto_reconnect do
+          with_sqlserver_error_handling do
             case @connection_options[:mode]
             when :dblib
               @connection.execute(sql)
             when :odbc
               block_given? ? @connection.run_block(sql) { |handle| yield(handle) } : @connection.run(sql)
-            else :adonet
-              @connection.create_command.tap{ |cmd| cmd.command_text = sql }.execute_reader
             end
           end
         end
@@ -303,8 +390,6 @@ module ActiveRecord
           when :dblib
           when :odbc
             handle.more_results
-          when :adonet
-            handle.next_result
           end
         end
         
@@ -314,8 +399,6 @@ module ActiveRecord
             handle_to_names_and_values_dblib(handle, options)
           when :odbc
             handle_to_names_and_values_odbc(handle, options)
-          when :adonet
-            handle_to_names_and_values_adonet(handle, options)
           end
         end
         
@@ -344,62 +427,13 @@ module ActiveRecord
             end
           end
         end
-
-        def handle_to_names_and_values_adonet(handle, options={})
-          if handle.has_rows
-            names = []
-            rows = []
-            fields_named = options[:fetch] == :rows
-            while handle.read
-              row = []
-              handle.visible_field_count.times do |row_index|
-                value = handle.get_value(row_index)
-                value = case value
-                        when System::String
-                          value.to_s
-                        when System::DBNull
-                          nil
-                        when System::DateTime
-                          value.to_string("yyyy-MM-dd HH:mm:ss.fff").to_s
-                        when @@array_of_bytes ||= System::Array[System::Byte]
-                          String.new(value)
-                        else
-                          value
-                        end
-                row << value
-                names << handle.get_name(row_index).to_s unless fields_named
-              end
-              rows << row
-              fields_named = true
-            end
-          else
-            rows = []
-          end
-          if options[:fetch] != :rows
-            names_and_values = []
-            rows.each do |row|
-              h = {}
-              i = 0
-              while i < row.size
-                h[names[i]] = row[i]
-                i += 1
-              end
-              names_and_values << h
-            end
-            names_and_values
-          else
-            rows
-          end
-        end
         
         def finish_statement_handle(handle)
           case @connection_options[:mode]
-          when :dblib  
+          when :dblib
+            handle.cancel if handle
           when :odbc
             handle.drop if handle && handle.respond_to?(:drop) && !handle.finished?
-          when :adonet
-            handle.close if handle && handle.respond_to?(:close) && !handle.is_closed
-            handle.dispose if handle && handle.respond_to?(:dispose)
           end
           handle
         end

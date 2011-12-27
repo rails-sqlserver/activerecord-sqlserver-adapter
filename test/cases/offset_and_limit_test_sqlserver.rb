@@ -28,6 +28,11 @@ class OffsetAndLimitTestSqlserver < ActiveRecord::TestCase
   
   context 'When selecting with limit and offset' do
     
+    should 'work with fully qualified table and columns in select' do 
+      books = Book.all :select => 'books.id, books.name', :limit => 3, :offset => 5
+      assert_equal Book.all[5,3].map(&:id), books.map(&:id)
+    end
+    
     should 'allow sql literal for offset' do
       assert_sql(/WHERE \[__rnt\]\.\[__rn\] > \(3-2\)/) { Book.limit(10).offset(Arel.sql('3-2')).all }
       assert_sql(/WHERE \[__rnt\]\.\[__rn\] > \(SELECT 8 AS \[count\]\)/) do 

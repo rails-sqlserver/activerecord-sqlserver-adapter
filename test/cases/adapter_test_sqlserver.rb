@@ -19,12 +19,6 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
   
   context 'For abstract behavior' do
     
-    should 'not mangel complex order clauses' do
-      xyz_order = "CASE WHEN [title] LIKE N'XYZ%' THEN 0 ELSE 1 END"
-      xyz_post = Post.create :title => 'XYZ Post', :body => 'Test cased orders.'
-      assert_equal xyz_post, Post.order(Arel::Nodes::Ordering.new(Arel.sql(xyz_order))).first
-    end
-    
     should 'have a 128 max #table_alias_length' do
       assert @connection.table_alias_length <= 128
     end
@@ -39,6 +33,30 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
     
     should 'include version in inspect' do
       assert_match(/version\: \d.\d/,@connection.inspect)
+    end
+    
+    should 'include database product level in inspect' do
+      assert_match(/product_level\: "\w+/, @connection.inspect)
+    end
+    
+    should 'include database product version in inspect' do
+      assert_match(/product_version\: "\d+/, @connection.inspect)
+    end
+    
+    should 'include database edition in inspect' do
+      assert_match(/edition\: "\w+/, @connection.inspect)
+    end
+    
+    should 'set database product level' do
+      assert_match(/\w+/, @connection.product_level)
+    end
+    
+    should 'set database product version' do
+      assert_match(/\d+/, @connection.product_version)
+    end
+    
+    should 'set database edition' do
+      assert_match(/\w+/, @connection.edition)
     end
     
     should 'support migrations' do
@@ -138,13 +156,30 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
     end
     
     context 'with different language' do
-    
+      
+      setup do
+        @default_language = @connection.user_options_language
+      end
+      
       teardown do
+        @connection.execute("SET LANGUAGE #{@default_language}") rescue nil
+        @connection.send :initialize_dateformatter
+      end
+      
+      should 'memoize users dateformat' do
         @connection.execute("SET LANGUAGE us_english") rescue nil
+        dateformat = @connection.instance_variable_get(:@database_dateformat)
+        assert_equal 'mdy', dateformat
+      end
+      
+      should 'have a dateformatter' do
+        assert Date::DATE_FORMATS[:_sqlserver_dateformat]
+        assert Time::DATE_FORMATS[:_sqlserver_dateformat]
       end
     
-      should_eventually 'do a date insertion when language is german' do
+      should 'do a date insertion when language is german' do
         @connection.execute("SET LANGUAGE deutsch")
+        @connection.send :initialize_dateformatter
         assert_nothing_raised do
           Task.create(:starting => Time.utc(2000, 1, 31, 5, 42, 0), :ending => Date.new(2006, 12, 31))
         end
@@ -241,17 +276,11 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
       context 'saving new datetime objects' do
   
         should 'truncate 123456 usec to just 123 in the DB cast back to 123000' do
-          @time.stubs(:usec).returns(123456)
+          Time.any_instance.stubs :iso8601 => "2011-07-26T12:29:01.123-04:00"
           saved = SqlServerChronic.create!(:datetime => @time).reload
+          saved.reload
           assert_equal '123', saved.datetime_before_type_cast.split('.')[1] if saved.datetime_before_type_cast.is_a?(String)
           assert_equal 123000, saved.datetime.usec
-        end
-        
-        should 'truncate 3001 usec to just 003 in the DB cast back to 3000' do
-          @time.stubs(:usec).returns(3001)
-          saved = SqlServerChronic.create!(:datetime => @time).reload
-          assert_equal '003', saved.datetime_before_type_cast.split('.')[1] if saved.datetime_before_type_cast.is_a?(String)
-          assert_equal 3000, saved.datetime.usec
         end
         
       end
@@ -402,14 +431,14 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
           @t2 = tasks(:another_task)
           assert @t1, 'Tasks :first_task should be in AR fixtures'
           assert @t2, 'Tasks :another_task should be in AR fixtures'
-          good_isolation_level = @connection.user_options[:isolation_level].blank? || @connection.user_options[:isolation_level] =~ /read committed/i
-          assert good_isolation_level, "User isolation level is not at a happy starting place: #{@connection.user_options[:isolation_level].inspect}"
+          good_isolation_level = @connection.user_options_isolation_level.blank? || @connection.user_options_isolation_level =~ /read committed/i
+          assert good_isolation_level, "User isolation level is not at a happy starting place: #{@connection.user_options_isolation_level.inspect}"
         end
         
         should 'allow #run_with_isolation_level to not take a block to set it' do
           begin
             @connection.run_with_isolation_level 'READ UNCOMMITTED'
-            assert_match %r|read uncommitted|i, @connection.user_options[:isolation_level]
+            assert_match %r|read uncommitted|i, @connection.user_options_isolation_level
           ensure
             @connection.run_with_isolation_level 'READ COMMITTED'
           end
@@ -470,6 +499,14 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
         assert_equal 'bigint', @connection.type_to_sql(:integer, 8)
       end
       
+      should 'create floats when no limit supplied' do
+        assert_equal 'float(8)', @connection.type_to_sql(:float)
+      end
+
+      should 'create floats when limit is supplied' do
+        assert_equal 'float(27)', @connection.type_to_sql(:float, 27)
+      end
+      
     end
     
   end
@@ -501,6 +538,12 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
       
       should 'find CustomersView table name' do
         assert_contains @connection.views, 'customers_view'
+      end
+      
+      should 'work with dynamic finders' do
+        name = 'MetaSkills'
+        customer = CustomersView.create! :name => name
+        assert_equal customer, CustomersView.find_by_name(name)
       end
       
       should 'not contain system views' do
@@ -540,7 +583,6 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
         
         should 'find identity column' do
           assert CustomersView.columns_hash['id'].primary
-          assert CustomersView.columns_hash['id'].is_identity?
         end
         
         should 'find default values' do
@@ -573,7 +615,6 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
         
         should 'find identity column' do
           assert StringDefaultsView.columns_hash['id'].primary
-          assert StringDefaultsView.columns_hash['id'].is_identity?
         end
         
         should 'find default values' do

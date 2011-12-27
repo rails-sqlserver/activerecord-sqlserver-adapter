@@ -7,20 +7,21 @@ module ActiveRecord
           @native_database_types ||= initialize_native_database_types.freeze
         end
 
-        def tables(name = nil)
+        def tables(name = nil, table_type = 'BASE TABLE')
           info_schema_query do
-            select_values "SELECT #{lowercase_schema_reflection_sql('TABLE_NAME')} FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_NAME <> 'dtproperties' AND TABLE_SCHEMA = schema_name()"
+            select_values "SELECT #{lowercase_schema_reflection_sql('TABLE_NAME')} FROM INFORMATION_SCHEMA.TABLES #{"WHERE TABLE_TYPE = '#{table_type}'" if table_type} ORDER BY TABLE_NAME"
           end
         end
 
         def table_exists?(table_name)
+          return false if table_name.blank?
           unquoted_table_name = unqualify_table_name(table_name)
           super || tables.include?(unquoted_table_name) || views.include?(unquoted_table_name)
         end
 
         def indexes(table_name, name = nil)
-          unquoted_table_name = unqualify_table_name(table_name)
-          select("EXEC sp_helpindex #{quote_table_name(unquoted_table_name)}",name).inject([]) do |indexes,index|
+          data = select("EXEC sp_helpindex #{quote(table_name)}",name) rescue []
+          data.inject([]) do |indexes,index|
             index = index.with_indifferent_access
             if index[:index_description] =~ /primary key/
               indexes
@@ -39,16 +40,31 @@ module ActiveRecord
 
         def columns(table_name, name = nil)
           return [] if table_name.blank?
-          column_definitions(table_name).collect do |ci|
+          @sqlserver_columns_cache[table_name] ||= column_definitions(table_name).collect do |ci|
             sqlserver_options = ci.except(:name,:default_value,:type,:null).merge(:database_year=>database_year)
             SQLServerColumn.new ci[:name], ci[:default_value], ci[:type], ci[:null], sqlserver_options
           end
         end
 
+        def create_table(table_name, options = {})
+          super
+          clear_cache!
+        end
+        
         def rename_table(table_name, new_name)
           do_execute "EXEC sp_rename '#{table_name}', '#{new_name}'"
         end
+        
+        def drop_table(table_name, options = {})
+          super
+          clear_cache!
+        end
 
+        def add_column(table_name, column_name, type, options = {})
+          super
+          clear_cache!
+        end
+        
         def remove_column(table_name, *column_names)
           raise ArgumentError.new("You must specify at least one column name.  Example: remove_column(:people, :first_name)") if column_names.empty?
           column_names.flatten.each do |column_name|
@@ -57,6 +73,7 @@ module ActiveRecord
             remove_indexes(table_name, column_name)
             do_execute "ALTER TABLE #{quote_table_name(table_name)} DROP COLUMN #{quote_column_name(column_name)}"
           end
+          clear_cache!
         end
 
         def change_column(table_name, column_name, type, options = {})
@@ -72,16 +89,19 @@ module ActiveRecord
             sql_commands << "ALTER TABLE #{quote_table_name(table_name)} ADD CONSTRAINT #{default_constraint_name(table_name,column_name)} DEFAULT #{quote(options[:default])} FOR #{quote_column_name(column_name)}"
           end
           sql_commands.each { |c| do_execute(c) }
+          clear_cache!
         end
 
         def change_column_default(table_name, column_name, default)
           remove_default_constraint(table_name, column_name)
           do_execute "ALTER TABLE #{quote_table_name(table_name)} ADD CONSTRAINT #{default_constraint_name(table_name, column_name)} DEFAULT #{quote(default)} FOR #{quote_column_name(column_name)}"
+          clear_cache!
         end
 
         def rename_column(table_name, column_name, new_column_name)
           detect_column_for!(table_name,column_name)
           do_execute "EXEC sp_rename '#{table_name}.#{column_name}', '#{new_column_name}', 'COLUMN'"
+          clear_cache!
         end
         
         def remove_index!(table_name, index_name)
@@ -117,8 +137,7 @@ module ActiveRecord
         # === SQLServer Specific ======================================== #
         
         def views(name = nil)
-          @sqlserver_views_cache ||= 
-            info_schema_query { select_values("SELECT #{lowercase_schema_reflection_sql('TABLE_NAME')} FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_NAME NOT IN ('sysconstraints','syssegments')") }
+          @sqlserver_views_cache ||= tables(name,'VIEW')
         end
         
         
@@ -150,33 +169,46 @@ module ActiveRecord
             :ss_timestamp => { :name => 'timestamp' }
           }
         end
-        
+
         def column_definitions(table_name)
           db_name = unqualify_db_name(table_name)
           db_name_with_period = "#{db_name}." if db_name
           table_schema = unqualify_table_schema(table_name)
           table_name = unqualify_table_name(table_name)
           sql = %{
-            SELECT
+            SELECT DISTINCT 
             #{lowercase_schema_reflection_sql('columns.TABLE_NAME')} AS table_name,
             #{lowercase_schema_reflection_sql('columns.COLUMN_NAME')} AS name,
             columns.DATA_TYPE AS type,
             columns.COLUMN_DEFAULT AS default_value,
             columns.NUMERIC_SCALE AS numeric_scale,
             columns.NUMERIC_PRECISION AS numeric_precision,
+            columns.ordinal_position,
             CASE
               WHEN columns.DATA_TYPE IN ('nchar','nvarchar') THEN columns.CHARACTER_MAXIMUM_LENGTH
               ELSE COL_LENGTH(columns.TABLE_SCHEMA+'.'+columns.TABLE_NAME, columns.COLUMN_NAME)
-            END AS length,
+            END AS [length],
             CASE
               WHEN columns.IS_NULLABLE = 'YES' THEN 1
               ELSE NULL
-            END AS is_nullable,
-            CASE
-              WHEN COLUMNPROPERTY(OBJECT_ID(columns.TABLE_SCHEMA+'.'+columns.TABLE_NAME), columns.COLUMN_NAME, 'IsIdentity') = 0 THEN NULL
-              ELSE 1
-            END AS is_identity
+            END AS [is_nullable],
+            CASE 
+              WHEN KCU.COLUMN_NAME IS NOT NULL AND TC.CONSTRAINT_TYPE = N'PRIMARY KEY' THEN 1
+              ELSE NULL
+            END AS [is_primary],
+            CASE 
+              WHEN COLUMNPROPERTY(OBJECT_ID(columns.TABLE_SCHEMA+'.'+columns.TABLE_NAME), columns.COLUMN_NAME, 'IsIdentity') = 1 THEN 1
+              ELSE NULL
+            END AS [is_identity]
             FROM #{db_name_with_period}INFORMATION_SCHEMA.COLUMNS columns
+            LEFT OUTER JOIN #{db_name_with_period}INFORMATION_SCHEMA.TABLE_CONSTRAINTS AS TC 
+              ON TC.TABLE_NAME = columns.TABLE_NAME 
+              AND TC.CONSTRAINT_TYPE = N'PRIMARY KEY' 
+            LEFT OUTER JOIN #{db_name_with_period}INFORMATION_SCHEMA.KEY_COLUMN_USAGE AS KCU
+              ON KCU.COLUMN_NAME = columns.COLUMN_NAME
+              AND KCU.CONSTRAINT_NAME = TC.CONSTRAINT_NAME
+              AND KCU.CONSTRAINT_CATALOG = TC.CONSTRAINT_CATALOG
+              AND KCU.CONSTRAINT_SCHEMA = TC.CONSTRAINT_SCHEMA
             WHERE columns.TABLE_NAME = @0
               AND columns.TABLE_SCHEMA = #{table_schema.blank? ? "schema_name()" : "@1"}
             ORDER BY columns.ordinal_position
@@ -191,6 +223,8 @@ module ActiveRecord
                            ci[:type]
                          when /^numeric|decimal$/i
                            "#{ci[:type]}(#{ci[:numeric_precision]},#{ci[:numeric_scale]})"
+                         when /^float|real$/i
+                           "#{ci[:type]}(#{ci[:numeric_precision]})"
                          when /^char|nchar|varchar|nvarchar|varbinary|bigint|int|smallint$/
                            ci[:length].to_i == -1 ? "#{ci[:type]}(max)" : "#{ci[:type]}(#{ci[:length]})"
                          else
@@ -213,6 +247,8 @@ module ActiveRecord
                                    match_data ? match_data[1] : nil
                                  end
             ci[:null] = ci[:is_nullable].to_i == 1 ; ci.delete(:is_nullable)
+            ci[:is_primary] = ci[:is_primary].to_i == 1
+            ci[:is_identity] = ci[:is_identity].to_i == 1
             ci
           end
         end
@@ -324,6 +360,7 @@ module ActiveRecord
         # === SQLServer Specific (Column/View Caches) =================== #
 
         def initialize_sqlserver_caches
+          @sqlserver_columns_cache = {}
           @sqlserver_views_cache = nil
           @sqlserver_view_information_cache = {}
           @sqlserver_quoted_column_and_table_names = {}

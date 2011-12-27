@@ -6,12 +6,12 @@ module Arel
 
     # Extending the Ordering class to be comparrison friendly which allows us to call #uniq on a
     # collection of them. See SelectManager#order for more details.
-    class Ordering < Arel::Nodes::Binary
+    class Ordering < Arel::Nodes::Unary
       def hash
         expr.hash
       end
       def ==(other)
-        self.class == other.class && self.expr == other.expr
+        other.is_a?(Arel::Nodes::Ordering) && self.expr == other.expr
       end
       def eql?(other)
         self == other
@@ -21,32 +21,36 @@ module Arel
   end
 
   class SelectManager < Arel::TreeManager
-
+    
+    AR_CA_SQLSA_NAME = 'ActiveRecord::ConnectionAdapters::SQLServerAdapter'.freeze
+    
     # Getting real Ordering objects is very important for us. We need to be able to call #uniq on
     # a colleciton of them reliably as well as using their true object attributes to mutate them
     # to grouping objects for the inner sql during a select statment with an offset/rownumber. So this
     # is here till ActiveRecord & ARel does this for us instead of using SqlLiteral objects.
     alias :order_without_sqlserver :order
-    def order(*exprs)
-      return order_without_sqlserver(*exprs) unless Arel::Visitors::SQLServer === @visitor
-      @ast.orders.concat(exprs.map{ |x|
+    def order(*expr)
+      return order_without_sqlserver(*expr) unless engine_activerecord_sqlserver_adapter?
+      @ast.orders.concat(expr.map{ |x|
         case x
         when Arel::Attributes::Attribute
           table = Arel::Table.new(x.relation.table_alias || x.relation.name)
-          expr = table[x.name]
-          Arel::Nodes::Ordering.new expr
+          e = table[x.name]
+          Arel::Nodes::Ascending.new e
         when Arel::Nodes::Ordering
           x
         when String
           x.split(',').map do |s|
-            expr, direction = s.split
-            expr = Arel.sql(expr)
-            direction = direction =~ /desc/i ? :desc : :asc
-            Arel::Nodes::Ordering.new expr, direction
+            s = x if x.strip =~ /\A\b\w+\b\(.*,.*\)(\s+(ASC|DESC))?\Z/i # Allow functions with comma(s) to pass thru.
+            s.strip!
+            d = s =~ /(ASC|DESC)\Z/i ? $1.upcase : nil
+            e = d.nil? ? s : s.mb_chars[0...-d.length].strip
+            e = Arel.sql(e)
+            d && d == "DESC" ? Arel::Nodes::Descending.new(e) : Arel::Nodes::Ascending.new(e)
           end
         else
-          expr = Arel.sql(x.to_s)
-          Arel::Nodes::Ordering.new expr
+          e = Arel.sql(x.to_s)
+          Arel::Nodes::Ascending.new e
         end
       }.flatten)
       self
@@ -56,7 +60,7 @@ module Arel
     # custom string hints down. See the visit_Arel_Nodes_LockWithSQLServer delegation method.
     alias :lock_without_sqlserver :lock
     def lock(locking=true)
-      if Arel::Visitors::SQLServer === @visitor
+      if engine_activerecord_sqlserver_adapter?
         case locking
         when true
           locking = Arel.sql('WITH(HOLDLOCK, ROWLOCK)')
@@ -70,7 +74,13 @@ module Arel
         lock_without_sqlserver(locking)
       end
     end
-
+    
+    private
+    
+    def engine_activerecord_sqlserver_adapter?
+      @engine.connection && @engine.connection.class.name == AR_CA_SQLSA_NAME
+    end
+    
   end
 
   module Visitors
@@ -89,6 +99,13 @@ module Arel
           visit_Arel_Nodes_SelectStatementWithOutOffset(o)
         end
       end
+      
+      def visit_Arel_Nodes_UpdateStatement(o)
+        if o.orders.any? && o.limit.nil?
+          o.limit = Nodes::Limit.new(2147483647)
+        end
+        super
+      end
 
       def visit_Arel_Nodes_Offset(o)
         "WHERE [__rnt].[__rn] > (#{visit o.expr})"
@@ -101,9 +118,17 @@ module Arel
       def visit_Arel_Nodes_Lock(o)
         visit o.expr
       end
-
+      
+      def visit_Arel_Nodes_Ordering(o)
+        if o.respond_to?(:direction)
+          "#{visit o.expr} #{o.ascending? ? 'ASC' : 'DESC'}"
+        else
+          visit o.expr
+        end
+      end
+      
       def visit_Arel_Nodes_Bin(o)
-        "#{visit o.expr} #{@engine.connection.cs_equality_operator}"
+        "#{visit o.expr} #{@connection.cs_equality_operator}"
       end
 
       # SQLServer ToSql/Visitor (Additions)
@@ -116,9 +141,11 @@ module Arel
         orders = o.orders.uniq
         if windowed
           projections = function_select_statement?(o) ? projections : projections.map { |x| projection_without_expression(x) }
+          groups = projections.map { |x| projection_without_expression(x) } if windowed_single_distinct_select_statement?(o) && groups.empty?
+          groups += orders.map { |x| Arel.sql(x.expr) } if windowed_single_distinct_select_statement?(o)
         elsif eager_limiting_select_statement?(o)
-          groups = projections.map { |x| projection_without_expression(x) }
           projections = projections.map { |x| projection_without_expression(x) }
+          groups = projections.map { |x| projection_without_expression(x) }
           orders = orders.map do |x|
             expr = Arel.sql projection_without_expression(x.expr)
             x.descending? ? Arel::Nodes::Max.new([expr]) : Arel::Nodes::Min.new([expr])
@@ -140,7 +167,7 @@ module Arel
       def visit_Arel_Nodes_SelectStatementWithOffset(o)
         orders = rowtable_orders(o)
         [ "SELECT",
-          (visit(o.limit) if o.limit && !single_distinct_select_statement?(o)),
+          (visit(o.limit) if o.limit && !windowed_single_distinct_select_statement?(o)),
           (rowtable_projections(o).map{ |x| visit(x) }.join(', ')),
           "FROM (",
             "SELECT ROW_NUMBER() OVER (ORDER BY #{orders.map{ |x| visit(x) }.join(', ')}) AS [__rn],",
@@ -175,10 +202,10 @@ module Arel
 
       def source_with_lock_for_select_statement(o)
         core = o.cores.first
-        source = visit(core.source).strip if core.source
+        source = "FROM #{visit(core.source).strip}" if core.source
         if source && o.lock
           lock = visit o.lock
-          index = source.match(/FROM [\w\[\]\.]+/)[0].length
+          index = source.match(/FROM [\w\[\]\.]+/)[0].mb_chars.length
           source.insert index, " #{lock}"
         else
           source
@@ -214,6 +241,10 @@ module Arel
         projections.size == 1 &&
           ((p1.respond_to?(:distinct) && p1.distinct) ||
             p1.respond_to?(:include?) && p1.include?('DISTINCT'))
+      end
+      
+      def windowed_single_distinct_select_statement?(o)
+        o.limit && o.offset && single_distinct_select_statement?(o)
       end
       
       def single_distinct_select_everything_statement?(o)
@@ -258,6 +289,14 @@ module Arel
           o.limit &&
           !join_in_select_statement?(o)
       end
+      
+      def select_primary_key_sql?(o)
+        core = o.cores.first
+        return false if core.projections.size != 1
+        p = core.projections.first
+        t = table_from_select_statement(o)
+        Arel::Attributes::Attribute === p && t.primary_key && t.primary_key.name == p.name
+      end
 
       def find_and_fix_uncorrelated_joins_in_select_statement(o)
         core = o.cores.first
@@ -286,7 +325,17 @@ module Arel
 
       def rowtable_projections(o)
         core = o.cores.first
-        if single_distinct_select_statement?(o)
+        if windowed_single_distinct_select_statement?(o) && core.groups.blank?
+          tn = table_from_select_statement(o).name
+          core.projections.map do |x|
+            x.dup.tap do |p|
+              p.sub! 'DISTINCT', ''
+              p.insert 0, visit(o.limit) if o.limit
+              p.gsub! /\[?#{tn}\]?\./, '[__rnt].'
+              p.strip!
+            end
+          end
+        elsif single_distinct_select_statement?(o)
           tn = table_from_select_statement(o).name
           core.projections.map do |x|
             x.dup.tap do |p|
@@ -299,18 +348,10 @@ module Arel
           core.projections.map do |x|
             Arel.sql visit(x).split(',').map{ |y| y.split(' AS ').last.strip }.join(', ')
           end
-        elsif function_select_statement?(o)
-          [Arel.star]
+        elsif select_primary_key_sql?(o)
+          [Arel.sql("[__rnt].#{quote_column_name(core.projections.first.name)}")]
         else
-          core.projections.map do |x|
-            if x.respond_to?(:relation)
-              x = x.dup
-              x.relation = x.relation.dup
-              x.relation.instance_variable_set :@table_alias, Arel.sql('[__rnt].*')
-            else
-              x
-            end
-          end
+          [Arel.sql('[__rnt].*')]
         end
       end
 
