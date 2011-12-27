@@ -99,6 +99,12 @@ class OrderTestSqlserver < ActiveRecord::TestCase
       assert_equal post1, Post.order(order).first
     end
     
+    should 'support inline function with parameters DESC' do
+      order = "SUBSTRING(title, 1, 3) DESC"
+      post1 = Post.create :title => 'ZZZ Post', :body => 'Test cased orders.'
+      assert_equal post1, Post.order(order).first
+    end
+    
     should 'support primary: inline function, secondary: column' do
       order = "LEN(title), body"
       post1 = Post.create :title => 'A', :body => 'AAA Test cased orders.'

@@ -1,4 +1,9 @@
 
+* 3.1.5 *
+
+* Better support for orders with an expression. Fixes #155. [Jason Frey, Joe Rafaniello]
+
+
 * 3.1.4 *
 
 * Use INFORMATION_SCHEMA.KEY_COLUMN_USAGE for schema reflection speed. 

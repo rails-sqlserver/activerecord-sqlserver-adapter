@@ -41,9 +41,10 @@ module Arel
           x
         when String
           x.split(',').map do |s|
+            s = x if x.strip =~ /\A\b\w+\b\(.*,.*\)(\s+(ASC|DESC))?\Z/i # Allow functions with comma(s) to pass thru.
             s.strip!
-            d = s =~ /(asc|desc)$/i ? $1.upcase : nil
-            e = d.nil? ? s : s[0...-d.length].strip
+            d = s =~ /(ASC|DESC)\Z/i ? $1.upcase : nil
+            e = d.nil? ? s : s.mb_chars[0...-d.length].strip
             e = Arel.sql(e)
             d && d == "DESC" ? Arel::Nodes::Descending.new(e) : Arel::Nodes::Ascending.new(e)
           end
@@ -204,7 +205,7 @@ module Arel
         source = "FROM #{visit(core.source).strip}" if core.source
         if source && o.lock
           lock = visit o.lock
-          index = source.match(/FROM [\w\[\]\.]+/)[0].length
+          index = source.match(/FROM [\w\[\]\.]+/)[0].mb_chars.length
           source.insert index, " #{lock}"
         else
           source
