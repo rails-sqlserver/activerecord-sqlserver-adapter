@@ -1,7 +1,9 @@
 
 * 3.2.0 *
 
-* 
+* Make use of the new ConnectionAdapters::SchemaCache for our needs.
+
+* New Sqlserver::Utils class for out helpers. Moved table name unquotes there.
 
 
 * 3.1.5 *
