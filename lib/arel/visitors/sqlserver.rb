@@ -154,6 +154,7 @@ module Arel
           projections = projections.map { |x| projection_without_expression(x) }
         end
         [ ("SELECT" if !windowed),
+          (visit(core.set_quantifier) if core.set_quantifier),
           (visit(o.limit) if o.limit && !windowed),
           (projections.map{ |x| visit(x) }.join(', ')),
           (source_with_lock_for_select_statement(o)),

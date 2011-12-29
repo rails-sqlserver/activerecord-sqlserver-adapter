@@ -6,10 +6,11 @@ require 'active_record/connection_adapters/sqlserver/core_ext/database_statement
 require 'active_record/connection_adapters/sqlserver/database_limits'
 require 'active_record/connection_adapters/sqlserver/database_statements'
 require 'active_record/connection_adapters/sqlserver/errors'
+require 'active_record/connection_adapters/sqlserver/schema_cache'
 require 'active_record/connection_adapters/sqlserver/schema_statements'
 require 'active_record/connection_adapters/sqlserver/quoting'
+require 'active_record/connection_adapters/sqlserver/utils'
 require 'active_record/connection_adapters/sqlserver/version'
-require 'active_support/core_ext/kernel/requires'
 require 'active_support/core_ext/string'
 require 'base64'
 
@@ -32,7 +33,7 @@ module ActiveRecord
       else
         raise ArgumentError, "Unknown connection mode in #{config.inspect}."
       end
-      ConnectionAdapters::SQLServerAdapter.new(logger,config.merge(:mode=>mode))
+      ConnectionAdapters::SQLServerAdapter.new(nil, logger, nil, config.merge(:mode=>mode))
     end
     
     protected
@@ -185,18 +186,15 @@ module ActiveRecord
       
       self.enable_default_unicode_types = true
       
-      class << self
-        
-        def visitor_for(pool)
-          Arel::Visitors::SQLServer.new(pool)
-        end
-        
-      end
       
-      def initialize(logger,config)
+      def initialize(connection, logger, pool, config)
+        super(connection, logger, pool)
+        # AbstractAdapter Responsibility
+        @schema_cache = Sqlserver::SchemaCache.new self
+        @visitor = Arel::Visitors::SQLServer.new self
+        # Our Responsibility
         @connection_options = config
         connect
-        super(@connection, logger)
         @database_version = info_schema_query { select_value('SELECT @@version') }
         @database_year = begin
                            if @database_version =~ /Microsoft SQL Azure/i
@@ -213,7 +211,6 @@ module ActiveRecord
         @product_version  = info_schema_query { select_value("SELECT CAST(SERVERPROPERTY('productversion') AS VARCHAR(128))") }
         @edition          = info_schema_query { select_value("SELECT CAST(SERVERPROPERTY('edition') AS VARCHAR(128))") }
         initialize_dateformatter
-        initialize_sqlserver_caches
         use_database
         unless SUPPORTED_VERSIONS.include?(@database_year)
           raise NotImplementedError, "Currently, only #{SUPPORTED_VERSIONS.to_sentence} are supported. We got back #{@database_version}."
@@ -286,10 +283,6 @@ module ActiveRecord
         remove_database_connections_and_rollback { }
       end
       
-      def clear_cache!
-        initialize_sqlserver_caches
-      end
-      
       # === Abstract Adapter (Misc Support) =========================== #
       
       def pk_and_sequence_for(table_name)
@@ -298,7 +291,7 @@ module ActiveRecord
       end
 
       def primary_key(table_name)
-        identity_column(table_name).try(:name) || columns(table_name).detect(&:is_primary?).try(:name)
+        identity_column(table_name).try(:name) || schema_cache.columns[table_name].detect(&:is_primary?).try(:name)
       end
       
       # === SQLServer Specific (DB Reflection) ======================== #
@@ -391,7 +384,7 @@ module ActiveRecord
       
       def connect
         config = @connection_options
-        @connection = case @connection_options[:mode]
+        @connection = case config[:mode]
                       when :dblib
                         appname = config[:appname] || configure_application_name || Rails.application.class.name.split('::').first rescue nil
                         login_timeout = config[:login_timeout].present? ? config[:login_timeout].to_i : nil
@@ -442,7 +435,7 @@ module ActiveRecord
                           end
                         end
                       end
-        @spid             = _raw_select("SELECT @@SPID", :fetch => :rows).first.first
+        @spid = _raw_select("SELECT @@SPID", :fetch => :rows).first.first
         configure_connection
       rescue
         raise unless @auto_connecting

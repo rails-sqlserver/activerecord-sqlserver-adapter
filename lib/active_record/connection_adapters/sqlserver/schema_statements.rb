@@ -7,7 +7,7 @@ module ActiveRecord
           @native_database_types ||= initialize_native_database_types.freeze
         end
 
-        def tables(name = nil, table_type = 'BASE TABLE')
+        def tables(table_type = 'BASE TABLE')
           info_schema_query do
             select_values "SELECT #{lowercase_schema_reflection_sql('TABLE_NAME')} FROM INFORMATION_SCHEMA.TABLES #{"WHERE TABLE_TYPE = '#{table_type}'" if table_type} ORDER BY TABLE_NAME"
           end
@@ -15,7 +15,7 @@ module ActiveRecord
 
         def table_exists?(table_name)
           return false if table_name.blank?
-          unquoted_table_name = unqualify_table_name(table_name)
+          unquoted_table_name = Utils.unqualify_table_name(table_name)
           super || tables.include?(unquoted_table_name) || views.include?(unquoted_table_name)
         end
 
@@ -40,29 +40,14 @@ module ActiveRecord
 
         def columns(table_name, name = nil)
           return [] if table_name.blank?
-          @sqlserver_columns_cache[table_name] ||= column_definitions(table_name).collect do |ci|
+          column_definitions(table_name).collect do |ci|
             sqlserver_options = ci.except(:name,:default_value,:type,:null).merge(:database_year=>database_year)
             SQLServerColumn.new ci[:name], ci[:default_value], ci[:type], ci[:null], sqlserver_options
           end
         end
-
-        def create_table(table_name, options = {})
-          super
-          clear_cache!
-        end
         
         def rename_table(table_name, new_name)
           do_execute "EXEC sp_rename '#{table_name}', '#{new_name}'"
-        end
-        
-        def drop_table(table_name, options = {})
-          super
-          clear_cache!
-        end
-
-        def add_column(table_name, column_name, type, options = {})
-          super
-          clear_cache!
         end
         
         def remove_column(table_name, *column_names)
@@ -73,12 +58,11 @@ module ActiveRecord
             remove_indexes(table_name, column_name)
             do_execute "ALTER TABLE #{quote_table_name(table_name)} DROP COLUMN #{quote_column_name(column_name)}"
           end
-          clear_cache!
         end
 
         def change_column(table_name, column_name, type, options = {})
           sql_commands = []
-          column_object = columns(table_name).detect { |c| c.name.to_s == column_name.to_s }
+          column_object = schema_cache.columns[table_name].detect { |c| c.name.to_s == column_name.to_s }
           change_column_sql = "ALTER TABLE #{quote_table_name(table_name)} ALTER COLUMN #{quote_column_name(column_name)} #{type_to_sql(type, options[:limit], options[:precision], options[:scale])}"
           change_column_sql << " NOT NULL" if options[:null] == false
           sql_commands << change_column_sql
@@ -89,19 +73,16 @@ module ActiveRecord
             sql_commands << "ALTER TABLE #{quote_table_name(table_name)} ADD CONSTRAINT #{default_constraint_name(table_name,column_name)} DEFAULT #{quote(options[:default])} FOR #{quote_column_name(column_name)}"
           end
           sql_commands.each { |c| do_execute(c) }
-          clear_cache!
         end
 
         def change_column_default(table_name, column_name, default)
           remove_default_constraint(table_name, column_name)
           do_execute "ALTER TABLE #{quote_table_name(table_name)} ADD CONSTRAINT #{default_constraint_name(table_name, column_name)} DEFAULT #{quote(default)} FOR #{quote_column_name(column_name)}"
-          clear_cache!
         end
 
         def rename_column(table_name, column_name, new_column_name)
-          detect_column_for!(table_name,column_name)
+          detect_column_for! table_name, column_name
           do_execute "EXEC sp_rename '#{table_name}.#{column_name}', '#{new_column_name}', 'COLUMN'"
-          clear_cache!
         end
         
         def remove_index!(table_name, index_name)
@@ -125,7 +106,7 @@ module ActiveRecord
         end
 
         def change_column_null(table_name, column_name, null, default = nil)
-          column = detect_column_for!(table_name,column_name)
+          column = detect_column_for! table_name, column_name
           unless null || default.nil?
             do_execute("UPDATE #{quote_table_name(table_name)} SET #{quote_column_name(column_name)}=#{quote(default)} WHERE #{quote_column_name(column_name)} IS NULL")
           end
@@ -136,8 +117,8 @@ module ActiveRecord
         
         # === SQLServer Specific ======================================== #
         
-        def views(name = nil)
-          @sqlserver_views_cache ||= tables(name,'VIEW')
+        def views
+          tables('VIEW')
         end
         
         
@@ -171,10 +152,10 @@ module ActiveRecord
         end
 
         def column_definitions(table_name)
-          db_name = unqualify_db_name(table_name)
+          db_name = Utils.unqualify_db_name(table_name)
           db_name_with_period = "#{db_name}." if db_name
-          table_schema = unqualify_table_schema(table_name)
-          table_name = unqualify_table_name(table_name)
+          table_schema = Utils.unqualify_table_schema(table_name)
+          table_name = Utils.unqualify_table_name(table_name)
           sql = %{
             SELECT DISTINCT 
             #{lowercase_schema_reflection_sql('columns.TABLE_NAME')} AS table_name,
@@ -230,7 +211,7 @@ module ActiveRecord
                          else
                            ci[:type]
                          end
-            if ci[:default_value].nil? && views.include?(table_name)
+            if ci[:default_value].nil? && schema_cache.view_names.include?(table_name)
               real_table_name = table_name_or_views_table_name(table_name)
               real_column_name = views_real_column_name(table_name,ci[:name])
               col_default_sql = "SELECT c.COLUMN_DEFAULT FROM #{db_name_with_period}INFORMATION_SCHEMA.COLUMNS c WHERE c.TABLE_NAME = '#{real_table_name}' AND c.COLUMN_NAME = '#{real_column_name}'"
@@ -281,19 +262,6 @@ module ActiveRecord
           log_info_schema_queries ? yield : ActiveRecord::Base.silence{ yield }
         end
         
-        def unqualify_table_name(table_name)
-          table_name.to_s.split('.').last.tr('[]','')
-        end
-
-        def unqualify_table_schema(table_name)
-          table_name.to_s.split('.')[-2].gsub(/[\[\]]/,'') rescue nil
-        end
-
-        def unqualify_db_name(table_name)
-          table_names = table_name.to_s.split('.')
-          table_names.length == 3 ? table_names.first.tr('[]','') : nil
-        end
-        
         def get_table_name(sql)
           if sql =~ /^\s*(INSERT|EXEC sp_executesql N'INSERT)\s+INTO\s+([^\(\s]+)\s*|^\s*update\s+([^\(\s]+)\s*/i
             $2 || $3
@@ -309,7 +277,7 @@ module ActiveRecord
         end
         
         def detect_column_for!(table_name, column_name)
-          unless column = columns(table_name).detect { |c| c.name == column_name.to_s }
+          unless column = schema_cache.columns[table_name].detect { |c| c.name == column_name.to_s }
             raise ActiveRecordError, "No such column: #{table_name}.#{column_name}"
           end
           column
@@ -322,48 +290,38 @@ module ActiveRecord
         # === SQLServer Specific (View Reflection) ====================== #
         
         def view_table_name(table_name)
-          view_info = view_information(table_name)
+          view_info = schema_cache.view_information(table_name)
           view_info ? get_table_name(view_info['VIEW_DEFINITION']) : table_name
         end
         
         def view_information(table_name)
-          table_name = unqualify_table_name(table_name)
-          @sqlserver_view_information_cache[table_name] ||= begin
-            view_info = info_schema_query { select_one("SELECT * FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_NAME = '#{table_name}'") }
-            if view_info
-              view_info = view_info.with_indifferent_access
-              if view_info[:VIEW_DEFINITION].blank? || view_info[:VIEW_DEFINITION].length == 4000
-                view_info[:VIEW_DEFINITION] = info_schema_query do
-                                                begin
-                                                  select_values("EXEC sp_helptext #{quote_table_name(table_name)}").join
-                                                rescue
-                                                  warn "No view definition found, possible permissions problem.\nPlease run GRANT VIEW DEFINITION TO your_user;"
-                                                end
+          table_name = Utils.unqualify_table_name(table_name)
+          view_info = info_schema_query { select_one("SELECT * FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_NAME = '#{table_name}'") }
+          if view_info
+            view_info = view_info.with_indifferent_access
+            if view_info[:VIEW_DEFINITION].blank? || view_info[:VIEW_DEFINITION].length == 4000
+              view_info[:VIEW_DEFINITION] = info_schema_query do
+                                              begin
+                                                select_values("EXEC sp_helptext #{quote_table_name(table_name)}").join
+                                              rescue
+                                                warn "No view definition found, possible permissions problem.\nPlease run GRANT VIEW DEFINITION TO your_user;"
+                                                nil
                                               end
-              end
+                                            end
             end
-            view_info
           end
+          view_info
         end
         
         def table_name_or_views_table_name(table_name)
-          unquoted_table_name = unqualify_table_name(table_name)
-          views.include?(unquoted_table_name) ? view_table_name(unquoted_table_name) : unquoted_table_name
+          unquoted_table_name = Utils.unqualify_table_name(table_name)
+          schema_cache.view_names.include?(unquoted_table_name) ? view_table_name(unquoted_table_name) : unquoted_table_name
         end
         
         def views_real_column_name(table_name,column_name)
-          view_definition = view_information(table_name)[:VIEW_DEFINITION]
+          view_definition = schema_cache.view_information(table_name)[:VIEW_DEFINITION]
           match_data = view_definition.match(/([\w-]*)\s+as\s+#{column_name}/im)
           match_data ? match_data[1] : column_name
-        end
-        
-        # === SQLServer Specific (Column/View Caches) =================== #
-
-        def initialize_sqlserver_caches
-          @sqlserver_columns_cache = {}
-          @sqlserver_views_cache = nil
-          @sqlserver_view_information_cache = {}
-          @sqlserver_quoted_column_and_table_names = {}
         end
         
         # === SQLServer Specific (Identity Inserts) ===================== #
@@ -398,7 +356,7 @@ module ActiveRecord
         end
 
         def identity_column(table_name)
-          columns(table_name).detect(&:is_identity?)
+          schema_cache.columns[table_name].detect(&:is_identity?)
         end
 
       end

@@ -14,9 +14,12 @@ require 'bundler'
 Bundler.setup
 require 'shoulda'
 require 'mocha'
+require 'active_support/dependencies'
+require 'active_record'
+require 'active_record/version'
+require 'active_record/connection_adapters/abstract_adapter'
 require 'cases/helper'
 require 'models/topic'
-require 'active_record/version'
 
 GC.copy_on_write_friendly = true if GC.respond_to?(:copy_on_write_friendly?)
 
@@ -95,10 +98,10 @@ end
 
 module ActiveRecord
   class SQLCounter
-    self.ignored_sql =  [ 
+    self.ignored_sql.concat([ 
       %r|SELECT SCOPE_IDENTITY|, %r{INFORMATION_SCHEMA\.(TABLES|VIEWS|COLUMNS)},
       %r|SELECT @@version|, %r|SELECT @@TRANCOUNT|, %r{(BEGIN|COMMIT|ROLLBACK|SAVE) TRANSACTION}
-    ]
+    ])
   end
 end
 

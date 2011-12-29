@@ -7,7 +7,7 @@ class SchemaTestSqlserver < ActiveRecord::TestCase
   end
   
   def read_schema_name(table_name)
-    @connection.instance_eval { unqualify_table_schema(table_name) }
+    ActiveRecord::ConnectionAdapters::Sqlserver::Utils.unqualify_table_schema(table_name)
   end  
   
   context 'When table is dbo schema' do

@@ -2,7 +2,7 @@ require 'cases/sqlserver_helper'
 require 'models/order'
 
 class SqlServerRailsOrders < ActiveRecord::Base
-  set_table_name 'rails.orders'
+  self.table_name = 'rails.orders'
 end
 
 class TableNameTestSqlserver < ActiveRecord::TestCase
