@@ -195,7 +195,7 @@ module ActiveRecord
         # Our Responsibility
         @connection_options = config
         connect
-        @database_version = info_schema_query { select_value('SELECT @@version') }
+        @database_version = info_schema_query { select_value 'SELECT @@version', 'SCHEMA' }
         @database_year = begin
                            if @database_version =~ /Microsoft SQL Azure/i
                              @sqlserver_azure = true
@@ -207,9 +207,9 @@ module ActiveRecord
                          rescue
                            0
                          end
-        @product_level    = info_schema_query { select_value("SELECT CAST(SERVERPROPERTY('productlevel') AS VARCHAR(128))") }
-        @product_version  = info_schema_query { select_value("SELECT CAST(SERVERPROPERTY('productversion') AS VARCHAR(128))") }
-        @edition          = info_schema_query { select_value("SELECT CAST(SERVERPROPERTY('edition') AS VARCHAR(128))") }
+        @product_level    = info_schema_query { select_value "SELECT CAST(SERVERPROPERTY('productlevel') AS VARCHAR(128))", 'SCHEMA' }
+        @product_version  = info_schema_query { select_value "SELECT CAST(SERVERPROPERTY('productversion') AS VARCHAR(128))", 'SCHEMA' }
+        @edition          = info_schema_query { select_value "SELECT CAST(SERVERPROPERTY('edition') AS VARCHAR(128))", 'SCHEMA' }
         initialize_dateformatter
         use_database
         unless SUPPORTED_VERSIONS.include?(@database_year)

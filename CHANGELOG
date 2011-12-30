@@ -1,6 +1,8 @@
 
 * 3.2.0 *
 
+* Properly use 'SCHEMA' name arguement in DB statements to comply with ActiveRecord::ExplainSubscriber::IGNORED_PAYLOADS.
+
 * Make use of the new ConnectionAdapters::SchemaCache for our needs.
 
 * New Sqlserver::Utils class for out helpers. Moved table name unquotes there.

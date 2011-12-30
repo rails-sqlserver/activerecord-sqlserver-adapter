@@ -196,7 +196,7 @@ module ActiveRecord
           }.gsub(/[ \t\r\n]+/,' ')
           binds = [['table_name', table_name]]
           binds << ['table_schema',table_schema] unless table_schema.blank?
-          results = info_schema_query { do_exec_query(sql, 'InfoSchema::ColumnDefinitions', binds) }
+          results = info_schema_query { do_exec_query(sql, 'SCHEMA', binds) }
           results.collect do |ci|
             ci = ci.symbolize_keys
             ci[:type] = case ci[:type]
@@ -215,7 +215,7 @@ module ActiveRecord
               real_table_name = table_name_or_views_table_name(table_name)
               real_column_name = views_real_column_name(table_name,ci[:name])
               col_default_sql = "SELECT c.COLUMN_DEFAULT FROM #{db_name_with_period}INFORMATION_SCHEMA.COLUMNS c WHERE c.TABLE_NAME = '#{real_table_name}' AND c.COLUMN_NAME = '#{real_column_name}'"
-              ci[:default_value] = info_schema_query { select_value(col_default_sql) }
+              ci[:default_value] = info_schema_query { select_value col_default_sql, 'SCHEMA' }
             end
             ci[:default_value] = case ci[:default_value]
                                  when nil, '(null)', '(NULL)'
@@ -235,7 +235,7 @@ module ActiveRecord
         end
         
         def remove_check_constraints(table_name, column_name)
-          constraints = info_schema_query { select_values("SELECT CONSTRAINT_NAME FROM INFORMATION_SCHEMA.CONSTRAINT_COLUMN_USAGE where TABLE_NAME = '#{quote_string(table_name)}' and COLUMN_NAME = '#{quote_string(column_name)}'") }
+          constraints = info_schema_query { select_values "SELECT CONSTRAINT_NAME FROM INFORMATION_SCHEMA.CONSTRAINT_COLUMN_USAGE where TABLE_NAME = '#{quote_string(table_name)}' and COLUMN_NAME = '#{quote_string(column_name)}'", 'SCHEMA' }
           constraints.each do |constraint|
             do_execute "ALTER TABLE #{quote_table_name(table_name)} DROP CONSTRAINT #{quote_column_name(constraint)}"
           end
@@ -296,13 +296,13 @@ module ActiveRecord
         
         def view_information(table_name)
           table_name = Utils.unqualify_table_name(table_name)
-          view_info = info_schema_query { select_one("SELECT * FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_NAME = '#{table_name}'") }
+          view_info = info_schema_query { select_one "SELECT * FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_NAME = '#{table_name}'", 'SCHEMA' }
           if view_info
             view_info = view_info.with_indifferent_access
             if view_info[:VIEW_DEFINITION].blank? || view_info[:VIEW_DEFINITION].length == 4000
               view_info[:VIEW_DEFINITION] = info_schema_query do
                                               begin
-                                                select_values("EXEC sp_helptext #{quote_table_name(table_name)}").join
+                                                select_values("EXEC sp_helptext #{quote_table_name(table_name)}", 'SCHEMA').join
                                               rescue
                                                 warn "No view definition found, possible permissions problem.\nPlease run GRANT VIEW DEFINITION TO your_user;"
                                                 nil
@@ -350,7 +350,7 @@ module ActiveRecord
 
         def set_identity_insert(table_name, enable = true)
           sql = "SET IDENTITY_INSERT #{table_name} #{enable ? 'ON' : 'OFF'}"
-          do_execute sql,'InfoSchema::SetIdentityInsert'
+          do_execute sql, 'SCHEMA'
         rescue Exception => e
           raise ActiveRecordError, "IDENTITY_INSERT could not be turned #{enable ? 'ON' : 'OFF'} for table #{table_name}"
         end

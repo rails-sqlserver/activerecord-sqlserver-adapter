@@ -40,7 +40,7 @@ module ActiveRecord
         end
 
         def outside_transaction?
-          info_schema_query { select_value("SELECT @@TRANCOUNT") == 0 }
+          info_schema_query { select_value('SELECT @@TRANCOUNT', 'SCHEMA') == 0 }
         end
         
         def supports_statement_cache?
@@ -143,7 +143,7 @@ module ActiveRecord
         
         def user_options_dateformat
           if sqlserver_azure?
-            info_schema_query { select_value "SELECT [dateformat] FROM [sys].[syslanguages] WHERE [langid] = @@LANGID" }
+            info_schema_query { select_value 'SELECT [dateformat] FROM [sys].[syslanguages] WHERE [langid] = @@LANGID', 'SCHEMA' }
           else
             user_options['dateformat']
           end
@@ -170,7 +170,7 @@ module ActiveRecord
         
         def user_options_language
           if sqlserver_azure?
-            info_schema_query { select_value "SELECT @@LANGUAGE AS [language]" }
+            info_schema_query { select_value 'SELECT @@LANGUAGE AS [language]', 'SCHEMA' }
           else
             user_options['language']
           end
