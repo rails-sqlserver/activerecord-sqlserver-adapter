@@ -181,7 +181,7 @@ module ActiveRecord
       attr_reader :database_version, :database_year, :spid, :product_level, :product_version, :edition
       
       cattr_accessor :native_text_database_type, :native_binary_database_type, :native_string_database_type,
-                     :log_info_schema_queries, :enable_default_unicode_types, :auto_connect, :retry_deadlock_victim,
+                     :enable_default_unicode_types, :auto_connect, :retry_deadlock_victim,
                      :cs_equality_operator, :lowercase_schema_reflection, :auto_connect_duration
       
       self.enable_default_unicode_types = true
@@ -195,7 +195,7 @@ module ActiveRecord
         # Our Responsibility
         @connection_options = config
         connect
-        @database_version = info_schema_query { select_value 'SELECT @@version', 'SCHEMA' }
+        @database_version = select_value 'SELECT @@version', 'SCHEMA'
         @database_year = begin
                            if @database_version =~ /Microsoft SQL Azure/i
                              @sqlserver_azure = true
@@ -207,9 +207,9 @@ module ActiveRecord
                          rescue
                            0
                          end
-        @product_level    = info_schema_query { select_value "SELECT CAST(SERVERPROPERTY('productlevel') AS VARCHAR(128))", 'SCHEMA' }
-        @product_version  = info_schema_query { select_value "SELECT CAST(SERVERPROPERTY('productversion') AS VARCHAR(128))", 'SCHEMA' }
-        @edition          = info_schema_query { select_value "SELECT CAST(SERVERPROPERTY('edition') AS VARCHAR(128))", 'SCHEMA' }
+        @product_level    = select_value "SELECT CAST(SERVERPROPERTY('productlevel') AS VARCHAR(128))", 'SCHEMA'
+        @product_version  = select_value "SELECT CAST(SERVERPROPERTY('productversion') AS VARCHAR(128))", 'SCHEMA'
+        @edition          = select_value "SELECT CAST(SERVERPROPERTY('edition') AS VARCHAR(128))", 'SCHEMA'
         initialize_dateformatter
         use_database
         unless SUPPORTED_VERSIONS.include?(@database_year)

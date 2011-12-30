@@ -40,7 +40,7 @@ module ActiveRecord
         end
 
         def outside_transaction?
-          info_schema_query { select_value('SELECT @@TRANCOUNT', 'SCHEMA') == 0 }
+          select_value('SELECT @@TRANCOUNT', 'SCHEMA') == 0
         end
         
         def supports_statement_cache?
@@ -131,19 +131,17 @@ module ActiveRecord
         
         def user_options
           return {} if sqlserver_azure?
-          info_schema_query do
-            select_rows("dbcc useroptions").inject(HashWithIndifferentAccess.new) do |values,row| 
-              set_option = row[0].gsub(/\s+/,'_')
-              user_value = row[1]
-              values[set_option] = user_value
-              values
-            end
+          select_rows("dbcc useroptions",'SCHEMA').inject(HashWithIndifferentAccess.new) do |values,row| 
+            set_option = row[0].gsub(/\s+/,'_')
+            user_value = row[1]
+            values[set_option] = user_value
+            values
           end
         end
         
         def user_options_dateformat
           if sqlserver_azure?
-            info_schema_query { select_value 'SELECT [dateformat] FROM [sys].[syslanguages] WHERE [langid] = @@LANGID', 'SCHEMA' }
+            select_value 'SELECT [dateformat] FROM [sys].[syslanguages] WHERE [langid] = @@LANGID', 'SCHEMA'
           else
             user_options['dateformat']
           end
@@ -151,18 +149,16 @@ module ActiveRecord
         
         def user_options_isolation_level
           if sqlserver_azure?
-            info_schema_query do
-              sql = %|SELECT CASE [transaction_isolation_level] 
-                      WHEN 0 THEN NULL
-                      WHEN 1 THEN 'READ UNCOMITTED' 
-                      WHEN 2 THEN 'READ COMITTED' 
-                      WHEN 3 THEN 'REPEATABLE' 
-                      WHEN 4 THEN 'SERIALIZABLE' 
-                      WHEN 5 THEN 'SNAPSHOT' END AS [isolation_level] 
-                      FROM [sys].[dm_exec_sessions] 
-                      WHERE [session_id] = @@SPID|.squish
-              select_value(sql)
-            end
+            sql = %|SELECT CASE [transaction_isolation_level] 
+                    WHEN 0 THEN NULL
+                    WHEN 1 THEN 'READ UNCOMITTED' 
+                    WHEN 2 THEN 'READ COMITTED' 
+                    WHEN 3 THEN 'REPEATABLE' 
+                    WHEN 4 THEN 'SERIALIZABLE' 
+                    WHEN 5 THEN 'SNAPSHOT' END AS [isolation_level] 
+                    FROM [sys].[dm_exec_sessions] 
+                    WHERE [session_id] = @@SPID|.squish
+            select_value sql, 'SCHEMA'
           else
             user_options['isolation_level']
           end
@@ -170,7 +166,7 @@ module ActiveRecord
         
         def user_options_language
           if sqlserver_azure?
-            info_schema_query { select_value 'SELECT @@LANGUAGE AS [language]', 'SCHEMA' }
+            select_value 'SELECT @@LANGUAGE AS [language]', 'SCHEMA'
           else
             user_options['language']
           end

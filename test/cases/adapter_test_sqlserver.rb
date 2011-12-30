@@ -400,12 +400,12 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
     context "finding out what user_options are available" do
       
       should "run the database consistency checker useroptions command" do
-        @connection.expects(:select_rows).with(regexp_matches(/^dbcc\s+useroptions$/i)).returns []
+        @connection.expects(:select_rows).with(regexp_matches(/^dbcc\s+useroptions$/i), 'SCHEMA').returns []
         @connection.user_options
       end
       
       should "return a underscored key hash with indifferent access of the results" do
-        @connection.expects(:select_rows).with(regexp_matches(/^dbcc\s+useroptions$/i)).returns [['some', 'thing'], ['isolation level', 'read uncommitted']]
+        @connection.expects(:select_rows).with(regexp_matches(/^dbcc\s+useroptions$/i), 'SCHEMA').returns [['some', 'thing'], ['isolation level', 'read uncommitted']]
         uo = @connection.user_options
         assert_equal 2, uo.keys.size
         assert_equal 'thing', uo['some']

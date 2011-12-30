@@ -139,15 +139,6 @@ ActiveRecord::Base.table_name_prefix = 'dbo.'
 ```
 
 
-#### Schema Information Logging
-
-By default all queries to the INFORMATION_SCHEMA table is silenced. If you think logging these queries are useful, you can enable it by adding this like to a initializer file.
-
-```ruby
-ActiveRecord::ConnectionAdapters::SQLServerAdapter.log_info_schema_queries = true
-```
-
-
 #### Auto Connecting
 
 By default the adapter will auto connect to lost DB connections. For every query it will retry at intervals of 2, 4, 8, 16 and 32 seconds. During each retry it will callback out to ActiveRecord::Base.did_retry_sqlserver_connection(connection,count). When all retries fail, it will callback to ActiveRecord::Base.did_lose_sqlserver_connection(connection). Both implementations of these methods are to write to the rails logger, however, they make great override points for notifications like Hoptoad. If you want to disable automatic reconnections use the following in an initializer.

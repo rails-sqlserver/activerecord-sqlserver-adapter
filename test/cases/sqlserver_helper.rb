@@ -26,7 +26,6 @@ GC.copy_on_write_friendly = true if GC.respond_to?(:copy_on_write_friendly?)
 ActiveRecord::Migration.verbose = false
 ActiveRecord::Base.logger = Logger.new(File.expand_path(File.join(SQLSERVER_TEST_ROOT,'debug.log')))
 ActiveRecord::Base.logger.level = 0
-ActiveRecord::ConnectionAdapters::SQLServerAdapter.log_info_schema_queries = false
 
 # Defining our classes in one place as well as soem core tests that need coercing date/time types.
 

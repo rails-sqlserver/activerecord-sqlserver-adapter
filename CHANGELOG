@@ -1,6 +1,8 @@
 
 * 3.2.0 *
 
+* Remove our log_info_schema_queries config since we are not hooking properly into AR's 'SCHEMA' names.
+
 * Properly use 'SCHEMA' name arguement in DB statements to comply with ActiveRecord::ExplainSubscriber::IGNORED_PAYLOADS.
 
 * Make use of the new ConnectionAdapters::SchemaCache for our needs.

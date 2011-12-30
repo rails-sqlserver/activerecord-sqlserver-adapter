@@ -8,9 +8,7 @@ module ActiveRecord
         end
 
         def tables(table_type = 'BASE TABLE')
-          info_schema_query do
-            select_values "SELECT #{lowercase_schema_reflection_sql('TABLE_NAME')} FROM INFORMATION_SCHEMA.TABLES #{"WHERE TABLE_TYPE = '#{table_type}'" if table_type} ORDER BY TABLE_NAME"
-          end
+          select_values "SELECT #{lowercase_schema_reflection_sql('TABLE_NAME')} FROM INFORMATION_SCHEMA.TABLES #{"WHERE TABLE_TYPE = '#{table_type}'" if table_type} ORDER BY TABLE_NAME", 'SCHEMA'
         end
 
         def table_exists?(table_name)
@@ -196,7 +194,7 @@ module ActiveRecord
           }.gsub(/[ \t\r\n]+/,' ')
           binds = [['table_name', table_name]]
           binds << ['table_schema',table_schema] unless table_schema.blank?
-          results = info_schema_query { do_exec_query(sql, 'SCHEMA', binds) }
+          results = do_exec_query(sql, 'SCHEMA', binds)
           results.collect do |ci|
             ci = ci.symbolize_keys
             ci[:type] = case ci[:type]
@@ -215,7 +213,7 @@ module ActiveRecord
               real_table_name = table_name_or_views_table_name(table_name)
               real_column_name = views_real_column_name(table_name,ci[:name])
               col_default_sql = "SELECT c.COLUMN_DEFAULT FROM #{db_name_with_period}INFORMATION_SCHEMA.COLUMNS c WHERE c.TABLE_NAME = '#{real_table_name}' AND c.COLUMN_NAME = '#{real_column_name}'"
-              ci[:default_value] = info_schema_query { select_value col_default_sql, 'SCHEMA' }
+              ci[:default_value] = select_value col_default_sql, 'SCHEMA'
             end
             ci[:default_value] = case ci[:default_value]
                                  when nil, '(null)', '(NULL)'
@@ -235,7 +233,7 @@ module ActiveRecord
         end
         
         def remove_check_constraints(table_name, column_name)
-          constraints = info_schema_query { select_values "SELECT CONSTRAINT_NAME FROM INFORMATION_SCHEMA.CONSTRAINT_COLUMN_USAGE where TABLE_NAME = '#{quote_string(table_name)}' and COLUMN_NAME = '#{quote_string(column_name)}'", 'SCHEMA' }
+          constraints = select_values "SELECT CONSTRAINT_NAME FROM INFORMATION_SCHEMA.CONSTRAINT_COLUMN_USAGE where TABLE_NAME = '#{quote_string(table_name)}' and COLUMN_NAME = '#{quote_string(column_name)}'", 'SCHEMA'
           constraints.each do |constraint|
             do_execute "ALTER TABLE #{quote_table_name(table_name)} DROP CONSTRAINT #{quote_column_name(constraint)}"
           end
@@ -257,10 +255,6 @@ module ActiveRecord
         end
         
         # === SQLServer Specific (Misc Helpers) ========================= #
-        
-        def info_schema_query
-          log_info_schema_queries ? yield : ActiveRecord::Base.silence{ yield }
-        end
         
         def get_table_name(sql)
           if sql =~ /^\s*(INSERT|EXEC sp_executesql N'INSERT)\s+INTO\s+([^\(\s]+)\s*|^\s*update\s+([^\(\s]+)\s*/i
@@ -296,17 +290,15 @@ module ActiveRecord
         
         def view_information(table_name)
           table_name = Utils.unqualify_table_name(table_name)
-          view_info = info_schema_query { select_one "SELECT * FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_NAME = '#{table_name}'", 'SCHEMA' }
+          view_info = select_one "SELECT * FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_NAME = '#{table_name}'", 'SCHEMA'
           if view_info
             view_info = view_info.with_indifferent_access
             if view_info[:VIEW_DEFINITION].blank? || view_info[:VIEW_DEFINITION].length == 4000
-              view_info[:VIEW_DEFINITION] = info_schema_query do
-                                              begin
-                                                select_values("EXEC sp_helptext #{quote_table_name(table_name)}", 'SCHEMA').join
-                                              rescue
-                                                warn "No view definition found, possible permissions problem.\nPlease run GRANT VIEW DEFINITION TO your_user;"
-                                                nil
-                                              end
+              view_info[:VIEW_DEFINITION] = begin
+                                              select_values("EXEC sp_helptext #{quote_table_name(table_name)}", 'SCHEMA').join
+                                            rescue
+                                              warn "No view definition found, possible permissions problem.\nPlease run GRANT VIEW DEFINITION TO your_user;"
+                                              nil
                                             end
             end
           end
