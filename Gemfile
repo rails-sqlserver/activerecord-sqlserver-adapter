@@ -32,5 +32,6 @@ group :development do
   gem 'mocha', '0.9.8'
   gem 'shoulda', '2.10.3'
   gem 'bench_press'
+  gem 'nokogiri'
 end
 

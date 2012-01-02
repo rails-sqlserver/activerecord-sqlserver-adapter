@@ -310,15 +310,14 @@ module ActiveRecord
         
         # === SQLServer Specific (Executing) ============================ #
 
-        def do_execute(sql, name = nil)
-          name ||= 'EXECUTE'
+        def do_execute(sql, name = 'SQL')
           log(sql, name) do
             with_sqlserver_error_handling { raw_connection_do(sql) }
           end
         end
         
         def do_exec_query(sql, name, binds)
-          statement = quote(sql)
+          explaining = name == 'EXPLAIN'
           names_and_types = []
           params = []
           binds.each_with_index do |(column,value),index|
@@ -337,10 +336,17 @@ module ActiveRecord
                                  raise "Unknown bind columns. We can account for this."
                                end
             quoted_value = ar_column ? quote(v,column) : quote(v,nil)
-            params << "@#{index} = #{quoted_value}"
+            params << (explaining ? quoted_value : "@#{index} = #{quoted_value}")
           end
-          sql = "EXEC sp_executesql #{statement}"
-          sql << ", #{quote(names_and_types.join(', '))}, #{params.join(', ')}" unless binds.empty?
+          if explaining
+            params.each_with_index do |param, index|
+              substitute_at_finder = /(@#{index})(?=(?:[^']|'[^']*')*$)/ # Finds unquoted @n values.
+              sql.sub! substitute_at_finder, param
+            end
+          else
+            sql = "EXEC sp_executesql #{quote(sql)}"
+            sql << ", #{quote(names_and_types.join(', '))}, #{params.join(', ')}" unless binds.empty?
+          end
           raw_select sql, name, binds, :ar_result => true
         end
         
@@ -357,7 +363,7 @@ module ActiveRecord
         
         # === SQLServer Specific (Selecting) ============================ #
 
-        def raw_select(sql, name=nil, binds=[], options={})
+        def raw_select(sql, name='SQL', binds=[], options={})
           log(sql,name,binds) { _raw_select(sql, options) }
         end
         

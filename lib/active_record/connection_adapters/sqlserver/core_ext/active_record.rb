@@ -1,9 +1,3 @@
-require 'set'
-require 'active_record/base'
-require 'active_record/version'
-require 'active_support/concern'
-require 'active_support/core_ext/class/attribute'
-
 module ActiveRecord
   module ConnectionAdapters
     module Sqlserver
@@ -46,4 +40,3 @@ end
 
 
 ActiveRecord::Base.send :include, ActiveRecord::ConnectionAdapters::Sqlserver::CoreExt::ActiveRecord
-

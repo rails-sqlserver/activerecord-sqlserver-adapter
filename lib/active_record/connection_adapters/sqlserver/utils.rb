@@ -5,6 +5,10 @@ module ActiveRecord
         
         class << self
           
+          def unquote_string(string)
+            string.to_s.gsub(/\'\'/, "'")
+          end
+          
           def unqualify_table_name(table_name)
             table_name.to_s.split('.').last.tr('[]','')
           end

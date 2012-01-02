@@ -1,18 +1,22 @@
+require 'base64'
 require 'arel/visitors/sqlserver'
 require 'active_record'
+require 'active_record/base'
+require 'active_support/concern'
+require 'active_support/core_ext/string'
 require 'active_record/connection_adapters/abstract_adapter'
 require 'active_record/connection_adapters/sqlserver/core_ext/active_record'
 require 'active_record/connection_adapters/sqlserver/core_ext/database_statements'
+require 'active_record/connection_adapters/sqlserver/core_ext/explain'
 require 'active_record/connection_adapters/sqlserver/database_limits'
 require 'active_record/connection_adapters/sqlserver/database_statements'
 require 'active_record/connection_adapters/sqlserver/errors'
 require 'active_record/connection_adapters/sqlserver/schema_cache'
 require 'active_record/connection_adapters/sqlserver/schema_statements'
+require 'active_record/connection_adapters/sqlserver/showplan'
 require 'active_record/connection_adapters/sqlserver/quoting'
 require 'active_record/connection_adapters/sqlserver/utils'
 require 'active_record/connection_adapters/sqlserver/version'
-require 'active_support/core_ext/string'
-require 'base64'
 
 module ActiveRecord
   
@@ -169,6 +173,7 @@ module ActiveRecord
       
       include Sqlserver::Quoting
       include Sqlserver::DatabaseStatements
+      include Sqlserver::Showplan
       include Sqlserver::SchemaStatements
       include Sqlserver::DatabaseLimits
       include Sqlserver::Errors
@@ -182,7 +187,8 @@ module ActiveRecord
       
       cattr_accessor :native_text_database_type, :native_binary_database_type, :native_string_database_type,
                      :enable_default_unicode_types, :auto_connect, :retry_deadlock_victim,
-                     :cs_equality_operator, :lowercase_schema_reflection, :auto_connect_duration
+                     :cs_equality_operator, :lowercase_schema_reflection, :auto_connect_duration,
+                     :showplan_option
       
       self.enable_default_unicode_types = true
       
@@ -239,7 +245,19 @@ module ActiveRecord
         true
       end
       
+      def supports_bulk_alter?
+        false
+      end
+      
       def supports_savepoints?
+        true
+      end
+      
+      def supports_index_sort_order?
+        true
+      end
+      
+      def supports_explain?
         true
       end
       

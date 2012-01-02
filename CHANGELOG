@@ -1,6 +1,9 @@
 
 * 3.2.0 *
 
+* ActiveRecord explain (SHOWPLAN) support. 
+  http://youtu.be/ckb3YYZZZ2Q
+
 * Remove our log_info_schema_queries config since we are not hooking properly into AR's 'SCHEMA' names.
 
 * Properly use 'SCHEMA' name arguement in DB statements to comply with ActiveRecord::ExplainSubscriber::IGNORED_PAYLOADS.
