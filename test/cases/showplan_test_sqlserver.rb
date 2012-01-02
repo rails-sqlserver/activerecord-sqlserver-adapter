@@ -14,9 +14,8 @@ class ShowplanTestSqlserver < ActiveRecord::TestCase
     end
     
     should 'from prepared statement' do
-      car = Car.first
       plan = capture_logger do
-        with_threshold(0) { Car.find(car.id) }
+        with_threshold(0) { Car.find(1) }
       end
       assert plan.include?('EXPLAIN for: SELECT TOP (1) [cars].* FROM [cars] WHERE [cars].[id] = @0 [["id", 1]]')
       assert plan.include?("Clustered Index Seek"), 'make sure we do not showplan the sp_executesql'
