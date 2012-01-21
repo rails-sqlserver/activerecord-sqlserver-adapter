@@ -62,6 +62,11 @@ class SpecificSchemaTestSqlserver < ActiveRecord::TestCase
         assert record.save
         assert_equal 12, record.reload.id
       end
+      
+      should 'use primary key for row table order in pagination sql' do
+        sql = /OVER \(ORDER BY \[natural_pk_data\]\.\[legacy_id\] ASC\)/
+        assert_sql(sql) { SqlServerNaturalPkData.limit(5).offset(5).all }
+      end
 
     end
     
