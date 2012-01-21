@@ -111,6 +111,14 @@ ActiveRecord::Schema.define do
     )
   NATURALPKINTTABLESQL
   
+  execute "IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'tinyint_pk_table') DROP TABLE tinyint_pk_table"
+  execute <<-TINYITPKTABLE
+    CREATE TABLE tinyint_pk_table(
+      id tinyint NOT NULL PRIMARY KEY,
+      name nvarchar(255)
+    )
+  TINYITPKTABLE
+  
   create_table 'quoted-table', :force => true do |t|
   end
   execute "IF EXISTS (SELECT TABLE_NAME FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_NAME = 'quoted-view1') DROP VIEW [quoted-view1]"

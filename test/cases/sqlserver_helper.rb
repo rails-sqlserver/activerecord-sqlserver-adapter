@@ -40,6 +40,7 @@ class CustomersView < ActiveRecord::Base ; self.table_name = 'customers_view' ; 
 class StringDefaultsView < ActiveRecord::Base ; self.table_name = 'string_defaults_view' ; end
 class StringDefaultsBigView < ActiveRecord::Base ; self.table_name = 'string_defaults_big_view' ; end
 class SqlServerNaturalPkData < ActiveRecord::Base ; self.table_name = 'natural_pk_data' ; self.primary_key = 'legacy_id' ; end
+class SqlServerTinyintPk < ActiveRecord::Base ; self.table_name = 'tinyint_pk_table' ; end
 class SqlServerNaturalPkIntData < ActiveRecord::Base ; self.table_name = 'natural_pk_int_data' ; end
 class SqlServerNaturalPkDataSchema < ActiveRecord::Base ; self.table_name = 'test.sql_server_schema_natural_id' ; end
 class SqlServerQuotedTable < ActiveRecord::Base ; self.table_name = 'quoted-table' ; end

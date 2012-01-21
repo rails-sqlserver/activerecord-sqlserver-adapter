@@ -47,6 +47,17 @@ class SpecificSchemaTestSqlserver < ActiveRecord::TestCase
       @edge_class = SqlServerEdgeSchema
     end
     
+    context 'with tinyint primary key' do
+      
+      should 'work with identity inserts and finders' do
+        record = SqlServerTinyintPk.new :name => '1'
+        record.id = 1
+        record.save!
+        assert_equal record, SqlServerTinyintPk.find(1)
+      end
+      
+    end
+    
     context 'with natural primary keys' do
 
       should 'work with identity inserts' do
