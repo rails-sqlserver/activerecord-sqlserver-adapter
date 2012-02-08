@@ -91,6 +91,23 @@ ActiveRecord::Schema.define do
     t.string :name
   end
   
+  # http://blogs.msdn.com/b/craigfr/archive/2008/03/19/ranking-functions-row-number.aspx
+  execute "IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'order_row_number') DROP TABLE order_row_number"
+  execute <<-ORDERROWNUMBERSQL
+    CREATE TABLE [order_row_number] (id int IDENTITY, a int, b int, c int)
+    CREATE UNIQUE CLUSTERED INDEX [idx_order_row_number_id] ON [order_row_number] ([id])
+    INSERT [order_row_number] VALUES (0, 1, 8)
+    INSERT [order_row_number] VALUES (0, 3, 6)
+    INSERT [order_row_number] VALUES (0, 5, 4)
+    INSERT [order_row_number] VALUES (0, 7, 2)
+    INSERT [order_row_number] VALUES (0, 9, 0)
+    INSERT [order_row_number] VALUES (1, 0, 9)
+    INSERT [order_row_number] VALUES (1, 2, 7)
+    INSERT [order_row_number] VALUES (1, 4, 5)
+    INSERT [order_row_number] VALUES (1, 6, 3)
+    INSERT [order_row_number] VALUES (1, 8, 1)
+  ORDERROWNUMBERSQL
+  
   execute "IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'natural_pk_data') DROP TABLE natural_pk_data"
   execute <<-NATURALPKTABLESQL
     CREATE TABLE natural_pk_data(

@@ -1,4 +1,9 @@
 
+* 3.2.1 *
+
+* Add explicit order-by clause for windowed results. Fixes #161.
+
+
 * 3.2.0 *
 
 * ActiveRecord explain (SHOWPLAN) support. 
