@@ -165,6 +165,7 @@ module Arel
       end
 
       def visit_Arel_Nodes_SelectStatementWithOffset(o)
+        o.limit ||= Arel::Nodes::Limit.new(9223372036854775807)
         orders = rowtable_orders(o)
         [ "SELECT",
           (visit(o.limit) if o.limit && !windowed_single_distinct_select_statement?(o)),
@@ -174,6 +175,7 @@ module Arel
             visit_Arel_Nodes_SelectStatementWithOutOffset(o,true),
           ") AS [__rnt]",
           (visit(o.offset) if o.offset),
+          "ORDER BY [__rnt].[__rn] ASC"
         ].compact.join ' '
       end
 

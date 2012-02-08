@@ -1,4 +1,9 @@
 
+* 3.1.6 *
+
+* Add explicit order-by clause for windowed results. Fixes #161.
+
+
 * 3.1.5 *
 
 * Better support for orders with an expression. Fixes #155. [Jason Frey, Joe Rafaniello]
