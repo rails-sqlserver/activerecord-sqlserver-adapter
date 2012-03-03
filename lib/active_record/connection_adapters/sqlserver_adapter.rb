@@ -242,7 +242,15 @@ module ActiveRecord
       end
       
       def supports_ddl_transactions?
-        true
+        @supports_ddl_transactions ||= false
+      end
+      
+      def disable_ddl_transactions
+        @supports_ddl_transactions = false
+      end
+      
+      def enable_ddl_transactions
+        @supports_ddl_transactions = true
       end
       
       def supports_bulk_alter?
