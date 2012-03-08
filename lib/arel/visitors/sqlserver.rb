@@ -45,7 +45,12 @@ module Arel
           x
         when String
           x.split(',').map do |s|
-            expr, direction = s.split
+            if s =~ /.*DESC\Z/i 
+              direction = 'DESC'
+            elsif s =~ /.*ASC\Z/i 
+              direction = 'ASC'
+            end
+            expr = s.split.delete_if{|x| x == direction}.join(' ')
             expr = Arel.sql(expr)
             direction = direction =~ /desc/i ? :desc : :asc
             Arel::Nodes::Ordering.new expr, direction
