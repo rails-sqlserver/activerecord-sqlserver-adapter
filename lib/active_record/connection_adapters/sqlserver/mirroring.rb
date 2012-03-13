@@ -54,7 +54,8 @@ module ActiveRecord
       def switch_to_mirror
         @connection_options[:mirror].each_key do |key|
           tmp = @connection_options[:mirror][key]
-          @connection_options[:mirror][key] = @connection_options[key]
+          @connection_options[:mirror][key] = @connection_options[key.to_sym] || @connection_options[key]
+          @connection_options[key.to_sym] = tmp
           @connection_options[key] = tmp
         end
       end      
