@@ -40,7 +40,7 @@ module ActiveRecord
         end
 
         def outside_transaction?
-          info_schema_query { select_value("SELECT @@TRANCOUNT") == 0 }
+          select_value('SELECT @@TRANCOUNT', 'SCHEMA') == 0
         end
         
         def supports_statement_cache?
@@ -131,19 +131,17 @@ module ActiveRecord
         
         def user_options
           return {} if sqlserver_azure?
-          info_schema_query do
-            select_rows("dbcc useroptions").inject(HashWithIndifferentAccess.new) do |values,row| 
-              set_option = row[0].gsub(/\s+/,'_')
-              user_value = row[1]
-              values[set_option] = user_value
-              values
-            end
+          select_rows("dbcc useroptions",'SCHEMA').inject(HashWithIndifferentAccess.new) do |values,row| 
+            set_option = row[0].gsub(/\s+/,'_')
+            user_value = row[1]
+            values[set_option] = user_value
+            values
           end
         end
         
         def user_options_dateformat
           if sqlserver_azure?
-            info_schema_query { select_value "SELECT [dateformat] FROM [sys].[syslanguages] WHERE [langid] = @@LANGID" }
+            select_value 'SELECT [dateformat] FROM [sys].[syslanguages] WHERE [langid] = @@LANGID', 'SCHEMA'
           else
             user_options['dateformat']
           end
@@ -151,18 +149,16 @@ module ActiveRecord
         
         def user_options_isolation_level
           if sqlserver_azure?
-            info_schema_query do
-              sql = %|SELECT CASE [transaction_isolation_level] 
-                      WHEN 0 THEN NULL
-                      WHEN 1 THEN 'READ UNCOMITTED' 
-                      WHEN 2 THEN 'READ COMITTED' 
-                      WHEN 3 THEN 'REPEATABLE' 
-                      WHEN 4 THEN 'SERIALIZABLE' 
-                      WHEN 5 THEN 'SNAPSHOT' END AS [isolation_level] 
-                      FROM [sys].[dm_exec_sessions] 
-                      WHERE [session_id] = @@SPID|.squish
-              select_value(sql)
-            end
+            sql = %|SELECT CASE [transaction_isolation_level] 
+                    WHEN 0 THEN NULL
+                    WHEN 1 THEN 'READ UNCOMITTED' 
+                    WHEN 2 THEN 'READ COMITTED' 
+                    WHEN 3 THEN 'REPEATABLE' 
+                    WHEN 4 THEN 'SERIALIZABLE' 
+                    WHEN 5 THEN 'SNAPSHOT' END AS [isolation_level] 
+                    FROM [sys].[dm_exec_sessions] 
+                    WHERE [session_id] = @@SPID|.squish
+            select_value sql, 'SCHEMA'
           else
             user_options['isolation_level']
           end
@@ -170,7 +166,7 @@ module ActiveRecord
         
         def user_options_language
           if sqlserver_azure?
-            info_schema_query { select_value "SELECT @@LANGUAGE AS [language]" }
+            select_value 'SELECT @@LANGUAGE AS [language]', 'SCHEMA'
           else
             user_options['language']
           end
@@ -314,15 +310,14 @@ module ActiveRecord
         
         # === SQLServer Specific (Executing) ============================ #
 
-        def do_execute(sql, name = nil)
-          name ||= 'EXECUTE'
+        def do_execute(sql, name = 'SQL')
           log(sql, name) do
             with_sqlserver_error_handling { raw_connection_do(sql) }
           end
         end
         
         def do_exec_query(sql, name, binds)
-          statement = quote(sql)
+          explaining = name == 'EXPLAIN'
           names_and_types = []
           params = []
           binds.each_with_index do |(column,value),index|
@@ -341,10 +336,17 @@ module ActiveRecord
                                  raise "Unknown bind columns. We can account for this."
                                end
             quoted_value = ar_column ? quote(v,column) : quote(v,nil)
-            params << "@#{index} = #{quoted_value}"
+            params << (explaining ? quoted_value : "@#{index} = #{quoted_value}")
           end
-          sql = "EXEC sp_executesql #{statement}"
-          sql << ", #{quote(names_and_types.join(', '))}, #{params.join(', ')}" unless binds.empty?
+          if explaining
+            params.each_with_index do |param, index|
+              substitute_at_finder = /(@#{index})(?=(?:[^']|'[^']*')*$)/ # Finds unquoted @n values.
+              sql.sub! substitute_at_finder, param
+            end
+          else
+            sql = "EXEC sp_executesql #{quote(sql)}"
+            sql << ", #{quote(names_and_types.join(', '))}, #{params.join(', ')}" unless binds.empty?
+          end
           raw_select sql, name, binds, :ar_result => true
         end
         
@@ -361,7 +363,7 @@ module ActiveRecord
         
         # === SQLServer Specific (Selecting) ============================ #
 
-        def raw_select(sql, name=nil, binds=[], options={})
+        def raw_select(sql, name='SQL', binds=[], options={})
           log(sql,name,binds) { _raw_select(sql, options) }
         end
         

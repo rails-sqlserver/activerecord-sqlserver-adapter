@@ -18,7 +18,7 @@ group :tinytds do
   if ENV['TINYTDS_SOURCE']
     gem 'tiny_tds', :path => ENV['TINYTDS_SOURCE']
   else
-    gem 'tiny_tds', '0.5.1.rc1'
+    gem 'tiny_tds', '0.5.1'
   end
 end
 
@@ -32,5 +32,6 @@ group :development do
   gem 'mocha', '0.9.8'
   gem 'shoulda', '2.10.3'
   gem 'bench_press'
+  gem 'nokogiri'
 end
 

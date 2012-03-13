@@ -42,8 +42,7 @@ module ActiveRecord
         end
 
         def quote_column_name(name)
-          @sqlserver_quoted_column_and_table_names[name] ||= 
-            name.to_s.split('.').map{ |n| n =~ /^\[.*\]$/ ? n : "[#{n.to_s.gsub(']', ']]')}]" }.join('.')
+          schema_cache.quote_name(name)
         end
 
         def quote_table_name(name)

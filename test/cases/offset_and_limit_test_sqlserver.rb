@@ -20,8 +20,8 @@ class OffsetAndLimitTestSqlserver < ActiveRecord::TestCase
   
   context 'When selecting with offset' do
 
-    should 'have no limit (top) if only offset is passed' do
-      assert_sql(/SELECT \[__rnt\]\.\* FROM.*WHERE \[__rnt\]\.\[__rn\] > \(1\)/) { Book.all(:offset=>1) }
+    should 'have limit (top) of 2147483647 if only offset is passed' do
+      assert_sql(/SELECT TOP \(9223372036854775807\) \[__rnt\]\.\* FROM.*WHERE \[__rnt\]\.\[__rn\] > \(1\)/) { Book.all(:offset=>1) }
     end
 
   end
@@ -46,7 +46,7 @@ class OffsetAndLimitTestSqlserver < ActiveRecord::TestCase
     end
 
     should 'alter SQL to limit number of records returned offset by specified amount' do
-      sql = %|EXEC sp_executesql N'SELECT TOP (3) [__rnt].* FROM ( SELECT ROW_NUMBER() OVER (ORDER BY [books].[id] ASC) AS [__rn], [books].* FROM [books] ) AS [__rnt] WHERE [__rnt].[__rn] > (5)'|
+      sql = %|EXEC sp_executesql N'SELECT TOP (3) [__rnt].* FROM ( SELECT ROW_NUMBER() OVER (ORDER BY [books].[id] ASC) AS [__rn], [books].* FROM [books] ) AS [__rnt] WHERE [__rnt].[__rn] > (5) ORDER BY [__rnt].[__rn] ASC'|
       assert_sql(sql) { Book.limit(3).offset(5).all }
     end
     

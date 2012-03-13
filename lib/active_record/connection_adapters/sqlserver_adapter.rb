@@ -1,17 +1,22 @@
+require 'base64'
 require 'arel/visitors/sqlserver'
 require 'active_record'
+require 'active_record/base'
+require 'active_support/concern'
+require 'active_support/core_ext/string'
 require 'active_record/connection_adapters/abstract_adapter'
 require 'active_record/connection_adapters/sqlserver/core_ext/active_record'
 require 'active_record/connection_adapters/sqlserver/core_ext/database_statements'
+require 'active_record/connection_adapters/sqlserver/core_ext/explain'
 require 'active_record/connection_adapters/sqlserver/database_limits'
 require 'active_record/connection_adapters/sqlserver/database_statements'
 require 'active_record/connection_adapters/sqlserver/errors'
+require 'active_record/connection_adapters/sqlserver/schema_cache'
 require 'active_record/connection_adapters/sqlserver/schema_statements'
+require 'active_record/connection_adapters/sqlserver/showplan'
 require 'active_record/connection_adapters/sqlserver/quoting'
+require 'active_record/connection_adapters/sqlserver/utils'
 require 'active_record/connection_adapters/sqlserver/version'
-require 'active_support/core_ext/kernel/requires'
-require 'active_support/core_ext/string'
-require 'base64'
 
 module ActiveRecord
   
@@ -32,7 +37,7 @@ module ActiveRecord
       else
         raise ArgumentError, "Unknown connection mode in #{config.inspect}."
       end
-      ConnectionAdapters::SQLServerAdapter.new(logger,config.merge(:mode=>mode))
+      ConnectionAdapters::SQLServerAdapter.new(nil, logger, nil, config.merge(:mode=>mode))
     end
     
     protected
@@ -168,6 +173,7 @@ module ActiveRecord
       
       include Sqlserver::Quoting
       include Sqlserver::DatabaseStatements
+      include Sqlserver::Showplan
       include Sqlserver::SchemaStatements
       include Sqlserver::DatabaseLimits
       include Sqlserver::Errors
@@ -175,29 +181,27 @@ module ActiveRecord
       
       ADAPTER_NAME                = 'SQLServer'.freeze
       DATABASE_VERSION_REGEXP     = /Microsoft SQL Server\s+"?(\d{4}|\w+)"?/
-      SUPPORTED_VERSIONS          = [2005,2008,2010,2011].freeze
+      SUPPORTED_VERSIONS          = [2005,2008,2010,2011,2012]
       
       attr_reader :database_version, :database_year, :spid, :product_level, :product_version, :edition
       
       cattr_accessor :native_text_database_type, :native_binary_database_type, :native_string_database_type,
-                     :log_info_schema_queries, :enable_default_unicode_types, :auto_connect, :retry_deadlock_victim,
-                     :cs_equality_operator, :lowercase_schema_reflection, :auto_connect_duration
+                     :enable_default_unicode_types, :auto_connect, :retry_deadlock_victim,
+                     :cs_equality_operator, :lowercase_schema_reflection, :auto_connect_duration,
+                     :showplan_option
       
       self.enable_default_unicode_types = true
       
-      class << self
-        
-        def visitor_for(pool)
-          Arel::Visitors::SQLServer.new(pool)
-        end
-        
-      end
       
-      def initialize(logger,config)
+      def initialize(connection, logger, pool, config)
+        super(connection, logger, pool)
+        # AbstractAdapter Responsibility
+        @schema_cache = Sqlserver::SchemaCache.new self
+        @visitor = Arel::Visitors::SQLServer.new self
+        # Our Responsibility
         @connection_options = config
         connect
-        super(@connection, logger)
-        @database_version = info_schema_query { select_value('SELECT @@version') }
+        @database_version = select_value 'SELECT @@version', 'SCHEMA'
         @database_year = begin
                            if @database_version =~ /Microsoft SQL Azure/i
                              @sqlserver_azure = true
@@ -209,11 +213,10 @@ module ActiveRecord
                          rescue
                            0
                          end
-        @product_level    = info_schema_query { select_value("SELECT CAST(SERVERPROPERTY('productlevel') AS VARCHAR(128))") }
-        @product_version  = info_schema_query { select_value("SELECT CAST(SERVERPROPERTY('productversion') AS VARCHAR(128))") }
-        @edition          = info_schema_query { select_value("SELECT CAST(SERVERPROPERTY('edition') AS VARCHAR(128))") }
+        @product_level    = select_value "SELECT CAST(SERVERPROPERTY('productlevel') AS VARCHAR(128))", 'SCHEMA'
+        @product_version  = select_value "SELECT CAST(SERVERPROPERTY('productversion') AS VARCHAR(128))", 'SCHEMA'
+        @edition          = select_value "SELECT CAST(SERVERPROPERTY('edition') AS VARCHAR(128))", 'SCHEMA'
         initialize_dateformatter
-        initialize_sqlserver_caches
         use_database
         unless SUPPORTED_VERSIONS.include?(@database_year)
           raise NotImplementedError, "Currently, only #{SUPPORTED_VERSIONS.to_sentence} are supported. We got back #{@database_version}."
@@ -242,7 +245,19 @@ module ActiveRecord
         true
       end
       
+      def supports_bulk_alter?
+        false
+      end
+      
       def supports_savepoints?
+        true
+      end
+      
+      def supports_index_sort_order?
+        true
+      end
+      
+      def supports_explain?
         true
       end
       
@@ -286,10 +301,6 @@ module ActiveRecord
         remove_database_connections_and_rollback { }
       end
       
-      def clear_cache!
-        initialize_sqlserver_caches
-      end
-      
       # === Abstract Adapter (Misc Support) =========================== #
       
       def pk_and_sequence_for(table_name)
@@ -298,7 +309,7 @@ module ActiveRecord
       end
 
       def primary_key(table_name)
-        identity_column(table_name).try(:name) || columns(table_name).detect(&:is_primary?).try(:name)
+        identity_column(table_name).try(:name) || schema_cache.columns[table_name].detect(&:is_primary?).try(:name)
       end
       
       # === SQLServer Specific (DB Reflection) ======================== #
@@ -317,6 +328,10 @@ module ActiveRecord
       
       def sqlserver_2011?
         @database_year == 2011
+      end
+      
+      def sqlserver_2012?
+        @database_year == 2012
       end
       
       def sqlserver_azure?
@@ -391,7 +406,7 @@ module ActiveRecord
       
       def connect
         config = @connection_options
-        @connection = case @connection_options[:mode]
+        @connection = case config[:mode]
                       when :dblib
                         appname = config[:appname] || configure_application_name || Rails.application.class.name.split('::').first rescue nil
                         login_timeout = config[:login_timeout].present? ? config[:login_timeout].to_i : nil
@@ -442,7 +457,7 @@ module ActiveRecord
                           end
                         end
                       end
-        @spid             = _raw_select("SELECT @@SPID", :fetch => :rows).first.first
+        @spid = _raw_select("SELECT @@SPID", :fetch => :rows).first.first
         configure_connection
       rescue
         raise unless @auto_connecting
