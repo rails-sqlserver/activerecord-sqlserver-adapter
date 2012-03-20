@@ -199,6 +199,7 @@ module ActiveRecord
         @schema_cache = Sqlserver::SchemaCache.new self
         @visitor = Arel::Visitors::SQLServer.new self
         # Our Responsibility
+        @config =
         @connection_options = config
         connect
         @database_version = select_value 'SELECT @@version', 'SCHEMA'
