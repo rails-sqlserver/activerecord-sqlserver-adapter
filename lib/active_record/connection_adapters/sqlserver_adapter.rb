@@ -196,6 +196,7 @@ module ActiveRecord
       def initialize(connection, logger, pool, config)
         super(connection, logger, pool)
         # AbstractAdapter Responsibility
+        @config = config
         @schema_cache = Sqlserver::SchemaCache.new self
         @visitor = Arel::Visitors::SQLServer.new self
         # Our Responsibility
