@@ -191,7 +191,7 @@ module ActiveRecord
             INNER JOIN #{db_name_with_period}.sys.objects AS o
               ON s.schema_id = o.schema_id
               AND o.is_ms_shipped = 0
-              AND o.type = 'U'
+              AND o.type IN ('U', 'V')
               AND o.name = columns.TABLE_NAME
             INNER JOIN #{db_name_with_period}.sys.columns AS c
               ON o.object_id = c.object_id
