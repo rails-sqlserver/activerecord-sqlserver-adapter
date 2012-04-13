@@ -1,10 +1,10 @@
 require 'base64'
 require 'arel/visitors/sqlserver'
 require 'active_record'
+require 'active_record/connection_adapters/abstract_adapter'
 require 'active_record/base'
 require 'active_support/concern'
 require 'active_support/core_ext/string'
-require 'active_record/connection_adapters/abstract_adapter'
 require 'active_record/connection_adapters/sqlserver/core_ext/active_record'
 require 'active_record/connection_adapters/sqlserver/core_ext/database_statements'
 require 'active_record/connection_adapters/sqlserver/core_ext/explain'
@@ -199,6 +199,7 @@ module ActiveRecord
         @schema_cache = Sqlserver::SchemaCache.new self
         @visitor = Arel::Visitors::SQLServer.new self
         # Our Responsibility
+        @config =
         @connection_options = config
         connect
         @database_version = select_value 'SELECT @@version', 'SCHEMA'
