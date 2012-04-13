@@ -165,7 +165,7 @@ module ActiveRecord
             columns.ordinal_position,
             CASE
               WHEN columns.DATA_TYPE IN ('nchar','nvarchar') THEN columns.CHARACTER_MAXIMUM_LENGTH
-              ELSE COL_LENGTH(columns.TABLE_SCHEMA+'.'+columns.TABLE_NAME, columns.COLUMN_NAME)
+              ELSE COL_LENGTH('#{db_name_with_period}'+columns.TABLE_SCHEMA+'.'+columns.TABLE_NAME, columns.COLUMN_NAME)
             END AS [length],
             CASE
               WHEN columns.IS_NULLABLE = 'YES' THEN 1
@@ -175,19 +175,27 @@ module ActiveRecord
               WHEN KCU.COLUMN_NAME IS NOT NULL AND TC.CONSTRAINT_TYPE = N'PRIMARY KEY' THEN 1
               ELSE NULL
             END AS [is_primary],
-            CASE 
-              WHEN COLUMNPROPERTY(OBJECT_ID(columns.TABLE_SCHEMA+'.'+columns.TABLE_NAME), columns.COLUMN_NAME, 'IsIdentity') = 1 THEN 1
-              ELSE NULL
-            END AS [is_identity]
+            c.is_identity AS [is_identity]
             FROM #{db_name_with_period}INFORMATION_SCHEMA.COLUMNS columns
-            LEFT OUTER JOIN #{db_name_with_period}INFORMATION_SCHEMA.TABLE_CONSTRAINTS AS TC 
-              ON TC.TABLE_NAME = columns.TABLE_NAME 
-              AND TC.CONSTRAINT_TYPE = N'PRIMARY KEY' 
+            LEFT OUTER JOIN #{db_name_with_period}INFORMATION_SCHEMA.TABLE_CONSTRAINTS AS TC
+              ON TC.TABLE_NAME = columns.TABLE_NAME
+              AND TC.CONSTRAINT_TYPE = N'PRIMARY KEY'
             LEFT OUTER JOIN #{db_name_with_period}INFORMATION_SCHEMA.KEY_COLUMN_USAGE AS KCU
               ON KCU.COLUMN_NAME = columns.COLUMN_NAME
               AND KCU.CONSTRAINT_NAME = TC.CONSTRAINT_NAME
               AND KCU.CONSTRAINT_CATALOG = TC.CONSTRAINT_CATALOG
               AND KCU.CONSTRAINT_SCHEMA = TC.CONSTRAINT_SCHEMA
+            INNER JOIN #{db_name_with_period}.sys.schemas AS s
+              ON s.name = columns.TABLE_SCHEMA
+              AND s.schema_id = s.schema_id
+            INNER JOIN #{db_name_with_period}.sys.objects AS o
+              ON s.schema_id = o.schema_id
+              AND o.is_ms_shipped = 0
+              AND o.type IN ('U', 'V')
+              AND o.name = columns.TABLE_NAME
+            INNER JOIN #{db_name_with_period}.sys.columns AS c
+              ON o.object_id = c.object_id
+              AND c.name = columns.COLUMN_NAME
             WHERE columns.TABLE_NAME = @0
               AND columns.TABLE_SCHEMA = #{table_schema.blank? ? "schema_name()" : "@1"}
             ORDER BY columns.ordinal_position
@@ -227,7 +235,6 @@ module ActiveRecord
                                  end
             ci[:null] = ci[:is_nullable].to_i == 1 ; ci.delete(:is_nullable)
             ci[:is_primary] = ci[:is_primary].to_i == 1
-            ci[:is_identity] = ci[:is_identity].to_i == 1
             ci
           end
         end
