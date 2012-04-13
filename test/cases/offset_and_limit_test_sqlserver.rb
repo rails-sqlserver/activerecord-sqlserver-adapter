@@ -33,15 +33,19 @@ class OffsetAndLimitTestSqlserver < ActiveRecord::TestCase
       assert_equal Book.all[5,3].map(&:id), books.map(&:id)
     end
     
-    should 'allow sql literal for offset' do
-      assert_sql(/WHERE \[__rnt\]\.\[__rn\] > \(3-2\)/) { Book.limit(10).offset(Arel.sql('3-2')).all }
+    # ActiveRecord Regression 3.2.3?
+    # https://github.com/rails/rails/commit/a2c2f406612a1855fbc6fe816cf3e15b4ef531d3#commitcomment-1208811
+    should_eventually 'allow sql literal for offset' do
+      assert_sql(/WHERE \[__rnt\]\.\[__rn\] > \(3-2\)/) { Book.limit(10).offset(Arel::Nodes::Ascending.new('3-2')).all }
       assert_sql(/WHERE \[__rnt\]\.\[__rn\] > \(SELECT 8 AS \[count\]\)/) do 
         books = Book.all :limit => 3, :offset => Arel.sql('SELECT 8 AS [count]')
         assert_equal 2, books.size, 'remember there are only 10 books and offset is 8'
       end
     end
     
-    should 'not convert strings which look like integers to integers' do
+    # ActiveRecord Regression 3.2.3?
+    # https://github.com/rails/rails/commit/a2c2f406612a1855fbc6fe816cf3e15b4ef531d3#commitcomment-1208811
+    should_eventually 'not convert strings which look like integers to integers' do
       assert_sql(/WHERE \[__rnt\]\.\[__rn\] > \(N''5''\)/) { Book.limit(10).offset('5').all }
     end
 
