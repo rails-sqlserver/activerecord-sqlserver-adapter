@@ -188,6 +188,16 @@ module ActiveRecord
               AND KCU.CONSTRAINT_NAME = TC.CONSTRAINT_NAME
               AND KCU.CONSTRAINT_CATALOG = TC.CONSTRAINT_CATALOG
               AND KCU.CONSTRAINT_SCHEMA = TC.CONSTRAINT_SCHEMA
+            INNER JOIN #{db_name_with_period}.sys.schemas AS s
+              ON s.name = columns.TABLE_SCHEMA
+              AND s.schema_id = s.schema_id
+            INNER JOIN #{db_name_with_period}.sys.objects AS o
+              ON s.schema_id = o.schema_id
+            INNER JOIN #{db_name_with_period}.sys.columns AS c
+              ON o.object_id = c.object_id
+              AND o.is_ms_shipped = 0
+              AND o.type = 'U'
+              AND c.name = columns.COLUMN_NAME
             WHERE columns.TABLE_NAME = @0
               AND columns.TABLE_SCHEMA = #{table_schema.blank? ? "schema_name()" : "@1"}
             ORDER BY columns.ordinal_position
