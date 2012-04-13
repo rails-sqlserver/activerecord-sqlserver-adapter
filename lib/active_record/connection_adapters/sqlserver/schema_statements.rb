@@ -2,7 +2,7 @@ module ActiveRecord
   module ConnectionAdapters
     module Sqlserver
       module SchemaStatements
-
+        
         def native_database_types
           @native_database_types ||= initialize_native_database_types.freeze
         end
@@ -43,11 +43,11 @@ module ActiveRecord
             SQLServerColumn.new ci[:name], ci[:default_value], ci[:type], ci[:null], sqlserver_options
           end
         end
-
+        
         def rename_table(table_name, new_name)
           do_execute "EXEC sp_rename '#{table_name}', '#{new_name}'"
         end
-
+        
         def remove_column(table_name, *column_names)
           raise ArgumentError.new("You must specify at least one column name.  Example: remove_column(:people, :first_name)") if column_names.empty?
           column_names.flatten.each do |column_name|
@@ -82,7 +82,7 @@ module ActiveRecord
           detect_column_for! table_name, column_name
           do_execute "EXEC sp_rename '#{table_name}.#{column_name}', '#{new_column_name}', 'COLUMN'"
         end
-
+        
         def remove_index!(table_name, index_name)
           do_execute "DROP INDEX #{quote_column_name(index_name)} ON #{quote_table_name(table_name)}"
         end
@@ -112,18 +112,18 @@ module ActiveRecord
           sql << " NOT NULL" unless null
           do_execute sql
         end
-
+        
         # === SQLServer Specific ======================================== #
-
+        
         def views
           tables('VIEW')
         end
-
-
+        
+        
         protected
-
+        
         # === SQLServer Specific ======================================== #
-
+        
         def initialize_native_database_types
           {
             :primary_key  => "int NOT NULL IDENTITY(1,1) PRIMARY KEY",
@@ -155,7 +155,7 @@ module ActiveRecord
           table_schema = Utils.unqualify_table_schema(table_name)
           table_name = Utils.unqualify_table_name(table_name)
           sql = %{
-            SELECT DISTINCT
+            SELECT DISTINCT 
             #{lowercase_schema_reflection_sql('columns.TABLE_NAME')} AS table_name,
             #{lowercase_schema_reflection_sql('columns.COLUMN_NAME')} AS name,
             columns.DATA_TYPE AS type,
@@ -171,7 +171,7 @@ module ActiveRecord
               WHEN columns.IS_NULLABLE = 'YES' THEN 1
               ELSE NULL
             END AS [is_nullable],
-            CASE
+            CASE 
               WHEN KCU.COLUMN_NAME IS NOT NULL AND TC.CONSTRAINT_TYPE = N'PRIMARY KEY' THEN 1
               ELSE NULL
             END AS [is_primary],
@@ -238,7 +238,7 @@ module ActiveRecord
             ci
           end
         end
-
+        
         def remove_check_constraints(table_name, column_name)
           constraints = select_values "SELECT CONSTRAINT_NAME FROM INFORMATION_SCHEMA.CONSTRAINT_COLUMN_USAGE where TABLE_NAME = '#{quote_string(table_name)}' and COLUMN_NAME = '#{quote_string(column_name)}'", 'SCHEMA'
           constraints.each do |constraint|
@@ -260,9 +260,9 @@ module ActiveRecord
             remove_index(table_name, {:name => index.name})
           end
         end
-
+        
         # === SQLServer Specific (Misc Helpers) ========================= #
-
+        
         def get_table_name(sql)
           if sql =~ /^\s*(INSERT|EXEC sp_executesql N'INSERT)\s+INTO\s+([^\(\s]+)\s*|^\s*update\s+([^\(\s]+)\s*/i
             $2 || $3
@@ -272,29 +272,29 @@ module ActiveRecord
             nil
           end
         end
-
+        
         def default_constraint_name(table_name, column_name)
           "DF_#{table_name}_#{column_name}"
         end
-
+        
         def detect_column_for!(table_name, column_name)
           unless column = schema_cache.columns[table_name].detect { |c| c.name == column_name.to_s }
             raise ActiveRecordError, "No such column: #{table_name}.#{column_name}"
           end
           column
         end
-
+        
         def lowercase_schema_reflection_sql(node)
           lowercase_schema_reflection ? "LOWER(#{node})" : node
         end
-
+        
         # === SQLServer Specific (View Reflection) ====================== #
-
+        
         def view_table_name(table_name)
           view_info = schema_cache.view_information(table_name)
           view_info ? get_table_name(view_info['VIEW_DEFINITION']) : table_name
         end
-
+        
         def view_information(table_name)
           table_name = Utils.unqualify_table_name(table_name)
           view_info = select_one "SELECT * FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_NAME = '#{table_name}'", 'SCHEMA'
@@ -311,18 +311,18 @@ module ActiveRecord
           end
           view_info
         end
-
+        
         def table_name_or_views_table_name(table_name)
           unquoted_table_name = Utils.unqualify_table_name(table_name)
           schema_cache.view_names.include?(unquoted_table_name) ? view_table_name(unquoted_table_name) : unquoted_table_name
         end
-
+        
         def views_real_column_name(table_name,column_name)
           view_definition = schema_cache.view_information(table_name)[:VIEW_DEFINITION]
           match_data = view_definition.match(/([\w-]*)\s+as\s+#{column_name}/im)
           match_data ? match_data[1] : column_name
         end
-
+        
         # === SQLServer Specific (Identity Inserts) ===================== #
 
         def query_requires_identity_insert?(sql)
@@ -334,11 +334,11 @@ module ActiveRecord
             false
           end
         end
-
+        
         def insert_sql?(sql)
           !(sql =~ /^\s*(INSERT|EXEC sp_executesql N'INSERT)/i).nil?
         end
-
+        
         def with_identity_insert_enabled(table_name)
           table_name = quote_table_name(table_name_or_views_table_name(table_name))
           set_identity_insert(table_name, true)
