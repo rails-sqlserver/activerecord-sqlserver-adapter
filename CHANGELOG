@@ -1,4 +1,15 @@
 
+* 3.2.2 *
+
+* Fix exists? with offset by patching visitor. Fixes #171 and Fixes #167
+
+* Set default text size to 2147483647 for TinyTDS connections. Fixes #181
+
+* Set @config ivar for 3rd party libs. Fixes #177
+
+* Make #sql_type_for_statement work for integers that may have empty parens or none at all. Fixes #175
+
+
 * 3.2.1 *
 
 * Add explicit order-by clause for windowed results. Fixes #161.

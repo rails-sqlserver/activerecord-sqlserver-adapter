@@ -96,7 +96,7 @@ module ActiveRecord
       
       def sql_type_for_statement
         if is_integer? || is_real?
-          sql_type.sub(/\(\d+\)/,'')
+          sql_type.sub(/\((\d+)?\)/,'')
         else
           sql_type
         end
@@ -199,6 +199,7 @@ module ActiveRecord
         @schema_cache = Sqlserver::SchemaCache.new self
         @visitor = Arel::Visitors::SQLServer.new self
         # Our Responsibility
+        @config = config
         @connection_options = config
         connect
         @database_version = select_value 'SELECT @@version', 'SCHEMA'
@@ -438,6 +439,7 @@ module ActiveRecord
                             client.execute("SET CURSOR_CLOSE_ON_COMMIT OFF").do
                             client.execute("SET IMPLICIT_TRANSACTIONS OFF").do
                           end
+                          client.execute("SET TEXTSIZE 2147483647").do
                         end
                       when :odbc
                         if config[:dsn].include?(';')
