@@ -91,7 +91,7 @@ module ActiveRecord
       
       def sql_type_for_statement
         if is_integer? || is_real?
-          sql_type.sub(/\(\d+\)/,'')
+          sql_type.sub(/\((\d+)?\)/,'')
         else
           sql_type
         end
@@ -197,6 +197,7 @@ module ActiveRecord
         @connection_options = config
         connect
         super(@connection, logger)
+        @config = config
         @database_version = info_schema_query { select_value('SELECT @@version') }
         @database_year = begin
                            if @database_version =~ /Microsoft SQL Azure/i
@@ -423,6 +424,7 @@ module ActiveRecord
                             client.execute("SET CURSOR_CLOSE_ON_COMMIT OFF").do
                             client.execute("SET IMPLICIT_TRANSACTIONS OFF").do
                           end
+                          client.execute("SET TEXTSIZE 2147483647").do
                         end
                       when :odbc
                         if config[:dsn].include?(';')

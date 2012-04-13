@@ -155,7 +155,7 @@ module Arel
         end
         [ ("SELECT" if !windowed),
           (visit(o.limit) if o.limit && !windowed),
-          (projections.map{ |x| visit(x) }.join(', ')),
+          (projections.map{ |x| v = visit(x); v == "1" ? "1 AS [__wrp]" : v }.join(', ')),
           (source_with_lock_for_select_statement(o)),
           ("WHERE #{core.wheres.map{ |x| visit(x) }.join ' AND ' }" unless core.wheres.empty?),
           ("GROUP BY #{groups.map { |x| visit x }.join ', ' }" unless groups.empty?),
