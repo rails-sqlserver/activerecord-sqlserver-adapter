@@ -175,10 +175,7 @@ module ActiveRecord
               WHEN KCU.COLUMN_NAME IS NOT NULL AND TC.CONSTRAINT_TYPE = N'PRIMARY KEY' THEN 1
               ELSE NULL
             END AS [is_primary],
-            CASE
-              WHEN COLUMNPROPERTY(OBJECT_ID('#{db_name_with_period}'+columns.TABLE_SCHEMA+'.'+columns.TABLE_NAME), columns.COLUMN_NAME, 'IsIdentity') = 1 THEN 1
-              ELSE NULL
-            END AS [is_identity]
+            c.is_identity AS [is_identity]
             FROM #{db_name_with_period}INFORMATION_SCHEMA.COLUMNS columns
             LEFT OUTER JOIN #{db_name_with_period}INFORMATION_SCHEMA.TABLE_CONSTRAINTS AS TC
               ON TC.TABLE_NAME = columns.TABLE_NAME
