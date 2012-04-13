@@ -20,14 +20,18 @@ class OffsetAndLimitTestSqlserver < ActiveRecord::TestCase
   
   context 'When selecting with offset' do
 
-    should 'have limit (top) of 2147483647 if only offset is passed' do
+    should 'have limit (top) of 9223372036854775807 if only offset is passed' do
       assert_sql(/SELECT TOP \(9223372036854775807\) \[__rnt\]\.\* FROM.*WHERE \[__rnt\]\.\[__rn\] > \(1\)/) { Book.all(:offset=>1) }
     end
 
+    should 'support calling exists?' do
+      assert Book.offset(3).exists?
+    end
   end
   
   context 'When selecting with limit and offset' do
     
+
     should 'work with fully qualified table and columns in select' do 
       books = Book.all :select => 'books.id, books.name', :limit => 3, :offset => 5
       assert_equal Book.all[5,3].map(&:id), books.map(&:id)
