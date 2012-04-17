@@ -112,7 +112,7 @@ module Arel
       end
 
       def visit_Arel_Nodes_Limit(o)
-        "TOP (#{visit o.expr})"
+        "TOP (#{visit o.expr})".gsub(/(TOP )\((\d+)\)/, '\1 \2')
       end
 
       def visit_Arel_Nodes_Lock(o)
