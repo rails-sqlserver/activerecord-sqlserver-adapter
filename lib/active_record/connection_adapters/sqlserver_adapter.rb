@@ -181,7 +181,7 @@ module ActiveRecord
       
       ADAPTER_NAME                = 'SQLServer'.freeze
       DATABASE_VERSION_REGEXP     = /Microsoft SQL Server\s+"?(\d{4}|\w+)"?/
-      SUPPORTED_VERSIONS          = [2005,2008,2010,2011,2012]
+      SUPPORTED_VERSIONS          = [7,2005,2008,2010,2011,2012]
       
       attr_reader :database_version, :database_year, :spid, :product_level, :product_version, :edition
       
@@ -214,9 +214,17 @@ module ActiveRecord
                          rescue
                            0
                          end
-        @product_level    = select_value "SELECT CAST(SERVERPROPERTY('productlevel') AS VARCHAR(128))", 'SCHEMA'
-        @product_version  = select_value "SELECT CAST(SERVERPROPERTY('productversion') AS VARCHAR(128))", 'SCHEMA'
-        @edition          = select_value "SELECT CAST(SERVERPROPERTY('edition') AS VARCHAR(128))", 'SCHEMA'
+
+        case @database_version
+        when /^Microsoft SQL Server  7[^ ]+ - ([0-9\.]+)/
+          @product_version = $1
+          @database_year = 7
+        else
+          @product_level    = select_value "SELECT CAST(SERVERPROPERTY('productlevel') AS VARCHAR(128))", 'SCHEMA'
+          @product_version  = select_value "SELECT CAST(SERVERPROPERTY('productversion') AS VARCHAR(128))", 'SCHEMA'
+          @edition          = select_value "SELECT CAST(SERVERPROPERTY('edition') AS VARCHAR(128))", 'SCHEMA'
+        end
+        
         initialize_dateformatter
         use_database
         unless SUPPORTED_VERSIONS.include?(@database_year)
@@ -317,6 +325,10 @@ module ActiveRecord
       
       def sqlserver?
         true
+      end
+      
+      def sqlserver_7?
+        @database_year == 7
       end
       
       def sqlserver_2005?
