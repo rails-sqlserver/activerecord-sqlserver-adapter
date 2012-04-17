@@ -328,7 +328,7 @@ module ActiveRecord
                                  v = value.to_i if column.is_integer? && value.present?
                                  "@#{index} #{column.sql_type_for_statement}"
                                elsif column.acts_like?(:string)
-                                 "@#{index} nvarchar(max)"
+                                 "@#{index} nvarchar(#{max_varchar_length})"
                                elsif column.is_a?(Fixnum)
                                  v = value.to_i
                                  "@#{index} int"

@@ -388,6 +388,10 @@ module ActiveRecord
         sqlserver_2005? ? 'datetime' : 'date'
       end
       
+      def max_varchar_length
+        sqlserver_7? ? '255' : 'max'
+      end
+      
       def native_binary_database_type
         @@native_binary_database_type || 'varbinary(max)'
       end
