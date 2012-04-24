@@ -71,7 +71,10 @@ module ActiveRecord
             if value.is_a?(Date)
               time_zone_qualified_value.to_time.xmlschema.to(18)
             else
-              time_zone_qualified_value = time_zone_qualified_value.to_time if value.is_a?(ActiveSupport::TimeWithZone)
+              # CHANGED [Ruby 1.8] Not needed when 1.8 is dropped.
+              if value.is_a?(ActiveSupport::TimeWithZone) && RUBY_VERSION < '1.9'
+                time_zone_qualified_value = time_zone_qualified_value.to_time 
+              end
               time_zone_qualified_value.iso8601(3).to(22)
             end
           else
