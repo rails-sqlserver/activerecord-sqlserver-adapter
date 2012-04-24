@@ -1,4 +1,9 @@
 
+* 3.2.3 *
+
+* Fixed datetime quoting for ActiveSupport::TimeWithZone objects. Fixes #187 and #189.
+
+
 * 3.2.2 *
 
 * Fixes all known issues with cross database schema reflection. Fixes #185 [Chris Altman]

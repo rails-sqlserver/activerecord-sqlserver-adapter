@@ -374,7 +374,7 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
         context "on an activerecord :integer column" do
 
           setup do
-            @column = stub("column", :type => :integer)
+            @column = Post.columns_hash['id']
           end
 
           should "return null for empty string" do
@@ -383,22 +383,7 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
 
         end
 
-        context "on an activerecord :binary column" do
-
-          setup do
-            @column = stub("column", :type => :binary)
-          end
-
-          should "ask the column class to convert the value" do
-            value = "value"
-            result = stub("result")
-            @column.class.stubs(:string_to_binary).with(value).returns(result)
-            assert_equal result, @connection.quote(value, @column)
-          end
-
-        end
-
-        context "on an activerecord :string column or with any value that is_utf8?" do
+        context "on an activerecord :string column or with any value" do
 
           should "surround it when N'...'" do
             assert_equal "N'foo'", @connection.quote("foo")
@@ -410,131 +395,40 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
 
         end
 
-        context "with a value that's not is_utf8?" do
-
-          setup do
-            @value = "value"
-            @value.stubs(:is_utf8? => false)
-          end
-
-          should_eventually "call super"
-
-        end
-
       end
 
       context "date and time values" do
 
         setup do
-          @value = Date.today
+          @date = Date.parse '2000-01-01'
+          @column = SqlServerChronic.columns_hash['datetime']
         end
 
         context "on a sql datetime column" do
 
-          setup do
-            @column = stub("column", :sql_type => 'datetime')
-          end
-
           should "call quoted_datetime and surrounds its result with single quotes" do
-            @connection.stubs(:quoted_datetime).with(@value).returns("2000-01-01")
-            assert_equal "'2000-01-01'", @connection.quote(@value, @column)
+            assert_equal "'01-01-2000'", @connection.quote(@date, @column)
           end
 
         end
-
-        context "on a sql datetimeoffset column" do
-
-          setup do
-            @column = stub("column", :sql_type => 'datetimeoffset')
-          end
-
-          should "call quoted_full_iso8601 and surrounds its result with single quotes" do
-            @connection.stubs(:quoted_full_iso8601).with(@value).returns("2000-01-01")
-            assert_equal "'2000-01-01'", @connection.quote(@value, @column)
-          end
-
-        end
-
-        context "on a sql time column" do
-
-          setup do
-            @column = stub("column", :sql_type => 'time')
-          end
-
-          should "call quoted_full_iso8601 and surrounds its result with single quotes" do
-            @connection.stubs(:quoted_full_iso8601).with(@value).returns("2000-01-01")
-            assert_equal "'2000-01-01'", @connection.quote(@value, @column)
-          end
-
-        end
-
-        context "with another sql column" do
-
-          setup do
-            @column = stub("column", :sql_type => 'foo')
-          end
-
-          should_eventually "call super"
-
-        end
-
-        context "with no column" do
-
-          should_eventually "call super"
-
-        end
-
-      end
-
-      context "nil values" do
-
-        context "on a sql timestamp column" do
-
-          setup do
-            @column = stub("column", :sql_type => 'timestamp')
-          end
-
-          should "return DEFAULT" do
-            assert_equal "DEFAULT", @connection.quote(nil, @column)
-          end
-
-        end
-
-        context "with another sql column" do
-
-          setup do
-            @column = stub("column", :sql_type => 'foo')
-          end
-
-          should_eventually "call super"
-
-        end
-
-      end
-
-      context "other values" do
-
-        setup do
-          @value = stub("value")
-        end
-
-        should_eventually "call super"
 
       end
 
     end
 
     context "#quoted_datetime" do
-
+      
+      setup do
+        @iso_string = '2001-02-03T04:05:06-0700'
+        @date = Date.parse @iso_string
+        @time = Time.parse @iso_string
+        @datetime = DateTime.parse @iso_string
+      end
+      
       context "with a Date" do
 
-        setup do
-          @value = Date.parse('2001-02-03T04:05:06-0700')
-          assert @value.is_a?(Date)
-        end
-
         should "return a dd-mm-yyyy date string" do
-          assert_equal '02-03-2001', @connection.quoted_datetime(@value)
+          assert_equal '02-03-2001', @connection.quoted_datetime(@date)
         end
 
       end
@@ -553,74 +447,41 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
 
         context "with a Time" do
 
-          setup do
-            @value = Time.parse('2001-02-03T04:05:06-0700')
-            assert @value.is_a?(Time)
-          end
-
           should "return an ISO 8601 datetime string" do
-            assert_equal '2001-02-03T11:05:06.000', @connection.quoted_datetime(@value)
+            assert_equal '2001-02-03T11:05:06.000', @connection.quoted_datetime(@time)
           end
 
         end
 
         context "with a DateTime" do
 
-          setup do
-            @value = DateTime.parse('2001-02-03T04:05:06-0700')
-            assert @value.is_a?(DateTime)
-          end
-
           should "return an ISO 8601 datetime string" do
-            assert_equal '2001-02-03T11:05:06', @connection.quoted_datetime(@value)
+            assert_equal '2001-02-03T11:05:06', @connection.quoted_datetime(@datetime)
           end
 
         end
 
         context "with an ActiveSupport::TimeWithZone" do
 
-          setup do
-            require 'tzinfo'
-            @old_zone = Time.zone
-            Time.zone = 'Eastern Time (US & Canada)'
-          end
-
-          teardown do
-            Time.zone = @old_zone
-            @old_zone = nil
-          end
-
           context "wrapping a datetime" do
 
-            setup do
-              @value = DateTime.parse('2001-02-03T04:05:06-0700').in_time_zone
-              assert @value.is_a?(ActiveSupport::TimeWithZone)
-            end
-
             should "return an ISO 8601 datetime string with milliseconds" do
-              assert_equal '2001-02-03T11:05:06.000', @connection.quoted_datetime(@value)
+              Time.use_zone('Eastern Time (US & Canada)') do
+                assert_equal '2001-02-03T11:05:06.000', @connection.quoted_datetime(@datetime.in_time_zone)
+              end
             end
 
           end
 
           context "wrapping a time" do
 
-            setup do
-              @value = Time.parse('2001-02-03T04:05:06-0700').in_time_zone
-              assert @value.is_a?(ActiveSupport::TimeWithZone)
-            end
-
             should "return an ISO 8601 datetime string with milliseconds" do
-              assert_equal '2001-02-03T11:05:06.000', @connection.quoted_datetime(@value)
+              Time.use_zone('Eastern Time (US & Canada)') do
+                assert_equal '2001-02-03T11:05:06.000', @connection.quoted_datetime(@time.in_time_zone)
+              end
             end
 
           end
-
-        end
-
-        context "with a String" do
-
-          should_eventually "call quoted_date on super"
 
         end
 
