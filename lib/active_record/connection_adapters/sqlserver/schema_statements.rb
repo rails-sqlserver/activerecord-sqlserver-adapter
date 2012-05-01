@@ -235,6 +235,7 @@ module ActiveRecord
                                  end
             ci[:null] = ci[:is_nullable].to_i == 1 ; ci.delete(:is_nullable)
             ci[:is_primary] = ci[:is_primary].to_i == 1
+            ci[:is_identity] = ci[:is_identity].to_i == 1 unless [TrueClass, FalseClass].include?(ci[:is_identity].class)
             ci
           end
         end
