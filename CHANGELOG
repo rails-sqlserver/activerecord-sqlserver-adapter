@@ -1,4 +1,9 @@
 
+* 3.2.4 *
+
+* Fixed schema reflection for identity columns using ODBC. Fixes #193.
+
+
 * 3.2.3 *
 
 * Fixed datetime quoting for ActiveSupport::TimeWithZone objects. Fixes #187 and #189.
