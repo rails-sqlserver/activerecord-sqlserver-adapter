@@ -355,7 +355,7 @@ module ActiveRecord
         end
 
         def identity_column(table_name)
-          schema_cache.columns[table_name].detect(&:is_identity?)
+          schema_cache.columns[table_name].detect { |c| c.is_identity? != 0 }
         end
 
       end
