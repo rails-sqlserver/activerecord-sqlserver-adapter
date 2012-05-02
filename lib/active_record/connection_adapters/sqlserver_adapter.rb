@@ -538,3 +538,4 @@ module ActiveRecord
   
 end #module ActiveRecord
 
+require 'active_record/connection_adapters/sqlserver/mirroring'

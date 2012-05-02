@@ -43,6 +43,18 @@ namespace :test do
   task 'odbc:env' do 
     ENV['ARCONN'] = 'odbc'
   end
+
+  namespace :mirroring do
+
+    ['dblib','odbc'].each do |mode|
+      Rake::TestTask.new("#{mode}") do |t|
+        t.libs = test_libs(mode)
+        t.test_files = Dir.glob("test/cases/**/#{mode}_mirroring_test.rb")
+        t.verbose = true
+      end
+    end
+
+  end
   
 end
 
