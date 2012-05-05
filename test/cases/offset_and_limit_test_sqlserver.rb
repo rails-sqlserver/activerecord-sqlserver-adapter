@@ -64,6 +64,11 @@ class OffsetAndLimitTestSqlserver < ActiveRecord::TestCase
       assert_sql(pattern) { Book.count :limit => 3, :offset => 5, :lock => 'WITH (NOLOCK)' }
     end
     
+    should 'have valid sort order' do
+      order_row_numbers = SqlServerOrderRowNumber.offset(7).order("c DESC").select("c, ROW_NUMBER() OVER (ORDER BY c ASC) AS [dummy]").all.map(&:c)
+      assert_equal [2, 1, 0], order_row_numbers
+    end
+    
     context 'with count' do
 
       should 'pass a gauntlet of window tests' do
