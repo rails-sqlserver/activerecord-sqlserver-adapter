@@ -91,6 +91,16 @@ class SpecificSchemaTestSqlserver < ActiveRecord::TestCase
       end
 
     end
+
+    context 'with column names that have spaces' do
+
+      should 'create record using a custom attribute reader and be able to load it back in' do
+        value = 'Saved value into a column that has a space in the name.'
+        record = @edge_class.create! :with_spaces => value
+        assert_equal value, @edge_class.find(record.id).with_spaces
+      end
+      
+    end
     
     context 'with description column' do
 
