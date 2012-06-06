@@ -4,9 +4,17 @@ source :rubygems
 if ENV['RAILS_SOURCE']
   gemspec :path => ENV['RAILS_SOURCE']
 else
-  spec = eval(File.read('activerecord-sqlserver-adapter.gemspec'))
-  ar_version = spec.dependencies.detect{ |d|d.name == 'activerecord' }.requirement.requirements.first.last.version
-  version = ENV['RAILS_VERSION'] || ar_version
+  version = ENV['RAILS_VERSION'] || begin
+    require 'net/http'
+    spec = eval(File.read('activerecord-sqlserver-adapter.gemspec'))
+    version = spec.dependencies.detect{ |d|d.name == 'activerecord' }.requirement.requirements.first.last.version
+    major, minor, tiny = version.split('.')
+    uri = URI.parse "http://rubygems.org/api/v1/versions/activerecord.yaml"
+    YAML.load(Net::HTTP.get(uri)).select do |data|
+      a, b, c = data['number'].split('.')
+      !data['prerelease'] && major == a && minor == b
+    end.first['number']
+  end
   gem 'rails', :git => "git://github.com/rails/rails.git", :tag => "v#{version}"
 end
 
