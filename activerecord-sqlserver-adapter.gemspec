@@ -1,11 +1,11 @@
 # -*- encoding: utf-8 -*-
 $:.push File.expand_path("../lib", __FILE__)
-require "active_record/connection_adapters/sqlserver/version"
+require "activerecord-sqlserver-adapter/version"
 
 Gem::Specification.new do |s|
   s.platform      = Gem::Platform::RUBY
   s.name          = "activerecord-sqlserver-adapter"
-  s.version       = ActiveRecord::ConnectionAdapters::Sqlserver::Version::VERSION
+  s.version       = ActiverecordSqlserverAdapter::VERSION
   s.summary       = "SQL Server 2005 and 2008 Adapter For ActiveRecord."
   s.description   = "SQL Server 2005 and 2008 Adapter For ActiveRecord"
   
