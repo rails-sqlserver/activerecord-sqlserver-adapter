@@ -154,7 +154,7 @@ module Arel
           projections = projections.map { |x| projection_without_expression(x) }
         end
         [ ("SELECT" if !windowed),
-          (visit(core.set_quantifier) if core.set_quantifier),
+          (visit(core.set_quantifier) if core.set_quantifier && !windowed),
           (visit(o.limit) if o.limit && !windowed),
           (projections.map{ |x| v = visit(x); v == "1" ? "1 AS [__wrp]" : v }.join(', ')),
           (source_with_lock_for_select_statement(o)),
@@ -168,7 +168,9 @@ module Arel
       def visit_Arel_Nodes_SelectStatementWithOffset(o)
         o.limit ||= Arel::Nodes::Limit.new(9223372036854775807)
         orders = rowtable_orders(o)
+        core = o.cores.first
         [ "SELECT",
+          (visit(core.set_quantifier) if core.set_quantifier),
           (visit(o.limit) if o.limit && !windowed_single_distinct_select_statement?(o)),
           (rowtable_projections(o).map{ |x| visit(x) }.join(', ')),
           "FROM (",
