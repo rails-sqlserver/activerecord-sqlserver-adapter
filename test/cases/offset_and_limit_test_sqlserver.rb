@@ -88,9 +88,16 @@ class OffsetAndLimitTestSqlserver < ActiveRecord::TestCase
       end
 
     end
+
+    context 'with uniq selection' do
+
+      should 'add the distinct clause at the correct position' do
+        assert_equal 5, Book.limit(5).offset(1).uniq.size
+      end
+
+    end
     
   end
-  
   
   protected
   
