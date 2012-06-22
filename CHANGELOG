@@ -3,6 +3,8 @@
 
 * Fix a few test from ActiveRecord 3.2.6 upgrade.
 
+* Fix db_name usage bug in #column_definitions [Altonymous]
+
 
 * 3.2.4 *
 
