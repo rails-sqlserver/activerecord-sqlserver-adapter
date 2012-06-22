@@ -1,4 +1,9 @@
 
+* 3.2.5 *
+
+* Fix a few test from ActiveRecord 3.2.6 upgrade.
+
+
 * 3.2.4 *
 
 * Fixed schema reflection for identity columns using ODBC. Fixes #193.
