@@ -95,8 +95,6 @@ By default, Bundler will download the Rails git repo and use the git tag that ma
 
 ## Current Expected Failures
 
-Note that there are a few tests that we just did not even try to pass and hence coerced into passing. The biggest are a collection found in our relations_test_sqlserver.rb file. If you run into problems and think you can make the Arel visitor pass these test, patches are very much welcome.
-
 * Misc Date/Time object instance matches when using ODBC mode.
 
 
