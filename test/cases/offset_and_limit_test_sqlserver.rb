@@ -87,10 +87,12 @@ class OffsetAndLimitTestSqlserver < ActiveRecord::TestCase
       # Mary has duplicate categorizations to the thinking post.
       assert_equal [thinking, thinking], mary.categorized_posts.all
       assert_equal [thinking], mary.unique_categorized_posts.limit(2).offset(0)
-      # Paging thru David's uniq ordered comments.
+      # Paging thru David's uniq ordered comments, with count too.
       assert_equal [1, 2, 3, 5, 6, 7, 8, 9, 10, 12], david.ordered_uniq_comments.map(&:id)
       assert_equal [3, 5], david.ordered_uniq_comments.limit(2).offset(2).map(&:id)
-      assert_equal [7, 8, 9, 10, 12], david.ordered_uniq_comments.limit(5).offset(5).map(&:id)
+      assert_equal 2, david.ordered_uniq_comments.limit(2).offset(2).count
+      assert_equal [8, 9, 10, 12], david.ordered_uniq_comments.limit(5).offset(6).map(&:id)
+      assert_equal 4, david.ordered_uniq_comments.limit(5).offset(6).count
     end
     
     context 'with count' do
