@@ -1,10 +1,17 @@
 require 'cases/sqlserver_helper'
+require 'models/job'
+require 'models/person'
+require 'models/reference'
 require 'models/book'
+require 'models/author'
 require 'models/post'
+require 'models/comment'
+require 'models/categorization'
 
 class OffsetAndLimitTestSqlserver < ActiveRecord::TestCase
   
-  fixtures :posts
+  fixtures :jobs, :people, :references, 
+           :authors, :posts, :comments, :categorizations
   
   setup     :create_10_books
   teardown  :destroy_all_books
@@ -67,6 +74,23 @@ class OffsetAndLimitTestSqlserver < ActiveRecord::TestCase
     should 'have valid sort order' do
       order_row_numbers = SqlServerOrderRowNumber.offset(7).order("c DESC").select("c, ROW_NUMBER() OVER (ORDER BY c ASC) AS [dummy]").all.map(&:c)
       assert_equal [2, 1, 0], order_row_numbers
+    end
+
+    should 'work with through associations' do
+      assert_equal people(:david), jobs(:unicyclist).people.limit(1).offset(1).all.first
+    end
+
+    should 'work with through uniq associations' do
+      david = authors(:david)
+      mary = authors(:mary)
+      thinking = posts(:thinking)
+      # Mary has duplicate categorizations to the thinking post.
+      assert_equal [thinking, thinking], mary.categorized_posts.all
+      assert_equal [thinking], mary.unique_categorized_posts.limit(2).offset(0)
+      # Paging thru David's uniq ordered comments.
+      assert_equal [1, 2, 3, 5, 6, 7, 8, 9, 10, 12], david.ordered_uniq_comments.map(&:id)
+      assert_equal [3, 5], david.ordered_uniq_comments.limit(2).offset(2).map(&:id)
+      assert_equal [7, 8, 9, 10, 12], david.ordered_uniq_comments.limit(5).offset(5).map(&:id)
     end
     
     context 'with count' do

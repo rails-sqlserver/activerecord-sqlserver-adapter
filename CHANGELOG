@@ -1,4 +1,9 @@
 
+* 3.2.6 *
+
+* Unique has_many associations with pagination now work. Fixes #209
+
+
 * 3.2.5 *
 
 * Fix a few test from ActiveRecord 3.2.6 upgrade.
