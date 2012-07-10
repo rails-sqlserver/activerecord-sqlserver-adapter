@@ -1,4 +1,9 @@
 
+* 3.2.7 *
+
+* Find VERSION in base file out of module namespace. Fixes #208
+
+
 * 3.2.6 *
 
 * Unique has_many associations with pagination now work. Fixes #209

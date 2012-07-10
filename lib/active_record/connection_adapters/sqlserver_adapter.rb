@@ -16,7 +16,6 @@ require 'active_record/connection_adapters/sqlserver/schema_statements'
 require 'active_record/connection_adapters/sqlserver/showplan'
 require 'active_record/connection_adapters/sqlserver/quoting'
 require 'active_record/connection_adapters/sqlserver/utils'
-require 'active_record/connection_adapters/sqlserver/version'
 
 module ActiveRecord
   
@@ -177,8 +176,8 @@ module ActiveRecord
       include Sqlserver::SchemaStatements
       include Sqlserver::DatabaseLimits
       include Sqlserver::Errors
-      include Sqlserver::Version
       
+      VERSION                     = File.read(File.expand_path("../../../../VERSION",__FILE__)).strip
       ADAPTER_NAME                = 'SQLServer'.freeze
       DATABASE_VERSION_REGEXP     = /Microsoft SQL Server\s+"?(\d{4}|\w+)"?/
       SUPPORTED_VERSIONS          = [2005,2008,2010,2011,2012]
