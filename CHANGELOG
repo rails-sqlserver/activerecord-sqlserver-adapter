@@ -2,6 +2,7 @@
 * 3.2.7 *
 
 * Find VERSION in base file out of module namespace. Fixes #208
+* Better support for explain without sp_execute args. FIxes #207
 
 
 * 3.2.6 *

@@ -21,15 +21,15 @@ module ActiveRecord
             if sql.starts_with?(SQLSERVER_STATEMENT_PREFIX)
               executesql = sql.from(SQLSERVER_STATEMENT_PREFIX.length)
               executesql_args = executesql.split(', ')
-              executesql_args.reject! { |arg| arg =~ SQLSERVER_PARAM_MATCHER }
-              executesql_args.pop if executesql_args.many?
+              found_args = executesql_args.reject! { |arg| arg =~ SQLSERVER_PARAM_MATCHER }
+              executesql_args.pop if found_args && executesql_args.many?
               executesql = executesql_args.join(', ').strip.match(/N'(.*)'/)[1]
               Utils.unquote_string(executesql)
             else
               sql
             end
           end
-          
+
           
         end
       end
