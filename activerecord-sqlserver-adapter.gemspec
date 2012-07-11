@@ -14,7 +14,7 @@ Gem::Specification.new do |s|
   s.email         = "ken@metaskills.net"
   s.homepage      = "http://github.com/rails-sqlserver/activerecord-sqlserver-adapter"
   
-  s.files         = Dir['CHANGELOG', 'MIT-LICENSE', 'README.rdoc', 'lib/**/*' ]
+  s.files         = Dir['CHANGELOG', 'MIT-LICENSE', 'README.rdoc', 'VERSION', 'lib/**/*' ]
   s.require_path  = 'lib'
   s.rubyforge_project = 'activerecord-sqlserver-adapter'
   
