@@ -1,4 +1,9 @@
 
+* 3.2.8 *
+
+Include VERSION in gemspec's files.
+
+
 * 3.2.7 *
 
 * Find VERSION in base file out of module namespace. Fixes #208
