@@ -262,9 +262,7 @@ Up-to-date list of contributors: http://github.com/rails-sqlserver/activerecord-
 
 ## Donators
 
-I am trying to save up for a Happy Hacking pro keyboard. Help me out!
-
-<iframe style="border: 0; margin: 0; padding: 0;" src="https://www.gittip.com/metaskills/widget.html" width="48pt" height="20pt" allowfullscreen></iframe>
+I am trying to save up for a Happy Hacking pro keyboard. Help me out via GitTip! https://www.gittip.com/metaskills/
 
 
 ## License
