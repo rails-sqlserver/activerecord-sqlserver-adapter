@@ -23,7 +23,7 @@ module ActiveRecord
               executesql_args = executesql.split(', ')
               found_args = executesql_args.reject! { |arg| arg =~ SQLSERVER_PARAM_MATCHER }
               executesql_args.pop if found_args && executesql_args.many?
-              executesql = executesql_args.join(', ').strip.match(/N'(.*)'/)[1]
+              executesql = executesql_args.join(', ').strip.match(/N'(.*)'/m)[1]
               Utils.unquote_string(executesql)
             else
               sql
