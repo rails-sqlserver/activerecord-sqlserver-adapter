@@ -1,8 +1,6 @@
 # -*- encoding: utf-8 -*-
 $:.push File.expand_path("../lib", __FILE__)
 
-version = 
-
 Gem::Specification.new do |s|
   s.platform      = Gem::Platform::RUBY
   s.name          = "activerecord-sqlserver-adapter"
