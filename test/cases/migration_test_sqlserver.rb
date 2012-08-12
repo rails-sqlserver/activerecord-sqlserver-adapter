@@ -48,7 +48,7 @@ class MigrationTestSqlserver < ActiveRecord::TestCase
     
     should 'not drop the default contraint if just renaming' do
       find_default = lambda do 
-        @connection.select_all("EXEC sp_helpconstraint 'defaults','nomsg'").select do |row|     
+        @connection.execute_procedure(:sp_helpconstraint, 'defaults', 'nomsg').select do |row|     
           row['constraint_type'] == "DEFAULT on column decimal_number"
         end.last
       end
