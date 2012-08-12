@@ -4,13 +4,14 @@ require 'models/person'
 require 'models/reference'
 require 'models/book'
 require 'models/author'
+require 'models/subscription'
 require 'models/post'
 require 'models/comment'
 require 'models/categorization'
 
 class OffsetAndLimitTestSqlserver < ActiveRecord::TestCase
   
-  fixtures :jobs, :people, :references, 
+  fixtures :jobs, :people, :references, :subscriptions,
            :authors, :posts, :comments, :categorizations
   
   setup     :create_10_books
@@ -94,6 +95,13 @@ class OffsetAndLimitTestSqlserver < ActiveRecord::TestCase
       assert_equal [8, 9, 10, 12], david.ordered_uniq_comments.limit(5).offset(6).map(&:id)
       assert_equal 4, david.ordered_uniq_comments.limit(5).offset(6).count
     end
+
+    should 'remove [__rnt] table names from relation reflection and hence do not eager loading' do
+      create_10_books
+      create_10_books
+      assert_queries(1) { Book.limit(10).offset(10).includes(:subscriptions).all }
+    end
+    
     
     context 'with count' do
 
