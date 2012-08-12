@@ -10,7 +10,7 @@ module ActiveRecord
           case value
           when String, ActiveSupport::Multibyte::Chars
             if column && column.type == :integer && value.blank?
-              nil
+              value.to_i.to_s
             elsif column && column.type == :binary
               column.class.string_to_binary(value)
             elsif value.is_utf8? || (column && column.type == :string)

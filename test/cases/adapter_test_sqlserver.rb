@@ -377,8 +377,8 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
             @column = Post.columns_hash['id']
           end
 
-          should "return null for empty string" do
-            assert_nil @connection.quote('', @column)
+          should "return 0 for empty string" do
+            assert_equal '0', @connection.quote('', @column)
           end
 
         end
