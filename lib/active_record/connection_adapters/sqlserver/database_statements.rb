@@ -93,7 +93,11 @@ module ActiveRecord
         # === SQLServer Specific ======================================== #
         
         def execute_procedure(proc_name, *variables)
-          vars = variables.map{ |v| quote(v) }.join(', ')
+          vars = if variables.any? && variables.first.is_a?(Hash)
+                   variables.first.map { |k,v| "@#{k} = #{quote(v)}" }
+                 else
+                   variables.map { |v| quote(v) }
+                 end.join(', ')
           sql = "EXEC #{proc_name} #{vars}".strip
           name = 'Execute Procedure'
           log(sql, name) do

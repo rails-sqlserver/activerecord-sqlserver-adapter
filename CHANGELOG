@@ -3,6 +3,7 @@
 
 * The #remove_default_constraint uses #execute_procedure now. Fixes #223. Thanks @gicappa and @clintmiller.
 * Mimic other adapters quoting for empty strings passed to integer columns. Fixes #164.
+* Allow named parameters in stored procedures. Fixes #216. Thanks @sixfeetover.
 
 
 * 3.2.8 *
