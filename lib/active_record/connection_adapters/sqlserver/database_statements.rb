@@ -93,7 +93,18 @@ module ActiveRecord
         # === SQLServer Specific ======================================== #
         
         def execute_procedure(proc_name, *variables)
-          vars = variables.map{ |v| quote(v) }.join(', ')
+          if variables.any? && variables.first.is_a?(Hash)
+            vars = variables.first.map do |k, v|
+              # prevent SQL injection by ensuring parameter names do not contain spaces
+              raise ActiveRecord::StatementInvalid, "Invalid parameter name: #{k}" if k.match(/\s/)
+              "@#{k} = #{quote(v)}"
+            end
+          else
+            vars = variables.map{ |v| quote(v) }
+          end
+
+          vars = vars.join(', ')
+
           sql = "EXEC #{proc_name} #{vars}".strip
           name = 'Execute Procedure'
           log(sql, name) do
