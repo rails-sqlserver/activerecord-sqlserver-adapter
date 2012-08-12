@@ -12,6 +12,12 @@ class ShowplanTestSqlserver < ActiveRecord::TestCase
       assert plan.starts_with?("EXPLAIN for: SELECT [cars].* FROM [cars] WHERE [cars].[id] = 1")
       assert plan.include?("Clustered Index Seek"), 'make sure we do not showplan the sp_executesql'
     end
+
+    should 'from multiline statement' do
+      plan = Car.where("\n id = 1 \n").explain
+      assert plan.starts_with?("EXPLAIN for: SELECT [cars].* FROM [cars] WHERE (\n id = 1 \n)")
+      assert plan.include?("Clustered Index Seek"), 'make sure we do not showplan the sp_executesql'
+    end
     
     should 'from prepared statement' do
       plan = capture_logger do
