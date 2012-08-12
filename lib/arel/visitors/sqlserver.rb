@@ -108,7 +108,7 @@ module Arel
       end
 
       def visit_Arel_Nodes_Offset(o)
-        "WHERE [__rnt].[__rn] > (#{visit o.expr})"
+        "WHERE [raw_sql_].[__rn] > (#{visit o.expr})"
       end
 
       def visit_Arel_Nodes_Limit(o)
@@ -175,9 +175,9 @@ module Arel
           "FROM (",
             "SELECT #{core.set_quantifier ? 'DISTINCT DENSE_RANK()' : 'ROW_NUMBER()'} OVER (ORDER BY #{orders.map{ |x| visit(x) }.join(', ')}) AS [__rn],",
             visit_Arel_Nodes_SelectStatementWithOutOffset(o,true),
-          ") AS [__rnt]",
+          ") AS [raw_sql_]",
           (visit(o.offset) if o.offset),
-          "ORDER BY [__rnt].[__rn] ASC"
+          "ORDER BY [raw_sql_].[__rn] ASC"
         ].compact.join ' '
       end
 
@@ -196,7 +196,7 @@ module Arel
             ("GROUP BY #{core.groups.map { |x| visit x }.join ', ' }" unless core.groups.empty?),
             (visit(core.having) if core.having),
             ("ORDER BY #{o.orders.map{ |x| visit(x) }.join(', ')}" if !o.orders.empty?),
-          ") AS [__rnt]",
+          ") AS [raw_sql_]",
           (visit(o.offset) if o.offset)
         ].compact.join ' '
       end
@@ -335,7 +335,7 @@ module Arel
             x.dup.tap do |p|
               p.sub! 'DISTINCT', ''
               p.insert 0, visit(o.limit) if o.limit
-              p.gsub! /\[?#{tn}\]?\./, '[__rnt].'
+              p.gsub! /\[?#{tn}\]?\./, '[raw_sql_].'
               p.strip!
             end
           end
@@ -344,7 +344,7 @@ module Arel
           core.projections.map do |x|
             x.dup.tap do |p|
               p.sub! 'DISTINCT', "DISTINCT #{visit(o.limit)}".strip if o.limit
-              p.gsub! /\[?#{tn}\]?\./, '[__rnt].'
+              p.gsub! /\[?#{tn}\]?\./, '[raw_sql_].'
               p.strip!
             end
           end
@@ -353,9 +353,9 @@ module Arel
             Arel.sql visit(x).split(',').map{ |y| y.split(' AS ').last.strip }.join(', ')
           end
         elsif select_primary_key_sql?(o)
-          [Arel.sql("[__rnt].#{quote_column_name(core.projections.first.name)}")]
+          [Arel.sql("[raw_sql_].#{quote_column_name(core.projections.first.name)}")]
         else
-          [Arel.sql('[__rnt].*')]
+          [Arel.sql('[raw_sql_].*')]
         end
       end
 
