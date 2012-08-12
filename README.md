@@ -1,5 +1,5 @@
 
-# SQL Server 2005/2008 & Azure Adapter For ActiveRecord
+# ActiveRecord SQL Server Adapter. For SQL Server 2005 And Higher.
 
 The SQL Server adapter for ActiveRecord. If you need the adapter for SQL Server 2000, you are still in the right spot. Just install the latest 2.3.x version of the adapter. Note, we follow a rational versioning policy that tracks ActiveRecord. That means that our 2.3.x version of the adapter is only for the latest 2.3 version of Rails. We also have stable branches for each major/minor release of ActiveRecord.
 
@@ -45,6 +45,8 @@ Every class that sub classes ActiveRecord::Base will now have an execute_procedu
 
 ```ruby
 Account.execute_procedure :update_totals, 'admin', nil, true
+# Or with named parameters.
+Account.execute_procedure :update_totals, :named => 'params'
 ```
 
 #### Native Data Type Support

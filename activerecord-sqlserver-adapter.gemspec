@@ -5,8 +5,8 @@ Gem::Specification.new do |s|
   s.platform      = Gem::Platform::RUBY
   s.name          = "activerecord-sqlserver-adapter"
   s.version       = File.read(File.expand_path("../VERSION",__FILE__)).strip
-  s.summary       = "SQL Server 2005 and 2008 Adapter For ActiveRecord."
-  s.description   = "SQL Server 2005 and 2008 Adapter For ActiveRecord"
+  s.summary       = "ActiveRecord SQL Server Adapter. For SQL Server 2005 And Higher."
+  s.description   = "ActiveRecord SQL Server Adapter. For SQL Server 2005 And Higher."
   
   s.authors       = ['Ken Collins', 'Murray Steele', 'Shawn Balestracci', 'Joe Rafaniello', 'Tom Ward']
   s.email         = "ken@metaskills.net"
