@@ -9,7 +9,7 @@ This process is much easier than it has been before!
 Default testing uses DBLIB with TinyTDS.
 
 * Setup two databases in SQL Server, [activerecord_unittest] and [activerecord_unittest2]
-* Create a [rails] user with an empty password and give it a Server Role of sysadmin to both DBs.
+* Create a [rails] user with an empty password and give it a [db_owner] role to both DBs. Some tests require a server role of [sysadmin] too.
   - http://twitpic.com/9bsiyp/full
   - http://twitpic.com/9bsj7z/full
   - http://twitpic.com/9bsjdx/full
@@ -95,6 +95,7 @@ By default, Bundler will download the Rails git repo and use the git tag that ma
 
 ## Current Expected Failures
 
-* Misc Date/Time object instance matches when using ODBC mode.
+* Misc Date/Time erros when using ODBC mode.
+* Misc Date/Time erros when testing SQL Server 2005.
 
 
