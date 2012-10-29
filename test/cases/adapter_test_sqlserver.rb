@@ -522,18 +522,18 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
     context "finding out what user_options are available" do
       
       should "run the database consistency checker useroptions command" do
-        @connection.expects(:select_rows).with(regexp_matches(/^dbcc\s+useroptions$/i), 'SCHEMA').returns []
-        @connection.user_options
+        keys = [:textsize, :language, :isolation_level, :dateformat]
+        user_options = @connection.user_options
+        keys.each do |key|
+          msg = "Expected key:#{key} in user_options:#{user_options.inspect}"
+          assert user_options.key?(key), msg
+        end
       end
       
       should "return a underscored key hash with indifferent access of the results" do
-        @connection.expects(:select_rows).with(regexp_matches(/^dbcc\s+useroptions$/i), 'SCHEMA').returns [['some', 'thing'], ['isolation level', 'read uncommitted']]
-        uo = @connection.user_options
-        assert_equal 2, uo.keys.size
-        assert_equal 'thing', uo['some']
-        assert_equal 'thing', uo[:some]
-        assert_equal 'read uncommitted', uo['isolation_level']
-        assert_equal 'read uncommitted', uo[:isolation_level]
+        user_options = @connection.user_options
+        assert_equal 'read committed', user_options['isolation_level']
+        assert_equal 'read committed', user_options[:isolation_level]
       end
       
     end unless sqlserver_azure?

@@ -157,7 +157,7 @@ module ActiveRecord
                     WHEN 0 THEN NULL
                     WHEN 1 THEN 'READ UNCOMITTED' 
                     WHEN 2 THEN 'READ COMITTED' 
-                    WHEN 3 THEN 'REPEATABLE' 
+                    WHEN 3 THEN 'REPEATABLE READ' 
                     WHEN 4 THEN 'SERIALIZABLE' 
                     WHEN 5 THEN 'SNAPSHOT' END AS [isolation_level] 
                     FROM [sys].[dm_exec_sessions] 
