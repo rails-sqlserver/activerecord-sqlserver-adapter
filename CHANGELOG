@@ -1,4 +1,11 @@
 
+* 3.2.10 *
+
+* Remove connection defaults for host/username/password. Since we want to suppoert Windows Authentication
+  and there are just to many possibilities. So we now have to be explicit.
+* Remove really old TinyTDS warning.
+
+
 * 3.2.9 *
 
 * The #remove_default_constraint uses #execute_procedure now. Fixes #223. Thanks @gicappa and @clintmiller.
