@@ -18,8 +18,6 @@ def test_files
   adapter_cases = Dir.glob("#{ar_path}/test/cases/adapters/**/*_test.rb")
   files += (ar_cases-adapter_cases).sort
   files
-  # ["test/cases/adapter_test_sqlserver.rb", 
-  #  "/Users/kencollins/.rbenv/versions/1.9.3-p194-perf/lib/ruby/gems/1.9.1/bundler/gems/rails-5828e53fec40/activerecord/test/cases/fixtures_test.rb"]
 end
 
 task :test => ['test:dblib']
