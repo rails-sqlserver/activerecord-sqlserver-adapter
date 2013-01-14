@@ -206,7 +206,17 @@ module ActiveRecord
         @product_level    = select_value "SELECT CAST(SERVERPROPERTY('productlevel') AS VARCHAR(128))", 'SCHEMA'
         @product_version  = select_value "SELECT CAST(SERVERPROPERTY('productversion') AS VARCHAR(128))", 'SCHEMA'
         @edition          = select_value "SELECT CAST(SERVERPROPERTY('edition') AS VARCHAR(128))", 'SCHEMA'
-        @sqlserver_azure  = @database_version =~ /Microsoft SQL Azure/i
+        @database_year = begin
+                           if @database_version =~ /Microsoft SQL Azure/i
+                             @sqlserver_azure = true
+                             @database_version.match(/\s(\d{4})\s/)[1].to_i
+                           else
+                             year = DATABASE_VERSION_REGEXP.match(@database_version)[1]
+                             year == "Denali" ? 2011 : year.to_i
+                           end
+                         rescue
+                           0
+                         end
 
         initialize_dateformatter
         use_database
