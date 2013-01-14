@@ -206,6 +206,8 @@ module ActiveRecord
         @product_level    = select_value "SELECT CAST(SERVERPROPERTY('productlevel') AS VARCHAR(128))", 'SCHEMA'
         @product_version  = select_value "SELECT CAST(SERVERPROPERTY('productversion') AS VARCHAR(128))", 'SCHEMA'
         @edition          = select_value "SELECT CAST(SERVERPROPERTY('edition') AS VARCHAR(128))", 'SCHEMA'
+        @sqlserver_azure  = @database_version =~ /Microsoft SQL Azure/i
+
         initialize_dateformatter
         use_database
         ensure_supported_version
