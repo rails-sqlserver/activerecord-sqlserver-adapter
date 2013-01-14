@@ -210,7 +210,7 @@ module ActiveRecord
 
         initialize_dateformatter
         use_database
-        ensure_supported_version
+        ensure_supported_version(@product_version, @database_version)
       end
 
       # === Abstract Adapter ========================================== #
