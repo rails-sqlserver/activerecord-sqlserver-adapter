@@ -1,4 +1,3 @@
-
 # ActiveRecord SQL Server Adapter. For SQL Server 2005 And Higher.
 
 The SQL Server adapter for ActiveRecord. If you need the adapter for SQL Server 2000, you are still in the right spot. Just install the latest 2.3.x version of the adapter. Note, we follow a rational versioning policy that tracks ActiveRecord. That means that our 2.3.x version of the adapter is only for the latest 2.3 version of Rails. We also have stable branches for each major/minor release of ActiveRecord.
@@ -197,7 +196,7 @@ You can configure a few options to your needs. First is the max column width for
 ActiveRecord::ConnectionAdapters::Sqlserver::Showplan::PrinterTable.max_column_width = 500
 ```
 
-Another configuration is the showplan option. Some might find the XML format more useful. If you have Nokogiri installed, we will format the XML string. I will gladly accept pathces that make the XML printer more useful!
+Another configuration is the showplan option. Some might find the XML format more useful. If you have Nokogiri installed, we will format the XML string. I will gladly accept patches that make the XML printer more useful!
 
 ```ruby
 ActiveRecord::ConnectionAdapters::SQLServerAdapter.showplan_option = 'SHOWPLAN_XML'
