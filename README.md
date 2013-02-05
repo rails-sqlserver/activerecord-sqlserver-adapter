@@ -19,7 +19,7 @@ The SQL Server adapter for ActiveRecord. If you need the adapter for SQL Server 
 
 #### Testing Rake Tasks Support
 
-This is a long story, but if you are not working with a legacy database and you can trust your schema.rb to setup you local development or test database, then we have adapter level support for rails :db rake tasks. Please read this wiki page for full details.
+This is a long story, but if you are not working with a legacy database and you can trust your schema.rb to setup your local development or test database, then we have adapter level support for rails :db rake tasks. Please read this wiki page for full details.
 
 http://wiki.github.com/rails-sqlserver/activerecord-sqlserver-adapter/rails-db-rake-tasks
 
@@ -40,7 +40,7 @@ This implementation has some limitations. To date we can only coerce date/time t
 
 #### Executing Stored Procedures
 
-Every class that sub classes ActiveRecord::Base will now have an execute_procedure class method to use. This method takes the name of the stored procedure which can be a string or symbol and any number of variables to pass to the procedure. Arguments will automatically be quoted per the connection's standards as normal. For example.
+Every class that sub classes ActiveRecord::Base will now have an execute_procedure class method to use. This method takes the name of the stored procedure which can be a string or symbol and any number of variables to pass to the procedure. Arguments will automatically be quoted per the connection's standards as normal. For example:
 
 ```ruby
 Account.execute_procedure :update_totals, 'admin', nil, true
@@ -196,7 +196,7 @@ You can configure a few options to your needs. First is the max column width for
 ActiveRecord::ConnectionAdapters::Sqlserver::Showplan::PrinterTable.max_column_width = 500
 ```
 
-Another configuration is the showplan option. Some might find the XML format more useful. If you have Nokogiri installed, we will format the XML string. I will gladly accept patches that make the XML printer more useful!
+Another configuration is the showplan option. Some might find the XML format more useful. If you have Nokogiri installed, we will format the XML string. I will gladly accept pathces that make the XML printer more useful!
 
 ```ruby
 ActiveRecord::ConnectionAdapters::SQLServerAdapter.showplan_option = 'SHOWPLAN_XML'
@@ -231,7 +231,7 @@ http://wiki.github.com/rails-sqlserver/activerecord-sqlserver-adapter/platform-i
 
 ## Contributing
 
-If you wouldd like to contribute a feature or bugfix, thanks! To make sure your fix/feature has a high chance of being added, please read the following guidelines. First, ask on the Google list, IRC, or post a ticket on github issues. Second, make sure there are tests! We will not accept any patch that is not tested. Please read the `RUNNING_UNIT_TESTS` file for the details of how to run the unit tests.
+If you would like to contribute a feature or bugfix, thanks! To make sure your fix/feature has a high chance of being added, please read the following guidelines. First, ask on the Google list, IRC, or post a ticket on github issues. Second, make sure there are tests! We will not accept any patch that is not tested. Please read the `RUNNING_UNIT_TESTS` file for the details of how to run the unit tests.
 
 * Github: http://github.com/rails-sqlserver/activerecord-sqlserver-adapter
 * Google Group: http://groups.google.com/group/rails-sqlserver-adapter
