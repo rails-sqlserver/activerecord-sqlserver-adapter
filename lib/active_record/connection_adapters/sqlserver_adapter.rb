@@ -205,7 +205,8 @@ module ActiveRecord
         @database_year = begin
                            if @database_version =~ /Azure/i
                              @sqlserver_azure = true
-                             @database_version.match(/\s(\d{4})\s/)[1].to_i
+                             @database_version.match(/\s-\s([0-9.]+)/)[1]
+                             year = 2012
                            else
                              year = DATABASE_VERSION_REGEXP.match(@database_version)[1]
                              year == "Denali" ? 2011 : year.to_i
@@ -218,7 +219,7 @@ module ActiveRecord
         @edition          = select_value "SELECT CAST(SERVERPROPERTY('edition') AS VARCHAR(128))", 'SCHEMA'
         initialize_dateformatter
         use_database
-        unless SUPPORTED_VERSIONS.include?(@database_year)
+        unless (@sqlserver_azure == true || SUPPORTED_VERSIONS.include?(@database_year))
           raise NotImplementedError, "Currently, only #{SUPPORTED_VERSIONS.to_sentence} are supported. We got back #{@database_version}."
         end
       end
