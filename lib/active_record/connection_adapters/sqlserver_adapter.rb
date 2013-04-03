@@ -203,7 +203,7 @@ module ActiveRecord
         connect
         @database_version = select_value 'SELECT @@version', 'SCHEMA'
         @database_year = begin
-                           if @database_version =~ /Microsoft SQL Azure/i
+                           if @database_version =~ /Azure/i
                              @sqlserver_azure = true
                              @database_version.match(/\s(\d{4})\s/)[1].to_i
                            else
