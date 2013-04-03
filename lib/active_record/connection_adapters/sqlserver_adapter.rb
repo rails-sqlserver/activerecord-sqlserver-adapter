@@ -437,6 +437,7 @@ module ActiveRecord
                             client.execute("SET ANSI_DEFAULTS ON").do
                             client.execute("SET CURSOR_CLOSE_ON_COMMIT OFF").do
                             client.execute("SET IMPLICIT_TRANSACTIONS OFF").do
+                            client.execute("SET CONCAT_NULL_YIELDS_NULL ON").do
                           end
                           client.execute("SET TEXTSIZE 2147483647").do
                         end
