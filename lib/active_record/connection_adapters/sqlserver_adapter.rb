@@ -434,6 +434,7 @@ module ActiveRecord
                             client.execute("SET ANSI_PADDING ON").do
                             client.execute("SET QUOTED_IDENTIFIER ON")
                             client.execute("SET ANSI_WARNINGS ON").do
+                            client.execute("SET CONCAT_NULL_YIELDS_NULL ON").do
                           else
                             client.execute("SET ANSI_DEFAULTS ON").do
                             client.execute("SET CURSOR_CLOSE_ON_COMMIT OFF").do
