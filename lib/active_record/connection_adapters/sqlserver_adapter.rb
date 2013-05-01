@@ -522,9 +522,10 @@ module ActiveRecord
         @auto_connecting = true
         count = 0
         while count <= (auto_connect_duration / 2)
-          sleep 2** count
+          result = reconnect!
           ActiveRecord::Base.did_retry_sqlserver_connection(self,count)
-          return true if reconnect!
+          return true if result
+          sleep 2** count
           count += 1
         end
         ActiveRecord::Base.did_lose_sqlserver_connection(self)
