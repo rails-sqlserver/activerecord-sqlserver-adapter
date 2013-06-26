@@ -1,4 +1,17 @@
 
+* 3.2.13 *
+
+* Fixed teo unit tests due to changes in ActiveRecord that removes blank config values.
+* Fixed explain tests that were failing due to changes in ExplainSubscriber, cause was regex
+* Fixed change_column to update existing table column rows with new default value if there are any NULL values
+    and the column does not accept nulls
+* Fixed change_column to drop and add indexes if the colun type is changes
+* Fixed string_to_binary and binary_to_string in some cases where the binary data is not UTF-8
+* Fixing generating profile report to create output dir if needed, and code change for printing report
+* Adding ruby-prof to Gemfile, needed when running profile test cases
+* Updating mocha to work with newer ActiveRecord test cases
+
+
 * 3.2.10 *
 
 * Remove connection defaults for host/username/password. Since we want to suppoert Windows Authentication
@@ -67,7 +80,7 @@
 
 * 3.2.0 *
 
-* ActiveRecord explain (SHOWPLAN) support. 
+* ActiveRecord explain (SHOWPLAN) support.
   http://youtu.be/ckb3YYZZZ2Q
 
 * Remove our log_info_schema_queries config since we are not hooking properly into AR's 'SCHEMA' names.
@@ -86,7 +99,7 @@
 
 * 3.1.4 *
 
-* Use INFORMATION_SCHEMA.KEY_COLUMN_USAGE for schema reflection speed. 
+* Use INFORMATION_SCHEMA.KEY_COLUMN_USAGE for schema reflection speed.
   Fixes #125. [Wüthrich Hannes @hwuethrich]
 
 * New deadlock victim retry using the #retry_deadlock_victim config.  [Jason Frey, Joe Rafaniello]
@@ -98,10 +111,10 @@
 
 * Add methods for sqlserver's #product_version, #product_level, #edition and include them in inspect.
   Fixes #145 [Jason Frey, Joe Rafaniello]
-  
-* Handle statements that cannot be retried on a new database connection by not reconnecting. 
+
+* Handle statements that cannot be retried on a new database connection by not reconnecting.
   Fixes #147 [Jason Frey, Joe Rafaniello]
-  
+
 * Added connection#spid for debugging. Fixes #144 [Jason Frey, Joe Rafaniello]
 
 * Add ENV['TEST_FILES'] to Rakefile for easy single case tests. [Jason Frey, Joe Rafaniello]
@@ -117,7 +130,7 @@
 
 * 3.1.3 *
 
-* Distinguish between identity and primary key key columns during schema reflection. Allows us 
+* Distinguish between identity and primary key key columns during schema reflection. Allows us
   us to only do identity inserts when technically needed. Fixes #139 [chadcf] & [joncanady]
 
 
@@ -138,7 +151,7 @@
 
 * Make #rollback_db_transaction smarter.
 
-* Provide a method to override for the quoted string prefix. Not a config because trumping this method will 
+* Provide a method to override for the quoted string prefix. Not a config because trumping this method will
   have drastically bad results. Fixes #124
 
 * Allow :limit/:offset to be used with fully qualified table and column in :select.
@@ -151,12 +164,12 @@
 * Make auto reconnect duration configurable. Fixes #109 [David Chelimsky]
 
 * Quote most time objects to use ISO8601 format to be multi-language dateformat compatible. The [datetime] data type is
-  automatically limited to milliseconds while [time] & [datetimeoffset] have full support. Even included a Date/Time 
+  automatically limited to milliseconds while [time] & [datetimeoffset] have full support. Even included a Date/Time
   ActiveSupport formatter that is used per the language settings of the connection.
 
 * Include a visit_Arel_Nodes_UpdateStatement method in our Arel visitor to add a limit/top for update
   that has order and no limit/top. https://github.com/rails/rails/commit/787194ee43ab1fb0a7dc8bfbbfbd5079b047d833
-  
+
 * Allow drop_database to be called even when DB does not exist.
 
 * Remove totally broken ADONET connection mode. Want it back, submit a patch.
@@ -218,7 +231,7 @@
 * Support for ActiveRecord v3.0.3 and ARel v2.0.7
 
 
-* 3.0.7 * 
+* 3.0.7 *
 
 * Properly quote table names when reflecting on views.
 
@@ -258,7 +271,7 @@
 
 * 3.0.1
 
-* Support DSN'less connections. Resolves ticket 38. 
+* Support DSN'less connections. Resolves ticket 38.
 
 * Support upcoming ruby odbc 0.99992
 
@@ -289,14 +302,14 @@
 
 * 2.3.5
 
-* Initial IronRuby ADONET connection mode support baked right in. Removed most &block 
-  parameters, no handle/request object yielded anymore. Better abstraction and compliance 
-  per the ActiveRecord abstract adapter to not yielding handles for #execute and only for 
-  low level #select. Better wrapping of all queries at lowest level in #log so exceptions 
-  at anytime can be handled correctly by core AR. Critical for System::Data's command 
-  readers. Better abstraction for introspecting on #connection_mode. Added support for 
+* Initial IronRuby ADONET connection mode support baked right in. Removed most &block
+  parameters, no handle/request object yielded anymore. Better abstraction and compliance
+  per the ActiveRecord abstract adapter to not yielding handles for #execute and only for
+  low level #select. Better wrapping of all queries at lowest level in #log so exceptions
+  at anytime can be handled correctly by core AR. Critical for System::Data's command
+  readers. Better abstraction for introspecting on #connection_mode. Added support for
   running singular test cases via TextMate's Command-R. [Ken Collins]
-  
+
 * Force a binary encoding on values coming in and out of those columns for ruby 1.9.
   Fixes ticket #33 [Jeroen Zwartepoorte]
 
@@ -315,22 +328,22 @@
 * For tables that named with schema(ex. rails.users), they could not get length of column.
   column of varchar(40) gets length => nil. Ticket #27 & #15 [Ken Tachiya]
 
-* Altered limited_update_conditions regex conditions, the .* would greedily fail 
+* Altered limited_update_conditions regex conditions, the .* would greedily fail
   if the where_sql had WHERE in a table or field, etc. [Ransom Briggs]
 
-* Changing test to allow ENV['ARUNIT_DB_NAME'] as the database name for the test units. 
+* Changing test to allow ENV['ARUNIT_DB_NAME'] as the database name for the test units.
   Matches up with AR conventions. [Ransom Briggs]
 
 
 2.3.3
-  
-* Revert #ad83df82 and again cache column information at the connection's instance. The 
+
+* Revert #ad83df82 and again cache column information at the connection's instance. The
   previous commit was causing all sorts of view and schema reflection problems. [Ken Collins]
 
 
 2.3.2
 
-* Insert queries that include the word "insert" as a partial column name with the word 
+* Insert queries that include the word "insert" as a partial column name with the word
   "id" as a value were falsely being matched as identity inserts. [Sean Caffery/bfabry]
 
 * Delegate all low level #raw_connection calls to #raw_connection_run and #raw_connection_do
@@ -348,10 +361,10 @@
 * Coerce a few tests that were failing in 2.3.x [Ken Collins]
 
 * Change column/view cache to happen at class level. Allows connection pool to share same
-  caches as well as the ability to expire the caches when needed. Also fix change_column so 
+  caches as well as the ability to expire the caches when needed. Also fix change_column so
   that exceptions are not raised when the column contains an existing default. [Ken Collins]
 
-* Allow query_requires_identity_insert? method to return quoted table name in situations where the 
+* Allow query_requires_identity_insert? method to return quoted table name in situations where the
   INSERT parts are not quoted themselves. [Gary/iawgens, Richard Penwell, Ken Collins]
 
 * Fixed namespace in calling test_sqlserver_odbc within test_unicode_types. [Gary/iawgens]
@@ -363,7 +376,7 @@
 
 * Support Identity-key-column judgement on multiple schema environment [Ken Tachiya]
 
-* Add support for tinyint data types. In MySQL all these types would be boolean, however in 
+* Add support for tinyint data types. In MySQL all these types would be boolean, however in
   our adapter, they will use the full 1 => 255 Fixnum value as you would expect. [Ken Collins]
 
 
@@ -381,10 +394,10 @@
 
 * Implement a new remove_default_constraint method that uses sp_helpconstraint [Ken Collins]
 
-* Use a lazy match in add_order_by_for_association_limiting! to allow sub selects to be used. Resolves 
+* Use a lazy match in add_order_by_for_association_limiting! to allow sub selects to be used. Resolves
   ticket #11.
 
-* Add default rake task back for testing. Runs the namespaced sqlserver:test_sqlserver_odbc. 
+* Add default rake task back for testing. Runs the namespaced sqlserver:test_sqlserver_odbc.
   Resolves ticket #10 [Ken Collins]
 
 * Default value detection in column_definitions is kinder to badly formatted, or long winded user
@@ -397,7 +410,7 @@
 
 * Leave quoted column names as is. Resolves ticket #36 [Vince Puzzella]
 
-* Changing add_limit! in ActiveRecord::Base for SQLServer so that it passes through any scoped :order 
+* Changing add_limit! in ActiveRecord::Base for SQLServer so that it passes through any scoped :order
   parameters. Resolves ticket #35 [Murray Steele]
 
 
@@ -410,45 +423,45 @@
 
 * 2.2.17 * (May 14th, 2009)
 
-* Add simplified type recognition for varchar(max) and nvarchar(max) under SQL Server 2005 to be a 
+* Add simplified type recognition for varchar(max) and nvarchar(max) under SQL Server 2005 to be a
   :text type. This ensures schema dumper does the right thing. Fixes ticket #30. [Ken Collins]
 
-* Tested ruby 1.9, ruby-odbc 0.9996, and DBI 0.4.1. Also added correct support for UTF-8 character 
-  encoding going in and out of the DB. See before gist http://gist.github.com/111709 and after gist 
+* Tested ruby 1.9, ruby-odbc 0.9996, and DBI 0.4.1. Also added correct support for UTF-8 character
+  encoding going in and out of the DB. See before gist http://gist.github.com/111709 and after gist
   http://gist.github.com/111719 [Ken Collins]
 
 
 * 2.2.16 * (April 21st, 2009)
 
-* Make add_limit_offset! only add locking hints (for tally) when the :lock option is present. Added tests 
-  to make sure tally SQL is augmented correctly and tests to make sure that add_lock! is doing what it needs 
+* Make add_limit_offset! only add locking hints (for tally) when the :lock option is present. Added tests
+  to make sure tally SQL is augmented correctly and tests to make sure that add_lock! is doing what it needs
   for deep sub selects in paginated results. [Ken Collins]
 
-* Add auto reconnect support utilizing a new #with_auto_reconnect block. By default each query run through 
-  the adapter will automatically reconnect at standard intervals, logging attempts along the way, till success 
-  or the original exception bubbles up. See docs for more details. Resolves ticket #18 [Ken Collins] 
+* Add auto reconnect support utilizing a new #with_auto_reconnect block. By default each query run through
+  the adapter will automatically reconnect at standard intervals, logging attempts along the way, till success
+  or the original exception bubbles up. See docs for more details. Resolves ticket #18 [Ken Collins]
 
-* Update internal helper method #orders_and_dirs_set to cope with an order clause like "description desc". This 
+* Update internal helper method #orders_and_dirs_set to cope with an order clause like "description desc". This
   resolves ticket #26 [Ken Collins]
 
-* Provide support for running queries at different isolation levels using #run_with_isolation_level method 
-  that can take a block or not. Also implement a #user_options method that reflects on the current user 
+* Provide support for running queries at different isolation levels using #run_with_isolation_level method
+  that can take a block or not. Also implement a #user_options method that reflects on the current user
   session values. Resolves #20 [Murray Steele]
 
 
 * 2.2.15 * (March 23rd, 2009)
 
-* Better add_lock! method that can add the lock to just about all the elements in the statement. This 
-  could be eager loaded associations, joins, etc. Done so that paginated results can easily add lock 
-  options for performance. Note, the tally count in add_limit_offset! use "WITH (NOLOCK)" explicitly 
+* Better add_lock! method that can add the lock to just about all the elements in the statement. This
+  could be eager loaded associations, joins, etc. Done so that paginated results can easily add lock
+  options for performance. Note, the tally count in add_limit_offset! use "WITH (NOLOCK)" explicitly
   as it can not hurt and is needed. [Ken Collins]
 
 
 * 2.2.14 * (March 17th, 2009)
 
-* Rails2.3 - Back passing tests on 2.2 work. Includes: (1) Created new test helpers that check ActiveRecord 
-  version strings so we can conditionally run 2.2 and 2.3 tests. (2) Making TransactionTestSqlserver use Ship vs 
-  Bird model. Also made it conditional run a few blocks for different versions of ActiveRecord. (3) Previous 
+* Rails2.3 - Back passing tests on 2.2 work. Includes: (1) Created new test helpers that check ActiveRecord
+  version strings so we can conditionally run 2.2 and 2.3 tests. (2) Making TransactionTestSqlserver use Ship vs
+  Bird model. Also made it conditional run a few blocks for different versions of ActiveRecord. (3) Previous
   JoinDependency#aliased_table_name_for is now only patched in ActiveRecord equal or greater than 2.3. [Ken Collins]
 
 * Rails2.3 - Implement new savepoint support [Ken Collins]
@@ -460,24 +473,24 @@
 * Rails2.3 - Implement a custom ActiveRecord::Associations::ClassMethods::JoinDependency::JoinAssociation#aliased_table_name_for
   method that uses a Regexp.escape so that table/column quoting does not get ignored. [Ken Collins]
 
-* Rails2.3 - Implement #outside_transaction? and a new transaction test case to test some SQL Server 
+* Rails2.3 - Implement #outside_transaction? and a new transaction test case to test some SQL Server
   basic support while implementing this method. Future home of some savepoint tests too. [Ken Collins]
 
-* Rails2.3 - Coerced tests that ensure hash conditions on referenced tables are considered when eager 
+* Rails2.3 - Coerced tests that ensure hash conditions on referenced tables are considered when eager
   loading with limit/offset. Information on these changes and the ticket in rails are.
   http://github.com/rails/rails/commit/9a4d557713acb0fc8e80f61af18094034aca029a
   http://rails.lighthouseapp.com/projects/8994-ruby-on-rails/tickets/1404-conditions_tables-doesnt-understand-condition-hashes
 
 * Rails2.3 - Add coerced tests for true/false attributes in selects use SQL Server case statement. [Ken Collins]
 
-* Making sure that smalldatetime types are OK to use. Also fixed a bug in the #view_information method that 
-  checks to see if a view definition is equal to 4000 chars, meaning that it is most likely truncated and 
+* Making sure that smalldatetime types are OK to use. Also fixed a bug in the #view_information method that
+  checks to see if a view definition is equal to 4000 chars, meaning that it is most likely truncated and
   needs to use the backup method of sp_helptext to get it's view definition. [Ken Collins]
 
 
 * 2.2.13 * (February 10th, 2009)
 
-* Update #indexes to use unqualified table name. Fixes cases where users may decide to use table 
+* Update #indexes to use unqualified table name. Fixes cases where users may decide to use table
   name prefixes like 'dbo.'. [Ken Collins]
 
 
@@ -493,11 +506,11 @@
 
 * 2.2.9 * (January 22nd, 2009)
 
-* Fixing a small bug in the deprecated DBI::Timestamp conversion so it correctly converts nanosecond whole 
-  numbers to back to pre type cast SQL Server milliseconds, ultimately allow ruby's Time#usec which is 
+* Fixing a small bug in the deprecated DBI::Timestamp conversion so it correctly converts nanosecond whole
+  numbers to back to pre type cast SQL Server milliseconds, ultimately allow ruby's Time#usec which is
   microseconds to be correct. [Ken Collins]
-  
-* Sometimes views are more than 4000 chars long and will return NULL for the VIEW_DEFINITION. If so, use 
+
+* Sometimes views are more than 4000 chars long and will return NULL for the VIEW_DEFINITION. If so, use
   sp_helptext procedure as a backup method. [Ken Collins]
 
 
@@ -508,13 +521,13 @@
 
 * 2.2.7 (January 9th, 2009)
 
-* Created a connection#execute_procedure method that takes can take any number of ruby objects as variables 
-  and quotes them according to the connection's rules. Also added an ActiveRecord::Base class level core 
-  extension that hooks into this. It also checks if the connection responds to #execute_procedure and if 
+* Created a connection#execute_procedure method that takes can take any number of ruby objects as variables
+  and quotes them according to the connection's rules. Also added an ActiveRecord::Base class level core
+  extension that hooks into this. It also checks if the connection responds to #execute_procedure and if
   not returns an empty array. [Ken Collins]
 
-* Added a #enable_default_unicode_types class attribute access to make all new added or changed string types 
-  like :string/:text default to unicode/national data types. See the README for full details. Added a rake 
+* Added a #enable_default_unicode_types class attribute access to make all new added or changed string types
+  like :string/:text default to unicode/national data types. See the README for full details. Added a rake
   task that assists setting this to true when running tests.  [Ken Collins]
 
 
@@ -525,15 +538,15 @@
 
 * 2.2.5 (January 4th, 2009)
 
-* Added a log_info_schema_queries class attribute and make all queries to INFORMATION_SCHEMA silent by 
+* Added a log_info_schema_queries class attribute and make all queries to INFORMATION_SCHEMA silent by
   default. [Ken Collins]
 
 * Fix millisecond support in datetime columns. ODBC::Timestamp incorrectly takes SQL Server milliseconds
-  and applies them as nanoseconds. We cope with this at the DBI layer by using SQLServerDBI::Type::SqlserverTimestamp 
-  class to parse the before type cast value appropriately. Also update the adapters #quoted_date method 
+  and applies them as nanoseconds. We cope with this at the DBI layer by using SQLServerDBI::Type::SqlserverTimestamp
+  class to parse the before type cast value appropriately. Also update the adapters #quoted_date method
   to work more simply by converting ruby's #usec milliseconds to SQL Server microseconds. [Ken Collins]
 
-* Core extensions for ActiveRecord now reflect on the connection before doing SQL Server things. Now 
+* Core extensions for ActiveRecord now reflect on the connection before doing SQL Server things. Now
   this adapter is compatible for using with other adapters. [Ken Collins]
 
 
@@ -544,9 +557,9 @@
 
 * 2.2.3 (December 5th, 2008)
 
-* Changing back to using real table name in column_definitions. Makes sure views get back only the columns 
-  that are defined for them with correct names, etc. Now supporting views by looking for NULL default and 
-  then if table name is a view, perform a targeted with sub select to the real table name and column name 
+* Changing back to using real table name in column_definitions. Makes sure views get back only the columns
+  that are defined for them with correct names, etc. Now supporting views by looking for NULL default and
+  then if table name is a view, perform a targeted with sub select to the real table name and column name
   to find true default. [Ken Collins]
 
 * Ensure that add_limit_offset! does not alter sub queries. [Erik Bryn]
@@ -561,10 +574,10 @@
 
 2.2.1 (November 25th, 2008)
 
-* Add identity insert support for views. Cache #views so that identity #table_name_or_views_table_name 
+* Add identity insert support for views. Cache #views so that identity #table_name_or_views_table_name
   will run quickly. [Ken Collins]
 
-* Add views support. ActiveRecord classes can use views. The connection now has a #views method and 
+* Add views support. ActiveRecord classes can use views. The connection now has a #views method and
   #table_exists? will now fall back to checking views too. [Ken Collins]
 
 
