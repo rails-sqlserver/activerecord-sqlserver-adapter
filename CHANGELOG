@@ -1,7 +1,7 @@
 
 * 3.2.13 *
 
-* Fixed teo unit tests due to changes in ActiveRecord that removes blank config values.
+* Fixed the unit tests due to changes in ActiveRecord that removes blank config values.
 * Fixed explain tests that were failing due to changes in ExplainSubscriber, cause was regex
 * Fixed change_column to update existing table column rows with new default value if there are any NULL values
     and the column does not accept nulls
