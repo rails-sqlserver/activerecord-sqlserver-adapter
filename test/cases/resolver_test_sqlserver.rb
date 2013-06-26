@@ -3,11 +3,11 @@ require "cases/helper"
 module ActiveRecord
   class Base
     class ConnectionSpecification
-      
+
       class ResolverTest < ActiveRecord::TestCase
-        
+
         include SqlserverCoercedTest
-        
+
         COERCED_TESTS = [
           :test_url_host_no_db,
           :test_url_host_db,
@@ -18,7 +18,6 @@ module ActiveRecord
           spec = resolve 'sqlserver://foo?encoding=utf8'
           assert_equal({
             :adapter  => "sqlserver",
-            :database => "",
             :host     => "foo",
             :encoding => "utf8" }, spec)
         end
@@ -36,13 +35,12 @@ module ActiveRecord
           spec = resolve 'sqlserver://foo:123?encoding=utf8'
           assert_equal({
             :adapter  => "sqlserver",
-            :database => "",
             :port     => 123,
             :host     => "foo",
             :encoding => "utf8" }, spec)
         end
       end
-      
+
     end
   end
 end
