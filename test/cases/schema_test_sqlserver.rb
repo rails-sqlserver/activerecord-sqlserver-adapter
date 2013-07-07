@@ -2,7 +2,7 @@ require 'cases/sqlserver_helper'
 
 class SchemaTestSqlserver < ActiveRecord::TestCase
       
-  def setup
+  setup do
     @connection = ActiveRecord::Base.connection
   end
   

@@ -10,7 +10,7 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
   
   fixtures :tasks, :posts
     
-  def setup
+  setup do
     @connection = ActiveRecord::Base.connection
     @basic_insert_sql = "INSERT INTO [funny_jokes] ([name]) VALUES('Knock knock')"
     @basic_update_sql = "UPDATE [customers] SET [address_street] = NULL WHERE [id] = 2"
@@ -82,7 +82,7 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
       
       setup do
         @version_regexp = ActiveRecord::ConnectionAdapters::SQLServerAdapter::DATABASE_VERSION_REGEXP
-        @supported_version = ActiveRecord::ConnectionAdapters::SQLServerAdapter::SUPPORTED_VERSIONS
+        @supported_versions = ActiveRecord::ConnectionAdapters::SQLServerAdapter::SUPPORTED_VERSIONS
         @sqlserver_2005_string = "Microsoft SQL Server 2005 - 9.00.3215.00 (Intel X86)"
         @sqlserver_2008_string = "Microsoft SQL Server 2008 (RTM) - 10.0.1600.22 (Intel X86)"
         @sqlserver_2011_string1 = %|Microsoft SQL Server "Denali" (CTP1) - 11.0.1103.9 (Intel X86) Sep 24 2010 22:02:43 Copyright (c) Microsoft Corporation Enterprise Evaluation Edition on Windows NT 6.0 (Build 6002: Service Pack 2)|
@@ -94,7 +94,7 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
       
       should 'return a 4 digit year fixnum for #database_year' do
         assert_instance_of Fixnum, @connection.database_year
-        assert_contains @supported_version, @connection.database_year
+        @supported_versions.must_include @connection.database_year
       end
       
       should 'return a code name if year not available' do
@@ -567,7 +567,7 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
         end
         
         should 'return block value using #run_with_isolation_level' do
-          assert_same_elements Task.find(:all), @connection.run_with_isolation_level('READ UNCOMMITTED') { Task.find(:all) }
+          assert_equal Task.find(:all).sort, @connection.run_with_isolation_level('READ UNCOMMITTED') { Task.find(:all).sort }
         end
         
         should 'pass a read uncommitted isolation level test' do
@@ -659,7 +659,7 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
       end
       
       should 'find CustomersView table name' do
-        assert_contains @connection.views, 'customers_view'
+        @connection.views.must_include 'customers_view'
       end
       
       should 'work with dynamic finders' do

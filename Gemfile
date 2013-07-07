@@ -38,10 +38,10 @@ end
 group :development do
   gem 'bcrypt-ruby', '~> 3.0.0'
   gem 'bench_press'
-  gem 'mocha', '0.14.0'
+  gem 'mocha'
+  gem 'minitest-spec-rails'
   gem 'nokogiri'
   gem 'rake', '~> 0.9.2'
-  gem 'shoulda', '2.10.3'
   gem 'ruby-prof'
 end
 

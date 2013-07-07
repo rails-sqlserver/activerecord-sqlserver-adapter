@@ -1,6 +1,7 @@
 
 * 3.2.13 *
 
+* Drop shoulda and use minitest-spec-rails!!!
 * Test TinyTDS 0.6.0.
 * Fixed the unit tests due to changes in ActiveRecord that removes blank config values.
 * Fixed explain tests that were failing due to changes in ExplainSubscriber, cause was regex

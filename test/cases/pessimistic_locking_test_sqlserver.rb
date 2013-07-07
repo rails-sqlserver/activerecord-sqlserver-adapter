@@ -7,7 +7,7 @@ class PessimisticLockingTestSqlserver < ActiveRecord::TestCase
   self.use_transactional_fixtures = false
   fixtures :people, :readers
   
-  def setup
+  setup do
     Person.columns; Reader.columns # Avoid introspection queries during tests.
   end
   

@@ -6,7 +6,7 @@ class ConnectionProfileCase < ActiveRecord::TestCase
   
   fixtures :topics
   
-  def setup
+  setup do
     @connection = ActiveRecord::Base.connection
   end
   

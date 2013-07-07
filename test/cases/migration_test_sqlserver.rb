@@ -3,7 +3,7 @@ require 'models/person'
 
 class MigrationTestSqlserver < ActiveRecord::TestCase
   
-  def setup
+  setup do
     @connection = ActiveRecord::Base.connection
   end
   
@@ -27,8 +27,8 @@ class MigrationTestSqlserver < ActiveRecord::TestCase
       rescue Exception => e
         assert_match %r|this and all later migrations canceled|, e.message
       end
-      assert_does_not_contain @trans_test_table1, @connection.tables
-      assert_does_not_contain @trans_test_table2, @connection.tables
+      @connection.tables.wont_include @trans_test_table1
+      @connection.tables.wont_include @trans_test_table2
     end
     
   end

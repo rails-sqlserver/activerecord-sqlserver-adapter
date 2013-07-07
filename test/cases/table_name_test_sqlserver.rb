@@ -9,7 +9,7 @@ class TableNameTestSqlserver < ActiveRecord::TestCase
   
   self.use_transactional_fixtures = false
   
-  def setup
+  setup do
     Order.table_name = '[orders]'
     Order.reset_column_information
   end

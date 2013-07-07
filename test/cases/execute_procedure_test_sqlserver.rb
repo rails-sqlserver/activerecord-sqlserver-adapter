@@ -2,7 +2,7 @@ require 'cases/sqlserver_helper'
 
 class ExecuteProcedureTestSqlserver < ActiveRecord::TestCase
   
-  def setup
+  setup do
     @klass = ActiveRecord::Base
   end
   

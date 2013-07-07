@@ -3,7 +3,7 @@ require 'models/binary'
 
 class ColumnTestSqlserver < ActiveRecord::TestCase
   
-  def setup
+  setup do
     @connection = ActiveRecord::Base.connection
     @column_klass = ActiveRecord::ConnectionAdapters::SQLServerColumn
   end

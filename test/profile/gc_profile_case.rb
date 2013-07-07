@@ -9,7 +9,7 @@ class GcProfileCase < ActiveRecord::TestCase
   
   fixtures :topics
   
-  def setup
+  setup do
     create_mass_topics unless @created_mass_topics
     @connection = ActiveRecord::Base.connection
     @select_statement = "SELECT [topics].* FROM [topics]"

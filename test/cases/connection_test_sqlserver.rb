@@ -7,7 +7,7 @@ class ConnectionTestSqlserver < ActiveRecord::TestCase
   
   fixtures :topics, :accounts
   
-  def setup
+  setup do
     @connection = ActiveRecord::Base.connection
   end
   
