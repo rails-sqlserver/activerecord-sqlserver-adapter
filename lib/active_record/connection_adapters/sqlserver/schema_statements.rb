@@ -89,6 +89,7 @@ module ActiveRecord
         end
 
         def rename_column(table_name, column_name, new_column_name)
+          schema_cache.clear_table_cache!(table_name)
           detect_column_for! table_name, column_name
           do_execute "EXEC sp_rename '#{table_name}.#{column_name}', '#{new_column_name}', 'COLUMN'"
         end
