@@ -13,7 +13,7 @@ require 'rubygems'
 require 'bundler'
 Bundler.setup
 require 'shoulda'
-require 'mocha'
+require 'mocha/setup'
 require 'active_support/dependencies'
 require 'active_record'
 require 'active_record/version'
@@ -27,7 +27,7 @@ ActiveRecord::Migration.verbose = false
 ActiveRecord::Base.logger = Logger.new(File.expand_path(File.join(SQLSERVER_TEST_ROOT,'debug.log')))
 ActiveRecord::Base.logger.level = 0
 
-# Defining our classes in one place as well as soem core tests that need coercing date/time types.
+# Defining our classes in one place as well as some core tests that need coercing date/time types.
 
 class UpperTestDefault < ActiveRecord::Base ; self.table_name = 'UPPER_TESTS' ; end
 class UpperTestLowered < ActiveRecord::Base ; self.table_name = 'upper_tests' ; end
@@ -105,14 +105,14 @@ end
 
 module ActiveRecord
   class SQLCounter
-    self.ignored_sql.concat([ 
+    self.ignored_sql.concat([
       %r|SELECT SCOPE_IDENTITY|, %r{INFORMATION_SCHEMA\.(TABLES|VIEWS|COLUMNS)},
       %r|SELECT @@version|, %r|SELECT @@TRANCOUNT|, %r{(BEGIN|COMMIT|ROLLBACK|SAVE) TRANSACTION}
     ])
   end
 end
 
-module ActiveRecord 
+module ActiveRecord
   class TestCase < ActiveSupport::TestCase
     class << self
       def connection_mode_dblib? ; ActiveRecord::Base.connection.instance_variable_get(:@connection_options)[:mode] == :dblib ; end

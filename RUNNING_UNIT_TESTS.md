@@ -39,7 +39,7 @@ $ git clone git://github.com/rails-sqlserver/activerecord-sqlserver-adapter.git
 Optionally, you an just let bundler do all the work and assuming there is a git tag for the Rails version, you can set `RAILS_VERSION` before bundling.
 
 ```
-$ export RAILS_VERSION='3.1.1'
+$ export RAILS_VERSION='3.2.13'
 $ bundle install
 ```
 
