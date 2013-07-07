@@ -1,6 +1,7 @@
 
 * 3.2.11 *
 
+* Handle "No such column" when renaming some columns in the migrations. Fixes #237. Thanks @michelgrootjans.
 * Update regex for `RecordNotUnique` exception. Fixes #257. Thanks @pbatorre.
 * Pass tds_version to TinyTDS. Fixes #233. Thanks @denispeplin.
 * Use CONCAT_NULL_YIELDS_NULL for all TinyTDS connections. Fixes #262. Thanks @noel.
