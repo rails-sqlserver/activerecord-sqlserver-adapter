@@ -424,6 +424,7 @@ module ActiveRecord
                           :username      => config[:username],
                           :password      => config[:password],
                           :database      => config[:database],
+                          :tds_version   => config[:tds_version],
                           :appname       => appname,
                           :login_timeout => login_timeout,
                           :timeout       => timeout,
