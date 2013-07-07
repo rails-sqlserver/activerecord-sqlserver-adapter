@@ -1,6 +1,8 @@
 
 * 3.2.13 *
 
+* Use CONCAT_NULL_YIELDS_NULL for all TinyTDS connections. Fixes #262. Thanks @noel.
+* Fix for Azure SQL. Fixed #263. Thanks @eklipse2k8.
 * Drop shoulda and use minitest-spec-rails!!!
 * Test TinyTDS 0.6.0.
 * Fixed the unit tests due to changes in ActiveRecord that removes blank config values.
