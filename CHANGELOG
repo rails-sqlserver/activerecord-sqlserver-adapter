@@ -1,6 +1,7 @@
 
-* 3.2.13 *
+* 3.2.11 *
 
+* Pass tds_version to TinyTDS. Fixes #233. Thanks @denispeplin.
 * Use CONCAT_NULL_YIELDS_NULL for all TinyTDS connections. Fixes #262. Thanks @noel.
 * Fix for Azure SQL. Fixed #263. Thanks @eklipse2k8.
 * Drop shoulda and use minitest-spec-rails!!!
