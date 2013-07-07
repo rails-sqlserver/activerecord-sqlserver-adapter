@@ -207,9 +207,10 @@ module ActiveRecord
         connect
         @database_version = select_value 'SELECT @@version', 'SCHEMA'
         @database_year = begin
-                           if @database_version =~ /Microsoft SQL Azure/i
+                           if @database_version =~ /Azure/i
                              @sqlserver_azure = true
-                             @database_version.match(/\s(\d{4})\s/)[1].to_i
+                             @database_version.match(/\s-\s([0-9.]+)/)[1]
+                             year = 2012
                            else
                              year = DATABASE_VERSION_REGEXP.match(@database_version)[1]
                              year == "Denali" ? 2011 : year.to_i
@@ -222,7 +223,7 @@ module ActiveRecord
         @edition          = select_value "SELECT CAST(SERVERPROPERTY('edition') AS VARCHAR(128))", 'SCHEMA'
         initialize_dateformatter
         use_database
-        unless SUPPORTED_VERSIONS.include?(@database_year)
+        unless (@sqlserver_azure == true || SUPPORTED_VERSIONS.include?(@database_year))
           raise NotImplementedError, "Currently, only #{SUPPORTED_VERSIONS.to_sentence} are supported. We got back #{@database_version}."
         end
       end
@@ -437,6 +438,7 @@ module ActiveRecord
                             client.execute("SET ANSI_PADDING ON").do
                             client.execute("SET QUOTED_IDENTIFIER ON")
                             client.execute("SET ANSI_WARNINGS ON").do
+                            client.execute("SET CONCAT_NULL_YIELDS_NULL ON").do
                           else
                             client.execute("SET ANSI_DEFAULTS ON").do
                             client.execute("SET CURSOR_CLOSE_ON_COMMIT OFF").do
@@ -524,9 +526,10 @@ module ActiveRecord
         @auto_connecting = true
         count = 0
         while count <= (auto_connect_duration / 2)
-          sleep 2** count
+          result = reconnect!
           ActiveRecord::Base.did_retry_sqlserver_connection(self,count)
-          return true if reconnect!
+          return true if result
+          sleep 2** count
           count += 1
         end
         ActiveRecord::Base.did_lose_sqlserver_connection(self)
