@@ -1,4 +1,9 @@
 
+* 3.2.12 *
+
+* Revert string_to_binary changes in 457af60e. Fixes #273.
+
+
 * 3.2.11 *
 
 * Handle "No such column" when renaming some columns in the migrations. Fixes #237. Thanks @michelgrootjans.
