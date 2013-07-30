@@ -445,10 +445,10 @@ module ActiveRecord
                           client.execute("SET CONCAT_NULL_YIELDS_NULL ON").do
                         end
                       when :odbc
-                        if config[:dsn].include?(';')
+                        if config[:conn_str].include?(';')
                           driver = ODBC::Driver.new.tap do |d|
                             d.name = config[:dsn_name] || 'Driver1'
-                            d.attrs = config[:dsn].split(';').map{ |atr| atr.split('=') }.reject{ |kv| kv.size != 2 }.inject({}){ |h,kv| k,v = kv ; h[k] = v ; h }
+                            d.attrs = config[:conn_str].split(';').map{ |atr| atr.split('=') }.reject{ |kv| kv.size != 2 }.inject({}){ |h,kv| k,v = kv ; h[k] = v ; h }
                           end
                           ODBC::Database.new.drvconnect(driver)
                         else
