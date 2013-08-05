@@ -47,38 +47,27 @@ module ActiveRecord
         def rename_table(table_name, new_name)
           do_execute "EXEC sp_rename '#{table_name}', '#{new_name}'"
         end
-
-        def remove_column(table_name, *column_names)
-          raise ArgumentError.new("You must specify at least one column name.  Example: remove_column(:people, :first_name)") if column_names.empty?
-          ActiveSupport::Deprecation.warn 'Passing array to remove_columns is deprecated, please use multiple arguments, like: `remove_columns(:posts, :foo, :bar)`', caller if column_names.flatten!
-          column_names.flatten.each do |column_name|
-            remove_check_constraints(table_name, column_name)
-            remove_default_constraint(table_name, column_name)
-            remove_indexes(table_name, column_name)
-            do_execute "ALTER TABLE #{quote_table_name(table_name)} DROP COLUMN #{quote_column_name(column_name)}"
-          end
+        
+        def remove_column(table_name, column_name, type = nil)
+          raise ArgumentError.new("You must specify at least one column name.  Example: remove_column(:people, :first_name)") if (column_name.is_a? Array)
+          ActiveSupport::Deprecation.warn 'Passing multiple arguments to remove_columns is deprecated, please use just one column name, like: `remove_columns(:posts, :column_name, :type)`', caller if column_name
+          remove_check_constraints(table_name, column_name)
+          remove_default_constraint(table_name, column_name)
+          remove_indexes(table_name, column_name)
+          do_execute "ALTER TABLE #{quote_table_name(table_name)} DROP COLUMN #{quote_column_name(column_name)}"
         end
 
         def change_column(table_name, column_name, type, options = {})
           sql_commands = []
-          indexes = []
           column_object = schema_cache.columns[table_name].detect { |c| c.name.to_s == column_name.to_s }
-
+          change_column_sql = "ALTER TABLE #{quote_table_name(table_name)} ALTER COLUMN #{quote_column_name(column_name)} #{type_to_sql(type, options[:limit], options[:precision], options[:scale])}"
+          change_column_sql << " NOT NULL" if options[:null] == false
+          sql_commands << change_column_sql
           if options_include_default?(options) || (column_object && column_object.type != type.to_sym)
-            remove_default_constraint(table_name,column_name)
-            indexes = indexes(table_name).select{ |index| index.columns.include?(column_name.to_s) }
-            remove_indexes(table_name, column_name)
+           	remove_default_constraint(table_name,column_name)
           end
-          sql_commands << "UPDATE #{quote_table_name(table_name)} SET #{quote_column_name(column_name)}=#{quote(options[:default])} WHERE #{quote_column_name(column_name)} IS NULL" if !options[:null].nil? && options[:null] == false && !options[:default].nil?
-          sql_commands << "ALTER TABLE #{quote_table_name(table_name)} ALTER COLUMN #{quote_column_name(column_name)} #{type_to_sql(type, options[:limit], options[:precision], options[:scale])}"
-          sql_commands[-1] << " NOT NULL" if !options[:null].nil? && options[:null] == false
           if options_include_default?(options)
             sql_commands << "ALTER TABLE #{quote_table_name(table_name)} ADD CONSTRAINT #{default_constraint_name(table_name,column_name)} DEFAULT #{quote(options[:default])} FOR #{quote_column_name(column_name)}"
-          end
-
-          #Add any removed indexes back
-          indexes.each do |index|
-            sql_commands << "CREATE INDEX #{quote_table_name(index.name)} ON #{quote_table_name(table_name)} (#{index.columns.collect {|c|quote_column_name(c)}.join(', ')})"
           end
           sql_commands.each { |c| do_execute(c) }
         end

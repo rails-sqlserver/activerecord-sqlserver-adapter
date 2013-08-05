@@ -44,7 +44,7 @@ module ActiveRecord
                 if open_transactions == 0
                   if database_transaction_rollback.is_a?(::ActiveRecord::DeadlockVictim)
                     # SQL Server has already rolled back, so rollback activerecord's history
-                    rollback_transaction_records(true)
+                    rollback_transaction
                     retry
                   else
                     rollback_db_transaction
@@ -52,7 +52,7 @@ module ActiveRecord
                   end
                 else
                   rollback_to_savepoint
-                  rollback_transaction_records(false)
+                  rollback_transaction
                 end
               end
               raise unless database_transaction_rollback.is_a?(::ActiveRecord::Rollback)
@@ -67,7 +67,7 @@ module ActiveRecord
               begin
                 if open_transactions == 0
                   commit_db_transaction
-                  commit_transaction_records
+                  # commit_transaction_records
                 else
                   release_savepoint
                   save_point_records = @_current_transaction_records.pop

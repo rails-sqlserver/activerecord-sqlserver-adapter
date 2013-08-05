@@ -18,6 +18,8 @@ module ActiveRecord
         end
         
         def exec_query(sql, name = 'SQL', binds = [], sqlserver_options = {})
+          # This is so no id is tried to be updated
+          sql.gsub! /, \[id\] = @[0-9]*/, '' if sql =~ /UPDATE/ && sql =~ /, \[id\] = /
           if id_insert_table_name = sqlserver_options[:insert] ? query_requires_identity_insert?(sql) : nil
             with_identity_insert_enabled(id_insert_table_name) { do_exec_query(sql, name, binds) }
           else
@@ -25,7 +27,7 @@ module ActiveRecord
           end
         end
         
-        def exec_insert(sql, name, binds)
+        def exec_insert(sql, name, binds, pk = nil, sequence_name = nil)
           exec_query sql, name, binds, :insert => true
         end
         
@@ -135,9 +137,11 @@ module ActiveRecord
         
         def user_options
           return {} if sqlserver_azure?
-          select_rows("dbcc useroptions",'SCHEMA').inject(HashWithIndifferentAccess.new) do |values,row| 
-            set_option = row[0].gsub(/\s+/,'_')
-            user_value = row[1]
+          select_rows("dbcc useroptions",'SCHEMA').inject(HashWithIndifferentAccess.new) do |values,row|
+            set_option = row.values[0].gsub(/\s+/,'_') if row.instance_of? Hash
+            set_option = row[0].gsub(/\s+/,'_') if row.instance_of? Array
+            user_value = row.values[1]  if row.instance_of? Hash
+            user_value = row[1]  if row.instance_of? Array
             values[set_option] = user_value
             values
           end
@@ -294,7 +298,7 @@ module ActiveRecord
         protected
         
         def select(sql, name = nil, binds = [])
-          exec_query(sql, name, binds).to_a
+          exec_query(sql, name, binds)
         end
         
         def sql_for_insert(sql, pk, id_value, sequence_name, binds)
