@@ -48,7 +48,7 @@ module ActiveRecord
                     retry
                   else
                     rollback_db_transaction
-                    rollback_transaction_records(true)
+                    #rollback_transaction_records(true)
                   end
                 else
                   rollback_to_savepoint
@@ -79,10 +79,10 @@ module ActiveRecord
               rescue Exception => database_transaction_rollback
                 if open_transactions == 0
                   rollback_db_transaction
-                  rollback_transaction_records(true)
+                  #rollback_transaction_records(true)
                 else
                   rollback_to_savepoint
-                  rollback_transaction_records(false)
+                  #rollback_transaction_records(false)
                 end
                 raise
               end
