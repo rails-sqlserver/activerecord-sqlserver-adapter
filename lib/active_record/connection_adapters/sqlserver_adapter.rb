@@ -357,7 +357,7 @@ module ActiveRecord
       end
 
       def retry_deadlock_victim
-        @@retry_deadlock_victim.is_a?(FalseClass) ? false : true
+        @@retry_deadlock_victim.is_a?(TrueClass)
       end
       alias :retry_deadlock_victim? :retry_deadlock_victim
 
