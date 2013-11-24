@@ -3,11 +3,11 @@ module ActiveRecord
     module Sqlserver
       module CoreExt
         module DatabaseStatements
-          
+
           # This is a copy of the current (3.1.3) ActiveRecord's transaction method. We should propose
-          # a patch to the default transaction method to make it more callback for adapters that want to 
+          # a patch to the default transaction method to make it more callback for adapters that want to
           # do deadlock retry logic. Because this is a copy, we really need to keep an eye out on this when
-          # upgradding the adapter. 
+          # upgradding the adapter.
           def transaction_with_retry_deadlock_victim(options = {})
             options.assert_valid_keys :requires_new, :joinable
 
@@ -30,7 +30,6 @@ module ActiveRecord
                   elsif requires_new
                     create_savepoint
                   end
-                  increment_open_transactions
                   transaction_open = true
                   @_current_transaction_records.push([])
                 end
@@ -39,7 +38,6 @@ module ActiveRecord
             rescue Exception => database_transaction_rollback
               if transaction_open && !outside_transaction?
                 transaction_open = false
-                decrement_open_transactions
                 # handle deadlock victim retries at the outermost transaction
                 if open_transactions == 0
                   if database_transaction_rollback.is_a?(::ActiveRecord::DeadlockVictim)
@@ -63,7 +61,6 @@ module ActiveRecord
             if outside_transaction?
               @open_transactions = 0
             elsif transaction_open
-              decrement_open_transactions
               begin
                 if open_transactions == 0
                   commit_db_transaction
@@ -88,7 +85,7 @@ module ActiveRecord
               end
             end
           end
-          
+
         end
       end
     end
