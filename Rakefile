@@ -10,14 +10,24 @@ def test_libs(mode='dblib')
    "#{File.join(Gem.loaded_specs['activerecord'].full_gem_path,'test')}"]
 end
 
+# bundle exec rake test SQLSERVER_ONLY=true
+# 
+# If you have trouble running single tests (errors about requirements):
+# http://veganswithtypewriters.net/blog/2013/06/29/weirdness-with-rake-solved/
 def test_files
-  return ENV['TEST_FILES'].split(',').sort if ENV['TEST_FILES']
-  files = Dir.glob("test/cases/**/*_test_sqlserver.rb").sort
+  test_setup = "test/cases/aaaa_create_tables_test_sqlserver.rb"
+  return (ENV['TEST_FILES']+","+test_setup).split(',').sort if ENV['TEST_FILES']
+  sqlserver_cases = Dir.glob("test/cases/**/*_test_sqlserver.rb").sort
   ar_path = Gem.loaded_specs['activerecord'].full_gem_path
   ar_cases = Dir.glob("#{ar_path}/test/cases/**/*_test.rb")
   adapter_cases = Dir.glob("#{ar_path}/test/cases/adapters/**/*_test.rb")
-  files += (ar_cases-adapter_cases).sort
-  files
+  if ENV['SQLSERVER_ONLY']
+    sqlserver_cases
+  elsif ENV['ACTIVERECORD_ONLY']
+    test_setup + (ar_cases - adapter_cases).sort
+  else
+    sqlserver_cases + (ar_cases - adapter_cases).sort
+  end
 end
 
 task :test => ['test:dblib']
