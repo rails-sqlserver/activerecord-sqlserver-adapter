@@ -9,7 +9,7 @@ default_connection_info: &default_connection_info
   username: <%= ENV['ACTIVERECORD_UNITTEST_USER'] || 'rails' %>
   password: <%= ENV['ACTIVERECORD_UNITTEST_PASS'] || '' %>
   azure: <%= !ENV['ACTIVERECORD_UNITTEST_AZURE'].nil? %>
-
+  timeout: 0
 connections:
   
   dblib:
