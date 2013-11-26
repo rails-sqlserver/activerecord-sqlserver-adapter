@@ -133,9 +133,9 @@ class SpecificSchemaTestSqlserver < ActiveRecord::TestCase
 
       should 'can find by biginit' do
         assert_equal @bi5k,  @edge_class.find_by_bigint(@b5k)
-        assert_equal @b5k,   @edge_class.find(:first, :select => 'bigint', :conditions => {:bigint => @b5k}).bigint
+        assert_equal @b5k,   @edge_class.first(:select => 'bigint', :conditions => {:bigint => @b5k}).bigint
         assert_equal @bimjr, @edge_class.find_by_bigint(@bnum)
-        assert_equal @bnum,  @edge_class.find(:first, :select => 'bigint', :conditions => {:bigint => @bnum}).bigint
+        assert_equal @bnum,  @edge_class.first(:select => 'bigint', :conditions => {:bigint => @bnum}).bigint
       end
 
     end

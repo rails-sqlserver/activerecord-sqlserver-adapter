@@ -18,7 +18,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   fixtures :developers
 
   def test_coerced_read_attributes_before_type_cast_on_datetime
-    developer = Developer.find(:first)
+    developer = Developer.first
     if developer.created_at_before_type_cast.is_a?(String)
       assert_equal "#{developer.created_at.to_s(:db)}.000" , developer.attributes_before_type_cast["created_at"]
     end
