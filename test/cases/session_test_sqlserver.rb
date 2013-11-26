@@ -1,7 +1,7 @@
 require 'cases/sqlserver_helper'
 require 'action_dispatch'
-require 'active_record/session_store'
-
+# TODO: require 'active_record/session_store'
+# Active Record's Session Store extracted from Rails
 module ActiveRecord
   class SessionStore
     class SessionTest < ActiveRecord::TestCase

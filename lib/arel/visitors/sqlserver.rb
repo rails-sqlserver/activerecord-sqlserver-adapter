@@ -89,7 +89,7 @@ module Arel
       private
 
       # SQLServer ToSql/Visitor (Overides)
-
+      # TODO: Change for arel 4.0.1
       def visit_Arel_Nodes_SelectStatement(o)
         if complex_count_sql?(o)
           visit_Arel_Nodes_SelectStatementForComplexCount(o)

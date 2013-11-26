@@ -4,6 +4,7 @@ source 'https://rubygems.org'
 if ENV['RAILS_SOURCE']
   gemspec :path => ENV['RAILS_SOURCE']
 else
+  # Need to get rails source beacause the gem doesn't include tests
   version = ENV['RAILS_VERSION'] || begin
     require 'net/http'
     require 'yaml'

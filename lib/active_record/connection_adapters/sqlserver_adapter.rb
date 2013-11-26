@@ -195,6 +195,9 @@ module ActiveRecord
 
       def initialize(connection, logger, pool, config)
         super(connection, logger, pool)
+        # TODO: Is ActiveSupport::Notifications.notifier nil here
+        #       If it is not, does it become nil between here and 'SELECT @@version below'
+        #       If it is, why is it nil here, do we need to change our call to the super impl
         # AbstractAdapter Responsibility
         @schema_cache = Sqlserver::SchemaCache.new self
         @visitor = Arel::Visitors::SQLServer.new self
@@ -203,6 +206,13 @@ module ActiveRecord
         @connection_options = config
         connect
         @database_version = select_value 'SELECT @@version', 'SCHEMA'
+
+#         db_ver= "Microsoft SQL Server 2012 - 11.0.2100.60 (X64)
+#   Feb 10 2012 19:39:15
+#   Copyright (c) Microsoft Corporation
+#   Express Edition (64-bit) on Windows NT 6.1 <X64> (Build 7601: Service Pack 1) (Hypervisor)
+# "
+        #TODO
         @database_year = begin
                            if @database_version =~ /Azure/i
                              @sqlserver_azure = true
