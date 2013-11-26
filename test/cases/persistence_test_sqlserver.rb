@@ -14,7 +14,6 @@ require 'models/parrot'
 require 'models/minivan'
 require 'models/person'
 require 'rexml/document'
-require 'active_support/core_ext/exception'
 
 class PersistencesTestSqlserver < ActiveRecord::TestCase
 end
