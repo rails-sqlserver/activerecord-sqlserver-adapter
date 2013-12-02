@@ -14,7 +14,7 @@ else
     uri = URI.parse "http://rubygems.org/api/v1/versions/activerecord.yaml"
     YAML.load(Net::HTTP.get(uri)).select do |data|
       a, b, c = data['number'].split('.')
-      !data['prerelease'] && major == a && minor == b
+      !data['prerelease'] && major == a && (minor.nil? || minor == b)
     end.first['number']
   end
   gem 'rails', :git => "git://github.com/rails/rails.git", :tag => "v#{version}"
