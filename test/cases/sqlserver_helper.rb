@@ -1,3 +1,13 @@
+begin
+  require 'turn'
+
+  Turn.config do |c|
+     c.format = :pretty
+     c.trace = 1
+     # c.natural = true
+  end
+rescue LoadError
+end
 
 SQLSERVER_TEST_ROOT       = File.expand_path(File.join(File.dirname(__FILE__),'..'))
 SQLSERVER_ASSETS_ROOT     = File.expand_path(File.join(SQLSERVER_TEST_ROOT,'assets'))

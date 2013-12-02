@@ -40,6 +40,7 @@ group :odbc do
 end
 
 group :development do
+  gem "turn"
   gem 'bcrypt-ruby', '~> 3.0.0'
   gem 'bench_press'
   gem 'mocha'
