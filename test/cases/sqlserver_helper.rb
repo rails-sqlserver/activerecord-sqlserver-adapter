@@ -105,7 +105,7 @@ module SqlserverCoercedTest
     def method_added(method)
       if coerced_tests && coerced_tests.include?(method)
         undef_method(method) rescue nil
-        STDOUT.puts("Undefined coerced test: #{self.name}##{method}")
+        STDOUT.puts("Info: Undefined coerced test: #{self.name}##{method}")
       end
     end
   end
