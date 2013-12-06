@@ -11,7 +11,6 @@ class DatabaseStatementsTestSqlserver < ActiveRecord::TestCase
   should 'create database' do
     @connection.create_database 'activerecord_unittest3' #, 'SQL_Latin1_General_CP1_CI_AS'
     database_name = @connection.select_value "SELECT name FROM master.dbo.sysdatabases WHERE name = 'activerecord_unittest3'"
-    puts @connection.select_value "SELECT DATABASEPROPERTYEX('activerecord_unittest3', 'Collation') SQLCollation"
     assert_equal 'activerecord_unittest3', database_name
   end
  
