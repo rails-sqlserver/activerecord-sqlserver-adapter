@@ -4,7 +4,7 @@ module Arel
 
   module Nodes
 
-    # Extending the Ordering class to be comparrison friendly which allows us to call #uniq on a
+    # Extending the Ordering class to be comparison friendly which allows us to call #uniq on a
     # collection of them. See SelectManager#order for more details.
     class Ordering < Arel::Nodes::Unary
       def hash
@@ -89,51 +89,51 @@ module Arel
       private
 
       # SQLServer ToSql/Visitor (Overides)
-      # TODO: Change for arel 4.0.1
-      def visit_Arel_Nodes_SelectStatement(o)
+
+      def visit_Arel_Nodes_SelectStatement(o, a)
         if complex_count_sql?(o)
-          visit_Arel_Nodes_SelectStatementForComplexCount(o)
+          visit_Arel_Nodes_SelectStatementForComplexCount(o, a)
         elsif o.offset
-          visit_Arel_Nodes_SelectStatementWithOffset(o)
+          visit_Arel_Nodes_SelectStatementWithOffset(o, a)
         else
-          visit_Arel_Nodes_SelectStatementWithOutOffset(o)
+          visit_Arel_Nodes_SelectStatementWithOutOffset(o, a)
         end
       end
-      
-      def visit_Arel_Nodes_UpdateStatement(o)
+
+      def visit_Arel_Nodes_UpdateStatement(o, a)
         if o.orders.any? && o.limit.nil?
           o.limit = Nodes::Limit.new(9223372036854775807)
         end
         super
       end
 
-      def visit_Arel_Nodes_Offset(o)
+      def visit_Arel_Nodes_Offset(o, a)
         "WHERE [__rnt].[__rn] > (#{visit o.expr})"
       end
 
-      def visit_Arel_Nodes_Limit(o)
+      def visit_Arel_Nodes_Limit(o, a)
         "TOP (#{visit o.expr})"
       end
 
-      def visit_Arel_Nodes_Lock(o)
+      def visit_Arel_Nodes_Lock(o, a)
         visit o.expr
       end
-      
-      def visit_Arel_Nodes_Ordering(o)
+
+      def visit_Arel_Nodes_Ordering(o, a)
         if o.respond_to?(:direction)
           "#{visit o.expr} #{o.ascending? ? 'ASC' : 'DESC'}"
         else
           visit o.expr
         end
       end
-      
-      def visit_Arel_Nodes_Bin(o)
+
+      def visit_Arel_Nodes_Bin(o, a)
         "#{visit o.expr} #{@connection.cs_equality_operator}"
       end
 
       # SQLServer ToSql/Visitor (Additions)
 
-      def visit_Arel_Nodes_SelectStatementWithOutOffset(o, windowed=false)
+      def visit_Arel_Nodes_SelectStatementWithOutOffset(o, a, windowed = false)
         find_and_fix_uncorrelated_joins_in_select_statement(o)
         core = o.cores.first
         projections = core.projections
@@ -165,7 +165,7 @@ module Arel
         ].compact.join ' '
       end
 
-      def visit_Arel_Nodes_SelectStatementWithOffset(o)
+      def visit_Arel_Nodes_SelectStatementWithOffset(o, a)
         core = o.cores.first
         o.limit ||= Arel::Nodes::Limit.new(9223372036854775807)
         orders = rowtable_orders(o)
@@ -174,14 +174,14 @@ module Arel
           (rowtable_projections(o).map{ |x| visit(x) }.join(', ')),
           "FROM (",
             "SELECT #{core.set_quantifier ? 'DISTINCT DENSE_RANK()' : 'ROW_NUMBER()'} OVER (ORDER BY #{orders.map{ |x| visit(x) }.join(', ')}) AS [__rn],",
-            visit_Arel_Nodes_SelectStatementWithOutOffset(o,true),
+            visit_Arel_Nodes_SelectStatementWithOutOffset(o, a, true),
           ") AS [__rnt]",
           (visit(o.offset) if o.offset),
           "ORDER BY [__rnt].[__rn] ASC"
         ].compact.join ' '
       end
 
-      def visit_Arel_Nodes_SelectStatementForComplexCount(o)
+      def visit_Arel_Nodes_SelectStatementForComplexCount(o, a)
         core = o.cores.first
         o.limit.expr = Arel.sql("#{o.limit.expr} + #{o.offset ? o.offset.expr : 0}") if o.limit
         orders = rowtable_orders(o)

@@ -23,7 +23,7 @@ end
 if ENV['AREL']
   gem 'arel', :path => ENV['AREL']
   else
-  gem 'arel', '4.0.0'
+  gem 'arel', '~> 4.0.1'
 end
 
 group :tinytds do
