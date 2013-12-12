@@ -567,7 +567,7 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
         end
         
         should 'return block value using #run_with_isolation_level' do
-          assert_equal Task.find(:all).sort, @connection.run_with_isolation_level('READ UNCOMMITTED') { Task.find(:all).sort }
+          assert_equal Task.all.sort, @connection.run_with_isolation_level('READ UNCOMMITTED') { Task.all.sort }
         end
         
         should 'pass a read uncommitted isolation level test' do
