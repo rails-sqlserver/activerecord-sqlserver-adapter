@@ -63,7 +63,7 @@ module ActiveRecord
       end
 
       class << self
-
+        # TODO: I think this has problems with ruby 2.0
         def string_to_binary(value)
          "0x#{value.unpack("H*")[0]}"
         end
@@ -206,13 +206,6 @@ module ActiveRecord
         @connection_options = config
         connect
         @database_version = select_value 'SELECT @@version', 'SCHEMA'
-
-#         db_ver= "Microsoft SQL Server 2012 - 11.0.2100.60 (X64)
-#   Feb 10 2012 19:39:15
-#   Copyright (c) Microsoft Corporation
-#   Express Edition (64-bit) on Windows NT 6.1 <X64> (Build 7601: Service Pack 1) (Hypervisor)
-# "
-        #TODO
         @database_year = begin
                            if @database_version =~ /Azure/i
                              @sqlserver_azure = true
@@ -321,7 +314,7 @@ module ActiveRecord
       end
 
       def primary_key(table_name)
-        identity_column(table_name).try(:name) || schema_cache .columns(table_name).detect(&:is_primary?).try(:name)
+        identity_column(table_name).try(:name) || schema_cache.columns(table_name).detect(&:is_primary?).try(:name)
       end
 
       # === SQLServer Specific (DB Reflection) ======================== #
