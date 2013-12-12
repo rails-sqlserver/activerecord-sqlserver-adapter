@@ -22,15 +22,13 @@ end
 
 if ENV['AREL']
   gem 'arel', :path => ENV['AREL']
-  else
-  gem 'arel', '~> 4.0.1'
 end
 
 group :tinytds do
   if ENV['TINYTDS_SOURCE']
     gem 'tiny_tds', :path => ENV['TINYTDS_SOURCE']
   else
-    #segfault caused by tiny_tds 0.6.1
+    # TODO: [Rails4] Change back... segfault caused by tiny_tds 0.6.1
     gem 'tiny_tds', :git =>"https://github.com/rails-sqlserver/tiny_tds.git"
   end
 end
