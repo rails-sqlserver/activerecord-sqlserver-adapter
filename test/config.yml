@@ -26,7 +26,7 @@ connections:
   odbc:
     arunit:
       <<: *default_connection_info
-      dsn: <%= ENV['ACTIVERECORD_UNITTEST2_DSN'] || 'activerecord_unittest' %>
+      dsn: <%= ENV['ACTIVERECORD_UNITTEST_DSN'] || 'activerecord_unittest' %>
     arunit2:
       <<: *default_connection_info
       database: activerecord_unittest2
