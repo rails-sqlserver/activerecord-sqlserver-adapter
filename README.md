@@ -1,3 +1,8 @@
+# Rails 4 - By no means ready for production 
+Current test status:
+3866 tests, 3412 passed, 85 failures, 369 errors, 29 skips, 10084 assertions
+
+
 # ActiveRecord SQL Server Adapter. For SQL Server 2005 And Higher.
 
 The SQL Server adapter for ActiveRecord. If you need the adapter for SQL Server 2000, you are still in the right spot. Just install the latest 2.3.x version of the adapter. Note, we follow a rational versioning policy that tracks ActiveRecord. That means that our 2.3.x version of the adapter is only for the latest 2.3 version of Rails. We also have stable branches for each major/minor release of ActiveRecord.
@@ -5,16 +10,7 @@ The SQL Server adapter for ActiveRecord. If you need the adapter for SQL Server 
 
 ## What's New
 
-* Rails 3.2 support. With explain (SHOWPLAN) support.
-* Deadlock victim retry logic using the #retry_deadlock_victim config.
-* Proper interface to configure the connection and TinyTDS app name reported to SQL Server.
-* Rails 3.1 prepared statement support leverages cached query plans.
-  If you use DBLIB/TinyTDS, you must use FreeTDS 0.91 !!!!!
-  https://github.com/rails-sqlserver/tiny_tds/issues/41
-* We now support your native language date/time formats automatically!
-* Default unicode datatypes! Disable with #enable_default_unicode_types to false.
-* New #lowercase_schema_reflection configuration option for legacy DBs.
-* New dblib connection mode using TinyTDS! Default mode too!
+* Rails 4 support
 
 
 #### Testing Rake Tasks Support
