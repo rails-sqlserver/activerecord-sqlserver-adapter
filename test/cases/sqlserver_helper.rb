@@ -3,8 +3,7 @@ begin
 
   Turn.config do |c|
      c.format = :pretty
-     c.trace = 1
-     # c.natural = true
+     c.verbose = true
   end
 rescue LoadError
 end
