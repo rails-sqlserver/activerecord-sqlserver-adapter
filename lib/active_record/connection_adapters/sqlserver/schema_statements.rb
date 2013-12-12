@@ -60,7 +60,7 @@ module ActiveRecord
 
         def change_column(table_name, column_name, type, options = {})
           sql_commands = []
-          column_object = schema_cache .columns(table_name).detect { |c| c.name.to_s == column_name.to_s }
+          column_object = schema_cache.columns(table_name).detect { |c| c.name.to_s == column_name.to_s }
           change_column_sql = "ALTER TABLE #{quote_table_name(table_name)} ALTER COLUMN #{quote_column_name(column_name)} #{type_to_sql(type, options[:limit], options[:precision], options[:scale])}"
           change_column_sql << " NOT NULL" if options[:null] == false
           sql_commands << change_column_sql
@@ -282,7 +282,7 @@ module ActiveRecord
         end
 
         def detect_column_for!(table_name, column_name)
-          unless column = schema_cache .columns(table_name).detect { |c| c.name == column_name.to_s }
+          unless column = schema_cache.columns(table_name).detect { |c| c.name == column_name.to_s }
             raise ActiveRecordError, "No such column: #{table_name}.#{column_name}"
           end
           column
@@ -357,7 +357,7 @@ module ActiveRecord
         rescue Exception => e
           raise ActiveRecordError, "IDENTITY_INSERT could not be turned #{enable ? 'ON' : 'OFF'} for table #{table_name}"
         end
-        #TODO: DEPRECATION WARNING: call columns with a table name!. (called from identity_column at /Users/acarey/code/source/4/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/schema_statements.rb:359)
+       
         def identity_column(table_name)
           schema_cache.columns(table_name).detect(&:is_identity?)
         end
