@@ -1,5 +1,6 @@
 require 'base64'
 require 'arel/visitors/sqlserver'
+require 'arel/visitors/bind_visitor'
 require 'active_record'
 require 'active_record/base'
 require 'active_support/concern'
@@ -190,6 +191,9 @@ module ActiveRecord
 
       self.enable_default_unicode_types = true
 
+      class BindSubstitution < Arel::Visitors::SQLServer # :nodoc:
+        include Arel::Visitors::BindVisitor
+      end
 
       def initialize(connection, logger, pool, config)
         super(connection, logger, pool)
