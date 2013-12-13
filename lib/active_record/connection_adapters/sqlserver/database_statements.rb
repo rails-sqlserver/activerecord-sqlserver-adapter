@@ -3,8 +3,6 @@ module ActiveRecord
     module Sqlserver
       module DatabaseStatements
         
-        include CoreExt::DatabaseStatements
-        
         def select_rows(sql, name = nil)
           raw_select sql, name, [], :fetch => :rows
         end
@@ -47,14 +45,6 @@ module ActiveRecord
         
         def supports_statement_cache?
           true
-        end
-
-        def transaction(options = {})
-          if retry_deadlock_victim?
-            block_given? ? transaction_with_retry_deadlock_victim(options) { yield } : transaction_with_retry_deadlock_victim(options)
-          else
-            block_given? ? super(options) { yield } : super(options)
-          end
         end
 
         def begin_db_transaction

@@ -110,15 +110,6 @@ ActiveRecord::ConnectionAdapters::SQLServerAdapter.native_string_database_type =
 It is important to remember that unicode types in SQL Server have approximately half the storage capacity as their counter parts. So where a normal string would max out at (8000) a unicode string will top off at (4000).
 
 
-#### Deadlock Victim Retry
-
-In a config initializer, you can configure the adapter to retry deadlock victims' SQL. Note, this relies on us copying ActiveRecord's `#transaction` method and can be brittle when upgrading. If you think that our version of `#transaction` is out of sync with the version of rails in our gemspec, please open a ticket and let us know. Our custom transaction method can be found in `activerecord/connection_adapters/sqlserver/core_ext/database_statements.rb`.
-
-```ruby
-ActiveRecord::ConnectionAdapters::SQLServerAdapter.retry_deadlock_victim = true
-```
-
-
 #### Force Schema To Lowercase
 
 Although it is not necessary, the Ruby convention is to use lowercase method names. If your database schema is in upper or mixed case, we can force all table and column names during the schema reflection process to be lowercase. Add this to your config/initializers file for the adapter.
