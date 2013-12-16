@@ -189,12 +189,9 @@ Another configuration is the showplan option. Some might find the XML format mor
 ActiveRecord::ConnectionAdapters::SQLServerAdapter.showplan_option = 'SHOWPLAN_XML'
 ```
 
-**NOTE:** The method we utilize to make SHOWPLANs work is very brittle to complex SQL. There is no getting around this as we have to deconstruct an already prepared statement for the sp_executesql method. If you find that explain breaks your app, simple disable it. Do not open a github issue unless you have a patch. To disable explain, just set the threshold to nil. Please [consult the Rails guides](http://guides.rubyonrails.org/active_record_querying.html#running-explain) for more info. Change this setting in your ```config/environments/development.rb```:
+# TODO auto_explain_threshold_in_seconds has been removed from rails 4
 
-```ruby
-config.active_record.auto_explain_threshold_in_seconds = nil
-```
-
+**NOTE:** The method we utilize to make SHOWPLANs work is very brittle to complex SQL. There is no getting around this as we have to deconstruct an already prepared statement for the sp_executesql method. If you find that explain breaks your app, simple disable it. Do not open a github issue unless you have a patch.  Please [consult the Rails guides](http://guides.rubyonrails.org/active_record_querying.html#running-explain) for more info.
 
 ## Versions
 

@@ -1,6 +1,7 @@
 * 4.0.0 *
 
-*Removed deadlock victim retry in favor of Isolation Level
+* Removed deadlock victim retry in favor of Isolation Level
+* Removed auto_explain_threshold_in_seconds (not used in rails 4)
 
 * 3.2.12 *
 

@@ -80,13 +80,6 @@ class ShowplanTestSqlserver < ActiveRecord::TestCase
     ActiveRecord::ConnectionAdapters::SQLServerAdapter.showplan_option = old_option
   end
   
-  def with_threshold(threshold)
-    current_threshold = base.auto_explain_threshold_in_seconds
-    base.auto_explain_threshold_in_seconds = threshold
-    yield
-  ensure
-    base.auto_explain_threshold_in_seconds = current_threshold
-  end
   
   def capture_logger
     original_logger = base.logger
@@ -100,7 +93,6 @@ class ShowplanTestSqlserver < ActiveRecord::TestCase
   end
 
   def capture_queries
-    base.auto_explain_threshold_in_seconds = nil
     queries = Thread.current[:available_queries_for_explain] = []
     with_threshold(0) do
       yield
