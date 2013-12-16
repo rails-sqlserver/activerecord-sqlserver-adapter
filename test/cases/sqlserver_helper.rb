@@ -1,13 +1,3 @@
-begin
-  require 'turn'
-
-  Turn.config do |c|
-     c.format = :pretty
-     c.verbose = true
-  end
-rescue LoadError
-end
-
 SQLSERVER_TEST_ROOT       = File.expand_path(File.join(File.dirname(__FILE__),'..'))
 SQLSERVER_ASSETS_ROOT     = File.expand_path(File.join(SQLSERVER_TEST_ROOT,'assets'))
 SQLSERVER_FIXTURES_ROOT   = File.expand_path(File.join(SQLSERVER_TEST_ROOT,'fixtures'))
@@ -21,6 +11,9 @@ $:.unshift ACTIVERECORD_TEST_ROOT
 require 'rubygems'
 require 'bundler'
 Bundler.setup
+require 'simplecov'
+SimpleCov.start
+
 require 'mocha/api'
 require 'active_support/dependencies'
 require 'active_record'
@@ -30,7 +23,6 @@ require 'minitest-spec-rails'
 require 'minitest-spec-rails/init/mini_shoulda'
 require 'cases/helper'
 require 'models/topic'
-
 GC.copy_on_write_friendly = true if GC.respond_to?(:copy_on_write_friendly?)
 
 ActiveRecord::Migration.verbose = false

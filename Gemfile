@@ -38,7 +38,6 @@ group :odbc do
 end
 
 group :development do
-  gem "turn"
   gem 'bcrypt-ruby', '~> 3.0.0'
   gem 'bench_press'
   gem 'mocha'
@@ -46,5 +45,6 @@ group :development do
   gem 'nokogiri'
   gem 'rake', '~> 0.9.2'
   gem 'ruby-prof'
+  gem 'simplecov'
 end
 
