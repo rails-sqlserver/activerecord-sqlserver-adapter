@@ -76,7 +76,7 @@ class SpecificSchemaTestSqlserver < ActiveRecord::TestCase
       
       should 'use primary key for row table order in pagination sql' do
         sql = /OVER \(ORDER BY \[natural_pk_data\]\.\[legacy_id\] ASC\)/
-        assert_sql(sql) { SqlServerNaturalPkData.limit(5).offset(5).all }
+        assert_sql(sql) { SqlServerNaturalPkData.limit(5).offset(5) }
       end
 
     end
@@ -113,11 +113,11 @@ class SpecificSchemaTestSqlserver < ActiveRecord::TestCase
       teardown { @edge_class.delete_all }
 
       should 'allow all sorts of ordering without adapter munging it up' do
-        assert_equal ['A','B','C'], @edge_class.all(:order => 'description').map(&:description)
-        assert_equal ['A','B','C'], @edge_class.all(:order => 'description asc').map(&:description)
-        assert_equal ['A','B','C'], @edge_class.all(:order => 'description ASC').map(&:description)
-        assert_equal ['C','B','A'], @edge_class.all(:order => 'description desc').map(&:description)
-        assert_equal ['C','B','A'], @edge_class.all(:order => 'description DESC').map(&:description)
+        assert_equal ['A','B','C'], @edge_class.load.order('description').map(&:description)
+        assert_equal ['A','B','C'], @edge_class.load.order('description asc').map(&:description)
+        assert_equal ['A','B','C'], @edge_class.load.order('description ASC').map(&:description)
+        assert_equal ['C','B','A'], @edge_class.load.order('description desc').map(&:description)
+        assert_equal ['C','B','A'], @edge_class.load.order('description DESC').map(&:description)
       end
 
     end

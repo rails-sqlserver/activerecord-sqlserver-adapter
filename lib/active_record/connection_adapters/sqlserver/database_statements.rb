@@ -25,6 +25,7 @@ module ActiveRecord
           end
         end
         
+		# TODO do something with added params.  Rails 4 added 2 parameters and we're not using them.
         def exec_insert(sql, name, binds, pk = nil, sequence_name = nil)
           exec_query sql, name, binds, :insert => true
         end
@@ -128,15 +129,19 @@ module ActiveRecord
         def user_options
           return {} if sqlserver_azure?
           select_rows("dbcc useroptions",'SCHEMA').inject(HashWithIndifferentAccess.new) do |values,row|
-            set_option = row.values[0].gsub(/\s+/,'_') if row.instance_of? Hash
-            set_option = row[0].gsub(/\s+/,'_') if row.instance_of? Array
-            user_value = row.values[1]  if row.instance_of? Hash
-            user_value = row[1]  if row.instance_of? Array
+            if row.instance_of? Hash
+			  set_option = row.values[0].gsub(/\s+/,'_') 
+			  user_value = row.values[1] 
+			elsif  row.instance_of? Array
+		      set_option = row[0].gsub(/\s+/,'_')
+            	  user_value = row[1]
+			end
             values[set_option] = user_value
             values
           end
         end
         
+        # TODO Rails 4 now supports isolation levels
         def user_options_dateformat
           if sqlserver_azure?
             select_value 'SELECT [dateformat] FROM [sys].[syslanguages] WHERE [langid] = @@LANGID', 'SCHEMA'

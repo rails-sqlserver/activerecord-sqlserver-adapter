@@ -50,8 +50,6 @@ module ActiveRecord
 
         def remove_column(table_name, column_name, type = nil)
           raise ArgumentError.new("You must specify at least one column name.  Example: remove_column(:people, :first_name)") if (column_name.is_a? Array)
-          # TODO: this deprecation warning should be fixed or removed
-          # ActiveSupport::Deprecation.warn 'Passing multiple arguments to remove_columns is deprecated, please use just one column name, like: `remove_columns(:posts, :column_name, :type)`', caller if column_name
           remove_check_constraints(table_name, column_name)
           remove_default_constraint(table_name, column_name)
           remove_indexes(table_name, column_name)
@@ -271,8 +269,6 @@ module ActiveRecord
           elsif sql =~ /FROM\s+([^\(\s]+)\s*/i
             $1
           else
-            # TODO:
-            puts sql
             nil
           end
         end
