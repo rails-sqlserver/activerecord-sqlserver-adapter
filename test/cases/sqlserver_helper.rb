@@ -13,6 +13,13 @@ require 'bundler'
 Bundler.setup
 require 'simplecov'
 SimpleCov.start
+require 'turn'
+Turn.config do |c|
+  c.format = :dot
+  #c.trace = 10
+  # c.natural = true
+c.verbose = true
+end
 
 require 'mocha/api'
 require 'active_support/dependencies'
