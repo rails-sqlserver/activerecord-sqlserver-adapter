@@ -25,7 +25,7 @@ module ActiveRecord
           end
         end
         
-		# TODO do something with added params.  Rails 4 added 2 parameters and we're not using them.
+		#The abstract adapter ignores the last two parameters also
         def exec_insert(sql, name, binds, pk = nil, sequence_name = nil)
           exec_query sql, name, binds, :insert => true
         end
@@ -38,10 +38,6 @@ module ActiveRecord
         def exec_update(sql, name, binds)
           sql << "; SELECT @@ROWCOUNT AS AffectedRows"
           super.rows.first.first
-        end
-
-        def outside_transaction?
-          select_value('SELECT @@TRANCOUNT', 'SCHEMA') == 0
         end
         
         def supports_statement_cache?
@@ -61,7 +57,7 @@ module ActiveRecord
         end
 
         def create_savepoint
-          disable_auto_reconnect { do_execute "SAVE TRANSACTION #{current_savepoint_name}" }
+          # disable_auto_reconnect { do_execute "SAVE TRANSACTION #{current_savepoint_name}" }
         end
 
         def release_savepoint

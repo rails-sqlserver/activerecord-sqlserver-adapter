@@ -35,25 +35,8 @@ class TransactionTestSqlserver < ActiveRecord::TestCase
   end
   
   context 'Testing #outside_transaction?' do
-  
-    should 'work in simple usage' do
-      assert Ship.connection.outside_transaction?
-      Ship.connection.begin_db_transaction
-      assert !Ship.connection.outside_transaction?
-      Ship.connection.rollback_db_transaction
-      assert Ship.connection.outside_transaction?
-    end
-    
-    should 'work inside nested transactions' do
-      assert Ship.connection.outside_transaction?
-      Ship.transaction do
-        assert !Ship.connection.outside_transaction?
-        Ship.transaction do
-          assert !Ship.connection.outside_transaction?
-        end
-      end
-      assert Ship.connection.outside_transaction?
-    end
+
+   
     
     should 'not call rollback if no transaction is active' do
       assert_raise RuntimeError do
