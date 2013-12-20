@@ -264,8 +264,8 @@ module ActiveRecord
         # === SQLServer Specific (Misc Helpers) ========================= #
 
         def get_table_name(sql)
-          if sql =~ /^\s*(INSERT|EXEC sp_executesql N'INSERT)\s+INTO\s+([^\(\s]+)\s*|^\s*update\s+([^\(\s]+)\s*/i
-            $2 || $3
+          if sql =~ /^\s*(INSERT|EXEC sp_executesql N'INSERT)(\s+INTO)?\s+([^\(\s]+)\s*|^\s*update\s+([^\(\s]+)\s*/i
+            $3 || $4
           elsif sql =~ /FROM\s+([^\(\s]+)\s*/i
             $1
           else
@@ -326,7 +326,8 @@ module ActiveRecord
         # === SQLServer Specific (Identity Inserts) ===================== #
 
         def query_requires_identity_insert?(sql)
-          if insert_sql?(sql)
+                 
+          if insert_sql?(sql)  
             table_name = get_table_name(sql)
             id_column = identity_column(table_name)
             id_column && sql =~ /^\s*(INSERT|EXEC sp_executesql N'INSERT)[^(]+\([^)]*\b(#{id_column.name})\b,?[^)]*\)/i ? quote_table_name(table_name) : false
