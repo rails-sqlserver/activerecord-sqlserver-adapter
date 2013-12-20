@@ -8,7 +8,7 @@ class ShowplanTestSqlserver < ActiveRecord::TestCase
   context 'Unprepare previously prepared SQL' do
     
     should 'from simple statement' do
-      plan = Car.where(:id => 1).explain
+      plan = Car.where(id: 1).explain 
       assert plan.starts_with?("EXPLAIN for: SELECT [cars].* FROM [cars] WHERE [cars].[id] = 1")
       assert plan.include?("Clustered Index Seek"), 'make sure we do not showplan the sp_executesql'
     end
@@ -19,17 +19,9 @@ class ShowplanTestSqlserver < ActiveRecord::TestCase
       assert plan.include?("Clustered Index Seek"), 'make sure we do not showplan the sp_executesql'
     end
     
-    should 'from prepared statement' do
-      plan = capture_logger do
-        with_threshold(0) { Car.find(1) }
-      end
-      assert plan.include?('EXPLAIN for: SELECT TOP (1) [cars].* FROM [cars] WHERE [cars].[id] = @0 [["id", 1]]')
-      assert plan.include?("Clustered Index Seek"), 'make sure we do not showplan the sp_executesql'
-    end
-    
     should 'from prepared statement ...' do
       plan = capture_logger do
-        with_threshold(0) { Car.where(:name => ',').first }
+        Car.where(:name => ',').limit(1).explain
       end
       assert plan.include?("SELECT TOP (1) [cars].* FROM [cars] WHERE [cars].[name] = N','")
       assert plan.include?("TOP EXPRESSION"), 'make sure we do not showplan the sp_executesql'
