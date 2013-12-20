@@ -15,8 +15,8 @@ class NestedScopingTest < ActiveRecord::TestCase
   # TODO update test for rails 4
   def test_coerced_test_merged_scoped_find
     poor_jamis = developers(:poor_jamis)
-    Developer.send(:with_scope, :find => { :conditions => "salary < 100000" }) do
-      Developer.send(:with_scope, :find => { :offset => 1, :order => 'id asc' }) do
+    Developer.where("salary < 100000").scoping do
+      Developer.offset(1).order('id asc').scoping do
         assert_sql /ORDER BY id asc/i do
           assert_equal(poor_jamis, Developer.order('id asc').first)
         end
