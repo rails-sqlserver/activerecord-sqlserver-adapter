@@ -57,7 +57,7 @@ module ActiveRecord
         end
 
         def create_savepoint
-          # disable_auto_reconnect { do_execute "SAVE TRANSACTION #{current_savepoint_name}" }
+          disable_auto_reconnect { do_execute "SAVE TRANSACTION #{current_savepoint_name}" }
         end
 
         def release_savepoint
