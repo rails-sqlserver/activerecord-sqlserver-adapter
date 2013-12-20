@@ -21,7 +21,7 @@ class OffsetAndLimitTestSqlserver < ActiveRecord::TestCase
   context 'When selecting with limit' do
   
     should 'alter sql to limit number of records returned' do
-      assert_sql(/SELECT TOP \(10\)/) { Book.limit(10) }
+      assert_sql(/SELECT TOP \(10\)/) { Book.limit(10).load }
     end
   
   end
@@ -29,7 +29,7 @@ class OffsetAndLimitTestSqlserver < ActiveRecord::TestCase
   context 'When selecting with offset' do
 
     should 'have limit (top) of 9223372036854775807 if only offset is passed' do
-      assert_sql(/SELECT TOP \(9223372036854775807\) \[__rnt\]\.\* FROM.*WHERE \[__rnt\]\.\[__rn\] > \(1\)/) { Book.offset(1) }
+      assert_sql(/SELECT TOP \(9223372036854775807\) \[__rnt\]\.\* FROM.*WHERE \[__rnt\]\.\[__rn\] > \(1\)/) { Book.offset(1).load }
     end
     
     should 'support calling exists?' do
@@ -41,18 +41,18 @@ class OffsetAndLimitTestSqlserver < ActiveRecord::TestCase
   context 'When selecting with limit and offset' do
     
     should 'work with fully qualified table and columns in select' do 
-      books = Book.all :select => 'books.id, books.name', :limit => 3, :offset => 5
+      books = Book.select('books.id, books.name').limit(3).offset(5)
       assert_equal Book.all[5,3].map(&:id), books.map(&:id)
     end
 
     should 'alter SQL to limit number of records returned offset by specified amount' do
       sql = %|EXEC sp_executesql N'SELECT TOP (3) [__rnt].* FROM ( SELECT ROW_NUMBER() OVER (ORDER BY [books].[id] ASC) AS [__rn], [books].* FROM [books] ) AS [__rnt] WHERE [__rnt].[__rn] > (5) ORDER BY [__rnt].[__rn] ASC'|
-      assert_sql(sql) { Book.limit(3).offset(5) }
+      assert_sql(sql) { Book.limit(3).offset(5).load }
     end
     
     should 'add locks to deepest sub select' do
       pattern = /FROM \[books\]\s+WITH \(NOLOCK\)/
-      assert_sql(pattern) { Book.load :limit => 3, :offset => 5, :lock => 'WITH (NOLOCK)' }
+      assert_sql(pattern) { Book.limit(3).lock('WITH (NOLOCK)').offset(5).load }
       assert_sql(pattern) { Book.count :limit => 3, :offset => 5, :lock => 'WITH (NOLOCK)' }
     end
     

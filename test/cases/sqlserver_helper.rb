@@ -71,7 +71,7 @@ class SqlServerEdgeSchema < ActiveRecord::Base
   end
   protected
   def set_new_id
-    self[:guid_newid] ||= connection.newid_function if new_id_setting
+    self[:guid_newid] ||= self.class.connection.newid_function if new_id_setting
   end
 end
 class SqlServerDollarTableName < ActiveRecord::Base
