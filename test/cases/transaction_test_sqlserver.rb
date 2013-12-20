@@ -34,34 +34,6 @@ class TransactionTestSqlserver < ActiveRecord::TestCase
 
   end
   
-  context 'Testing #outside_transaction?' do
-
-   
-    
-    should 'not call rollback if no transaction is active' do
-      assert_raise RuntimeError do
-        Ship.transaction do
-          Ship.connection.rollback_db_transaction
-          Ship.connection.expects(:rollback_db_transaction).never
-          raise "Rails doesn't scale!"
-        end
-      end
-    end
-    
-    should 'test_open_transactions_count_is_reset_to_zero_if_no_transaction_active' do
-      Ship.transaction do
-        Ship.transaction do
-          Ship.connection.rollback_db_transaction
-        end
-        assert_equal 0, Ship.connection.open_transactions
-      end
-      assert_equal 0, Ship.connection.open_transactions
-    end
-    
-  end
-  
-  
-  
   protected
   
   def delete_ships
