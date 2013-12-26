@@ -10,8 +10,7 @@ class SchemaDumperTestSqlserver < ActiveRecord::TestCase
     should 'honor nonstandards' do
       table_dump('movies') do |output|
         match = output.match(%r{create_table "movies"(.*)do})
-        assert_not_nil(match, "nonstandardpk table not found")
-        puts "**#{output}"       
+        assert_not_nil(match, "nonstandardpk table not found")     
         assert_match %r(primary_key: "movieid"), match[1], "non-standard primary key not preserved"
       end
     end
