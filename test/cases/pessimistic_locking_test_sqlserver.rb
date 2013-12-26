@@ -20,7 +20,7 @@ class PessimisticLockingTestSqlserver < ActiveRecord::TestCase
         end
       end
     end
-#DEPRECATION WARNING: ActiveRecord::Base#with_scope and #with_exclusive_scope are deprecated. Please use ActiveRecord::Relation#scoping instead. (You can use #merge to merge multiple scopes together.). (called from with_scope at /Users/acarey/.rvm/gems/ruby-1.9.3-p448/gems/activerecord-deprecated_finders-1.0.3/lib/active_record/deprecated_finders/base.rb:75)
+
     should 'lock with scoped find' do
       assert_nothing_raised do
         Person.transaction do

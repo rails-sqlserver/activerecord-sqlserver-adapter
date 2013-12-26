@@ -52,11 +52,13 @@ class OffsetAndLimitTestSqlserver < ActiveRecord::TestCase
     
     should 'add locks to deepest sub select' do
       pattern = /FROM \[books\]\s+WITH \(NOLOCK\)/
+      assert_sql(pattern) { Book.limit(3).lock('WITH (NOLOCK)').offset(5).count }
       assert_sql(pattern) { Book.limit(3).lock('WITH (NOLOCK)').offset(5).load }
+
     end
     
     should 'have valid sort order' do
-      order_row_numbers = SqlServerOrderRowNumber.offset(7).order("c DESC").select("c, ROW_NUMBER() OVER (ORDER BY c ASC) AS [dummy]").load.map(&:c)
+      order_row_numbers = SqlServerOrderRowNumber.offset(7).order("c DESC").select("c, ROW_NUMBER() OVER (ORDER BY c ASC) AS [dummy]").map(&:c)
       assert_equal [2, 1, 0], order_row_numbers
     end
 
