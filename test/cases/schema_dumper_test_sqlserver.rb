@@ -11,7 +11,8 @@ class SchemaDumperTestSqlserver < ActiveRecord::TestCase
       table_dump('movies') do |output|
         match = output.match(%r{create_table "movies"(.*)do})
         assert_not_nil(match, "nonstandardpk table not found")
-        assert_match %r(:primary_key => "movieid"), match[1], "non-standard primary key not preserved"
+        puts "**#{output}"       
+        assert_match %r(primary_key: "movieid"), match[1], "non-standard primary key not preserved"
       end
     end
     
@@ -21,16 +22,16 @@ class SchemaDumperTestSqlserver < ActiveRecord::TestCase
     
     should 'include limit constraint that match logic for smallint and bigint in #extract_limit' do
       table_dump('integer_limits') do |output|
-        assert_match %r{c_int_1.*:limit => 2}, output
-        assert_match %r{c_int_2.*:limit => 2}, output
+        assert_match %r{c_int_1.*limit: 2}, output
+        assert_match %r{c_int_2.*limit: 2}, output
         assert_match %r{c_int_3.*}, output
         assert_match %r{c_int_4.*}, output
         assert_no_match %r{c_int_3.*:limit}, output
         assert_no_match %r{c_int_4.*:limit}, output
-        assert_match %r{c_int_5.*:limit => 8}, output
-        assert_match %r{c_int_6.*:limit => 8}, output
-        assert_match %r{c_int_7.*:limit => 8}, output
-        assert_match %r{c_int_8.*:limit => 8}, output
+        assert_match %r{c_int_5.*limit: 8}, output
+        assert_match %r{c_int_6.*limit: 8}, output
+        assert_match %r{c_int_7.*limit: 8}, output
+        assert_match %r{c_int_8.*limit: 8}, output
       end
     end
     
@@ -79,7 +80,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
   
   def test_coerced_schema_dump_keeps_large_precision_integer_columns_as_decimal
     output = standard_dump
-    assert_match %r{t.decimal\s+"atoms_in_universe",\s+:precision => 38,\s+:scale => 0}, output
+    assert_match %r{t.decimal\s+"atoms_in_universe",\s+precision: 38,\s+scale: 0}, output
   end
   
   private
