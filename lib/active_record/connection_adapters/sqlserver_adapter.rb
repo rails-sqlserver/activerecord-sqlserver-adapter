@@ -186,7 +186,7 @@ module ActiveRecord
       attr_reader :database_version, :database_year, :spid, :product_level, :product_version, :edition
 
       cattr_accessor :native_text_database_type, :native_binary_database_type, :native_string_database_type,
-                     :enable_default_unicode_types, :auto_connect, :cs_equality_operator, 
+                     :enable_default_unicode_types, :auto_connect, :cs_equality_operator,
                      :lowercase_schema_reflection, :auto_connect_duration, :showplan_option
 
       self.enable_default_unicode_types = true
@@ -286,12 +286,14 @@ module ActiveRecord
       end
 
       def reconnect!
+        reset_transaction
         disconnect!
         connect
         active?
       end
 
       def disconnect!
+        reset_transaction
         @spid = nil
         case @connection_options[:mode]
         when :dblib
