@@ -12,7 +12,9 @@ require 'rubygems'
 require 'bundler'
 Bundler.setup
 require 'simplecov'
-SimpleCov.start
+SimpleCov.start do
+  add_filter "/test/"
+end
 require 'turn'
 Turn.config do |c|
   c.format = :dot
