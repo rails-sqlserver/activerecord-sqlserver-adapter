@@ -97,6 +97,3 @@ By default, Bundler will download the Rails git repo and use the git tag that ma
 
 * Misc Date/Time erros when using ODBC mode.
 * Misc Date/Time erros when testing SQL Server 2005.
-
-The `test_update_column_changing_id(PersistencesTest)` fails with `ActiveRecord::StatementInvalid: TinyTds::Error: Cannot update identity column 'id'.: EXEC sp_executesql N'UPDATE [topics] SET [id] = 123 WHERE [topics].[id] = 1; SELECT @@ROWCOUNT AS AffectedRows'` even though if you run the test in isolation using `$ rake test TEST_FILES="test/cases/aaaa_create_tables_test_sqlserver.rb,test/cases/persistence_test_sqlserver.rb"` it will pass. So ignorning it for now.
-
