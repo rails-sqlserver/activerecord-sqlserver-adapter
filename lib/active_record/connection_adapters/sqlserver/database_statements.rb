@@ -16,8 +16,16 @@ module ActiveRecord
         end
         
         def exec_query(sql, name = 'SQL', binds = [], sqlserver_options = {})
-          # This is so no id is tried to be updated
-          sql.gsub! /, \[id\] = @[0-9]*/, '' if sql =~ /UPDATE/ && sql =~ /, \[id\] = /
+          # We can't update Identiy columns in sqlserver.  So, strip out the id from the update.
+          if sql =~ /UPDATE/ 
+			# take off a comma before or after.  This could probably be done better 
+            if sql =~ /, \[id\] = @?[0-9]*/
+              sql.gsub! /, \[id\] = @?[0-9]*/, '' 
+            elsif sql =~ /\s\[id\] = @?[0-9]*,/
+              sql.gsub! /\s\[id\] = @?[0-9]*,/, ''  
+            end
+          end
+
           if id_insert_table_name = sqlserver_options[:insert] ? query_requires_identity_insert?(sql) : nil
             with_identity_insert_enabled(id_insert_table_name) { do_exec_query(sql, name, binds) }
           else
@@ -25,7 +33,7 @@ module ActiveRecord
           end
         end
         
-		#The abstract adapter ignores the last two parameters also
+		    #The abstract adapter ignores the last two parameters also
         def exec_insert(sql, name, binds, pk = nil, sequence_name = nil)
           exec_query sql, name, binds, :insert => true
         end
