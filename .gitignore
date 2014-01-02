@@ -11,3 +11,5 @@ test/profile/output/*
 .rbenv-version
 .idea
 coverage/*
+.flooignore
+.floo
