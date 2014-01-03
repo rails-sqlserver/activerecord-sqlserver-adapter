@@ -70,7 +70,6 @@ module ActiveRecord
           end
           sql_commands.each { |c| do_execute(c) }
         end
-
         def change_column_default(table_name, column_name, default)
           remove_default_constraint(table_name, column_name)
           do_execute "ALTER TABLE #{quote_table_name(table_name)} ADD CONSTRAINT #{default_constraint_name(table_name, column_name)} DEFAULT #{quote(default)} FOR #{quote_column_name(column_name)}"
@@ -80,6 +79,11 @@ module ActiveRecord
           schema_cache.clear_table_cache!(table_name)
           detect_column_for! table_name, column_name
           do_execute "EXEC sp_rename '#{table_name}.#{column_name}', '#{new_column_name}', 'COLUMN'"
+          rename_column_indexes(table_name, column_name, new_column_name)
+        end
+
+        def rename_index(table_name, old_name, new_name)
+          execute "EXEC sp_rename N'#{table_name}.#{old_name}', N'#{new_name}', N'INDEX'"
         end
 
         def remove_index!(table_name, index_name)
@@ -326,8 +330,8 @@ module ActiveRecord
         # === SQLServer Specific (Identity Inserts) ===================== #
 
         def query_requires_identity_insert?(sql)
-                 
-          if insert_sql?(sql)  
+
+          if insert_sql?(sql)
             table_name = get_table_name(sql)
             id_column = identity_column(table_name)
             id_column && sql =~ /^\s*(INSERT|EXEC sp_executesql N'INSERT)[^(]+\([^)]*\b(#{id_column.name})\b,?[^)]*\)/i ? quote_table_name(table_name) : false
@@ -354,7 +358,7 @@ module ActiveRecord
         rescue Exception => e
           raise ActiveRecordError, "IDENTITY_INSERT could not be turned #{enable ? 'ON' : 'OFF'} for table #{table_name}"
         end
-       
+
         def identity_column(table_name)
           schema_cache.columns(table_name).detect(&:is_identity?)
         end
