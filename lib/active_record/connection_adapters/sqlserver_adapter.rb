@@ -63,13 +63,16 @@ module ActiveRecord
       end
 
       class << self
-        # TODO: I think this has problems with ruby 2.0
+ 
         def string_to_binary(value)
          "0x#{value.unpack("H*")[0]}"
         end
 
         def binary_to_string(value)
-          value =~ /[^[:xdigit:]]/ ? value : [value].pack('H*')
+          if value.encoding != Encoding::ASCII_8BIT
+           value = value.force_encoding(Encoding::ASCII_8BIT)
+          end
+          value
         end
 
       end
