@@ -3,8 +3,6 @@ require 'cases/sqlserver_helper'
 require 'models/topic'
 require 'models/reply'
 
-raise "GC allocation benchmarks only supported on Ruby 1.9!" unless RUBY_VERSION >= '1.9'
-
 class GcProfileCase < ActiveRecord::TestCase
   
   fixtures :topics
