@@ -46,6 +46,7 @@ module ActiveRecord
 
         def rename_table(table_name, new_name)
           do_execute "EXEC sp_rename '#{table_name}', '#{new_name}'"
+          rename_table_indexes(table_name, new_name)
         end
 
         def remove_column(table_name, column_name, type = nil)
@@ -58,15 +59,24 @@ module ActiveRecord
 
         def change_column(table_name, column_name, type, options = {})
           sql_commands = []
+          indexes = []
           column_object = schema_cache.columns(table_name).detect { |c| c.name.to_s == column_name.to_s }
-          change_column_sql = "ALTER TABLE #{quote_table_name(table_name)} ALTER COLUMN #{quote_column_name(column_name)} #{type_to_sql(type, options[:limit], options[:precision], options[:scale])}"
-          change_column_sql << " NOT NULL" if options[:null] == false
-          sql_commands << change_column_sql
+
           if options_include_default?(options) || (column_object && column_object.type != type.to_sym)
-           	remove_default_constraint(table_name,column_name)
+            remove_default_constraint(table_name,column_name)
+            indexes = indexes(table_name).select{ |index| index.columns.include?(column_name.to_s) }
+            remove_indexes(table_name, column_name)
           end
+          sql_commands << "UPDATE #{quote_table_name(table_name)} SET #{quote_column_name(column_name)}=#{quote(options[:default])} WHERE #{quote_column_name(column_name)} IS NULL" if !options[:null].nil? && options[:null] == false && !options[:default].nil?
+          sql_commands << "ALTER TABLE #{quote_table_name(table_name)} ALTER COLUMN #{quote_column_name(column_name)} #{type_to_sql(type, options[:limit], options[:precision], options[:scale])}"
+          sql_commands[-1] << " NOT NULL" if !options[:null].nil? && options[:null] == false
           if options_include_default?(options)
             sql_commands << "ALTER TABLE #{quote_table_name(table_name)} ADD CONSTRAINT #{default_constraint_name(table_name,column_name)} DEFAULT #{quote(options[:default])} FOR #{quote_column_name(column_name)}"
+          end
+
+          #Add any removed indexes back
+          indexes.each do |index|
+            sql_commands << "CREATE INDEX #{quote_table_name(index.name)} ON #{quote_table_name(table_name)} (#{index.columns.collect {|c|quote_column_name(c)}.join(', ')})"
           end
           sql_commands.each { |c| do_execute(c) }
         end
@@ -80,6 +90,12 @@ module ActiveRecord
           schema_cache.clear_table_cache!(table_name)
           detect_column_for! table_name, column_name
           do_execute "EXEC sp_rename '#{table_name}.#{column_name}', '#{new_column_name}', 'COLUMN'"
+          rename_column_indexes(table_name, column_name, new_column_name)
+          schema_cache.clear_table_cache!(table_name)
+        end
+
+        def rename_index(table_name, old_name, new_name)
+          execute "EXEC sp_rename N'#{table_name}.#{old_name}', N'#{new_name}', N'INDEX'"
         end
 
         def remove_index!(table_name, index_name)
@@ -326,8 +342,8 @@ module ActiveRecord
         # === SQLServer Specific (Identity Inserts) ===================== #
 
         def query_requires_identity_insert?(sql)
-                 
-          if insert_sql?(sql)  
+
+          if insert_sql?(sql)
             table_name = get_table_name(sql)
             id_column = identity_column(table_name)
             id_column && sql =~ /^\s*(INSERT|EXEC sp_executesql N'INSERT)[^(]+\([^)]*\b(#{id_column.name})\b,?[^)]*\)/i ? quote_table_name(table_name) : false
@@ -354,7 +370,7 @@ module ActiveRecord
         rescue Exception => e
           raise ActiveRecordError, "IDENTITY_INSERT could not be turned #{enable ? 'ON' : 'OFF'} for table #{table_name}"
         end
-       
+
         def identity_column(table_name)
           schema_cache.columns(table_name).detect(&:is_identity?)
         end
