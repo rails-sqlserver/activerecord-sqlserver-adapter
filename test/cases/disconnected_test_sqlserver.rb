@@ -1,4 +1,5 @@
 require 'cases/sqlserver_helper'
+require 'cases/disconnected_test'
 
 class TestDisconnectedAdapter < ActiveRecord::TestCase
   def setup
