@@ -12,7 +12,6 @@ class NestedScopingTest < ActiveRecord::TestCase
   
   fixtures :developers
 
-  # TODO update test for rails 4
   def test_coerced_test_merged_scoped_find
     poor_jamis = developers(:poor_jamis)
     Developer.where("salary < 100000").scoping do
