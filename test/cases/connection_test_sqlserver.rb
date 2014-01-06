@@ -272,13 +272,4 @@ class ConnectionTestSqlserver < ActiveRecord::TestCase
     error
   end
   
-
-  def with_auto_connect(boolean)
-    existing = ActiveRecord::ConnectionAdapters::SQLServerAdapter.auto_connect
-    ActiveRecord::ConnectionAdapters::SQLServerAdapter.auto_connect = boolean
-    yield
-  ensure
-    ActiveRecord::ConnectionAdapters::SQLServerAdapter.auto_connect = existing
-  end
-
 end
