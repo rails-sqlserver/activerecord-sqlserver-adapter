@@ -2,10 +2,10 @@ module ActiveRecord
   module ConnectionAdapters
     module Sqlserver
       module Quoting
-        
+
         QUOTED_TRUE, QUOTED_FALSE = '1', '0'
         QUOTED_STRING_PREFIX = 'N'
-        
+
         def quote(value, column = nil)
           case value
           when String, ActiveSupport::Multibyte::Chars
@@ -32,11 +32,11 @@ module ActiveRecord
             super
           end
         end
-        
+
         def quoted_string_prefix
           QUOTED_STRING_PREFIX
         end
-        
+
         def quote_string(string)
           string.to_s.gsub(/\'/, "''")
         end
@@ -48,7 +48,7 @@ module ActiveRecord
         def quote_table_name(name)
           quote_column_name(name)
         end
-        
+
         def substitute_at(column, index)
           if column.respond_to?(:sql_type) && column.sql_type == 'timestamp'
             nil
@@ -69,7 +69,7 @@ module ActiveRecord
           if value.acts_like?(:time)
             time_zone_qualified_value = quoted_value_acts_like_time_filter(value)
             if value.is_a?(Date)
-              time_zone_qualified_value.to_time.xmlschema.to(18)
+              time_zone_qualified_value.iso8601(3).to(18)
             else
               time_zone_qualified_value.iso8601(3).to(22)
             end
@@ -77,7 +77,7 @@ module ActiveRecord
             quoted_date(value)
           end
         end
-        
+
         def quoted_full_iso8601(value)
           if value.acts_like?(:time)
             value.is_a?(Date) ? quoted_value_acts_like_time_filter(value).to_time.xmlschema.to(18) : quoted_value_acts_like_time_filter(value).iso8601(7).to(22)
@@ -95,14 +95,14 @@ module ActiveRecord
             super
           end
         end
-        
+
         protected
-        
+
         def quoted_value_acts_like_time_filter(value)
           zone_conversion_method = ActiveRecord::Base.default_timezone == :utc ? :getutc : :getlocal
           value.respond_to?(zone_conversion_method) ? value.send(zone_conversion_method) : value
         end
-        
+
       end
     end
   end
