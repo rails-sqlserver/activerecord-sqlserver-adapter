@@ -38,10 +38,6 @@ group :odbc do
 end
 
 group :development do
-  # TODO: activerecord/test/cases/invalid_connection_test.rb:12 requires
-  # mysql.  Take this out and override that
-  gem 'mysql'
-  
   gem 'bcrypt-ruby', '~> 3.0.0'
   gem 'bench_press'
   gem 'mocha'
@@ -51,5 +47,6 @@ group :development do
   gem 'ruby-prof'
   gem 'simplecov'
   gem 'turn'
+  gem 'rubocop'
 end
 
