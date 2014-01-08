@@ -38,59 +38,6 @@ ActiveRecord::Migration.verbose = false
 ActiveRecord::Base.logger = Logger.new(File.expand_path(File.join(SQLSERVER_TEST_ROOT,'debug.log')))
 ActiveRecord::Base.logger.level = 0
 
-# Defining our classes in one place as well as some core tests that need coercing date/time types.
-
-class UpperTestDefault < ActiveRecord::Base ; self.table_name = 'UPPER_TESTS' ; end
-class UpperTestLowered < ActiveRecord::Base ; self.table_name = 'upper_tests' ; end
-class TableWithRealColumn < ActiveRecord::Base; end
-class FkTestHasFk < ActiveRecord::Base ; end
-class FkTestHasPk < ActiveRecord::Base ; end
-class NumericData < ActiveRecord::Base ; self.table_name = 'numeric_data' ; end
-class FloatData < ActiveRecord::Base ; self.table_name = 'float_data' ; end
-class CustomersView < ActiveRecord::Base ; self.table_name = 'customers_view' ; end
-class StringDefaultsView < ActiveRecord::Base ; self.table_name = 'string_defaults_view' ; end
-class StringDefaultsBigView < ActiveRecord::Base ; self.table_name = 'string_defaults_big_view' ; end
-class SqlServerNaturalPkData < ActiveRecord::Base ; self.table_name = 'natural_pk_data' ; self.primary_key = 'legacy_id' ; end
-class SqlServerTinyintPk < ActiveRecord::Base ; self.table_name = 'tinyint_pk_table' ; end
-class SqlServerNaturalPkIntData < ActiveRecord::Base ; self.table_name = 'natural_pk_int_data' ; end
-class SqlServerOrderRowNumber < ActiveRecord::Base ; self.table_name = 'order_row_number' ; end
-class SqlServerNaturalPkDataSchema < ActiveRecord::Base ; self.table_name = 'test.sql_server_schema_natural_id' ; end
-class SqlServerQuotedTable < ActiveRecord::Base ; self.table_name = 'quoted-table' ; end
-class SqlServerQuotedView1 < ActiveRecord::Base ; self.table_name = 'quoted-view1' ; end
-class SqlServerQuotedView2 < ActiveRecord::Base ; self.table_name = 'quoted-view2' ; end
-class SqlServerUnicode < ActiveRecord::Base ; end
-class SqlServerString < ActiveRecord::Base ; end
-class NoPkData < ActiveRecord::Base ; self.table_name = 'no_pk_data' ; end
-class StringDefault < ActiveRecord::Base; end
-class SqlServerEdgeSchema < ActiveRecord::Base
-  attr_accessor :new_id_setting
-  before_create :set_new_id
-  def with_spaces
-    read_attribute :'with spaces'
-  end
-  def with_spaces=(value)
-    write_attribute :'with spaces', value
-  end
-  protected
-  def set_new_id
-    self[:guid_newid] ||= self.class.connection.newid_function if new_id_setting
-  end
-end
-class SqlServerDollarTableName < ActiveRecord::Base
-  self.table_name = 'my$strange_table'
-end
-class SqlServerChronic < ActiveRecord::Base
-  coerce_sqlserver_date :date
-  coerce_sqlserver_time :time
-  default_timezone = :utc
-end
-class Topic < ActiveRecord::Base
-  coerce_sqlserver_date :last_read
-  coerce_sqlserver_time :bonus_time
-end
-class Person < ActiveRecord::Base
-  coerce_sqlserver_date :favorite_day
-end
 
 # A module that we can include in classes where we want to override an active record test.
 

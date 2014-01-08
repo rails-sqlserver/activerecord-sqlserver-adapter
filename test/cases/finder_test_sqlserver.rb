@@ -1,5 +1,6 @@
 require 'cases/sqlserver_helper'
 require 'models/event'
+require 'models_sqlserver/topic'
 
 class FinderTestSqlserver < ActiveRecord::TestCase
 end

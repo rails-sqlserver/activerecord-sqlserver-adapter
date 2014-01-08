@@ -1,4 +1,6 @@
 require 'cases/sqlserver_helper'
+require 'models_sqlserver/sql_server_natural_pk_data'
+require 'models_sqlserver/sql_server_natural_pk_data_schema'
 
 class SchemaTestSqlserver < ActiveRecord::TestCase
       

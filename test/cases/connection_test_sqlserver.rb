@@ -1,5 +1,6 @@
 require 'cases/sqlserver_helper'
 require 'models/reply' 
+require 'models_sqlserver/topic'
 
 class ConnectionTestSqlserver < ActiveRecord::TestCase
   

@@ -1,5 +1,12 @@
 require 'cases/sqlserver_helper'
 require 'models/binary'
+require 'models_sqlserver/float_data'
+require 'models_sqlserver/numeric_data'
+require 'models_sqlserver/sql_server_chronic'
+require 'models_sqlserver/sql_server_string'
+require 'models_sqlserver/sql_server_unicode'
+require 'models_sqlserver/table_with_real_column'
+require 'models_sqlserver/topic'
 
 class ColumnTestSqlserver < ActiveRecord::TestCase
   

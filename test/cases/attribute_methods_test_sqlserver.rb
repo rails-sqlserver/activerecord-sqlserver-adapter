@@ -1,6 +1,7 @@
 require 'cases/sqlserver_helper'
 require 'models/developer'
 require 'models/topic'
+require 'models_sqlserver/topic'
 
 class AttributeMethodsTestSqlserver < ActiveRecord::TestCase
 end
