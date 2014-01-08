@@ -8,6 +8,7 @@ require 'models/subscription'
 require 'models/post'
 require 'models/comment'
 require 'models/categorization'
+require 'models_sqlserver/sql_server_order_row_number'
 
 class OffsetAndLimitTestSqlserver < ActiveRecord::TestCase
   

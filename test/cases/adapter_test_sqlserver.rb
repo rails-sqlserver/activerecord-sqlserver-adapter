@@ -5,6 +5,14 @@ require 'models/joke'
 require 'models/subscriber'
 require 'models/minimalistic'
 require 'models/post'
+require 'models_sqlserver/fk_test_has_pk'
+require 'models_sqlserver/fk_test_has_fk'
+require 'models_sqlserver/customers_view'
+require 'models_sqlserver/sql_server_chronic'
+require 'models_sqlserver/string_defaults_big_view'
+require 'models_sqlserver/string_defaults_view'
+require 'models_sqlserver/topic'
+require 'models_sqlserver/upper_test_default'
 
 class AdapterTestSqlserver < ActiveRecord::TestCase
   
