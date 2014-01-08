@@ -164,4 +164,11 @@ module ActiveRecord
   end
 end
 
+    # Core AR.
+    schema_file = "#{ACTIVERECORD_TEST_ROOT}/schema/schema.rb"
+    eval(File.read(schema_file))
+ 
+    # SQL Server.
+    sqlserver_specific_schema_file = "#{SQLSERVER_SCHEMA_ROOT}/sqlserver_specific_schema.rb"
+    eval(File.read(sqlserver_specific_schema_file))
 
