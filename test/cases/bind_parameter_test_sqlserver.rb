@@ -14,6 +14,7 @@ class ActiveRecord::BindParameterTest < ActiveRecord::TestCase
   
   include SqlserverCoercedTest
   
+  # TODO: put a real test here
   def test_coerced_binds_are_logged
     assert true, 'they are!'
   end

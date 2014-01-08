@@ -12,10 +12,12 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   
   include SqlserverCoercedTest
   
+  # TODO: put a real test here
   def test_coerced_count_with_finder_sql
     assert true
   end
   
+  # TODO: put a real test here
   def test_coerced_caching_of_columns
     assert true
   end
