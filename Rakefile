@@ -1,13 +1,17 @@
 require 'rake'
 require 'rake/testtask'
 
+AR_PATH = Gem.loaded_specs['activerecord'].full_gem_path
+AREL_PATH = Gem.loaded_specs['arel'].full_gem_path
 # Notes for cross compile:
 # $ gcla ; bundle install ; rake compile ; rake cross compile ; rake cross native gem
 
 def test_libs(mode='dblib')
   ['lib',
    'test',
-   "#{File.join(Gem.loaded_specs['activerecord'].full_gem_path,'test')}"]
+   "#{File.join(AR_PATH,'test')}",
+   "#{File.join(AREL_PATH,'test')}",
+ ]
 end
 
 # bundle exec rake test SQLSERVER_ONLY=true
@@ -15,18 +19,24 @@ end
 # If you have trouble running single tests (errors about requirements):
 # http://veganswithtypewriters.net/blog/2013/06/29/weirdness-with-rake-solved/
 def test_files
-  test_setup = ["test/cases/sqlserver_helper.rb", "test/cases/aaaa_create_tables_test_sqlserver.rb"]
-  return test_setup+(ENV['TEST_FILES']).split(',').sort if ENV['TEST_FILES']
-  sqlserver_cases = Dir.glob("test/cases/**/*_test_sqlserver.rb").sort
-  ar_path = Gem.loaded_specs['activerecord'].full_gem_path
-  ar_cases = Dir.glob("#{ar_path}/test/cases/**/*_test.rb")
-  adapter_cases = Dir.glob("#{ar_path}/test/cases/adapters/**/*_test.rb")
+  test_setup = ["test/cases/sqlserver_helper.rb"]
+  return test_setup+(ENV['TEST_FILES']).split(',') if ENV['TEST_FILES']
+  
+  sqlserver_cases = Dir.glob("test/cases/**/*_test_sqlserver.rb")
+  
+  ar_cases = Dir.glob("#{AR_PATH}/test/cases/**/*_test.rb")
+  adapter_cases = Dir.glob("#{AR_PATH}/test/cases/adapters/**/*_test.rb")
+
+  arel_cases = Dir.glob("#{AREL_PATH}/test/**/test_*.rb")
+
   if ENV['SQLSERVER_ONLY']
     sqlserver_cases
   elsif ENV['ACTIVERECORD_ONLY']
-    test_setup + (ar_cases - adapter_cases).sort
+    test_setup + (ar_cases - adapter_cases)
+  elsif ENV['AREL_ONLY']
+    arel_cases
   else
-    sqlserver_cases + (ar_cases - adapter_cases).sort
+    arel_cases + sqlserver_cases + (ar_cases - adapter_cases)
   end
 end
 
