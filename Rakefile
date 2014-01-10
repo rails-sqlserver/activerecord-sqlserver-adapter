@@ -36,8 +36,9 @@ def test_files
   elsif ENV['AREL_ONLY']
     arel_cases
   else
-    arel_cases + sqlserver_cases + (ar_cases - adapter_cases)
+    test_setup + arel_cases + sqlserver_cases + (ar_cases - adapter_cases)
   end
+  
 end
 
 task :test => ['test:dblib']
