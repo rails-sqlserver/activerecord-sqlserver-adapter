@@ -4,9 +4,12 @@ SQLSERVER_FIXTURES_ROOT   = File.expand_path(File.join(SQLSERVER_TEST_ROOT,'fixt
 SQLSERVER_MIGRATIONS_ROOT = File.expand_path(File.join(SQLSERVER_TEST_ROOT,'migrations'))
 SQLSERVER_SCHEMA_ROOT     = File.expand_path(File.join(SQLSERVER_TEST_ROOT,'schema'))
 ACTIVERECORD_TEST_ROOT    = File.expand_path(File.join(Gem.loaded_specs['activerecord'].full_gem_path,'test'))
+AREL_TEST_ROOT            = File.expand_path(File.join(Gem.loaded_specs['arel'].full_gem_path,'test'))
+
 ENV['ARCONFIG']           = File.expand_path(File.join(SQLSERVER_TEST_ROOT,'config.yml'))
 
 $:.unshift ACTIVERECORD_TEST_ROOT
+$LOAD_PATH.unshift AREL_TEST_ROOT
 
 require 'rubygems'
 require 'bundler'
