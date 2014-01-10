@@ -15,7 +15,7 @@ end
 # If you have trouble running single tests (errors about requirements):
 # http://veganswithtypewriters.net/blog/2013/06/29/weirdness-with-rake-solved/
 def test_files
-  test_setup = ["test/cases/sqlserver_helper.rb", "test/cases/aaaa_create_tables_test_sqlserver.rb"]
+  test_setup = ["test/cases/sqlserver_helper.rb"]
   return test_setup+(ENV['TEST_FILES']).split(',').sort if ENV['TEST_FILES']
   sqlserver_cases = Dir.glob("test/cases/**/*_test_sqlserver.rb").sort
   ar_path = Gem.loaded_specs['activerecord'].full_gem_path
