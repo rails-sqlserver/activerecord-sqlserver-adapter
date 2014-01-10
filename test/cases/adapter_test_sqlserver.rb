@@ -799,3 +799,12 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
   end
 
 end
+
+
+class AdapterTest < ActiveRecord::TestCase
+    COERCED_TESTS = [:test_update_prepared_statement] 
+    # Like PostgreSQL, SQL Server does not support null bytes in strings.
+    # This is not run for PostgreSQL at the rails level and the same should happen for SQL Server
+    # Until that patch is made to rails we are preventing this test from running in this gem.
+  include SqlserverCoercedTest
+end
