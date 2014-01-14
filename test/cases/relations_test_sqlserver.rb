@@ -7,9 +7,8 @@ class RelationTest < ActiveRecord::TestCase
   # Until that patch is made to rails we are preventing this test from running in this gem.
   include SqlserverCoercedTest
   fixtures :posts
-  
+
   def test_coerced_merging_reorders_bind_params
-    puts "RUNS"
     post         = Post.first
     id_column    = Post.columns_hash['id']
     title_column = Post.columns_hash['title']

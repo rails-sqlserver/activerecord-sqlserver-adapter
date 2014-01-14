@@ -1,6 +1,11 @@
-# Rails 4 - By no means ready for production 
-Current test status:
-3866 tests, 3412 passed, 85 failures, 369 errors, 29 skips, 10084 assertions
+# Rails 4 
+One failing test. Until this is fixex when you use both :includes and :limit you will get fewer results than expected.
+```ruby
+FAIL
+  Expected: 2
+    Actual: 1
+  /Users/acarey/code/source/rails/rails40/activerecord/test/cases/finder_test.rb:822:in `test_find_with_order_on_included_associations_with_construct_finder_sql_for_association_limiting_and_is_distinct'
+```
 
 
 # ActiveRecord SQL Server Adapter. For SQL Server 2005 And Higher.
@@ -228,6 +233,8 @@ Many many people have contributed. If you do not see your name here and it shoul
 Up-to-date list of contributors: http://github.com/rails-sqlserver/activerecord-sqlserver-adapter/contributors
 
 * metaskills (Ken Collins)
+* Annaswims (Annaswims)
+* Thirdshift (Garrett Hart)
 * h-lame (Murray Steele)
 * vegantech
 * cjheath (Clifford Heath)
@@ -240,6 +247,7 @@ Up-to-date list of contributors: http://github.com/rails-sqlserver/activerecord-
 * adzap (Adam Meehan)
 * neomindryan (Ryan Findley)
 * jeremydurham (Jeremy Durham)
+
 
 
 ## Donators
