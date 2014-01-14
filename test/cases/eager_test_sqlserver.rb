@@ -15,7 +15,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
   fixtures :posts, :comments, :authors
   
   def test_coerced_count_with_include
-    assert_equal 3, authors(:david).posts_with_comments.where("len(comments.body) > 15").count
+    assert_equal 3, authors(:david).posts_with_comments.where("len(comments.body) > 15").references(:comments).count
   end
   
   
