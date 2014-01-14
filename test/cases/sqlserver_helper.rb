@@ -54,8 +54,7 @@ module SqlserverCoercedTest
     def self.extended(base)
       base.class_eval do
         Array(coerced_tests).each do |method_name|
-          undef_method(method_name) rescue nil
-          STDOUT.puts("Info: Undefined coerced test: #{self.name}##{method_name}")
+          undefine_and_puts(method_name)
         end
       end
     end
@@ -66,10 +65,15 @@ module SqlserverCoercedTest
     
     def method_added(method)
       if coerced_tests && coerced_tests.include?(method)
-        undef_method(method) rescue nil
-        STDOUT.puts("Info: Undefined coerced test: #{self.name}##{method}")
+        undefine_and_puts(method)
       end
     end
+
+    def undefine_and_puts(method)
+      result = undef_method(method) rescue nil
+      STDOUT.puts("Info: Undefined coerced test: #{self.name}##{method}") unless result.blank?
+    end
+  
   end
 end
 
@@ -133,4 +137,3 @@ end
     # SQL Server.
     sqlserver_specific_schema_file = "#{SQLSERVER_SCHEMA_ROOT}/sqlserver_specific_schema.rb"
     eval(File.read(sqlserver_specific_schema_file))
-
