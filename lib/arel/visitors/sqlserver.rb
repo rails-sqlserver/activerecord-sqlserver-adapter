@@ -28,7 +28,6 @@ module Arel
       # SQLServer ToSql/Visitor (Overides)
 
       def visit_Arel_Nodes_SelectStatement(o, a)
-        puts "o.cores.size#{o.cores.size}" unless o.cores.size < 2
         if complex_count_sql?(o)
           visit_Arel_Nodes_SelectStatementForComplexCount(o, a)
         elsif o.offset

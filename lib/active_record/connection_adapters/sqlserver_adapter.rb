@@ -66,7 +66,7 @@ module ActiveRecord
       class << self
  
         def string_to_binary(value)
-         "0x#{value.unpack("H*")[0]}"
+          "0x#{value.unpack("H*")[0]}"
         end
 
         def binary_to_string(value)

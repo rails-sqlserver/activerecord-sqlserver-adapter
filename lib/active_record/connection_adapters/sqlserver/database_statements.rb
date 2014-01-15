@@ -15,6 +15,7 @@ module ActiveRecord
           end
         end
         
+		# TODO I bet there's a better way than a regex to take care of this
         def exec_query(sql, name = 'SQL', binds = [], sqlserver_options = {})
           # We can't update Identiy columns in sqlserver.  So, strip out the id from the update.
           if sql =~ /UPDATE/ 
