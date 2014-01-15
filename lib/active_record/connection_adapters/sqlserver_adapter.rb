@@ -18,6 +18,7 @@ require 'active_record/connection_adapters/sqlserver/schema_statements'
 require 'active_record/connection_adapters/sqlserver/showplan'
 require 'active_record/connection_adapters/sqlserver/quoting'
 require 'active_record/connection_adapters/sqlserver/utils'
+require 'active_record/sqlserver_test_case'
 
 module ActiveRecord
 

@@ -79,18 +79,6 @@ module SqlserverCoercedTest
   end
 end
 
-# #Our changes/additions to ActiveRecord test helpers specific for SQL Server.
-# module ActiveRecord
-#   class SQLCounter
-#      sqlserver_ignored =  [%r|SELECT SCOPE_IDENTITY|, %r{INFORMATION_SCHEMA\.(TABLES|VIEWS|COLUMNS)},%r|SELECT @@version|, %r|SELECT @@TRANCOUNT|, %r{(BEGIN|COMMIT|ROLLBACK|SAVE) TRANSACTION}]
-#      ignored_sql.concat sqlserver_ignored
-#   end
-
-#   puts ActiveSupport::Notifications.subscribed('sql.active_record')
-#   # ActiveSupport::Notifications.unsubscribe('sql.active_record')
-#   ActiveSupport::Notifications.subscribe('sql.active_record', SQLCounter.new)
-# end
-
 module ActiveRecord
   class TestCase < ActiveSupport::TestCase
     class << self
