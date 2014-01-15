@@ -1,5 +1,5 @@
 # Rails 4 
-One failing test. Until this is fixex when you use both :includes and :limit you will get fewer results than expected.
+One failing test. Until this is fixex when you use  includes, limit, and order you will get fewer results than expected.
 ```ruby
 FAIL
   Expected: 2
@@ -247,7 +247,6 @@ Up-to-date list of contributors: http://github.com/rails-sqlserver/activerecord-
 * adzap (Adam Meehan)
 * neomindryan (Ryan Findley)
 * jeremydurham (Jeremy Durham)
-
 
 
 ## Donators
