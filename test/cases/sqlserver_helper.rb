@@ -26,6 +26,8 @@ Turn.config do |c|
 c.verbose = true
 end
 
+require 'graphviz'
+
 require 'mocha/api'
 require 'active_support/dependencies'
 require 'active_record'
@@ -128,6 +130,13 @@ module ActiveRecord
         ActiveRecord::ConnectionAdapters::SQLServerAdapter.auto_connect = existing
     end
   end
+end
+
+#useful for debugging Arel.  
+# You can call it like  arel_to_png(User.where(name: "foo").arel)
+def arel_to_png(arel)
+  graph = GraphViz.parse_string(arel.to_dot)
+  graph.output(:png => "query.png")
 end
 
     # Core AR.
