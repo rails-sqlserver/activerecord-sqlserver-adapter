@@ -4,30 +4,16 @@ SQLSERVER_FIXTURES_ROOT   = File.expand_path(File.join(SQLSERVER_TEST_ROOT,'fixt
 SQLSERVER_MIGRATIONS_ROOT = File.expand_path(File.join(SQLSERVER_TEST_ROOT,'migrations'))
 SQLSERVER_SCHEMA_ROOT     = File.expand_path(File.join(SQLSERVER_TEST_ROOT,'schema'))
 ACTIVERECORD_TEST_ROOT    = File.expand_path(File.join(Gem.loaded_specs['activerecord'].full_gem_path,'test'))
-AREL_TEST_ROOT            = File.expand_path(File.join(Gem.loaded_specs['arel'].full_gem_path,'test'))
 
 ENV['ARCONFIG']           = File.expand_path(File.join(SQLSERVER_TEST_ROOT,'config.yml'))
 
-$:.unshift ACTIVERECORD_TEST_ROOT
-$LOAD_PATH.unshift AREL_TEST_ROOT
+$LOAD_PATH.unshift ACTIVERECORD_TEST_ROOT
 
 require 'rubygems'
 require 'bundler'
 Bundler.setup
 require 'simplecov'
-SimpleCov.start do
-  add_filter "/test/"
-end
-require 'turn'
-Turn.config do |c|
-  c.format = :dot
-  #c.trace = 10
-  # c.natural = true
-c.verbose = true
-end
-
 require 'graphviz'
-
 require 'mocha/api'
 require 'active_support/dependencies'
 require 'active_record'
@@ -37,6 +23,12 @@ require 'minitest-spec-rails'
 require 'minitest-spec-rails/init/mini_shoulda'
 require 'cases/helper'
 require 'models/topic'
+require 'cases/arel_helper'
+
+SimpleCov.start do
+  add_filter "/test/"
+end
+
 GC.copy_on_write_friendly = true if GC.respond_to?(:copy_on_write_friendly?)
 
 ActiveRecord::Migration.verbose = false
@@ -120,17 +112,10 @@ module ActiveRecord
   end
 end
 
-#useful for debugging Arel.  
-# You can call it like  arel_to_png(User.where(name: "foo").arel)
-def arel_to_png(arel)
-  graph = GraphViz.parse_string(arel.to_dot)
-  graph.output(:png => "query.png")
-end
+# Core AR.
+schema_file = "#{ACTIVERECORD_TEST_ROOT}/schema/schema.rb"
+eval(File.read(schema_file))
 
-    # Core AR.
-    schema_file = "#{ACTIVERECORD_TEST_ROOT}/schema/schema.rb"
-    eval(File.read(schema_file))
- 
-    # SQL Server.
-    sqlserver_specific_schema_file = "#{SQLSERVER_SCHEMA_ROOT}/sqlserver_specific_schema.rb"
-    eval(File.read(sqlserver_specific_schema_file))
+# SQL Server.
+sqlserver_specific_schema_file = "#{SQLSERVER_SCHEMA_ROOT}/sqlserver_specific_schema.rb"
+eval(File.read(sqlserver_specific_schema_file))
