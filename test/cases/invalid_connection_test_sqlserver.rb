@@ -1,5 +1,5 @@
 #cases/invalid_connection_test was added in rails 4.0.1
-if Pathname.new('cases/invalid_connection_test').exist?
+if Pathname.new("#{ACTIVERECORD_TEST_ROOT}/cases/invalid_connection_test.rb").exist?
   require 'cases/sqlserver_helper'
   require 'cases/invalid_connection_test'
 

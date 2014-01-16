@@ -1,4 +1,5 @@
-if Pathname.new('cases/disconnected_test').exist?
+if Pathname.new("#{ACTIVERECORD_TEST_ROOT}/cases/disconnected_test.rb").exist?
+  #cases/disconnected_test was added in rails 4.0.1 so this errors in 4.0.0
   require 'cases/sqlserver_helper'
   require 'cases/disconnected_test'
 

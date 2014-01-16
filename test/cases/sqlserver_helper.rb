@@ -27,6 +27,7 @@ require 'minitest-spec-rails/init/mini_shoulda'
 require 'cases/helper'
 require 'models/topic'
 require 'cases/arel_helper'
+require 'cases/sqlserver_test_case'
 
 GC.copy_on_write_friendly = true if GC.respond_to?(:copy_on_write_friendly?)
 
