@@ -1,13 +1,3 @@
-# Rails 4 
-One failing test. Until this is fixex when you use  includes, limit, and order you will get fewer results than expected.
-```ruby
-FAIL
-  Expected: 2
-    Actual: 1
-  /Users/acarey/code/source/rails/rails40/activerecord/test/cases/finder_test.rb:822:in `test_find_with_order_on_included_associations_with_construct_finder_sql_for_association_limiting_and_is_distinct'
-```
-
-
 # ActiveRecord SQL Server Adapter. For SQL Server 2005 And Higher.
 
 The SQL Server adapter for ActiveRecord. If you need the adapter for SQL Server 2000, you are still in the right spot. Just install the latest 2.3.x version of the adapter. Note, we follow a rational versioning policy that tracks ActiveRecord. That means that our 2.3.x version of the adapter is only for the latest 2.3 version of Rails. We also have stable branches for each major/minor release of ActiveRecord.
@@ -16,7 +6,7 @@ The SQL Server adapter for ActiveRecord. If you need the adapter for SQL Server 
 ## What's New
 
 * Rails 4 support
-
+* Ruby 2.0.0 and 2.1.0.prerelease support
 
 #### Testing Rake Tasks Support
 
@@ -206,7 +196,7 @@ The adapter has no strict gem dependencies outside of ActiveRecord. You will hav
 
 ```ruby
 gem 'tiny_tds'
-gem 'activerecord-sqlserver-adapter', '~> 3.1.0'
+gem 'activerecord-sqlserver-adapter', '~> 4.0.0'
 ```
 
 If you want to use ruby ODBC, please use at least version 0.99992 since that contains fixes for both native types as well as fixes for proper encoding support under 1.9. If you have any troubles installing the lower level libraries for the adapter, please consult the wiki pages for various platform installation guides. Tons of good info can be found and we ask that you contribute too!
