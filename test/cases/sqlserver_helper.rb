@@ -13,6 +13,9 @@ require 'rubygems'
 require 'bundler'
 Bundler.setup
 require 'simplecov'
+SimpleCov.start do
+  add_filter "/test/"
+end
 require 'graphviz'
 require 'mocha/api'
 require 'active_support/dependencies'
@@ -24,10 +27,6 @@ require 'minitest-spec-rails/init/mini_shoulda'
 require 'cases/helper'
 require 'models/topic'
 require 'cases/arel_helper'
-
-SimpleCov.start do
-  add_filter "/test/"
-end
 
 GC.copy_on_write_friendly = true if GC.respond_to?(:copy_on_write_friendly?)
 

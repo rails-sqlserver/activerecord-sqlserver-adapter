@@ -14,7 +14,7 @@ $LOAD_PATH.unshift AREL_TEST_ROOT
 
 # Useful for debugging Arel.  
 # You can call it like  arel_to_png(User.where(name: "foo").arel)
-def arel_to_png(arel)
+def arel_to_png(arel, file_name = "query")
   graph = GraphViz.parse_string(arel.to_dot)
-  graph.output(:png => "query.png")
+  graph.output(:png => "#{file_name}.png")
 end
