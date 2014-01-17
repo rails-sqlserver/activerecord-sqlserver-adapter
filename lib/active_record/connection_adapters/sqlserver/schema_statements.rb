@@ -44,25 +44,37 @@ module ActiveRecord
           end
         end
 
-        def rename_table(table_name, new_name)
-          do_execute "EXEC sp_rename '#{table_name}', '#{new_name}'"
+        # like postgres, sqlserver requires the ORDER BY columns in the select list for distinct queries, and
+        # requires that the ORDER BY include the distinct column.
+        # this method is idental to the postgres method
+        def columns_for_distinct(columns, orders) #:nodoc:
+          order_columns = orders.map{ |s|
+              # Convert Arel node to string
+              s = s.to_sql unless s.is_a?(String)
+              # Remove any ASC/DESC modifiers
+              s.gsub(/\s+(ASC|DESC)\s*(NULLS\s+(FIRST|LAST)\s*)?/i, '')
+            }.reject(&:blank?).map.with_index { |column, i| "#{column} AS alias_#{i}" }
+
+          [super, *order_columns].join(', ')
         end
 
-        def remove_column(table_name, *column_names)
-          raise ArgumentError.new("You must specify at least one column name.  Example: remove_column(:people, :first_name)") if column_names.empty?
-          ActiveSupport::Deprecation.warn 'Passing array to remove_columns is deprecated, please use multiple arguments, like: `remove_columns(:posts, :foo, :bar)`', caller if column_names.flatten!
-          column_names.flatten.each do |column_name|
-            remove_check_constraints(table_name, column_name)
-            remove_default_constraint(table_name, column_name)
-            remove_indexes(table_name, column_name)
-            do_execute "ALTER TABLE #{quote_table_name(table_name)} DROP COLUMN #{quote_column_name(column_name)}"
-          end
+        def rename_table(table_name, new_name)
+          do_execute "EXEC sp_rename '#{table_name}', '#{new_name}'"
+          rename_table_indexes(table_name, new_name)
+        end
+
+        def remove_column(table_name, column_name, type = nil)
+          raise ArgumentError.new("You must specify at least one column name.  Example: remove_column(:people, :first_name)") if (column_name.is_a? Array)
+          remove_check_constraints(table_name, column_name)
+          remove_default_constraint(table_name, column_name)
+          remove_indexes(table_name, column_name)
+          do_execute "ALTER TABLE #{quote_table_name(table_name)} DROP COLUMN #{quote_column_name(column_name)}"
         end
 
         def change_column(table_name, column_name, type, options = {})
           sql_commands = []
           indexes = []
-          column_object = schema_cache.columns[table_name].detect { |c| c.name.to_s == column_name.to_s }
+          column_object = schema_cache.columns(table_name).detect { |c| c.name.to_s == column_name.to_s }
 
           if options_include_default?(options) || (column_object && column_object.type != type.to_sym)
             remove_default_constraint(table_name,column_name)
@@ -92,6 +104,12 @@ module ActiveRecord
           schema_cache.clear_table_cache!(table_name)
           detect_column_for! table_name, column_name
           do_execute "EXEC sp_rename '#{table_name}.#{column_name}', '#{new_column_name}', 'COLUMN'"
+          rename_column_indexes(table_name, column_name, new_column_name)
+          schema_cache.clear_table_cache!(table_name)
+        end
+
+        def rename_index(table_name, old_name, new_name)
+          execute "EXEC sp_rename N'#{table_name}.#{old_name}', N'#{new_name}', N'INDEX'"
         end
 
         def remove_index!(table_name, index_name)
@@ -276,8 +294,8 @@ module ActiveRecord
         # === SQLServer Specific (Misc Helpers) ========================= #
 
         def get_table_name(sql)
-          if sql =~ /^\s*(INSERT|EXEC sp_executesql N'INSERT)\s+INTO\s+([^\(\s]+)\s*|^\s*update\s+([^\(\s]+)\s*/i
-            $2 || $3
+          if sql =~ /^\s*(INSERT|EXEC sp_executesql N'INSERT)(\s+INTO)?\s+([^\(\s]+)\s*|^\s*update\s+([^\(\s]+)\s*/i
+            $3 || $4
           elsif sql =~ /FROM\s+([^\(\s]+)\s*/i
             $1
           else
@@ -290,7 +308,7 @@ module ActiveRecord
         end
 
         def detect_column_for!(table_name, column_name)
-          unless column = schema_cache.columns[table_name].detect { |c| c.name == column_name.to_s }
+          unless column = schema_cache.columns(table_name).detect { |c| c.name == column_name.to_s }
             raise ActiveRecordError, "No such column: #{table_name}.#{column_name}"
           end
           column
@@ -338,6 +356,7 @@ module ActiveRecord
         # === SQLServer Specific (Identity Inserts) ===================== #
 
         def query_requires_identity_insert?(sql)
+
           if insert_sql?(sql)
             table_name = get_table_name(sql)
             id_column = identity_column(table_name)
@@ -367,7 +386,7 @@ module ActiveRecord
         end
 
         def identity_column(table_name)
-          schema_cache.columns[table_name].detect(&:is_identity?)
+          schema_cache.columns(table_name).detect(&:is_identity?)
         end
 
       end

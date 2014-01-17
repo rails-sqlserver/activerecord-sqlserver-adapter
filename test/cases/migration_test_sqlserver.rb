@@ -1,5 +1,6 @@
 require 'cases/sqlserver_helper'
 require 'models/person'
+require 'models_sqlserver/person'
 
 class MigrationTestSqlserver < ActiveRecord::TestCase
   
@@ -67,18 +68,11 @@ if ActiveRecord::TestCase.sqlserver_azure?
   class MigrationTest < ActiveRecord::TestCase
     COERCED_TESTS = [:test_migrator_db_has_no_schema_migrations_table]
     include SqlserverCoercedTest
-    def test_coerced_test_migrator_db_has_no_schema_migrations_table ; assert true ; end  
-  end
-end
-
-class ChangeTableMigrationsTest < ActiveRecord::TestCase
-  COERCED_TESTS = [:test_string_creates_string_column]
-  include SqlserverCoercedTest
-  def test_coerced_string_creates_string_column
-    with_change_table do |t|
-      @connection.expects(:add_column).with(:delete_me, :foo, 'nvarchar(255)', {})
-      @connection.expects(:add_column).with(:delete_me, :bar, 'nvarchar(255)', {})
-      t.string :foo, :bar
-    end
+    
+    # TODO: put a real test here
+    def test_coerced_test_migrator_db_has_no_schema_migrations_table
+      assert true
+    end  
+    
   end
 end

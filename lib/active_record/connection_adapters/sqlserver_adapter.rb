@@ -1,12 +1,12 @@
 require 'base64'
 require 'arel/visitors/sqlserver'
+require 'arel/visitors/bind_visitor'
 require 'active_record'
 require 'active_record/base'
 require 'active_support/concern'
 require 'active_support/core_ext/string'
 require 'active_record/connection_adapters/abstract_adapter'
 require 'active_record/connection_adapters/sqlserver/core_ext/active_record'
-require 'active_record/connection_adapters/sqlserver/core_ext/database_statements'
 require 'active_record/connection_adapters/sqlserver/core_ext/explain'
 require 'active_record/connection_adapters/sqlserver/core_ext/explain_subscriber'
 require 'active_record/connection_adapters/sqlserver/core_ext/relation'
@@ -63,13 +63,16 @@ module ActiveRecord
       end
 
       class << self
-
+ 
         def string_to_binary(value)
-         "0x#{value.unpack("H*")[0]}"
+          "0x#{value.unpack("H*")[0]}"
         end
 
         def binary_to_string(value)
-          value =~ /[^[:xdigit:]]/ ? value : [value].pack('H*')
+          if value.encoding != Encoding::ASCII_8BIT
+           value = value.force_encoding(Encoding::ASCII_8BIT)
+          end
+          value
         end
 
       end
@@ -186,12 +189,14 @@ module ActiveRecord
       attr_reader :database_version, :database_year, :spid, :product_level, :product_version, :edition
 
       cattr_accessor :native_text_database_type, :native_binary_database_type, :native_string_database_type,
-                     :enable_default_unicode_types, :auto_connect, :retry_deadlock_victim,
-                     :cs_equality_operator, :lowercase_schema_reflection, :auto_connect_duration,
-                     :showplan_option
+                     :enable_default_unicode_types, :auto_connect, :cs_equality_operator,
+                     :lowercase_schema_reflection, :auto_connect_duration, :showplan_option
 
       self.enable_default_unicode_types = true
 
+      class BindSubstitution < Arel::Visitors::SQLServer # :nodoc:
+        include Arel::Visitors::BindVisitor
+      end
 
       def initialize(connection, logger, pool, config)
         super(connection, logger, pool)
@@ -284,12 +289,14 @@ module ActiveRecord
       end
 
       def reconnect!
+        reset_transaction
         disconnect!
         connect
         active?
       end
 
       def disconnect!
+        reset_transaction
         @spid = nil
         case @connection_options[:mode]
         when :dblib
@@ -311,7 +318,7 @@ module ActiveRecord
       end
 
       def primary_key(table_name)
-        identity_column(table_name).try(:name) || schema_cache.columns[table_name].detect(&:is_primary?).try(:name)
+        identity_column(table_name).try(:name) || schema_cache.columns(table_name).detect(&:is_primary?).try(:name)
       end
 
       # === SQLServer Specific (DB Reflection) ======================== #
@@ -355,11 +362,6 @@ module ActiveRecord
       def auto_connect_duration
         @@auto_connect_duration ||= 10
       end
-
-      def retry_deadlock_victim
-        @@retry_deadlock_victim.is_a?(FalseClass) ? false : true
-      end
-      alias :retry_deadlock_victim? :retry_deadlock_victim
 
       def native_string_database_type
         @@native_string_database_type || (enable_default_unicode_types ? 'nvarchar' : 'varchar')
@@ -506,7 +508,6 @@ module ActiveRecord
         rescue Exception => e
           case translate_exception(e,e.message)
             when LostConnection; retry if auto_reconnected?
-            when DeadlockVictim; retry if retry_deadlock_victim? && open_transactions == 0
           end
           raise
         end

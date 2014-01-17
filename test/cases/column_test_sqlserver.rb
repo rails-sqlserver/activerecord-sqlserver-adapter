@@ -1,5 +1,14 @@
 require 'cases/sqlserver_helper'
 require 'models/binary'
+require 'models_sqlserver/float_data'
+require 'models_sqlserver/numeric_data'
+require 'models_sqlserver/sql_server_chronic'
+require 'models_sqlserver/sql_server_edge_schema'
+require 'models_sqlserver/sql_server_string'
+require 'models_sqlserver/sql_server_unicode'
+require 'models_sqlserver/table_with_real_column'
+require 'models_sqlserver/topic'
+require "cases/migration/helper"
 
 class ColumnTestSqlserver < ActiveRecord::TestCase
   
@@ -332,7 +341,37 @@ class ColumnTestSqlserver < ActiveRecord::TestCase
       assert_equal 'tinyint(1)', @tinyint.sql_type
     end
 
+  end  
+end
+
+module ActiveRecord
+  class Migration
+    class ColumnsTest < ActiveRecord::TestCase
+      include ActiveRecord::Migration::TestHelper
+
+      COERCED_TESTS = [:test_remove_column_with_multi_column_index] 
+        # The if current_adapter? conditional below should also contain :SQLServerAdapter.
+        # Until that patch is made to rails we are preventing this test from running in this gem.
+
+      include SqlserverCoercedTest
+
+      #the only thing we changed in this method was to add :SQLServerAdapter
+      def test_coerced_remove_column_with_multi_column_index
+        add_column "test_models", :hat_size, :integer
+        add_column "test_models", :hat_style, :string, :limit => 100
+        add_index "test_models", ["hat_style", "hat_size"], :unique => true
+
+        assert_equal 1, connection.indexes('test_models').size
+        remove_column("test_models", "hat_size")
+
+        # Every database and/or database adapter has their own behavior
+        # if it drops the multi-column index when any of the indexed columns dropped by remove_column.
+        if current_adapter?(:PostgreSQLAdapter, :OracleAdapter, :SQLServerAdapter)
+          assert_equal [], connection.indexes('test_models').map(&:name)
+        else
+          assert_equal ['index_test_models_on_hat_style_and_hat_size'], connection.indexes('test_models').map(&:name)
+        end
+      end
+    end
   end
-  
-  
 end

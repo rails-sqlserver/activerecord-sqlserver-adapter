@@ -38,7 +38,7 @@ class UnicodeTestSqlserver < ActiveRecord::TestCase
       else
         raise 'need to add a case for this'
       end
-      assert_equal Encoding.find('UTF-8'), data.nvarchar.encoding if ruby_19?
+      assert_equal Encoding.find('UTF-8'), data.nvarchar.encoding
     end
 
   end

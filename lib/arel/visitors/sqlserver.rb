@@ -1,10 +1,10 @@
 require 'arel'
-
+require 'arel/select_manager_sqlserver'
 module Arel
 
   module Nodes
 
-    # Extending the Ordering class to be comparrison friendly which allows us to call #uniq on a
+    # Extending the Ordering class to be comparison friendly which allows us to call #uniq on a
     # collection of them. See SelectManager#order for more details.
     class Ordering < Arel::Nodes::Unary
       def hash
@@ -20,69 +20,6 @@ module Arel
 
   end
 
-  class SelectManager < Arel::TreeManager
-    
-    AR_CA_SQLSA_NAME = 'ActiveRecord::ConnectionAdapters::SQLServerAdapter'.freeze
-    
-    # Getting real Ordering objects is very important for us. We need to be able to call #uniq on
-    # a colleciton of them reliably as well as using their true object attributes to mutate them
-    # to grouping objects for the inner sql during a select statment with an offset/rownumber. So this
-    # is here till ActiveRecord & ARel does this for us instead of using SqlLiteral objects.
-    alias :order_without_sqlserver :order
-    def order(*expr)
-      return order_without_sqlserver(*expr) unless engine_activerecord_sqlserver_adapter?
-      @ast.orders.concat(expr.map{ |x|
-        case x
-        when Arel::Attributes::Attribute
-          table = Arel::Table.new(x.relation.table_alias || x.relation.name)
-          e = table[x.name]
-          Arel::Nodes::Ascending.new e
-        when Arel::Nodes::Ordering
-          x
-        when String
-          x.split(',').map do |s|
-            s = x if x.strip =~ /\A\b\w+\b\(.*,.*\)(\s+(ASC|DESC))?\Z/i # Allow functions with comma(s) to pass thru.
-            s.strip!
-            d = s =~ /(ASC|DESC)\Z/i ? $1.upcase : nil
-            e = d.nil? ? s : s.mb_chars[0...-d.length].strip
-            e = Arel.sql(e)
-            d && d == "DESC" ? Arel::Nodes::Descending.new(e) : Arel::Nodes::Ascending.new(e)
-          end
-        else
-          e = Arel.sql(x.to_s)
-          Arel::Nodes::Ascending.new e
-        end
-      }.flatten)
-      self
-    end
-
-    # A friendly over ride that allows us to put a special lock object that can have a default or pass
-    # custom string hints down. See the visit_Arel_Nodes_LockWithSQLServer delegation method.
-    alias :lock_without_sqlserver :lock
-    def lock(locking=true)
-      if engine_activerecord_sqlserver_adapter?
-        case locking
-        when true
-          locking = Arel.sql('WITH(HOLDLOCK, ROWLOCK)')
-        when Arel::Nodes::SqlLiteral
-        when String
-          locking = Arel.sql locking
-        end
-        @ast.lock = Arel::Nodes::Lock.new(locking)
-        self
-      else
-        lock_without_sqlserver(locking)
-      end
-    end
-    
-    private
-    
-    def engine_activerecord_sqlserver_adapter?
-      @engine.connection && @engine.connection.class.name == AR_CA_SQLSA_NAME
-    end
-    
-  end
-
   module Visitors
     class SQLServer < Arel::Visitors::ToSql
 
@@ -90,50 +27,50 @@ module Arel
 
       # SQLServer ToSql/Visitor (Overides)
 
-      def visit_Arel_Nodes_SelectStatement(o)
+      def visit_Arel_Nodes_SelectStatement(o, a)
         if complex_count_sql?(o)
-          visit_Arel_Nodes_SelectStatementForComplexCount(o)
+          visit_Arel_Nodes_SelectStatementForComplexCount(o, a)
         elsif o.offset
-          visit_Arel_Nodes_SelectStatementWithOffset(o)
+          visit_Arel_Nodes_SelectStatementWithOffset(o, a)
         else
-          visit_Arel_Nodes_SelectStatementWithOutOffset(o)
+          visit_Arel_Nodes_SelectStatementWithOutOffset(o, a)
         end
       end
-      
-      def visit_Arel_Nodes_UpdateStatement(o)
+
+      def visit_Arel_Nodes_UpdateStatement(o, a)
         if o.orders.any? && o.limit.nil?
           o.limit = Nodes::Limit.new(9223372036854775807)
         end
         super
       end
 
-      def visit_Arel_Nodes_Offset(o)
+      def visit_Arel_Nodes_Offset(o, a)
         "WHERE [__rnt].[__rn] > (#{visit o.expr})"
       end
 
-      def visit_Arel_Nodes_Limit(o)
+      def visit_Arel_Nodes_Limit(o, a)
         "TOP (#{visit o.expr})"
       end
 
-      def visit_Arel_Nodes_Lock(o)
+      def visit_Arel_Nodes_Lock(o, a)
         visit o.expr
       end
-      
-      def visit_Arel_Nodes_Ordering(o)
+
+      def visit_Arel_Nodes_Ordering(o, a)
         if o.respond_to?(:direction)
           "#{visit o.expr} #{o.ascending? ? 'ASC' : 'DESC'}"
         else
           visit o.expr
         end
       end
-      
-      def visit_Arel_Nodes_Bin(o)
+
+      def visit_Arel_Nodes_Bin(o, a)
         "#{visit o.expr} #{@connection.cs_equality_operator}"
       end
 
       # SQLServer ToSql/Visitor (Additions)
 
-      def visit_Arel_Nodes_SelectStatementWithOutOffset(o, windowed=false)
+      def visit_Arel_Nodes_SelectStatementWithOutOffset(o, a, windowed = false)
         find_and_fix_uncorrelated_joins_in_select_statement(o)
         core = o.cores.first
         projections = core.projections
@@ -165,7 +102,7 @@ module Arel
         ].compact.join ' '
       end
 
-      def visit_Arel_Nodes_SelectStatementWithOffset(o)
+      def visit_Arel_Nodes_SelectStatementWithOffset(o, a)
         core = o.cores.first
         o.limit ||= Arel::Nodes::Limit.new(9223372036854775807)
         orders = rowtable_orders(o)
@@ -174,14 +111,14 @@ module Arel
           (rowtable_projections(o).map{ |x| visit(x) }.join(', ')),
           "FROM (",
             "SELECT #{core.set_quantifier ? 'DISTINCT DENSE_RANK()' : 'ROW_NUMBER()'} OVER (ORDER BY #{orders.map{ |x| visit(x) }.join(', ')}) AS [__rn],",
-            visit_Arel_Nodes_SelectStatementWithOutOffset(o,true),
+            visit_Arel_Nodes_SelectStatementWithOutOffset(o, a, true),
           ") AS [__rnt]",
           (visit(o.offset) if o.offset),
           "ORDER BY [__rnt].[__rn] ASC"
         ].compact.join ' '
       end
 
-      def visit_Arel_Nodes_SelectStatementForComplexCount(o)
+      def visit_Arel_Nodes_SelectStatementForComplexCount(o, a)
         core = o.cores.first
         o.limit.expr = Arel.sql("#{o.limit.expr} + #{o.offset ? o.offset.expr : 0}") if o.limit
         orders = rowtable_orders(o)

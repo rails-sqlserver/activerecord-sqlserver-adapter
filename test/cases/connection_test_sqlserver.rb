@@ -1,5 +1,6 @@
 require 'cases/sqlserver_helper'
 require 'models/reply' 
+require 'models_sqlserver/topic'
 
 class ConnectionTestSqlserver < ActiveRecord::TestCase
   
@@ -180,18 +181,7 @@ class ConnectionTestSqlserver < ActiveRecord::TestCase
           raw_conn.stubs(:execute).raises(deadlock_victim_exception(@query)).then.returns(stubbed_handle)
         end
 
-        teardown do
-          @connection.class.retry_deadlock_victim = nil
-        end
-
-        should 'retry by default' do
-          assert_nothing_raised do
-            assert_equal @expected, @connection.execute(@query)
-          end
-        end
-
-        should 'raise ActiveRecord::DeadlockVictim if retry is disabled' do
-          @connection.class.retry_deadlock_victim = false
+        should 'raise ActiveRecord::DeadlockVictim' do
           assert_raise(ActiveRecord::DeadlockVictim) do
             assert_equal @expected, @connection.execute(@query)
           end
@@ -228,19 +218,9 @@ class ConnectionTestSqlserver < ActiveRecord::TestCase
             remove_method :execute_without_deadlock_exception
           end
           @connection.send(:remove_instance_variable, :@raised_deadlock_exception)
-          @connection.class.retry_deadlock_victim = nil
-        end
-
-        should 'retry by default' do
-          assert_nothing_raised do
-            ActiveRecord::Base.transaction do
-              assert_equal @expected, @connection.execute(@query)
-            end
-          end
         end
 
         should 'raise ActiveRecord::DeadlockVictim if retry disabled' do
-          @connection.class.retry_deadlock_victim = false
           assert_raise(ActiveRecord::DeadlockVictim) do
             ActiveRecord::Base.transaction do
               assert_equal @expected, @connection.execute(@query)
@@ -258,7 +238,7 @@ class ConnectionTestSqlserver < ActiveRecord::TestCase
     
     should 'testing #activity_stats' do
       stats = @connection.activity_stats
-      assert stats.length > 0      
+      assert !stats.empty?     
       assert stats.all? { |s| s.has_key?("session_id") }
       assert stats.all? { |s| s["database"] == @connection.current_database }
     end
@@ -293,13 +273,4 @@ class ConnectionTestSqlserver < ActiveRecord::TestCase
     error
   end
   
-
-  def with_auto_connect(boolean)
-    existing = ActiveRecord::ConnectionAdapters::SQLServerAdapter.auto_connect
-    ActiveRecord::ConnectionAdapters::SQLServerAdapter.auto_connect = boolean
-    yield
-  ensure
-    ActiveRecord::ConnectionAdapters::SQLServerAdapter.auto_connect = existing
-  end
-
 end

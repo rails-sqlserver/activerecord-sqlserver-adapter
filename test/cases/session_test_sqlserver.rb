@@ -1,6 +1,5 @@
 require 'cases/sqlserver_helper'
 require 'action_dispatch'
-require 'active_record/session_store'
 
 module ActiveRecord
   class SessionStore

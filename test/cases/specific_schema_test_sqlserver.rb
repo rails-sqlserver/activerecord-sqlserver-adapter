@@ -1,5 +1,13 @@
 require 'cases/sqlserver_helper'
-
+require 'models_sqlserver/no_pk_data'
+require 'models_sqlserver/sql_server_dollar_table_name'
+require 'models_sqlserver/sql_server_edge_schema'
+require 'models_sqlserver/sql_server_natural_pk_int_data'
+require 'models_sqlserver/sql_server_quoted_table'
+require 'models_sqlserver/sql_server_quoted_view_1'
+require 'models_sqlserver/sql_server_quoted_view_2'
+require 'models_sqlserver/sql_server_tinyint_pk'
+require 'models_sqlserver/string_default'
 class SpecificSchemaTestSqlserver < ActiveRecord::TestCase
   
   should 'be able to complex count tables with no primary key' do
@@ -75,8 +83,8 @@ class SpecificSchemaTestSqlserver < ActiveRecord::TestCase
       end
       
       should 'use primary key for row table order in pagination sql' do
-        sql = /OVER \(ORDER BY \[natural_pk_data\]\.\[legacy_id\] ASC\)/
-        assert_sql(sql) { SqlServerNaturalPkData.limit(5).offset(5).all }
+		sql = /OVER \(ORDER BY \[natural_pk_data\]\.\[legacy_id\] ASC\)/
+        assert_sql(sql) { SqlServerNaturalPkData.limit(5).offset(5).load }
       end
 
     end
@@ -87,7 +95,7 @@ class SpecificSchemaTestSqlserver < ActiveRecord::TestCase
         @edge_class.delete_all
         r = @edge_class.create! 'crazy]]quote' => 'crazyqoute'
         assert @edge_class.columns_hash['crazy]]quote']
-        assert_equal r, @edge_class.first(:conditions => {'crazy]]quote' => 'crazyqoute'})
+        assert_equal r, @edge_class.where('crazy]]quote' => 'crazyqoute').first
       end
 
     end
@@ -113,11 +121,11 @@ class SpecificSchemaTestSqlserver < ActiveRecord::TestCase
       teardown { @edge_class.delete_all }
 
       should 'allow all sorts of ordering without adapter munging it up' do
-        assert_equal ['A','B','C'], @edge_class.all(:order => 'description').map(&:description)
-        assert_equal ['A','B','C'], @edge_class.all(:order => 'description asc').map(&:description)
-        assert_equal ['A','B','C'], @edge_class.all(:order => 'description ASC').map(&:description)
-        assert_equal ['C','B','A'], @edge_class.all(:order => 'description desc').map(&:description)
-        assert_equal ['C','B','A'], @edge_class.all(:order => 'description DESC').map(&:description)
+        assert_equal ['A','B','C'], @edge_class.order('description').map(&:description)
+        assert_equal ['A','B','C'], @edge_class.order('description asc').map(&:description)
+        assert_equal ['A','B','C'], @edge_class.order('description ASC').map(&:description)
+        assert_equal ['C','B','A'], @edge_class.order('description desc').map(&:description)
+        assert_equal ['C','B','A'], @edge_class.order('description DESC').map(&:description)
       end
 
     end
@@ -133,9 +141,9 @@ class SpecificSchemaTestSqlserver < ActiveRecord::TestCase
 
       should 'can find by biginit' do
         assert_equal @bi5k,  @edge_class.find_by_bigint(@b5k)
-        assert_equal @b5k,   @edge_class.find(:first, :select => 'bigint', :conditions => {:bigint => @b5k}).bigint
+        assert_equal @b5k,   @edge_class.select('bigint').where(bigint: @b5k).first.bigint
         assert_equal @bimjr, @edge_class.find_by_bigint(@bnum)
-        assert_equal @bnum,  @edge_class.find(:first, :select => 'bigint', :conditions => {:bigint => @bnum}).bigint
+        assert_equal @bnum,  @edge_class.select('bigint').where(bigint: @bnum).first.bigint
       end
 
     end
@@ -194,7 +202,7 @@ class SpecificSchemaTestSqlserver < ActiveRecord::TestCase
       
       should 'handle dollar symbols' do
         SqlServerDollarTableName.new.save
-        SqlServerDollarTableName.limit(20).offset(1).all
+        SqlServerDollarTableName.limit(20).offset(1)
       end
       
     end

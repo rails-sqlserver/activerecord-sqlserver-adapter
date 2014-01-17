@@ -3,8 +3,6 @@ module ActiveRecord
     module Sqlserver
       module DatabaseStatements
         
-        include CoreExt::DatabaseStatements
-        
         def select_rows(sql, name = nil)
           raw_select sql, name, [], :fetch => :rows
         end
@@ -17,7 +15,18 @@ module ActiveRecord
           end
         end
         
+		# TODO I bet there's a better way than a regex to take care of this
         def exec_query(sql, name = 'SQL', binds = [], sqlserver_options = {})
+          # We can't update Identiy columns in sqlserver.  So, strip out the id from the update.
+          if sql =~ /UPDATE/ 
+			# take off a comma before or after.  This could probably be done better 
+            if sql =~ /, \[id\] = @?[0-9]*/
+              sql.gsub! /, \[id\] = @?[0-9]*/, '' 
+            elsif sql =~ /\s\[id\] = @?[0-9]*,/
+              sql.gsub! /\s\[id\] = @?[0-9]*,/, ''  
+            end
+          end
+
           if id_insert_table_name = sqlserver_options[:insert] ? query_requires_identity_insert?(sql) : nil
             with_identity_insert_enabled(id_insert_table_name) { do_exec_query(sql, name, binds) }
           else
@@ -25,7 +34,8 @@ module ActiveRecord
           end
         end
         
-        def exec_insert(sql, name, binds)
+		    #The abstract adapter ignores the last two parameters also
+        def exec_insert(sql, name, binds, pk = nil, sequence_name = nil)
           exec_query sql, name, binds, :insert => true
         end
         
@@ -38,21 +48,9 @@ module ActiveRecord
           sql << "; SELECT @@ROWCOUNT AS AffectedRows"
           super.rows.first.first
         end
-
-        def outside_transaction?
-          select_value('SELECT @@TRANCOUNT', 'SCHEMA') == 0
-        end
         
         def supports_statement_cache?
           true
-        end
-
-        def transaction(options = {})
-          if retry_deadlock_victim?
-            block_given? ? transaction_with_retry_deadlock_victim(options) { yield } : transaction_with_retry_deadlock_victim(options)
-          else
-            block_given? ? super(options) { yield } : super(options)
-          end
         end
 
         def begin_db_transaction
@@ -135,14 +133,20 @@ module ActiveRecord
         
         def user_options
           return {} if sqlserver_azure?
-          select_rows("dbcc useroptions",'SCHEMA').inject(HashWithIndifferentAccess.new) do |values,row| 
-            set_option = row[0].gsub(/\s+/,'_')
-            user_value = row[1]
+          select_rows("dbcc useroptions",'SCHEMA').inject(HashWithIndifferentAccess.new) do |values,row|
+            if row.instance_of? Hash
+			  set_option = row.values[0].gsub(/\s+/,'_') 
+			  user_value = row.values[1] 
+			elsif  row.instance_of? Array
+		      set_option = row[0].gsub(/\s+/,'_')
+            	  user_value = row[1]
+			end
             values[set_option] = user_value
             values
           end
         end
         
+        # TODO Rails 4 now supports isolation levels
         def user_options_dateformat
           if sqlserver_azure?
             select_value 'SELECT [dateformat] FROM [sys].[syslanguages] WHERE [langid] = @@LANGID', 'SCHEMA'
@@ -294,7 +298,7 @@ module ActiveRecord
         protected
         
         def select(sql, name = nil, binds = [])
-          exec_query(sql, name, binds).to_a
+          exec_query(sql, name, binds)
         end
         
         def sql_for_insert(sql, pk, id_value, sequence_name, binds)

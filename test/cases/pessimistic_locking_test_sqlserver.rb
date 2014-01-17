@@ -1,6 +1,7 @@
 require 'cases/sqlserver_helper'
 require 'models/person'
 require 'models/reader'
+require 'models_sqlserver/person'
 
 class PessimisticLockingTestSqlserver < ActiveRecord::TestCase
   
@@ -16,7 +17,7 @@ class PessimisticLockingTestSqlserver < ActiveRecord::TestCase
     should 'lock with simple find' do
       assert_nothing_raised do
         Person.transaction do
-          Person.find 1, :lock => true
+          Person.lock(true).find(1)
         end
       end
     end
@@ -24,17 +25,17 @@ class PessimisticLockingTestSqlserver < ActiveRecord::TestCase
     should 'lock with scoped find' do
       assert_nothing_raised do
         Person.transaction do
-          Person.send(:with_scope, :find => { :lock => true }) do
-            Person.find 1
+          Person.lock(true).scoping do
+            Person.find(1)
           end
         end
       end
     end
 
     should 'lock with eager find' do
-      assert_nothing_raised do
+       assert_nothing_raised do
         Person.transaction do
-          Person.find 1, :include => :readers, :lock => true
+          Person.lock(true).includes(:readers).find(1)
         end
       end
     end
@@ -52,7 +53,7 @@ class PessimisticLockingTestSqlserver < ActiveRecord::TestCase
     
     should 'simply add lock to find all' do
       assert_sql %r|SELECT \[people\]\.\* FROM \[people\] WITH \(NOLOCK\)| do
-        Person.all(:lock => 'WITH (NOLOCK)')
+        Person.lock('WITH (NOLOCK)').load
       end
     end
 
@@ -68,7 +69,7 @@ class PessimisticLockingTestSqlserver < ActiveRecord::TestCase
       eager_ids_sql = /SELECT TOP \(5\).*FROM \[people\] WITH \(NOLOCK\)/
       loader_sql = /FROM \[people\] WITH \(NOLOCK\).*WHERE \[people\]\.\[id\] IN/
       assert_sql(eager_ids_sql,loader_sql) do
-        Person.all(:include => :readers, :lock => 'WITH (NOLOCK)', :limit => 5, :offset => 10)
+        Person.lock('WITH (NOLOCK)').limit(5).offset(10).includes(:readers).references(:readers).load
       end
     end
     

@@ -5,17 +5,8 @@ The SQL Server adapter for ActiveRecord. If you need the adapter for SQL Server 
 
 ## What's New
 
-* Rails 3.2 support. With explain (SHOWPLAN) support.
-* Deadlock victim retry logic using the #retry_deadlock_victim config.
-* Proper interface to configure the connection and TinyTDS app name reported to SQL Server.
-* Rails 3.1 prepared statement support leverages cached query plans.
-  If you use DBLIB/TinyTDS, you must use FreeTDS 0.91 !!!!!
-  https://github.com/rails-sqlserver/tiny_tds/issues/41
-* We now support your native language date/time formats automatically!
-* Default unicode datatypes! Disable with #enable_default_unicode_types to false.
-* New #lowercase_schema_reflection configuration option for legacy DBs.
-* New dblib connection mode using TinyTDS! Default mode too!
-
+* Rails 4 support
+* Ruby 2.0.0 and 2.1.0.prerelease support
 
 #### Testing Rake Tasks Support
 
@@ -114,15 +105,6 @@ ActiveRecord::ConnectionAdapters::SQLServerAdapter.native_string_database_type =
 It is important to remember that unicode types in SQL Server have approximately half the storage capacity as their counter parts. So where a normal string would max out at (8000) a unicode string will top off at (4000).
 
 
-#### Deadlock Victim Retry
-
-In a config initializer, you can configure the adapter to retry deadlock victims' SQL. Note, this relies on us copying ActiveRecord's `#transaction` method and can be brittle when upgrading. If you think that our version of `#transaction` is out of sync with the version of rails in our gemspec, please open a ticket and let us know. Our custom transaction method can be found in `activerecord/connection_adapters/sqlserver/core_ext/database_statements.rb`.
-
-```ruby
-ActiveRecord::ConnectionAdapters::SQLServerAdapter.retry_deadlock_victim = true
-```
-
-
 #### Force Schema To Lowercase
 
 Although it is not necessary, the Ruby convention is to use lowercase method names. If your database schema is in upper or mixed case, we can force all table and column names during the schema reflection process to be lowercase. Add this to your config/initializers file for the adapter.
@@ -196,18 +178,12 @@ You can configure a few options to your needs. First is the max column width for
 ActiveRecord::ConnectionAdapters::Sqlserver::Showplan::PrinterTable.max_column_width = 500
 ```
 
-Another configuration is the showplan option. Some might find the XML format more useful. If you have Nokogiri installed, we will format the XML string. I will gladly accept pathces that make the XML printer more useful!
+Another configuration is the showplan option. Some might find the XML format more useful. If you have Nokogiri installed, we will format the XML string. I will gladly accept pathches that make the XML printer more useful!
 
 ```ruby
 ActiveRecord::ConnectionAdapters::SQLServerAdapter.showplan_option = 'SHOWPLAN_XML'
 ```
-
-**NOTE:** The method we utilize to make SHOWPLANs work is very brittle to complex SQL. There is no getting around this as we have to deconstruct an already prepared statement for the sp_executesql method. If you find that explain breaks your app, simple disable it. Do not open a github issue unless you have a patch. To disable explain, just set the threshold to nil. Please [consult the Rails guides](http://guides.rubyonrails.org/active_record_querying.html#running-explain) for more info. Change this setting in your ```config/environments/development.rb```:
-
-```ruby
-config.active_record.auto_explain_threshold_in_seconds = nil
-```
-
+**NOTE:** The method we utilize to make SHOWPLANs work is very brittle to complex SQL. There is no getting around this as we have to deconstruct an already prepared statement for the sp_executesql method. If you find that explain breaks your app, simple disable it. Do not open a github issue unless you have a patch.  Please [consult the Rails guides](http://guides.rubyonrails.org/active_record_querying.html#running-explain) for more info.
 
 ## Versions
 
@@ -220,7 +196,7 @@ The adapter has no strict gem dependencies outside of ActiveRecord. You will hav
 
 ```ruby
 gem 'tiny_tds'
-gem 'activerecord-sqlserver-adapter', '~> 3.1.0'
+gem 'activerecord-sqlserver-adapter', '~> 4.0.0'
 ```
 
 If you want to use ruby ODBC, please use at least version 0.99992 since that contains fixes for both native types as well as fixes for proper encoding support under 1.9. If you have any troubles installing the lower level libraries for the adapter, please consult the wiki pages for various platform installation guides. Tons of good info can be found and we ask that you contribute too!
@@ -247,6 +223,8 @@ Many many people have contributed. If you do not see your name here and it shoul
 Up-to-date list of contributors: http://github.com/rails-sqlserver/activerecord-sqlserver-adapter/contributors
 
 * metaskills (Ken Collins)
+* Annaswims (Annaswims)
+* Thirdshift (Garrett Hart)
 * h-lame (Murray Steele)
 * vegantech
 * cjheath (Clifford Heath)
