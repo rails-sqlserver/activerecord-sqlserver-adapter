@@ -41,7 +41,8 @@ group :development do
   gem 'bcrypt-ruby', '~> 3.0.0'
   gem 'bench_press'
   gem 'mocha'
-  gem 'minitest-spec-rails'
+  # TODO: Change back when it's ready
+  gem 'minitest-spec-rails', git: "https://github.com/metaskills/minitest-spec-rails.git"
   gem 'nokogiri'
   gem 'rake', '~> 0.9.2'
   gem 'rubocop'
