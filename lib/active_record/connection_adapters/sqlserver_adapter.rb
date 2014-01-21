@@ -1,5 +1,5 @@
 require 'base64'
-require 'arel/visitors/sqlserver'
+require 'arel/arel_sqlserver'
 require 'arel/visitors/bind_visitor'
 require 'active_record'
 require 'active_record/base'

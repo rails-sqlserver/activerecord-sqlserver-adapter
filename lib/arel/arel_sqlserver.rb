@@ -1,0 +1,5 @@
+require 'arel'
+require 'arel/select_manager_sqlserver'
+require 'arel/nodes_sqlserver'
+require 'arel/visitors/sqlserver'
+require 'arel/visitors/bind_visitor'
