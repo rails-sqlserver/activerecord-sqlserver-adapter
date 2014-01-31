@@ -282,8 +282,12 @@ module ActiveRecord
           end
         end
 
-        def create_database(database)
-          do_execute "CREATE DATABASE #{quote_table_name(database)}"
+        def create_database(database, collation=@connection_options[:collation])
+          if collation
+            do_execute "CREATE DATABASE #{quote_table_name(database)} COLLATE #{collation}"
+          else
+            do_execute "CREATE DATABASE #{quote_table_name(database)}"
+          end
         end
 
         def current_database
