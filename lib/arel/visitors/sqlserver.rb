@@ -96,7 +96,7 @@ module Arel
           (projections.map{ |x| v = visit(x); v == "1" ? "1 AS [__wrp]" : v }.join(', ')),
           (source_with_lock_for_select_statement(o)),
           ("WHERE #{core.wheres.map{ |x| visit(x) }.join ' AND ' }" unless core.wheres.empty?),
-          ("GROUP BY #{groups.map { |x| visit x }.join ', ' }" unless groups.empty?),
+          ("GROUP BY #{groups.map { |x| visit(x) }.join ', ' }" unless groups.empty?),
           (visit(core.having) if core.having),
           ("ORDER BY #{orders.map{ |x| visit(x) }.join(', ')}" if !orders.empty? && !windowed)
         ].compact.join ' '
@@ -183,18 +183,18 @@ module Arel
           ((p1.respond_to?(:distinct) && p1.distinct) ||
             p1.respond_to?(:include?) && p1.include?('DISTINCT'))
       end
-      
+
       def windowed_single_distinct_select_statement?(o)
         o.limit && o.offset && single_distinct_select_statement?(o)
       end
-      
+
       def single_distinct_select_everything_statement?(o)
         single_distinct_select_statement?(o) && visit(o.cores.first.projections.first).ends_with?(".*")
       end
-      
+
       def top_one_everything_for_through_join?(o)
-        single_distinct_select_everything_statement?(o) && 
-          (o.limit && !o.offset) && 
+        single_distinct_select_everything_statement?(o) &&
+          (o.limit && !o.offset) &&
           join_in_select_statement?(o)
       end
 
@@ -212,9 +212,9 @@ module Arel
 
       def eager_limiting_select_statement?(o)
         core = o.cores.first
-        single_distinct_select_statement?(o) && 
-          (o.limit && !o.offset) && 
-          core.groups.empty? && 
+        single_distinct_select_statement?(o) &&
+          (o.limit && !o.offset) &&
+          core.groups.empty? &&
           !single_distinct_select_everything_statement?(o)
       end
 
@@ -230,7 +230,7 @@ module Arel
           o.limit &&
           !join_in_select_statement?(o)
       end
-      
+
       def select_primary_key_sql?(o)
         core = o.cores.first
         return false if core.projections.size != 1
