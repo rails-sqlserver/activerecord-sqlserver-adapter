@@ -162,22 +162,22 @@ module Arel
           ((p1.respond_to?(:distinct) && p1.distinct) ||
             p1.respond_to?(:include?) && p1.include?('DISTINCT'))
       end
-      
+
       def windowed_single_distinct_select_statement?(o)
-        
-        o.limit && 
-          o.offset && 
+
+        o.limit &&
+          o.offset &&
           single_distinct_select_statement?(o)
       end
-      
+
       def single_distinct_select_everything_statement?(o, a)
-        single_distinct_select_statement?(o) && 
+        single_distinct_select_statement?(o) &&
           visit(o.cores.first.projections.first, a).ends_with?(".*")
       end
-      
+
       def top_one_everything_for_through_join?(o, a)
-        single_distinct_select_everything_statement?(o, a) && 
-          (o.limit && !o.offset) && 
+        single_distinct_select_everything_statement?(o, a) &&
+          (o.limit && !o.offset) &&
           join_in_select_statement?(o)
       end
 
@@ -195,9 +195,9 @@ module Arel
 
       def eager_limiting_select_statement?(o, a)
         core = o.cores.first
-        single_distinct_select_statement?(o) && 
-          (o.limit && !o.offset) && 
-          core.groups.empty? && 
+        single_distinct_select_statement?(o) &&
+          (o.limit && !o.offset) &&
+          core.groups.empty? &&
           !single_distinct_select_everything_statement?(o, a)
       end
 
@@ -213,7 +213,7 @@ module Arel
           o.limit &&
           !join_in_select_statement?(o)
       end
-      
+
       def select_primary_key_sql?(o)
         core = o.cores.first
         return false if core.projections.size != 1
