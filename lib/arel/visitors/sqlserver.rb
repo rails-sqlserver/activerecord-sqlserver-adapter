@@ -249,7 +249,6 @@ module Arel
 
       def rowtable_projections(o, a)
         core = o.cores.first
-        puts "windowed_single_distinct_select_statement?(o)#{windowed_single_distinct_select_statement?(o)} core.groups.blank?:#{core.groups.blank?}"
         if windowed_single_distinct_select_statement?(o) && core.groups.blank?
           tn = table_from_select_statement(o).name
           core.projections.map do |x|
