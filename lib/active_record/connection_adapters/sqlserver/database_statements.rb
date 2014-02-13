@@ -40,7 +40,7 @@ module ActiveRecord
         end
 
         def outside_transaction?
-          select_value('SELECT @@TRANCOUNT', 'SCHEMA') == 0
+          uncached { select_value('SELECT @@TRANCOUNT', 'SCHEMA') == 0 }
         end
         
         def supports_statement_cache?
