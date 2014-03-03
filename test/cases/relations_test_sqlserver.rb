@@ -3,7 +3,7 @@ require 'models/post'
 
 
 class RelationTest < ActiveRecord::TestCase
-  COERCED_TESTS = [:test_merging_reorders_bind_params] 
+  COERCED_TESTS = [:test_merging_reorders_bind_params]
   # Until that patch is made to rails we are preventing this test from running in this gem.
   include SqlserverCoercedTest
   fixtures :posts

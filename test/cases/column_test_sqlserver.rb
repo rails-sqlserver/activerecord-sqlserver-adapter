@@ -11,23 +11,23 @@ require 'models_sqlserver/topic'
 require "cases/migration/helper"
 
 class ColumnTestSqlserver < ActiveRecord::TestCase
-  
+
   setup do
     @connection = ActiveRecord::Base.connection
     @column_klass = ActiveRecord::ConnectionAdapters::SQLServerColumn
   end
-  
+
   should 'return real_number as float' do
     assert_equal :float, TableWithRealColumn.columns_hash["real_number"].type
   end
-  
+
   should 'know its #table_name and #table_klass' do
     Topic.columns.each do |column|
       assert_equal 'topics', column.table_name, "This column #{column.inspect} did not know it's #table_name"
       assert_equal Topic, column.table_klass, "This column #{column.inspect} did not know it's #table_klass"
     end
   end
-  
+
   should 'return correct null, limit, and default for Topic' do
     tch = Topic.columns_hash
     assert_equal false, tch['id'].null
@@ -36,33 +36,33 @@ class ColumnTestSqlserver < ActiveRecord::TestCase
     assert_equal true,  tch['approved'].default
     assert_equal 0,     tch['replies_count'].default
   end
-  
+
   context 'For binary columns' do
 
     setup do
       @binary_string = "GIF89a\001\000\001\000\200\000\000\377\377\377\000\000\000!\371\004\000\000\000\000\000,\000\000\000\000\001\000\001\000\000\002\002D\001\000;"
-      @saved_bdata = Binary.create!(:data => @binary_string)
+      @saved_bdata = Binary.create!(data: @binary_string)
     end
-    
+
     should 'read and write binary data equally' do
       assert_equal @binary_string, Binary.find(@saved_bdata).data
     end
-    
+
     should 'have correct attributes' do
       column = Binary.columns_hash['data']
       assert_equal :binary, column.type
       assert_equal @connection.native_binary_database_type, column.sql_type
       assert_equal nil, column.limit
     end
-    
+
     should 'quote data for sqlserver with literal 0x prefix' do
       # See the output of the stored procedure: 'exec sp_datatype_info'
       sqlserver_encoded_bdata = "0x47494638396101000100800000ffffff00000021f90400000000002c00000000010001000002024401003b"
-      assert_equal sqlserver_encoded_bdata, @column_klass.string_to_binary(@binary_string) 
+      assert_equal sqlserver_encoded_bdata, @column_klass.string_to_binary(@binary_string)
     end
 
   end
-  
+
   context 'For string columns' do
 
     setup do
@@ -78,14 +78,14 @@ class ColumnTestSqlserver < ActiveRecord::TestCase
       assert_equal :text, @varcharmax.type, @varcharmax.inspect
       assert_equal :text, @varcharmax10.type, @varcharmax10.inspect
     end
-    
+
     should 'have correct #sql_type per schema definition' do
       assert_equal 'char(1)',     @char.sql_type,       'Specifing a char type with no limit is 1 by SQL Server standards.'
       assert_equal 'char(10)',    @char10.sql_type,      @char10.inspect
       assert_equal 'varchar(max)', @varcharmax.sql_type,   'A -1 limit should be converted to max (max) type.'
       assert_equal 'varchar(max)', @varcharmax10.sql_type, 'A -1 limit should be converted to max (max) type.'
     end
-    
+
     should 'have correct #limit per schema definition' do
       assert_equal 1,   @char.limit
       assert_equal 10,  @char10.limit
@@ -94,9 +94,9 @@ class ColumnTestSqlserver < ActiveRecord::TestCase
     end
 
   end
-  
+
   context 'For all national/unicode columns' do
-    
+
     setup do
       @nchar         = SqlServerUnicode.columns_hash['nchar']
       @nvarchar      = SqlServerUnicode.columns_hash['nvarchar']
@@ -107,13 +107,13 @@ class ColumnTestSqlserver < ActiveRecord::TestCase
       @nvarcharmax   = SqlServerUnicode.columns_hash['nvarchar_max']
       @nvarcharmax10 = SqlServerUnicode.columns_hash['nvarchar_max_10']
     end
-    
+
     should 'all respond true to #is_utf8?' do
       SqlServerUnicode.columns_hash.except('id').values.each do |column|
         assert column.is_utf8?, "This column #{column.inspect} should have been a unicode column."
       end
     end
-    
+
     should 'have correct simplified types' do
       assert_equal :string, @nchar.type
       assert_equal :string, @nvarchar.type
@@ -124,7 +124,7 @@ class ColumnTestSqlserver < ActiveRecord::TestCase
       assert_equal :text, @nvarcharmax.type, @nvarcharmax.inspect
       assert_equal :text, @nvarcharmax10.type, @nvarcharmax10.inspect
     end
-    
+
     should 'have correct #sql_type per schema definition' do
       assert_equal 'nchar(1)',      @nchar.sql_type,       'Specifing a nchar type with no limit is 1 by SQL Server standards.'
       assert_equal 'nvarchar(255)', @nvarchar.sql_type,    'Default nvarchar limit is 255.'
@@ -135,7 +135,7 @@ class ColumnTestSqlserver < ActiveRecord::TestCase
       assert_equal 'nvarchar(max)', @nvarcharmax.sql_type,   'A -1 limit should be converted to max (max) type.'
       assert_equal 'nvarchar(max)', @nvarcharmax10.sql_type, 'A -1 limit should be converted to max (max) type.'
     end
-    
+
     should 'have correct #limit per schema definition' do
       assert_equal 1,   @nchar.limit
       assert_equal 255, @nvarchar.limit
@@ -145,9 +145,9 @@ class ColumnTestSqlserver < ActiveRecord::TestCase
       assert_equal nil, @nvarcharmax.limit,   'Limits on max types are moot and we should let rails know that.'
       assert_equal nil, @nvarcharmax10.limit, 'Limits on max types are moot and we should let rails know that.'
     end
-    
+
   end
-  
+
   context 'For datetime columns' do
 
     setup do
@@ -162,7 +162,7 @@ class ColumnTestSqlserver < ActiveRecord::TestCase
     should 'have correct simplified type for uncast datetime' do
       assert_equal :datetime, @datetime.type
     end
-    
+
     should 'use correct #sql_type for different sql server versions' do
       assert_equal 'datetime', @datetime.sql_type
       if sqlserver_2005?
@@ -173,115 +173,115 @@ class ColumnTestSqlserver < ActiveRecord::TestCase
         assert_equal 'time', @time.sql_type
       end
     end
-    
+
     should 'all be have nil #limit' do
       assert_equal nil, @date.limit
       assert_equal nil, @time.limit
       assert_equal nil, @datetime.limit
     end
-    
+
     context 'with timestamps' do
 
       should 'use datetime sql type when using :timestamp in schema statements' do
         assert_equal :datetime, @timestamp.type
         assert_equal 'datetime', @timestamp.sql_type
       end
-      
+
       should 'be able to use real sql server timestamp if you really want to' do
         assert_equal :binary, @ss_timestamp.type
         assert_equal 'timestamp', @ss_timestamp.sql_type
       end unless sqlserver_azure?
-      
+
       should 'return :timestamp as a binaryish string' do
         chronic = SqlServerChronic.create!.reload
         assert_match %r|\000|, chronic.ss_timestamp
       end unless sqlserver_azure?
 
     end
-    
+
     context 'For smalldatetime types' do
-      
+
       should 'have created that type using rails migrations' do
         assert_equal 'smalldatetime', @smalldatetime.sql_type
       end
-      
+
       should 'be able to insert column without truncation warnings or the like' do
-        SqlServerChronic.create! :smalldatetime => Time.now
+        SqlServerChronic.create! smalldatetime: Time.now
       end
-      
+
       should 'be able to update column without truncation warnings or the like' do
-        ssc = SqlServerChronic.create! :smalldatetime => 2.days.ago
-        ssc.update_attributes! :smalldatetime => Time.now
+        ssc = SqlServerChronic.create! smalldatetime: 2.days.ago
+        ssc.update_attributes! smalldatetime: Time.now
       end
 
     end
-    
+
     context 'which have coerced types' do
-      
+
       setup do
         christmas_08 = "2008-12-25".to_time
         christmas_08_afternoon = "2008-12-25 12:00".to_time
-        @chronic_date = SqlServerChronic.create!(:date => christmas_08).reload
-        @chronic_time = SqlServerChronic.create!(:time => christmas_08_afternoon).reload
+        @chronic_date = SqlServerChronic.create!(date: christmas_08).reload
+        @chronic_time = SqlServerChronic.create!(time: christmas_08_afternoon).reload
       end
-      
+
       should 'have an inheritable attribute ' do
         assert SqlServerChronic.coerced_sqlserver_date_columns.include?('date') unless sqlserver_2008?
       end
-      
+
       should 'have column and objects cast to date' do
         assert_equal :date, @date.type, "This column: \n#{@date.inspect}"
         assert_instance_of Date, @chronic_date.date
       end
-      
+
       should 'have column objects cast to time' do
         assert_equal :time, @time.type, "This column: \n#{@time.inspect}"
         assert_instance_of Time, @chronic_time.time
       end
-      
+
     end
 
   end
-  
+
   context 'For decimal and numeric columns' do
-    
+
     setup do
       @bank_balance = NumericData.columns_hash['bank_balance']
       @big_bank_balance = NumericData.columns_hash['big_bank_balance']
       @world_population = NumericData.columns_hash['world_population']
       @my_house_population = NumericData.columns_hash['my_house_population']
     end
-    
+
     should 'have correct simplified types' do
       assert_equal :decimal, @bank_balance.type
       assert_equal :decimal, @big_bank_balance.type
       assert_equal :integer, @world_population.type, 'Since #extract_scale == 0'
       assert_equal :integer, @my_house_population.type, 'Since #extract_scale == 0'
     end
-    
+
     should 'have correct #sql_type' do
       assert_equal 'decimal(10,2)', @bank_balance.sql_type
       assert_equal 'decimal(15,2)', @big_bank_balance.sql_type
       assert_equal 'decimal(10,0)', @world_population.sql_type
       assert_equal 'decimal(2,0)',  @my_house_population.sql_type
     end
-    
+
     should 'have correct #limit' do
       assert_equal nil, @bank_balance.limit
       assert_equal nil, @big_bank_balance.limit
       assert_equal nil, @world_population.limit
       assert_equal nil, @my_house_population.limit
     end
-    
+
     should 'return correct precisions and scales' do
       assert_equal [10,2], [@bank_balance.precision, @bank_balance.scale]
       assert_equal [15,2], [@big_bank_balance.precision, @big_bank_balance.scale]
       assert_equal [10,0], [@world_population.precision, @world_population.scale]
       assert_equal [2,0],  [@my_house_population.precision, @my_house_population.scale]
     end
-    
+
   end
-  
+
   context 'For float columns' do
     # NOTE: float limits are adjusted to 24 or 53 by the database as per
     # http://msdn.microsoft.com/en-us/library/ms173773.aspx
@@ -328,7 +328,7 @@ class ColumnTestSqlserver < ActiveRecord::TestCase
     end
 
   end
-  
+
   context 'For tinyint columns' do
 
     setup do
@@ -341,7 +341,7 @@ class ColumnTestSqlserver < ActiveRecord::TestCase
       assert_equal 'tinyint(1)', @tinyint.sql_type
     end
 
-  end  
+  end
 end
 
 module ActiveRecord
@@ -349,7 +349,7 @@ module ActiveRecord
     class ColumnsTest < ActiveRecord::TestCase
       include ActiveRecord::Migration::TestHelper
 
-      COERCED_TESTS = [:test_remove_column_with_multi_column_index] 
+      COERCED_TESTS = [:test_remove_column_with_multi_column_index]
         # The if current_adapter? conditional below should also contain :SQLServerAdapter.
         # Until that patch is made to rails we are preventing this test from running in this gem.
 
@@ -358,8 +358,8 @@ module ActiveRecord
       #the only thing we changed in this method was to add :SQLServerAdapter
       def test_coerced_remove_column_with_multi_column_index
         add_column "test_models", :hat_size, :integer
-        add_column "test_models", :hat_style, :string, :limit => 100
-        add_index "test_models", ["hat_style", "hat_size"], :unique => true
+        add_column "test_models", :hat_style, :string, limit: 100
+        add_index "test_models", ["hat_style", "hat_size"], unique: true
 
         assert_equal 1, connection.indexes('test_models').size
         remove_column("test_models", "hat_size")

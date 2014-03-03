@@ -11,37 +11,37 @@ require 'models/categorization'
 require 'models_sqlserver/sql_server_order_row_number'
 
 class OffsetAndLimitTestSqlserver < ActiveRecord::TestCase
-  
+
   fixtures :jobs, :people, :references, :subscriptions,
            :authors, :posts, :comments, :categorizations
-  
+
   setup     :create_10_books
   teardown  :destroy_all_books
-  
-  
+
+
   context 'When selecting with limit' do
-  
+
     should 'alter sql to limit number of records returned' do
       assert_sql(/SELECT TOP \(10\)/) { Book.limit(10).load }
     end
-  
+
   end
-  
+
   context 'When selecting with offset' do
 
     should 'have limit (top) of 9223372036854775807 if only offset is passed' do
       assert_sql(/SELECT TOP \(9223372036854775807\) \[__rnt\]\.\* FROM.*WHERE \[__rnt\]\.\[__rn\] > \(1\)/) { Book.offset(1).load }
     end
-    
+
     should 'support calling exists?' do
       assert Book.offset(3).exists?
     end
-    
+
   end
-  
+
   context 'When selecting with limit and offset' do
-    
-    should 'work with fully qualified table and columns in select' do 
+
+    should 'work with fully qualified table and columns in select' do
       books = Book.select('books.id, books.name').limit(3).offset(5)
       assert_equal Book.all[5,3].map(&:id), books.map(&:id)
     end
@@ -50,14 +50,14 @@ class OffsetAndLimitTestSqlserver < ActiveRecord::TestCase
       sql = %|EXEC sp_executesql N'SELECT TOP (3) [__rnt].* FROM ( SELECT ROW_NUMBER() OVER (ORDER BY [books].[id] ASC) AS [__rn], [books].* FROM [books] ) AS [__rnt] WHERE [__rnt].[__rn] > (5) ORDER BY [__rnt].[__rn] ASC'|
       assert_sql(sql) { Book.limit(3).offset(5).load }
     end
-    
+
     should 'add locks to deepest sub select' do
       pattern = /FROM \[books\]\s+WITH \(NOLOCK\)/
       assert_sql(pattern) { Book.limit(3).lock('WITH (NOLOCK)').offset(5).count }
       assert_sql(pattern) { Book.limit(3).lock('WITH (NOLOCK)').offset(5).load }
 
     end
-    
+
     should 'have valid sort order' do
       order_row_numbers = SqlServerOrderRowNumber.offset(7).order("c DESC").select("c, ROW_NUMBER() OVER (ORDER BY c ASC) AS [dummy]").map(&:c)
       assert_equal [2, 1, 0], order_row_numbers
@@ -87,8 +87,8 @@ class OffsetAndLimitTestSqlserver < ActiveRecord::TestCase
       create_10_books
       assert_queries(1) { Book.includes(:subscriptions).limit(10).offset(10).references(:subscriptions).load }
     end
-    
-    
+
+
     context 'with count' do
 
       should 'pass a gauntlet of window tests' do
@@ -108,20 +108,20 @@ class OffsetAndLimitTestSqlserver < ActiveRecord::TestCase
       end
 
     end
-    
+
   end
-  
-  
+
+
   protected
-  
+
   def create_10_books
     Book.delete_all
     @books = (1..10).map {|i| Book.create!}
   end
-  
+
   def destroy_all_books
     @books.each { |b| b.destroy }
   end
-  
+
 end
 

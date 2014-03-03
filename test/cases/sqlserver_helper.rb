@@ -42,7 +42,7 @@ module SqlserverCoercedTest
   def self.included(base)
     base.extend ClassMethods
   end
-  
+
   module ClassMethods
 
     def self.extended(base)
@@ -52,11 +52,11 @@ module SqlserverCoercedTest
         end
       end
     end
-    
+
     def coerced_tests
       self.const_get(:COERCED_TESTS) rescue nil
     end
-    
+
     def method_added(method)
       if coerced_tests && coerced_tests.include?(method)
         undefine_and_puts(method)
@@ -67,7 +67,7 @@ module SqlserverCoercedTest
       result = undef_method(method) rescue nil
       STDOUT.puts("Info: Undefined coerced test: #{self.name}##{method}") unless result.blank?
     end
-  
+
   end
 end
 

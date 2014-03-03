@@ -2,23 +2,23 @@ require 'cases/sqlserver_helper'
 require 'stringio'
 
 class SchemaDumperTestSqlserver < ActiveRecord::TestCase
-  
+
   setup :find_all_tables
-  
+
   context 'For primary keys' do
 
     should 'honor nonstandards' do
       table_dump('movies') do |output|
         match = output.match(%r{create_table "movies"(.*)do})
-        assert_not_nil(match, "nonstandardpk table not found")     
+        assert_not_nil(match, "nonstandardpk table not found")
         assert_match %r(primary_key: "movieid"), match[1], "non-standard primary key not preserved"
       end
     end
-    
+
   end
-  
+
   context 'For integers' do
-    
+
     should 'include limit constraint that match logic for smallint and bigint in #extract_limit' do
       table_dump('integer_limits') do |output|
         assert_match %r{c_int_1.*limit: 2}, output
@@ -33,9 +33,9 @@ class SchemaDumperTestSqlserver < ActiveRecord::TestCase
         assert_match %r{c_int_8.*limit: 8}, output
       end
     end
-    
+
   end
-  
+
   context 'For strings' do
 
     should 'have varchar(max) dumped as text' do
@@ -45,21 +45,21 @@ class SchemaDumperTestSqlserver < ActiveRecord::TestCase
     end
 
   end
-  
-  
+
+
   private
-  
+
   def find_all_tables
     @all_tables ||= ActiveRecord::Base.connection.tables
   end
-  
+
   def standard_dump(ignore_tables = [])
     stream = StringIO.new
     ActiveRecord::SchemaDumper.ignore_tables = [*ignore_tables]
     ActiveRecord::SchemaDumper.dump(ActiveRecord::Base.connection, stream)
     stream.string
   end
-  
+
   def table_dump(*table_names)
     stream = StringIO.new
     ActiveRecord::SchemaDumper.ignore_tables = @all_tables-table_names
@@ -67,30 +67,30 @@ class SchemaDumperTestSqlserver < ActiveRecord::TestCase
     yield stream.string
     stream.string
   end
-  
+
 end
 
 
 class SchemaDumperTest < ActiveRecord::TestCase
-  
+
   COERCED_TESTS = [:test_schema_dump_keeps_large_precision_integer_columns_as_decimal]
-  
+
   include SqlserverCoercedTest
-  
+
   def test_coerced_schema_dump_keeps_large_precision_integer_columns_as_decimal
     output = standard_dump
     assert_match %r{t.decimal\s+"atoms_in_universe",\s+precision: 38,\s+scale: 0}, output
   end
-  
+
   private
-  
+
   def standard_dump
     stream = StringIO.new
     ActiveRecord::SchemaDumper.ignore_tables = []
     ActiveRecord::SchemaDumper.dump(ActiveRecord::Base.connection, stream)
     stream.string
   end
-  
+
 end
 
 

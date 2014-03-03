@@ -3,25 +3,25 @@ require 'models/person'
 require 'models_sqlserver/person'
 
 class MigrationTestSqlserver < ActiveRecord::TestCase
-  
+
   setup do
     @connection = ActiveRecord::Base.connection
   end
-  
+
   context 'For transactions' do
-    
+
     setup do
       @trans_test_table1 = 'sqlserver_trans_table1'
       @trans_test_table2 = 'sqlserver_trans_table2'
       @trans_tables = [@trans_test_table1,@trans_test_table2]
     end
-    
+
     teardown do
       @trans_tables.each do |table_name|
         ActiveRecord::Migration.drop_table(table_name) if @connection.tables.include?(table_name)
       end
     end
-    
+
     should 'not create a tables if error in migrations' do
       begin
         ActiveRecord::Migrator.up(SQLSERVER_MIGRATIONS_ROOT+'/transaction_table')
@@ -31,11 +31,11 @@ class MigrationTestSqlserver < ActiveRecord::TestCase
       @connection.tables.wont_include @trans_test_table1
       @connection.tables.wont_include @trans_test_table2
     end
-    
+
   end
-  
+
   context 'For changing column' do
-    
+
     should 'not raise exception when column contains default constraint' do
       lock_version_column = Person.columns_hash['lock_version']
       assert_equal :integer, lock_version_column.type
@@ -46,33 +46,33 @@ class MigrationTestSqlserver < ActiveRecord::TestCase
       assert_equal :string, lock_version_column.type
       assert lock_version_column.default.nil?
     end
-    
+
     should 'not drop the default contraint if just renaming' do
-      find_default = lambda do 
-        @connection.execute_procedure(:sp_helpconstraint, 'defaults', 'nomsg').select do |row|     
+      find_default = lambda do
+        @connection.execute_procedure(:sp_helpconstraint, 'defaults', 'nomsg').select do |row|
           row['constraint_type'] == "DEFAULT on column decimal_number"
         end.last
       end
       default_before = find_default.call
-      @connection.change_column :defaults, :decimal_number, :decimal, :precision => 4
+      @connection.change_column :defaults, :decimal_number, :decimal, precision: 4
       default_after = find_default.call
       assert default_after
       assert_equal default_before['constraint_keys'], default_after['constraint_keys']
     end
-    
+
   end
-  
+
 end
 
 if ActiveRecord::TestCase.sqlserver_azure?
   class MigrationTest < ActiveRecord::TestCase
     COERCED_TESTS = [:test_migrator_db_has_no_schema_migrations_table]
     include SqlserverCoercedTest
-    
+
     # TODO: put a real test here
     def test_coerced_test_migrator_db_has_no_schema_migrations_table
       assert true
-    end  
-    
+    end
+
   end
 end

@@ -2,7 +2,6 @@ module ActiveRecord
   module ConnectionAdapters
     module Sqlserver
       module DatabaseLimits
-        
         def table_alias_length
           128
         end
@@ -32,17 +31,16 @@ module ActiveRecord
         end
 
         def in_clause_length
-          65536
+          65_536
         end
 
         def sql_query_length
-          65536 * 4096
+          65_536 * 4_096
         end
 
         def joins_per_query
           256
         end
-        
       end
     end
   end

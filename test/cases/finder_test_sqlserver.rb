@@ -16,7 +16,7 @@ class FinderTest < ActiveRecord::TestCase
     :test_string_sanitation,
     :test_take_and_first_and_last_with_integer_should_use_sql_limit,
     :test_find_with_order_on_included_associations_with_construct_finder_sql_for_association_limiting_and_is_distinct
- 
+
   ]
 
   include SqlserverCoercedTest
@@ -24,17 +24,17 @@ class FinderTest < ActiveRecord::TestCase
 
   # TODO This test passes in rails 4.0.0 but not 4.0.1-2
   def test_coerced_find_with_order_on_included_associations_with_construct_finder_sql_for_association_limiting_and_is_distinct
-   p =  Post.all.merge!(:includes => { :authors => :author_address }, 
-      :order => 'author_addresses.id DESC ', 
-      :limit => 2)    
+   p =  Post.all.merge!(includes: { authors: :author_address },
+      order: 'author_addresses.id DESC ',
+      limit: 2)
    # ar_version = Gem.loaded_specs['activerecord'].version.version
    # arel_to_png(p, "#{ar_version}")
     count = p.to_a.size
     #puts "*****#{ActiveRecord::SQLCounter.log_all.join("\n\n")}"
     assert_equal 2, count
- 
-     assert_equal 3, Post.all.merge!(:includes => { :author => :author_address, :authors => :author_address},
-                              :order => 'author_addresses_authors.id DESC ', :limit => 3).to_a.size
+
+     assert_equal 3, Post.all.merge!(includes: { author: :author_address, authors: :author_address},
+                              order: 'author_addresses_authors.id DESC ', limit: 3).to_a.size
   end
 
 

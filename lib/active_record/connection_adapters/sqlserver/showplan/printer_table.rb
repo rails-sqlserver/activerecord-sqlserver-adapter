@@ -3,17 +3,16 @@ module ActiveRecord
     module Sqlserver
       module Showplan
         class PrinterTable
-          
           cattr_accessor :max_column_width, :cell_padding
           self.max_column_width = 50
           self.cell_padding = 1
-          
+
           attr_reader :result
-          
+
           def initialize(result)
             @result = result
           end
-          
+
           def pp
             @widths = compute_column_widths
             @separator = build_separator
@@ -27,7 +26,7 @@ module ActiveRecord
             pp << @separator
             pp.join("\n") + "\n"
           end
-          
+
           private
 
           def compute_column_widths
@@ -40,11 +39,11 @@ module ActiveRecord
               end
             end
           end
-          
+
           def build_separator
-            '+' + @widths.map {|w| '-' * (w + (cell_padding*2))}.join('+') + '+'
+            '+' + @widths.map { |w| '-' * (w + (cell_padding * 2)) }.join('+') + '+'
           end
-          
+
           def build_cells(items)
             cells = []
             items.each_with_index do |item, i|
@@ -52,7 +51,7 @@ module ActiveRecord
             end
             "| #{cells.join(' | ')} |"
           end
-          
+
           def cast_item(item)
             case item
             when NilClass then 'NULL'
@@ -60,9 +59,7 @@ module ActiveRecord
             else item.to_s.truncate(max_column_width)
             end
           end
-          
         end
-
       end
     end
   end

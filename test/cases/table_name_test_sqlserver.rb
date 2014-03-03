@@ -6,22 +6,22 @@ class SqlServerRailsOrders < ActiveRecord::Base
 end
 
 class TableNameTestSqlserver < ActiveRecord::TestCase
-  
+
   self.use_transactional_fixtures = false
-  
+
   setup do
     Order.table_name = '[orders]'
     Order.reset_column_information
   end
-  
+
   should 'load columns with escaped table name for model' do
     assert_equal 4, Order.columns.length
   end
-  
+
   should 'not re-escape table name if it is escaped already for SQL queries' do
     assert_sql(/SELECT \[orders\]\.\* FROM \[orders\]/) { Order.all.load }
   end
-  
+
   context 'Table scoped to user.table_name' do
 
     setup do
@@ -33,6 +33,6 @@ class TableNameTestSqlserver < ActiveRecord::TestCase
     end
 
   end
-  
-  
+
+
 end

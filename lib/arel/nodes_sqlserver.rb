@@ -4,11 +4,11 @@ module Arel
     # collection of them. See SelectManager#order for more details.
     class Ordering < Arel::Nodes::Unary
       def eql?(other)
-        #Arel::Nodes::Ascending or Arel::Nodes::Desecnding
+        # Arel::Nodes::Ascending or Arel::Nodes::Desecnding
         other.is_a?(Arel::Nodes::Ordering) &&
-        self.expr == other.expr
+        expr == other.expr
       end
-      alias :== :eql?
+      alias_method :==, :eql?
     end
   end
 end

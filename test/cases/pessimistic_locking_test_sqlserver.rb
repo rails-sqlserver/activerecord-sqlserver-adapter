@@ -4,14 +4,14 @@ require 'models/reader'
 require 'models_sqlserver/person'
 
 class PessimisticLockingTestSqlserver < ActiveRecord::TestCase
-  
+
   self.use_transactional_fixtures = false
   fixtures :people, :readers
-  
+
   setup do
     Person.columns; Reader.columns # Avoid introspection queries during tests.
   end
-  
+
   context 'For simple finds with default lock option' do
 
     should 'lock with simple find' do
@@ -50,7 +50,7 @@ class PessimisticLockingTestSqlserver < ActiveRecord::TestCase
         end
       end
     end
-    
+
     should 'simply add lock to find all' do
       assert_sql %r|SELECT \[people\]\.\* FROM \[people\] WITH \(NOLOCK\)| do
         Person.lock('WITH (NOLOCK)').load
@@ -58,13 +58,13 @@ class PessimisticLockingTestSqlserver < ActiveRecord::TestCase
     end
 
   end
-  
+
   context 'For paginated finds' do
-    
+
     setup do
-      20.times { |n| Person.create!(:first_name => "Thing_#{n}") }
+      20.times { |n| Person.create!(first_name: "Thing_#{n}") }
     end
-    
+
     should 'cope with eager loading un-locked paginated' do
       eager_ids_sql = /SELECT TOP \(5\).*FROM \[people\] WITH \(NOLOCK\)/
       loader_sql = /FROM \[people\] WITH \(NOLOCK\).*WHERE \[people\]\.\[id\] IN/
@@ -72,8 +72,8 @@ class PessimisticLockingTestSqlserver < ActiveRecord::TestCase
         Person.lock('WITH (NOLOCK)').limit(5).offset(10).includes(:readers).references(:readers).load
       end
     end
-    
+
   end
-  
-  
+
+
 end

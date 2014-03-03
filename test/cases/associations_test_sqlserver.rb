@@ -2,7 +2,7 @@ require 'cases/sqlserver_helper'
 require 'models/owner'
 
 class HasManyThroughAssociationsTest <  ActiveRecord::TestCase
-  COERCED_TESTS = [:test_has_many_through_obeys_order_on_through_association] 
+  COERCED_TESTS = [:test_has_many_through_obeys_order_on_through_association]
   # Rails does not do a case-insensive comparison
   # Until that patch is made to rails we are preventing this test from running in this gem.
 

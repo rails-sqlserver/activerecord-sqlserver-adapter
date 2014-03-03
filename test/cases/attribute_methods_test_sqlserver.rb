@@ -26,13 +26,13 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   end
 
   def test_coerced_typecast_attribute_from_select_to_false
-    topic = Topic.create(:title => 'Budget')
+    topic = Topic.create(title: 'Budget')
     topic = Topic.all.merge!(select: "topics.*, CASE WHEN 1=2 THEN 1 ELSE 0 END as is_test").first
     assert !topic.is_test?
   end
 
   def test_coerced_typecast_attribute_from_select_to_true
-    topic = Topic.create(:title => 'Budget')
+    topic = Topic.create(title: 'Budget')
     topic = Topic.all.merge!(select: "topics.*, CASE WHEN 2=2 THEN 1 ELSE 0 END as is_test").first
     assert topic.is_test?
   end

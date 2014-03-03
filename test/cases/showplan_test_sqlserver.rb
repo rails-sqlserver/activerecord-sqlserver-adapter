@@ -20,7 +20,7 @@ class ShowplanTestSqlserver < ActiveRecord::TestCase
     end
 
     should 'from prepared statement ...' do
-      plan = Car.where(:name => ',').limit(1).explain
+      plan = Car.where(name: ',').limit(1).explain
       assert plan.include?("SELECT TOP (1) [cars].* FROM [cars] WHERE [cars].[name] = N','")
       assert plan.include?("TOP EXPRESSION"), 'make sure we do not showplan the sp_executesql'
       assert plan.include?("Clustered Index Scan"), 'make sure we do not showplan the sp_executesql'
@@ -32,7 +32,7 @@ class ShowplanTestSqlserver < ActiveRecord::TestCase
 
     should 'use simple table printer' do
       with_showplan_option('SHOWPLAN_TEXT') do
-        plan = Car.where(:id => 1).explain
+        plan = Car.where(id: 1).explain
         assert plan.starts_with?("EXPLAIN for: SELECT [cars].* FROM [cars] WHERE [cars].[id] = 1")
         assert plan.include?("Clustered Index Seek"), 'make sure we do not showplan the sp_executesql'
       end
@@ -44,7 +44,7 @@ class ShowplanTestSqlserver < ActiveRecord::TestCase
 
     should 'show formatted xml' do
       with_showplan_option('SHOWPLAN_XML') do
-        plan = Car.where(:id => 1).explain
+        plan = Car.where(id: 1).explain
         assert plan.include?('ShowPlanXML')
       end
     end

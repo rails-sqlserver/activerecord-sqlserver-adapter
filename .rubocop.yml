@@ -1,0 +1,20 @@
+AllCops:
+  Exclude:
+    - doc/**/*
+    - test/**/*
+LineLength:
+  Max: 200
+Documentation:
+  Enabled: false
+MethodLength:
+  Enabled: false
+
+# TODO: enable after the more important stuff is fixed
+LineLength:
+  Enabled: false
+CyclomaticComplexity:
+  Enabled: false
+SignalException:
+  Enabled: false
+MethodName:
+  Enabled: false

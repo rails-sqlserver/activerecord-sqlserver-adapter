@@ -4,7 +4,7 @@ require 'active_record/test_case.rb'
 # This is a temporary hack until we can just get the sqlserver_ignored regex in rails
 ActiveSupport::Notifications.notifier.listeners_for('sql.active_record').each do |listener|
    if listener.inspect =~ /ActiveRecord::SQLCounter/
-    ActiveSupport::Notifications.unsubscribe(listener) 
+    ActiveSupport::Notifications.unsubscribe(listener)
   end
 end
 

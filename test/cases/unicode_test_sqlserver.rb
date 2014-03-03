@@ -2,27 +2,27 @@
 require 'cases/sqlserver_helper'
 
 class UnicodeTestSqlserver < ActiveRecord::TestCase
-  
-  
+
+
   context 'Testing basic saves and unicode limits' do
 
     should 'save and reload simple nchar string' do
-      assert nchar_data = SqlServerUnicode.create!(:nchar => 'A')
+      assert nchar_data = SqlServerUnicode.create!(nchar: 'A')
       assert_equal 'A', SqlServerUnicode.find(nchar_data.id).nchar
     end
-    
+
     should 'save and reload simple nvarchar(max) string' do
       test_string = 'Ken Collins'
-      assert nvarcharmax_data = SqlServerUnicode.create!(:nvarchar_max => test_string)
+      assert nvarcharmax_data = SqlServerUnicode.create!(nvarchar_max: test_string)
       assert_equal test_string, SqlServerUnicode.find(nvarcharmax_data.id).nvarchar_max
     end
 
     should 'not work with ANSI_WARNINGS for string truncation' do
-      SqlServerUnicode.create!(:nchar_10 => '01234567891')
+      SqlServerUnicode.create!(nchar_10: '01234567891')
     end
 
   end
-  
+
   context 'Testing unicode data' do
 
     setup do
@@ -30,7 +30,7 @@ class UnicodeTestSqlserver < ActiveRecord::TestCase
     end
 
     should 'insert and retrieve unicode data' do
-      assert data = SqlServerUnicode.create!(:nvarchar => @unicode_data)
+      assert data = SqlServerUnicode.create!(nvarchar: @unicode_data)
       if connection_mode_dblib?
         assert_equal "一二34五六", data.reload.nvarchar
       elsif connection_mode_odbc?
@@ -42,7 +42,7 @@ class UnicodeTestSqlserver < ActiveRecord::TestCase
     end
 
   end
-  
-  
-  
+
+
+
 end

@@ -3,19 +3,18 @@ module ActiveRecord
     module Sqlserver
       module CoreExt
         module Explain
-          
-          SQLSERVER_STATEMENT_PREFIX = "EXEC sp_executesql "
+          SQLSERVER_STATEMENT_PREFIX = 'EXEC sp_executesql '
           SQLSERVER_PARAM_MATCHER = /@\d+ =/
-          
+
           def exec_explain(queries)
             unprepared_queries = queries.map { |sql, bind| [unprepare_sqlserver_statement(sql), bind] }
             super(unprepared_queries)
           end
-          
+
           private
-          
-          # This is somewhat hacky, but it should reliably reformat our prepared sql statment 
-          # which uses sp_executesql to just the first argument, then unquote it. Likewise our 
+
+          # This is somewhat hacky, but it should reliably reformat our prepared sql statment
+          # which uses sp_executesql to just the first argument, then unquote it. Likewise our
           # do_exec_query method should substitude the @n args withe the quoted values.
           def unprepare_sqlserver_statement(sql)
             if sql.starts_with?(SQLSERVER_STATEMENT_PREFIX)
@@ -29,8 +28,6 @@ module ActiveRecord
               sql
             end
           end
-
-          
         end
       end
     end

@@ -2,9 +2,9 @@
 
 Query Plan Simple
 =================
-Author: Ken Collins  
-Date: May 22, 2011  
-Summary: Benchmark simple cached query plan reuse in SQL Server.  
+Author: Ken Collins
+Date: May 22, 2011
+Summary: Benchmark simple cached query plan reuse in SQL Server.
 
 System Information
 ------------------
@@ -34,7 +34,7 @@ author 'Ken Collins'
 summary 'Benchmark simple cached query plan reuse in SQL Server.'
 reps 500
 
-@client = TinyTds::Client.new :host => 'mc2008', :username => 'rails'
+@client = TinyTds::Client.new host: 'mc2008', username: 'rails'
 
 
 measure "Simple - Dynamic SQL" do
@@ -44,4 +44,3 @@ end
 measure "Simple - Query Plan Reuse" do
   @client.execute("EXEC sp_executesql N'SELECT TOP(1) * FROM [posts] WHERE [id] = @0', N'@0 int', @0 = #{rand(1000000)}").do
 end
-

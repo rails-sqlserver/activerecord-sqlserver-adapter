@@ -190,7 +190,7 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
         @connection.execute("SET LANGUAGE deutsch")
         @connection.send :initialize_dateformatter
         assert_nothing_raised do
-          Task.create(:starting => Time.utc(2000, 1, 31, 5, 42, 0), :ending => Date.new(2006, 12, 31))
+          Task.create(starting: Time.utc(2000, 1, 31, 5, 42, 0), ending: Date.new(2006, 12, 31))
         end
       end
 
@@ -218,8 +218,8 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
 
       setup do
         UpperTestDefault.delete_all
-        UpperTestDefault.create :COLUMN1 => 'Got a minute?', :COLUMN2 => 419
-        UpperTestDefault.create :COLUMN1 => 'Favorite number?', :COLUMN2 => 69
+        UpperTestDefault.create COLUMN1: 'Got a minute?', COLUMN2: 419
+        UpperTestDefault.create COLUMN1: 'Favorite number?', COLUMN2: 69
       end
 
       teardown do
@@ -285,8 +285,8 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
       context 'saving new datetime objects' do
 
         should 'truncate 123456 usec to just 123 in the DB cast back to 123000' do
-          Time.any_instance.stubs :iso8601 => "2011-07-26T12:29:01.123-04:00"
-          saved = SqlServerChronic.create!(:datetime => @time).reload
+          Time.any_instance.stubs iso8601: "2011-07-26T12:29:01.123-04:00"
+          saved = SqlServerChronic.create!(datetime: @time).reload
           saved.reload
           assert_equal '123', saved.datetime_before_type_cast.split('.')[1] if saved.datetime_before_type_cast.is_a?(String)
           assert_equal 123000, saved.datetime.usec
@@ -325,7 +325,7 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
     end
 
     should 'find identity column using #identity_column' do
-      joke_id_column = Joke.columns.detect { |c| c.name == 'id' }
+      joke_id_column = Joke.columns.find { |c| c.name == 'id' }
       assert_equal joke_id_column.name, @connection.send(:identity_column,Joke.table_name).name
       assert_equal joke_id_column.sql_type, @connection.send(:identity_column,Joke.table_name).sql_type
     end
@@ -505,7 +505,7 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
     setup do
       @connection.disable_referential_integrity { FkTestHasPk.delete_all; FkTestHasFk.delete_all }
       @parent = FkTestHasPk.create!
-      @member = FkTestHasFk.create!(:fk_id => @parent.id)
+      @member = FkTestHasFk.create!(fk_id: @parent.id)
     end
 
     should 'NOT ALLOW by default the deletion of a referenced parent' do
@@ -654,7 +654,7 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
     end
 
     should 'have indexes with descending order' do
-      assert @connection.indexes('accounts').detect { |i| i.name == @desc_index_name }
+      assert @connection.indexes('accounts').find { |i| i.name == @desc_index_name }
     end
 
   end
@@ -673,7 +673,7 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
 
       should 'work with dynamic finders' do
         name = 'MetaSkills'
-        customer = CustomersView.create! :name => name
+        customer = CustomersView.create! name: name
         assert_equal customer, CustomersView.find_by_name(name)
       end
 
@@ -804,11 +804,11 @@ end
 module ActiveRecord
   class AdapterTest < ActiveRecord::TestCase
 
-    COERCED_TESTS = [:test_update_prepared_statement] 
+    COERCED_TESTS = [:test_update_prepared_statement]
     # Like PostgreSQL, SQL Server does not support null bytes in strings.
     # DECLARE @mybin1 binary(5), @mybin2 binary(5)
     # SET @mybin1 = 0x00
-    # SELECT 'a'+CONVERT(varchar(5), @mybin1) + 'aaaaa' 
+    # SELECT 'a'+CONVERT(varchar(5), @mybin1) + 'aaaaa'
     # This is not run for PostgreSQL at the rails level and the same should happen for SQL Server
     # Until that patch is made to rails we are preventing this test from running in this gem.
     include SqlserverCoercedTest
