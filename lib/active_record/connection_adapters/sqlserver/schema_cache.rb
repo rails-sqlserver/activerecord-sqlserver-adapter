@@ -65,14 +65,22 @@ module ActiveRecord
           return @view_information[key] if @view_information.key? key
           @view_information[key] = connection.send(:view_information, table_name)
         end
-        
-        def quote_name(name)
+
+        def quote_name(name, split_on_dots = true)
           return @quoted_names[name] if @quoted_names.key? name
-          @quoted_names[name] = name.to_s.split('.').map{ |n| n =~ /^\[.*\]$/ ? n : "[#{n.to_s.gsub(']', ']]')}]" }.join('.')
+
+          @quoted_names[name] = if split_on_dots
+                                  name.to_s.split('.').map{ |n| quote_name_part(n) }.join('.')
+                                else
+                                  quote_name_part(name.to_s)
+                                end
         end
-        
-        
+
         private
+
+        def quote_name_part(part)
+          part =~ /^\[.*\]$/ ? part : "[#{part.to_s.gsub(']', ']]')}]"
+        end
         
         def table_name_key(table_name)
           Utils.unqualify_table_name(table_name)

@@ -49,6 +49,10 @@ module ActiveRecord
           quote_column_name(name)
         end
 
+        def quote_database_name(name)
+          schema_cache.quote_name(name, false)
+        end
+
         def substitute_at(column, index)
           if column.respond_to?(:sql_type) && column.sql_type == 'timestamp'
             nil
