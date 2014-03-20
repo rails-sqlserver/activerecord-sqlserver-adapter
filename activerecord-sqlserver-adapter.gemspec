@@ -3,7 +3,7 @@ $:.push File.expand_path("../lib", __FILE__)
 
 Gem::Specification.new do |s|
   s.platform      = Gem::Platform::RUBY
-  s.name          = "activerecord-sqlserver-adapter"
+  s.name          = "sic-activerecord-sqlserver-adapter"
   s.version       = File.read(File.expand_path("../VERSION",__FILE__)).strip
   s.summary       = "ActiveRecord SQL Server Adapter. For SQL Server 2005 And Higher."
   s.description   = "ActiveRecord SQL Server Adapter. For SQL Server 2005 And Higher."
