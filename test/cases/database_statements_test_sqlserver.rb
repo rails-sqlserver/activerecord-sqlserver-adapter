@@ -19,6 +19,15 @@ class DatabaseStatementsTestSqlserver < ActiveRecord::TestCase
     database_name = @connection.select_value "SELECT name FROM master.dbo.sysdatabases WHERE name = 'activerecord_unittest3'"
     assert_equal nil, database_name
   end
+
+  should 'create/use/drop database with name with dots' do
+    @connection.create_database 'activerecord.unittest'
+    database_name = @connection.select_value "SELECT name FROM master.dbo.sysdatabases WHERE name = 'activerecord.unittest'"
+    assert_equal 'activerecord.unittest', database_name
+    @connection.use_database 'activerecord.unittest'
+    @connection.use_database 'master'
+    @connection.drop_database 'activerecord.unittest'
+  end
  
   context 'with collation' do
     teardown do
