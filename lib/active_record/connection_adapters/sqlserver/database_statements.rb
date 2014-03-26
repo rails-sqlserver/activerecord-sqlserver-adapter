@@ -2,9 +2,9 @@ module ActiveRecord
   module ConnectionAdapters
     module Sqlserver
       module DatabaseStatements
-        
-        def select_rows(sql, name = nil)
-          raw_select sql, name, [], :fetch => :rows
+
+        def select_rows(sql, name = nil, binds = [])
+          raw_select sql, name, binds, :fetch => :rows
         end
 
         def execute(sql, name = nil)
