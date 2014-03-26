@@ -74,6 +74,15 @@ class TransactionTestSqlserver < ActiveRecord::TestCase
       end
       assert_equal 0, Ship.connection.open_transactions
     end
+
+    should 'not cache trancount' do
+      Ship.cache do
+        assert Ship.connection.outside_transaction?
+        Ship.transaction do
+          assert !Ship.connection.outside_transaction?
+        end
+      end
+    end
     
   end
   
