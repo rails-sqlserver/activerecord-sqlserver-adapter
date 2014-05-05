@@ -4,7 +4,7 @@ module ActiveRecord
       module DatabaseStatements
 
         def select_rows(sql, name = nil, binds = [])
-          raw_select sql, name, binds, fetch: :rows
+          do_exec_query sql, name, binds, fetch: :rows
         end
 
         def execute(sql, name = nil)
@@ -327,7 +327,13 @@ module ActiveRecord
           end
         end
 
-        def do_exec_query(sql, name, binds)
+        def do_exec_query(sql, name, binds, options = {})
+          # This allows non-AR code to utilize the binds
+          # handling code, e.g. select_rows()
+          if options[:fetch] != :rows
+            options[:ar_result] = true
+          end
+
           explaining = name == 'EXPLAIN'
           names_and_types = []
           params = []
@@ -358,7 +364,7 @@ module ActiveRecord
             sql = "EXEC sp_executesql #{quote(sql)}"
             sql << ", #{quote(names_and_types.join(', '))}, #{params.join(', ')}" unless binds.empty?
           end
-          raw_select sql, name, binds, ar_result: true
+          raw_select sql, name, binds, options
         end
 
         def raw_connection_do(sql)
