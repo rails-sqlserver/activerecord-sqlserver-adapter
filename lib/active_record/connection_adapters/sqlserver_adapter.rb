@@ -14,8 +14,10 @@ require 'active_record/connection_adapters/sqlserver/database_limits'
 require 'active_record/connection_adapters/sqlserver/database_statements'
 require 'active_record/connection_adapters/sqlserver/errors'
 require 'active_record/connection_adapters/sqlserver/schema_cache'
+require 'active_record/connection_adapters/sqlserver/schema_creation'
 require 'active_record/connection_adapters/sqlserver/schema_statements'
 require 'active_record/connection_adapters/sqlserver/showplan'
+require 'active_record/connection_adapters/sqlserver/table_definition'
 require 'active_record/connection_adapters/sqlserver/quoting'
 require 'active_record/connection_adapters/sqlserver/utils'
 
@@ -140,7 +142,7 @@ module ActiveRecord
         when /money/i             then :decimal
         when /image/i             then :binary
         when /bit/i               then :boolean
-        when /uniqueidentifier/i  then :string
+        when /uniqueidentifier/i  then :uuid
         when /datetime/i          then simplified_datetime
         when /varchar\(max\)/     then :text
         when /timestamp/          then :binary
@@ -301,12 +303,16 @@ module ActiveRecord
       # === Abstract Adapter (Misc Support) =========================== #
 
       def pk_and_sequence_for(table_name)
-        idcol = identity_column(table_name)
-        idcol ? [idcol.name, nil] : nil
+        pk = primary_key(table_name)
+        pk ? [pk, nil] : nil
       end
 
       def primary_key(table_name)
         identity_column(table_name).try(:name) || schema_cache.columns(table_name).find(&:is_primary?).try(:name)
+      end
+
+      def schema_creation
+        Sqlserver::SchemaCreation.new self
       end
 
       # === SQLServer Specific (DB Reflection) ======================== #
@@ -525,3 +531,4 @@ module ActiveRecord
     end # class SQLServerAdapter < AbstractAdapter
   end # module ConnectionAdapters
 end # module ActiveRecord
+
