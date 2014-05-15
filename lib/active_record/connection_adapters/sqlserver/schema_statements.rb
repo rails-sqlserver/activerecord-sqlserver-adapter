@@ -366,6 +366,27 @@ module ActiveRecord
           !(sql =~ /^\s*(INSERT|EXEC sp_executesql N'INSERT)/i).nil?
         end
 
+        def strip_ident_from_update(sql)
+          # We can't update Identiy columns in sqlserver.  So, strip out the id from the update.
+          # There has to be a better way to handle this, but this'll do for now.
+          table_name = get_table_name(sql)
+          id_column = identity_column(table_name)
+
+          if id_column
+            regex_col_name = Regexp.quote(quote_column_name(id_column.name))
+            if sql =~ /, #{regex_col_name} = @?[0-9]*/
+              sql = sql.gsub(/, #{regex_col_name} = @?[0-9]*/, '')
+            elsif sql =~ /\s#{regex_col_name} = @?[0-9]*,/
+              sql = sql.gsub(/\s#{regex_col_name} = @?[0-9]*,/, '')
+            end
+          end
+          sql
+        end
+
+        def update_sql?(sql)
+          !(sql =~ /^\s*(UPDATE|EXEC sp_executesql N'UPDATE)/i).nil?
+        end
+
         def with_identity_insert_enabled(table_name)
           table_name = quote_table_name(table_name_or_views_table_name(table_name))
           set_identity_insert(table_name, true)

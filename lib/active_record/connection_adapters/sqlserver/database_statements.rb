@@ -14,20 +14,12 @@ module ActiveRecord
           end
         end
 
-        # TODO: I bet there's a better way than a regex to take care of this
         def exec_query(sql, name = 'SQL', binds = [], sqlserver_options = {})
-          # We can't update Identiy columns in sqlserver.  So, strip out the id from the update.
-          if sql =~ /UPDATE/
-            # take off a comma before or after.  This could probably be done better
-            if sql =~ /, \[id\] = @?[0-9]*/
-              sql.gsub!(/, \[id\] = @?[0-9]*/, '')
-            elsif sql =~ /\s\[id\] = @?[0-9]*,/
-              sql.gsub!(/\s\[id\] = @?[0-9]*,/, '')
-            end
-          end
-
           if id_insert_table_name = sqlserver_options[:insert] ? query_requires_identity_insert?(sql) : nil
             with_identity_insert_enabled(id_insert_table_name) { do_exec_query(sql, name, binds) }
+          elsif update_sql?(sql)
+             sql = strip_ident_from_update(sql)
+             do_exec_query(sql, name, binds)
           else
             do_exec_query(sql, name, binds)
           end
