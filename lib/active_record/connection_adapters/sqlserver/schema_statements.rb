@@ -75,11 +75,11 @@ module ActiveRecord
             indexes = indexes(table_name).select { |index| index.columns.include?(column_name.to_s) }
             remove_indexes(table_name, column_name)
           end
-          sql_commands << "UPDATE #{quote_table_name(table_name)} SET #{quote_column_name(column_name)}=#{quote(options[:default])} WHERE #{quote_column_name(column_name)} IS NULL" if !options[:null].nil? && options[:null] == false && !options[:default].nil?
+          sql_commands << "UPDATE #{quote_table_name(table_name)} SET #{quote_column_name(column_name)}=#{quote_default_value(options[:default], column_object)} WHERE #{quote_column_name(column_name)} IS NULL" if !options[:null].nil? && options[:null] == false && !options[:default].nil?
           sql_commands << "ALTER TABLE #{quote_table_name(table_name)} ALTER COLUMN #{quote_column_name(column_name)} #{type_to_sql(type, options[:limit], options[:precision], options[:scale])}"
           sql_commands[-1] << ' NOT NULL' if !options[:null].nil? && options[:null] == false
           if options_include_default?(options)
-            sql_commands << "ALTER TABLE #{quote_table_name(table_name)} ADD CONSTRAINT #{default_constraint_name(table_name, column_name)} DEFAULT #{quote(options[:default])} FOR #{quote_column_name(column_name)}"
+            sql_commands << "ALTER TABLE #{quote_table_name(table_name)} ADD CONSTRAINT #{default_constraint_name(table_name, column_name)} DEFAULT #{quote_default_value(options[:default], column_object)} FOR #{quote_column_name(column_name)}"
           end
 
           # Add any removed indexes back
@@ -91,7 +91,9 @@ module ActiveRecord
 
         def change_column_default(table_name, column_name, default)
           remove_default_constraint(table_name, column_name)
-          do_execute "ALTER TABLE #{quote_table_name(table_name)} ADD CONSTRAINT #{default_constraint_name(table_name, column_name)} DEFAULT #{quote(default)} FOR #{quote_column_name(column_name)}"
+          column_object = schema_cache.columns(table_name).find { |c| c.name.to_s == column_name.to_s }
+          do_execute "ALTER TABLE #{quote_table_name(table_name)} ADD CONSTRAINT #{default_constraint_name(table_name, column_name)} DEFAULT #{quote_default_value(default, column_object)} FOR #{quote_column_name(column_name)}"
+          schema_cache.clear_table_cache!(table_name)
         end
 
         def rename_column(table_name, column_name, new_column_name)
@@ -160,6 +162,7 @@ module ActiveRecord
             date: { name: native_date_database_type },
             binary: { name: native_binary_database_type },
             boolean: { name: 'bit' },
+            uuid: { name: 'uniqueidentifier'},
             # These are custom types that may move somewhere else for good schema_dumper.rb hacking to output them.
             char: { name: 'char' },
             varchar_max: { name: 'varchar(max)' },
@@ -380,6 +383,12 @@ module ActiveRecord
 
         def identity_column(table_name)
           schema_cache.columns(table_name).find(&:is_identity?)
+        end
+
+        private
+
+        def create_table_definition(name, temporary, options)
+          TableDefinition.new native_database_types, name, temporary, options
         end
       end
     end

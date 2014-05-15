@@ -12,6 +12,8 @@ module ActiveRecord
               value.to_i.to_s
             elsif column && column.type == :binary
               column.class.string_to_binary(value)
+            elsif column && [:uuid, :uniqueidentifier].include?(column.type)
+              "'#{quote_string(value)}'"
             elsif value.is_utf8? || (column && column.type == :string)
               "#{quoted_string_prefix}'#{quote_string(value)}'"
             else
@@ -50,6 +52,15 @@ module ActiveRecord
 
         def quote_database_name(name)
           schema_cache.quote_name(name, false)
+        end
+
+        # Does not quote function default values for UUID columns
+        def quote_default_value(value, column)
+          if column.type == :uuid && value =~ /\(\)/
+            value
+          else
+            quote(value)
+          end
         end
 
         def substitute_at(column, index)
