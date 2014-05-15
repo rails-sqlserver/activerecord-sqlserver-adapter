@@ -535,4 +535,3 @@ module ActiveRecord
     end # class SQLServerAdapter < AbstractAdapter
   end # module ConnectionAdapters
 end # module ActiveRecord
-

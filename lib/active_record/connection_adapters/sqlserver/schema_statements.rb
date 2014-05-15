@@ -48,7 +48,7 @@ module ActiveRecord
         # DISTINCT ON () like Posgres, or FIRST_VALUE() like Oracle (at least before SQL Server 2012). Because
         # of these facts, we don't actually add any extra columns for distinct, but instead have to create
         # a subquery with ROW_NUMBER() and DENSE_RANK() in our monkey-patches to Arel.
-        def columns_for_distinct(columns, orders) #:nodoc:
+        def columns_for_distinct(columns, _orders) #:nodoc:
           columns
         end
 
@@ -162,7 +162,7 @@ module ActiveRecord
             date: { name: native_date_database_type },
             binary: { name: native_binary_database_type },
             boolean: { name: 'bit' },
-            uuid: { name: 'uniqueidentifier'},
+            uuid: { name: 'uniqueidentifier' },
             # These are custom types that may move somewhere else for good schema_dumper.rb hacking to output them.
             char: { name: 'char' },
             varchar_max: { name: 'varchar(max)' },

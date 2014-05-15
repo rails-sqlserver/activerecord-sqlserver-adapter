@@ -69,7 +69,6 @@ end
 task 'test:dblib' => 'test:dblib:env'
 task 'test:odbc' => 'test:odbc:env'
 
-
 namespace :profile do
   %w(dblib odbc).each do |mode|
     namespace mode.to_sym do

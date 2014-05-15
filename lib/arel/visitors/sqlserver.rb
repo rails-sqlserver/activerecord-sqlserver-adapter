@@ -78,8 +78,8 @@ module Arel
 
         sql = [
           ('SELECT'),
-          (visit(core.set_quantifier, a) if core.set_quantifier and !o.offset),
-          (visit(o.limit, a) if o.limit and !o.offset),
+          (visit(core.set_quantifier, a) if core.set_quantifier && !o.offset),
+          (visit(o.limit, a) if o.limit && !o.offset),
           (select_frags.join(', ')),
           ('FROM ('),
             ('SELECT'),
@@ -87,11 +87,11 @@ module Arel
               [
                 (projection_list),
                 (', DENSE_RANK() OVER ('),
-                  ("ORDER BY #{orders.map { |x| visit(x, a) }.join(', ')}" if !orders.empty?),
+                  ("ORDER BY #{orders.map { |x| visit(x, a) }.join(', ')}" unless orders.empty?),
                 (') AS __order'),
                 (', ROW_NUMBER() OVER ('),
                   ("PARTITION BY #{projection_list}" if !orders.empty?),
-                  (" ORDER BY #{orders.map { |x| visit(x, a) }.join(', ')}" if !orders.empty?),
+                  (" ORDER BY #{orders.map { |x| visit(x, a) }.join(', ')}" unless orders.empty?),
                 (') AS __joined_row_num')
               ].join('')
             ),
@@ -201,7 +201,7 @@ module Arel
         # it is now stored in the set_quantifier. This moves it to the correct
         # place so the code works on both 4.0.0 and 4.0.1.
         if frag =~ /^\s*DISTINCT\s+/i
-          core.set_quantifier = Arel::Nodes::Distinct.new()
+          core.set_quantifier = Arel::Nodes::Distinct.new
           frag.gsub!(/\s*DISTINCT\s+/, '')
         end
         frag
@@ -261,12 +261,12 @@ module Arel
         sq = o.cores.first.set_quantifier
         p1 = projections.first
 
-        found_distinct = sq and sq.class.to_s =~ /Distinct/
+        found_distinct = sq && sq.class.to_s =~ /Distinct/
         if (p1.respond_to?(:distinct) && p1.distinct) || (p1.respond_to?(:include?) && p1.include?('DISTINCT'))
           found_distinct = true
         end
 
-        return false if !found_distinct or o.orders.uniq.empty?
+        return false if !found_distinct || o.orders.uniq.empty?
 
         tables_all_columns = []
         expressions = projections.map do |p|
@@ -279,9 +279,7 @@ module Arel
             # Identifier quoting
             x.gsub!(/\[|\]/, '')
             star_match = /^(\w+)\.\*$/.match(x)
-            if star_match
-              tables_all_columns << star_match[1]
-            end
+            tables_all_columns << star_match[1] if star_match
             x.strip.downcase
           end.join(', ')
         end
@@ -301,7 +299,7 @@ module Arel
 
           # If we selected all columns from a table, the order is ok
           table_match = /^(\w+)\.\w+$/.match(order)
-          next if table_match and tables_all_columns.include?(table_match[1])
+          next if table_match && tables_all_columns.include?(table_match[1])
 
           next if expressions.include?(order)
 

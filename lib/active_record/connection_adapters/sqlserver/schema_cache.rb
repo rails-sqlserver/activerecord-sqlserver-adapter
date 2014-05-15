@@ -65,12 +65,11 @@ module ActiveRecord
           @view_information[key] = connection.send(:view_information, table_name)
         end
 
-
         def quote_name(name, split_on_dots = true)
           return @quoted_names[name] if @quoted_names.key? name
 
           @quoted_names[name] = if split_on_dots
-                                  name.to_s.split('.').map{ |n| quote_name_part(n) }.join('.')
+                                  name.to_s.split('.').map { |n| quote_name_part(n) }.join('.')
                                 else
                                   quote_name_part(name.to_s)
                                 end

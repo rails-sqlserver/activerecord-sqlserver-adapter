@@ -2,7 +2,6 @@ module ActiveRecord
   module ConnectionAdapters
     module Sqlserver
       module DatabaseStatements
-
         def select_rows(sql, name = nil, binds = [])
           do_exec_query sql, name, binds, fetch: :rows
         end
