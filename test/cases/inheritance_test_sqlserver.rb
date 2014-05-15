@@ -26,7 +26,7 @@ class InheritanceTest < ActiveRecord::TestCase
 
   def test_coerced_eager_load_belongs_to_primary_key_quoting
     con = Account.connection
-    assert_sql(/\[companies\]\.\[id\] IN \(N''1''\)/) do
+    assert_sql(/\[companies\]\.\[id\] IN \(1\)/) do
       Account.includes(:firm).find(1)
     end
   end
