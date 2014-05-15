@@ -16,6 +16,12 @@ module ActiveRecord
           super || tables.include?(unquoted_table_name) || views.include?(unquoted_table_name)
         end
 
+        def create_table(table_name, options = {})
+          res = super
+          schema_cache.clear_table_cache!(table_name)
+          res
+        end
+
         def indexes(table_name, name = nil)
           data = select("EXEC sp_helpindex #{quote(table_name)}", name) rescue []
           data.reduce([]) do |indexes, index|
