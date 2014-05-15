@@ -48,4 +48,5 @@ group :development do
   gem 'ruby-prof'
   gem 'simplecov'
   gem 'ruby-graphviz'
+  gem 'pry'
 end

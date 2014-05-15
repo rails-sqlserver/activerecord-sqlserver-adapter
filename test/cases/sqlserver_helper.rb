@@ -16,6 +16,7 @@ require 'simplecov'
 SimpleCov.start do
   add_filter "/test/"
 end
+require 'pry'
 require 'graphviz'
 require 'mocha/api'
 require 'active_support/dependencies'
