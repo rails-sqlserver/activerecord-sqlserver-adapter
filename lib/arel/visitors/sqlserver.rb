@@ -7,6 +7,8 @@ module Arel
       def visit_Arel_Nodes_SelectStatement(o, a)
         if complex_count_sql?(o)
           visit_Arel_Nodes_SelectStatementForComplexCount(o, a)
+        elsif distinct_non_present_orders?(o, a)
+          visit_Arel_Nodes_SelectStatementDistinctNonPresentOrders(o, a)
         elsif o.offset
           visit_Arel_Nodes_SelectStatementWithOffset(o, a)
         else
@@ -46,6 +48,76 @@ module Arel
       end
 
       # SQLServer ToSql/Visitor (Additions)
+
+      # This constructs a query using DENSE_RANK() and ROW_NUMBER() to allow
+      # ordering a DISTINCT set of data by columns in another table that are
+      # not part of what we actually want to be DISTINCT. Without this, it is
+      # possible for the DISTINCT qualifier combined with TOP to return fewer
+      # rows than were requested.
+      def visit_Arel_Nodes_SelectStatementDistinctNonPresentOrders(o, a)
+        core = o.cores.first
+        projections = core.projections
+        groups = core.groups
+        orders = o.orders.uniq
+
+        select_frags = projections.map do |x|
+          frag = projection_to_sql_remove_distinct(x, core, a)
+          # Remove the table specifier
+          frag.gsub!(/^[^\.]*\./, '')
+          # If there is an alias, remove everything but
+          frag.gsub(/^.*\sAS\s+/i, '')
+        end
+
+        if o.offset
+          select_frags << 'ROW_NUMBER() OVER (ORDER BY __order) AS __offset'
+        else
+          select_frags << '__order'
+        end
+
+        projection_list = projections.map { |x| projection_to_sql_remove_distinct(x, core, a) }.join(', ')
+
+        sql = [
+          ('SELECT'),
+          (visit(core.set_quantifier, a) if core.set_quantifier and !o.offset),
+          (visit(o.limit, a) if o.limit and !o.offset),
+          (select_frags.join(', ')),
+          ('FROM ('),
+            ('SELECT'),
+            (
+              [
+                (projection_list),
+                (', DENSE_RANK() OVER ('),
+                  ("ORDER BY #{orders.map { |x| visit(x, a) }.join(', ')}" if !orders.empty?),
+                (') AS __order'),
+                (', ROW_NUMBER() OVER ('),
+                  ("PARTITION BY #{projection_list}" if !orders.empty?),
+                  (" ORDER BY #{orders.map { |x| visit(x, a) }.join(', ')}" if !orders.empty?),
+                (') AS __joined_row_num')
+              ].join('')
+            ),
+            (source_with_lock_for_select_statement(o, a)),
+            ("WHERE #{core.wheres.map { |x| visit(x, a) }.join ' AND ' }" unless core.wheres.empty?),
+            ("GROUP BY #{groups.map { |x| visit(x, a) }.join ', ' }" unless groups.empty?),
+            (visit(core.having, a) if core.having),
+          (') AS __sq'),
+          ('WHERE __joined_row_num = 1'),
+          ('ORDER BY __order' unless o.offset)
+        ].compact.join(' ')
+
+        if o.offset
+          sql = [
+            ('SELECT'),
+            (visit(core.set_quantifier, a) if core.set_quantifier),
+            (visit(o.limit, a) if o.limit),
+            ('*'),
+            ('FROM (' + sql + ') AS __osq'),
+            ("WHERE __offset > #{visit(o.offset.expr, a)}"),
+            ('ORDER BY __offset')
+          ].join(' ')
+        end
+
+        sql
+      end
 
       def visit_Arel_Nodes_SelectStatementWithOutOffset(o, a, windowed = false)
         find_and_fix_uncorrelated_joins_in_select_statement(o)
@@ -123,6 +195,18 @@ module Arel
 
       # SQLServer Helpers
 
+      def projection_to_sql_remove_distinct(x, core, a)
+        frag = Arel.sql(visit(x, a))
+        # In Rails 4.0.0, DISTINCT was in a projection, whereas with 4.0.1
+        # it is now stored in the set_quantifier. This moves it to the correct
+        # place so the code works on both 4.0.0 and 4.0.1.
+        if frag =~ /^\s*DISTINCT\s+/i
+          core.set_quantifier = Arel::Nodes::Distinct.new()
+          frag.gsub!(/\s*DISTINCT\s+/, '')
+        end
+        frag
+      end
+
       def source_with_lock_for_select_statement(o, a)
         core = o.cores.first
         source = "FROM #{visit(core.source, a).strip}" if core.source
@@ -164,6 +248,68 @@ module Arel
         projections.size == 1 &&
           ((p1.respond_to?(:distinct) && p1.distinct) ||
             p1.respond_to?(:include?) && p1.include?('DISTINCT'))
+      end
+
+      # Determine if the SELECT statement is asking for DISTINCT results,
+      # but is using columns not part of the SELECT list in the ORDER BY.
+      # This is necessary because SQL Server requires all ORDER BY entries
+      # be in the SELECT list with DISTINCT. However, these ordering columns
+      # can cause duplicate rows, which affect when using a limit.
+      def distinct_non_present_orders?(o, a)
+        projections = o.cores.first.projections
+
+        sq = o.cores.first.set_quantifier
+        p1 = projections.first
+
+        found_distinct = sq and sq.class.to_s =~ /Distinct/
+        if (p1.respond_to?(:distinct) && p1.distinct) || (p1.respond_to?(:include?) && p1.include?('DISTINCT'))
+          found_distinct = true
+        end
+
+        return false if !found_distinct or o.orders.uniq.empty?
+
+        tables_all_columns = []
+        expressions = projections.map do |p|
+          visit(p, a).split(',').map do |x|
+            x.strip!
+            # Rails 4.0.0 included DISTINCT in the first projection
+            x.gsub!(/\s*DISTINCT\s+/, '')
+            # Aliased column names
+            x.gsub!(/\s+AS\s+\w+/i, '')
+            # Identifier quoting
+            x.gsub!(/\[|\]/, '')
+            star_match = /^(\w+)\.\*$/.match(x)
+            if star_match
+              tables_all_columns << star_match[1]
+            end
+            x.strip.downcase
+          end.join(', ')
+        end
+
+        # Make sure each order by is in the select list, otherwise there needs
+        # to be a subquery with row_numbe()
+        o.orders.uniq.each do |order|
+          order = visit(order, a)
+          order.strip!
+
+          order.gsub!(/\s+(asc|desc)/i, '')
+          # Identifier quoting
+          order.gsub!(/\[|\]/, '')
+
+          order.strip!
+          order.downcase!
+
+          # If we selected all columns from a table, the order is ok
+          table_match = /^(\w+)\.\w+$/.match(order)
+          next if table_match and tables_all_columns.include?(table_match[1])
+
+          next if expressions.include?(order)
+
+          return true
+        end
+
+        # We didn't find anything in the order by no being selected
+        false
       end
 
       def windowed_single_distinct_select_statement?(o)

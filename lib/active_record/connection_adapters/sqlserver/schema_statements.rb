@@ -44,17 +44,12 @@ module ActiveRecord
         end
 
         # like postgres, sqlserver requires the ORDER BY columns in the select list for distinct queries, and
-        # requires that the ORDER BY include the distinct column.
-        # this method is idental to the postgres method
+        # requires that the ORDER BY include the distinct column. Unfortunately, sqlserver does not support
+        # DISTINCT ON () like Posgres, or FIRST_VALUE() like Oracle (at least before SQL Server 2012). Because
+        # of these facts, we don't actually add any extra columns for distinct, but instead have to create
+        # a subquery with ROW_NUMBER() and DENSE_RANK() in our monkey-patches to Arel.
         def columns_for_distinct(columns, orders) #:nodoc:
-          order_columns = orders.map do |s|
-                            # Convert Arel node to string
-                            s = s.to_sql unless s.is_a?(String)
-                            # Remove any ASC/DESC modifiers
-                            s.gsub(/\s+(ASC|DESC)\s*(NULLS\s+(FIRST|LAST)\s*)?/i, '')
-                          end.reject(&:blank?).map.with_index { |column, i| "#{column} AS alias_#{i}" }
-
-          [super, *order_columns].join(', ')
+          columns
         end
 
         def rename_table(table_name, new_name)

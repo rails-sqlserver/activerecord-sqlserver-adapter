@@ -10,33 +10,29 @@ class FinderTestSqlserver < ActiveRecord::TestCase
 end
 
 class FinderTest < ActiveRecord::TestCase
-  fixtures :authors, :author_addresses, :posts
+  fixtures :authors, :author_addresses, :posts, :categorizations
   COERCED_TESTS = [
     :test_exists_does_not_select_columns_without_alias,
     :test_string_sanitation,
-    :test_take_and_first_and_last_with_integer_should_use_sql_limit,
-    :test_find_with_order_on_included_associations_with_construct_finder_sql_for_association_limiting_and_is_distinct
-
+    :test_take_and_first_and_last_with_integer_should_use_sql_limit
   ]
 
   include SqlserverCoercedTest
 
 
-  # TODO This test passes in rails 4.0.0 but not 4.0.1-2
-  def test_coerced_find_with_order_on_included_associations_with_construct_finder_sql_for_association_limiting_and_is_distinct
-   p =  Post.all.merge!(includes: { authors: :author_address },
-      order: 'author_addresses.id DESC ',
-      limit: 2)
-   # ar_version = Gem.loaded_specs['activerecord'].version.version
-   # arel_to_png(p, "#{ar_version}")
-    count = p.to_a.size
-    #puts "*****#{ActiveRecord::SQLCounter.log_all.join("\n\n")}"
-    assert_equal 2, count
-
-     assert_equal 3, Post.all.merge!(includes: { author: :author_address, authors: :author_address},
-                              order: 'author_addresses_authors.id DESC ', limit: 3).to_a.size
+  def test_find_with_order_on_included_associations_with_construct_finder_sql_for_association_limiting_and_is_distinct_and_offset
+    # Based on test_find_with_order_on_included_associations_with_construct_finder_sql_for_association_limiting_and_is_distinct
+    # and issue https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/issues/306
+    assert_equal(
+      posts(:welcome, :thinking),
+      Post.all.merge!(
+        :includes => { authors: :author_address },
+        :order => ['authors.name DESC'],
+        :limit => 2,
+        :offset => 1
+      ).to_a
+    )
   end
-
 
   def test_coerced_exists_does_not_select_columns_without_alias
     assert_sql(/SELECT TOP \(1\) 1 AS one FROM \[topics\]/i) do
