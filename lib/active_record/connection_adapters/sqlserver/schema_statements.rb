@@ -256,7 +256,7 @@ module ActiveRecord
                                    nil
                                  else
                                    match_data = ci[:default_value].match(/\A\(+N?'?(.*?)'?\)+\Z/m)
-                                   match_data ? match_data[1] : nil
+                                   match_data ? match_data[1].gsub("''", "'") : nil
                                  end
             ci[:null] = ci[:is_nullable].to_i == 1
             ci.delete(:is_nullable)
