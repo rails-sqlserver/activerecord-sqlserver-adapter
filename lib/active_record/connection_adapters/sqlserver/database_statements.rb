@@ -56,15 +56,15 @@ module ActiveRecord
           do_execute 'IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION'
         end
 
-        def create_savepoint
-          disable_auto_reconnect { do_execute "SAVE TRANSACTION #{current_savepoint_name}" }
+        def create_savepoint(name = current_savepoint_name)
+          disable_auto_reconnect { do_execute "SAVE TRANSACTION #{name}" }
         end
 
-        def release_savepoint
+        def release_savepoint(name = current_savepoint_name)
         end
 
-        def rollback_to_savepoint
-          disable_auto_reconnect { do_execute "ROLLBACK TRANSACTION #{current_savepoint_name}" }
+        def rollback_to_savepoint(name = current_savepoint_name)
+          disable_auto_reconnect { do_execute "ROLLBACK TRANSACTION #{name}" }
         end
 
         def add_limit_offset!(_sql, _options)
