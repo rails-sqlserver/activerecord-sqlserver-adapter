@@ -67,7 +67,7 @@ module ActiveRecord
           if column.respond_to?(:sql_type) && column.sql_type == 'timestamp'
             nil
           else
-            Arel.sql "@#{index}"
+            Arel::Nodes::BindParam.new "@#{index}"
           end
         end
 
