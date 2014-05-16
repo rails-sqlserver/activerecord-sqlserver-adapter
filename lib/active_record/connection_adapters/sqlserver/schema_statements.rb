@@ -414,8 +414,8 @@ module ActiveRecord
 
         private
 
-        def create_table_definition(name, temporary, options)
-          TableDefinition.new native_database_types, name, temporary, options
+        def create_table_definition(name, temporary, options, as = nil)
+          TableDefinition.new native_database_types, name, temporary, options, as
         end
       end
     end
