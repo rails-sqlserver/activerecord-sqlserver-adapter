@@ -1,5 +1,7 @@
 require 'cases/sqlserver_helper'
+require 'cases/schema_dumper_test'
 require 'stringio'
+
 
 class SchemaDumperTestSqlserver < ActiveRecord::TestCase
 
@@ -94,15 +96,6 @@ class SchemaDumperTest < ActiveRecord::TestCase
 
       assert_equal 1, lengths.uniq.length
     end
-  end
-
-  private
-
-  def standard_dump
-    stream = StringIO.new
-    ActiveRecord::SchemaDumper.ignore_tables = []
-    ActiveRecord::SchemaDumper.dump(ActiveRecord::Base.connection, stream)
-    stream.string
   end
 
 end

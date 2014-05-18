@@ -812,5 +812,7 @@ module ActiveRecord
     # This is not run for PostgreSQL at the rails level and the same should happen for SQL Server
     # Until that patch is made to rails we are preventing this test from running in this gem.
     include SqlserverCoercedTest
+
+    fixtures :authors
   end
 end

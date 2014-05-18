@@ -16,10 +16,10 @@ require 'models/person'
 require 'models_sqlserver/topic'
 require 'rexml/document'
 
-class PersistencesTestSqlserver < ActiveRecord::TestCase
+class PersistenceTestSqlserver < ActiveRecord::TestCase
 end
 
-class PersistencesTest < ActiveRecord::TestCase
+class PersistenceTest < ActiveRecord::TestCase
 
   fixtures :topics, :companies, :developers, :projects, :computers, :accounts, :minimalistics, 'warehouse-things', :authors, :categorizations, :categories, :posts, :minivans
 

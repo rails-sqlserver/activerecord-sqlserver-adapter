@@ -56,15 +56,15 @@ module ActiveRecord
           do_execute 'IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION'
         end
 
-        def create_savepoint
-          disable_auto_reconnect { do_execute "SAVE TRANSACTION #{current_savepoint_name}" }
+        def create_savepoint(name = current_savepoint_name)
+          disable_auto_reconnect { do_execute "SAVE TRANSACTION #{name}" }
         end
 
-        def release_savepoint
+        def release_savepoint(name = current_savepoint_name)
         end
 
-        def rollback_to_savepoint
-          disable_auto_reconnect { do_execute "ROLLBACK TRANSACTION #{current_savepoint_name}" }
+        def rollback_to_savepoint(name = current_savepoint_name)
+          disable_auto_reconnect { do_execute "ROLLBACK TRANSACTION #{name}" }
         end
 
         def add_limit_offset!(_sql, _options)
@@ -334,7 +334,11 @@ module ActiveRecord
             next if ar_column && column.sql_type == 'timestamp'
             v = value
             names_and_types << if ar_column
-                                 v = value.to_i if column.is_integer? && value.present?
+                                 if column.is_integer? && value.present?
+                                   v = value.to_i
+                                   # Reset the casted value to the bind as required by Rails 4.1
+                                   binds[index] = [column, v]
+                                 end
                                  "@#{index} #{column.sql_type_for_statement}"
                                elsif column.acts_like?(:string)
                                  "@#{index} nvarchar(max)"

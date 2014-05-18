@@ -3,7 +3,10 @@ require 'models/post'
 
 
 class RelationTest < ActiveRecord::TestCase
-  COERCED_TESTS = [:test_merging_reorders_bind_params]
+  COERCED_TESTS = [
+    :test_merging_reorders_bind_params,
+    :test_to_sql_on_eager_join
+  ]
   # Until that patch is made to rails we are preventing this test from running in this gem.
   include SqlserverCoercedTest
   fixtures :posts
@@ -23,5 +26,13 @@ class RelationTest < ActiveRecord::TestCase
 
     merged = left.merge(right)
     assert_equal post, merged.first
+  end
+
+  def test_coerced_to_sql_on_eager_join
+    expected = assert_sql {
+      Post.eager_load(:last_comment).order('comments.id DESC').to_a
+    }.first
+    actual = Post.eager_load(:last_comment).order('comments.id DESC').to_sql
+    assert_equal expected.include?(actual), true
   end
 end

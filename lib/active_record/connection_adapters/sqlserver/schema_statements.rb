@@ -16,6 +16,12 @@ module ActiveRecord
           super || tables.include?(unquoted_table_name) || views.include?(unquoted_table_name)
         end
 
+        def create_table(table_name, options = {})
+          res = super
+          schema_cache.clear_table_cache!(table_name)
+          res
+        end
+
         def indexes(table_name, name = nil)
           data = select("EXEC sp_helpindex #{quote(table_name)}", name) rescue []
           data.reduce([]) do |indexes, index|
@@ -256,7 +262,7 @@ module ActiveRecord
                                    nil
                                  else
                                    match_data = ci[:default_value].match(/\A\(+N?'?(.*?)'?\)+\Z/m)
-                                   match_data ? match_data[1] : nil
+                                   match_data ? match_data[1].gsub("''", "'") : nil
                                  end
             ci[:null] = ci[:is_nullable].to_i == 1
             ci.delete(:is_nullable)
@@ -408,8 +414,8 @@ module ActiveRecord
 
         private
 
-        def create_table_definition(name, temporary, options)
-          TableDefinition.new native_database_types, name, temporary, options
+        def create_table_definition(name, temporary, options, as = nil)
+          TableDefinition.new native_database_types, name, temporary, options, as
         end
       end
     end

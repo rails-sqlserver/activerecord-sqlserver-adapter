@@ -1,4 +1,4 @@
-require 'active_record/test_case.rb'
+require 'cases/test_case.rb'
 
 # TODO: I'm struggling to figure out how to unsubscribe from only one 'sql.active_record'
 # This is a temporary hack until we can just get the sqlserver_ignored regex in rails
