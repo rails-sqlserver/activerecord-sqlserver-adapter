@@ -5,8 +5,9 @@ The SQL Server adapter for ActiveRecord. If you need the adapter for SQL Server 
 
 ## What's New
 
-* Rails 4 support (not yet released, look at outstanding issues)
-* Ruby 2.0.0 and 2.1.0.prerelease support
+* Rails 4.0 support
+* Ruby 2.0 and 2.1 support
+
 
 #### Testing Rake Tasks Support
 
