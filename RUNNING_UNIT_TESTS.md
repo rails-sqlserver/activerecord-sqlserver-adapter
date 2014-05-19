@@ -97,8 +97,3 @@ By default, Bundler will download the Rails git repo and use the git tag that ma
 
 * Misc Date/Time erros when using ODBC mode.
 * Misc Date/Time erros when testing SQL Server 2005.
-* A find with Limit, Order, and Includes may return fewer results than the limit specifies
-
-FinderTest#test_coerced_find_with_order_on_included_associations_with_construct_finder_sql_for_association_limiting_and_is_distinct [/Users/acarey/code/nextgear/sqlserver/annaswims/activerecord-sqlserver-adapter/test/cases/finder_test_sqlserver.rb:28]:
-Expected: 2
-  Actual: 1
