@@ -62,16 +62,7 @@ module Arel
 
         select_frags = projections.map do |x|
           frag = projection_to_sql_remove_distinct(x, core, a)
-          # Remove the table specifier
-          frag.gsub!(/^[^\.]*\./, '')
-          # If there is an alias, remove everything but
           frag.gsub(/^.*\sAS\s+/i, '')
-        end
-
-        if o.offset
-          select_frags << 'ROW_NUMBER() OVER (ORDER BY __order) AS __offset'
-        else
-          select_frags << '__order'
         end
 
         projection_list = projections.map { |x| projection_to_sql_remove_distinct(x, core, a) }.join(', ')
@@ -80,7 +71,8 @@ module Arel
           ('SELECT'),
           (visit(core.set_quantifier, a) if core.set_quantifier && !o.offset),
           (visit(o.limit, a) if o.limit && !o.offset),
-          (select_frags.join(', ')),
+          ('*' unless o.offset),
+          ('*, ROW_NUMBER() OVER (ORDER BY __order) AS __offset' if o.offset),
           ('FROM ('),
             ('SELECT'),
             (
@@ -90,7 +82,7 @@ module Arel
                   ("ORDER BY #{orders.map { |x| visit(x, a) }.join(', ')}" unless orders.empty?),
                 (') AS __order'),
                 (', ROW_NUMBER() OVER ('),
-                  ("PARTITION BY #{projection_list}" if !orders.empty?),
+                  ("PARTITION BY #{select_frags.join(', ')}" if !orders.empty?),
                   (" ORDER BY #{orders.map { |x| visit(x, a) }.join(', ')}" unless orders.empty?),
                 (') AS __joined_row_num')
               ].join('')
