@@ -34,6 +34,23 @@ class FinderTest < ActiveRecord::TestCase
     )
   end
 
+  def test_multiple_select_with_count_distinct_and_order
+    posts = Post.joins(:authors)
+                .select('COUNT(DISTINCT authors.id) as total')
+                .select('title as x, body as y')
+                .group(:title, :body)
+                .order(:title).to_a
+
+    # quick sanity check, known number of records were returned
+    assert_equal(3, posts.size)
+
+    # the defined aliases should be present
+    post = posts.first
+    assert_respond_to(post, :total)
+    assert_respond_to(post, :x)
+    assert_respond_to(post, :y)
+  end
+
   def test_coerced_exists_does_not_select_columns_without_alias
     assert_sql(/SELECT TOP \(1\) 1 AS one FROM \[topics\]/i) do
       Topic.exists?
