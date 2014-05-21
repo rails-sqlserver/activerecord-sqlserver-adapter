@@ -60,6 +60,9 @@ module Arel
         groups = core.groups
         orders = o.orders.uniq
 
+        # split out any projections that may have > 1 specified (comma-separated)
+        projections = projections.each_with_object(',').map(&:split).flatten
+
         select_frags = projections.map do |x|
           frag = projection_to_sql_remove_distinct(x, core, a)
           # Remove the table specifier
