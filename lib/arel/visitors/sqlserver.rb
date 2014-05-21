@@ -76,6 +76,9 @@ module Arel
 
         projection_list = projections.map { |x| projection_to_sql_remove_distinct(x, core, a) }.join(', ')
 
+        # strip aliases from projection list for PARTITION BY value expression
+        partitions = projection_list.gsub(/\s+AS\s+[^,]*/i, '')
+
         sql = [
           ('SELECT'),
           (visit(core.set_quantifier, a) if core.set_quantifier && !o.offset),
@@ -90,7 +93,7 @@ module Arel
                   ("ORDER BY #{orders.map { |x| visit(x, a) }.join(', ')}" unless orders.empty?),
                 (') AS __order'),
                 (', ROW_NUMBER() OVER ('),
-                  ("PARTITION BY #{projection_list}" if !orders.empty?),
+                  ("PARTITION BY #{partitions}" if !orders.empty?),
                   (" ORDER BY #{orders.map { |x| visit(x, a) }.join(', ')}" unless orders.empty?),
                 (') AS __joined_row_num')
               ].join('')
