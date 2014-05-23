@@ -137,7 +137,7 @@ module ActiveRecord
       def active?
         case @connection_options[:mode]
         when :dblib
-          return @connection.active?
+          return @connection.active? unless @connection_options[:azure]
         end
         raw_connection_do('SELECT 1')
         true
