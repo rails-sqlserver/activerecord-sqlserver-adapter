@@ -32,7 +32,7 @@ module ActiveRecord
             elsif o.as.is_a?(String)
               select = o.as
             else
-              raise "Only able to generate a table from a SELECT statement passed as a String or ActiveRecord::Relation"
+              raise 'Only able to generate a table from a SELECT statement passed as a String or ActiveRecord::Relation'
             end
 
             create_sql = 'SELECT * INTO '

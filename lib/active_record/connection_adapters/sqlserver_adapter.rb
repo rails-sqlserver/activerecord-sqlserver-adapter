@@ -298,26 +298,26 @@ module ActiveRecord
                               encoding:  encoding(config),
                               azure: config[:azure]
                             ).tap do |client|
-                              if config[:azure]
-                                client.execute('SET ANSI_NULLS ON').do
-                                client.execute('SET CURSOR_CLOSE_ON_COMMIT OFF').do
-                                client.execute('SET ANSI_NULL_DFLT_ON ON').do
-                                client.execute('SET IMPLICIT_TRANSACTIONS OFF').do
-                                client.execute('SET ANSI_PADDING ON').do
-                                client.execute('SET QUOTED_IDENTIFIER ON')
-                                client.execute('SET ANSI_WARNINGS ON').do
-                              else
-                                client.execute('SET ANSI_DEFAULTS ON').do
-                                client.execute('SET CURSOR_CLOSE_ON_COMMIT OFF').do
-                                client.execute('SET IMPLICIT_TRANSACTIONS OFF').do
-                              end
+          if config[:azure]
+            client.execute('SET ANSI_NULLS ON').do
+            client.execute('SET CURSOR_CLOSE_ON_COMMIT OFF').do
+            client.execute('SET ANSI_NULL_DFLT_ON ON').do
+            client.execute('SET IMPLICIT_TRANSACTIONS OFF').do
+            client.execute('SET ANSI_PADDING ON').do
+            client.execute('SET QUOTED_IDENTIFIER ON')
+            client.execute('SET ANSI_WARNINGS ON').do
+          else
+            client.execute('SET ANSI_DEFAULTS ON').do
+            client.execute('SET CURSOR_CLOSE_ON_COMMIT OFF').do
+            client.execute('SET IMPLICIT_TRANSACTIONS OFF').do
+          end
           client.execute('SET TEXTSIZE 2147483647').do
           client.execute('SET CONCAT_NULL_YIELDS_NULL ON').do
         end
       end
 
       def appname(config)
-       config[:appname] || configure_application_name || Rails.application.class.name.split('::').first rescue nil
+        config[:appname] || configure_application_name || Rails.application.class.name.split('::').first rescue nil
       end
 
       def login_timeout(config)

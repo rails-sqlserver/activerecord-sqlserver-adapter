@@ -18,8 +18,8 @@ module ActiveRecord
           if id_insert_table_name = sqlserver_options[:insert] ? query_requires_identity_insert?(sql) : nil
             with_identity_insert_enabled(id_insert_table_name) { do_exec_query(sql, name, binds) }
           elsif update_sql?(sql)
-             sql = strip_ident_from_update(sql)
-             do_exec_query(sql, name, binds)
+            sql = strip_ident_from_update(sql)
+            do_exec_query(sql, name, binds)
           else
             do_exec_query(sql, name, binds)
           end

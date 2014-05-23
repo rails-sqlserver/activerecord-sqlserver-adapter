@@ -112,5 +112,5 @@ module ActiveRecord
         end
       end
     end # class SQLServerColumn
- end # module ConnectionAdapters
+  end # module ConnectionAdapters
 end # module ActiveRecord
