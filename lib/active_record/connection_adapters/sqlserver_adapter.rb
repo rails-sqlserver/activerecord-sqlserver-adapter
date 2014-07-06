@@ -37,7 +37,7 @@ module ActiveRecord
       VERSION                     = File.read(File.expand_path('../../../../VERSION', __FILE__)).strip
       ADAPTER_NAME                = 'SQLServer'.freeze
       DATABASE_VERSION_REGEXP     = /Microsoft SQL Server\s+"?(\d{4}|\w+)"?/
-      SUPPORTED_VERSIONS          = [2005, 2008, 2010, 2011, 2012]
+      SUPPORTED_VERSIONS          = [2005, 2008, 2010, 2011, 2012, 2014]
 
       attr_reader :database_version, :database_year, :spid, :product_level, :product_version, :edition
 
@@ -202,6 +202,10 @@ module ActiveRecord
 
       def sqlserver_2012?
         @database_year == 2012
+      end
+
+      def sqlserver_2014?
+        @database_year == 2014
       end
 
       def sqlserver_azure?
