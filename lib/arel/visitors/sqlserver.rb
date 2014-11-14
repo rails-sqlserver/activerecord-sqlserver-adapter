@@ -425,12 +425,17 @@ module Arel
         end
       end
 
+      # Create a list of Column Attributes with which to order
+      # a query requiring a row_number() value column
+      #
+      # @param [Arel::Nodes::SelectStatement]
+      # @return [Array[Arel::Attribute]]
       def rowtable_orders(o)
         if !o.orders.empty?
           o.orders
         else
           t = table_from_select_statement(o)
-          c = t.primary_key || t.columns.first
+          c = t.primary_key || Arel::Attribute.new(t, t.engine.columns.first.name.to_s)
           [c.asc]
         end.uniq
       end
