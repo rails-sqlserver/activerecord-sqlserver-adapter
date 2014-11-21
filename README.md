@@ -1,6 +1,6 @@
 # ActiveRecord SQL Server Adapter. For SQL Server 2005 And Higher.
 
-**This project is looking for a new maintainers**
+**This project is looking for a new maintainers. Join the [discusion here](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/issues/364)**
 
 The SQL Server adapter for ActiveRecord. If you need the adapter for SQL Server 2000, you are still in the right spot. Just install the latest 2.3.x version of the adapter. Note, we follow a rational versioning policy that tracks ActiveRecord. That means that our 2.3.x version of the adapter is only for the latest 2.3 version of Rails. We also have stable branches for each major/minor release of ActiveRecord.
 
