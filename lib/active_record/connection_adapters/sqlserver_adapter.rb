@@ -65,7 +65,7 @@ module ActiveRecord
                            if @database_version =~ /Azure/i
                              @sqlserver_azure = true
                              @database_version.match(/\s-\s([0-9.]+)/)[1]
-                             year = 2012
+                             year = 2012 || 2014
                            else
                              year = DATABASE_VERSION_REGEXP.match(@database_version)[1]
                              year == 'Denali' ? 2011 : year.to_i
@@ -202,6 +202,10 @@ module ActiveRecord
 
       def sqlserver_2012?
         @database_year == 2012
+        end
+
+      def sqlserver_2014?
+        @database_year == 2014
       end
 
       def sqlserver_2014?
