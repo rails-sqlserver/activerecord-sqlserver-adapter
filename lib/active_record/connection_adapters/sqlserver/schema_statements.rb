@@ -13,7 +13,13 @@ module ActiveRecord
         def table_exists?(table_name)
           return false if table_name.blank?
           unquoted_table_name = Utils.unqualify_table_name(table_name)
-          super || tables.include?(unquoted_table_name) || views.include?(unquoted_table_name)
+          table_name_column = lowercase_schema_reflection_sql('TABLE_NAME')
+          super || select_value(%Q{
+                         SELECT #{table_name_column}
+                         FROM    INFORMATION_SCHEMA.TABLES
+                         WHERE   (TABLE_TYPE = 'BASE TABLE' OR TABLE_TYPE = 'VIEW') AND
+                         #{table_name_column} = '#{unquoted_table_name}'
+                         })
         end
 
         def create_table(table_name, options = {})
