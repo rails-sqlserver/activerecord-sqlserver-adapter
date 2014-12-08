@@ -36,7 +36,7 @@ The tests of this adapter depend on the existence of the Rails which under the 3
 $ git clone git://github.com/rails-sqlserver/activerecord-sqlserver-adapter.git
 ```
 
-Optionally, you an just let bundler do all the work and assuming there is a git tag for the Rails version, you can set `RAILS_VERSION` before bundling.
+Optionally, you can just let bundler do all the work and assuming there is a git tag for the Rails version, you can set `RAILS_VERSION` before bundling.
 
 ```
 $ export RAILS_VERSION='3.2.13'

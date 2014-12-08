@@ -8,6 +8,10 @@ module ActiveRecord
 
         include SqlserverCoercedTest
 
+        def resolve(spec, config={})
+          Resolver.new(config).resolve(spec)
+        end
+
         COERCED_TESTS = [
           :test_url_host_no_db,
           :test_url_host_db,
