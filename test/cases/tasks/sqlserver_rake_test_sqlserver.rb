@@ -1,5 +1,5 @@
 require 'cases/helper'
-require(Dir.pwd + '/lib/tasks/sqlserver_database_tasks')
+require(Dir.pwd + '/lib/active_record/tasks/sqlserver_database_tasks.rb')
 
 module ActiveRecord
   class SQLServerDropTest < ActiveRecord::TestCase
