@@ -7,6 +7,11 @@ module ActiveRecord
         @configuration = configuration
       end
 
+      def create
+        establish_connection configuration
+        connection.create_database configuration['database']
+      end
+
       def drop
         establish_connection configuration
         connection.drop_database configuration['database']
