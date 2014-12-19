@@ -11,6 +11,13 @@ module ActiveRecord
         establish_master_connection unless master_established
         connection.create_database configuration['database']
         establish_connection configuration
+
+      rescue ActiveRecord::StatementInvalid => error
+        if /Database .* already exists/ === error.message
+          raise DatabaseAlreadyExists
+        else
+          raise
+        end
       end
 
       def drop
