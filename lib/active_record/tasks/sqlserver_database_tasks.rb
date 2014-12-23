@@ -20,9 +20,10 @@ module ActiveRecord
         end
       end
 
-      def drop
-        establish_connection configuration
+      def drop(master_established = false)
+        establish_master_connection unless master_established
         connection.drop_database configuration['database']
+        establish_connection configuration
       end
 
       def purge
