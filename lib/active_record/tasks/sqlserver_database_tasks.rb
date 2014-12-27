@@ -7,9 +7,23 @@ module ActiveRecord
         @configuration = configuration
       end
 
-      def drop
+      def create(master_established = false)
+        establish_master_connection unless master_established
+        connection.create_database configuration['database']
         establish_connection configuration
+
+      rescue ActiveRecord::StatementInvalid => error
+        if /Database .* already exists/ === error.message
+          raise DatabaseAlreadyExists
+        else
+          raise
+        end
+      end
+
+      def drop(master_established = false)
+        establish_master_connection unless master_established
         connection.drop_database configuration['database']
+        establish_connection configuration
       end
 
       def purge
@@ -34,6 +48,12 @@ module ActiveRecord
           # Set default collation only when charset is also default.
           options[:collation] ||= DEFAULT_COLLATION if options[:charset] == DEFAULT_CHARSET
         end
+      end
+
+      def establish_master_connection
+        establish_connection configuration.merge(
+                               'database' => 'master'
+                             )
       end
 
       ActiveRecord::Tasks::DatabaseTasks.register_task(/sqlserver/, ActiveRecord::Tasks::SQLServerDatabaseTasks)
