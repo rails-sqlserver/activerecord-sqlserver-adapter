@@ -10,6 +10,7 @@ require 'active_record/connection_adapters/sqlserver/core_ext/active_record'
 require 'active_record/connection_adapters/sqlserver/core_ext/explain'
 require 'active_record/connection_adapters/sqlserver/core_ext/explain_subscriber'
 require 'active_record/connection_adapters/sqlserver/core_ext/relation'
+require 'active_record/connection_adapters/sqlserver/version'
 require 'active_record/connection_adapters/sqlserver/database_limits'
 require 'active_record/connection_adapters/sqlserver/database_statements'
 require 'active_record/connection_adapters/sqlserver/errors'
@@ -20,24 +21,22 @@ require 'active_record/connection_adapters/sqlserver/showplan'
 require 'active_record/connection_adapters/sqlserver/table_definition'
 require 'active_record/connection_adapters/sqlserver/quoting'
 require 'active_record/connection_adapters/sqlserver/utils'
-
 require 'active_record/sqlserver_base'
 require 'active_record/connection_adapters/sqlserver_column'
 
 module ActiveRecord
   module ConnectionAdapters
     class SQLServerAdapter < AbstractAdapter
-      include Sqlserver::Quoting
-      include Sqlserver::DatabaseStatements
-      include Sqlserver::Showplan
-      include Sqlserver::SchemaStatements
-      include Sqlserver::DatabaseLimits
-      include Sqlserver::Errors
 
-      VERSION                     = File.read(File.expand_path('../../../../VERSION', __FILE__)).strip
-      ADAPTER_NAME                = 'SQLServer'.freeze
-      DATABASE_VERSION_REGEXP     = /Microsoft SQL Server\s+"?(\d{4}|\w+)"?/
-      SUPPORTED_VERSIONS          = [2005, 2008, 2010, 2011, 2012, 2014]
+      include Sqlserver::Version,
+              Sqlserver::Quoting,
+              Sqlserver::DatabaseStatements,
+              Sqlserver::Showplan,
+              Sqlserver::SchemaStatements,
+              Sqlserver::DatabaseLimits,
+              Sqlserver::Errors
+
+      ADAPTER_NAME = 'SQLServer'.freeze
 
       attr_reader :database_version, :database_year, :spid, :product_level, :product_version, :edition
 

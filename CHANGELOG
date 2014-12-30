@@ -1,7 +1,20 @@
+
+* 4.2.0 *
+
+* ...
+
+
+* 4.1.0 *
+
+* Not sure if this even happened. Just got to 4.2.0 :)
+
+
 * 4.0.0 *
+
 * Dropped support for ruby 1.8.7
 * Removed deadlock victim retry in favor of Isolation Level
 * Removed auto_explain_threshold_in_seconds (not used in rails 4)
+
 
 * 3.2.12 *
 

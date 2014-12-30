@@ -12,7 +12,7 @@ default_connection_info: &default_connection_info
   collation: <%= ENV['ACTIVERECORD_UNITTEST_COLLATION'] || nil %>
 
 connections:
-  
+
   dblib:
     arunit:
       <<: *default_connection_info
@@ -32,4 +32,4 @@ connections:
       <<: *default_connection_info
       database: activerecord_unittest2
       dsn: <%= ENV['ACTIVERECORD_UNITTEST2_DSN'] || 'activerecord_unittest2' %>
-      
+

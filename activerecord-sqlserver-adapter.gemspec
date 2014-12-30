@@ -1,21 +1,25 @@
-$LOAD_PATH.push File.expand_path('../lib', __FILE__)
+# -*- encoding: utf-8 -*-
+$:.push File.expand_path("../lib", __FILE__)
+require "active_record/connection_adapters/sqlserver/version"
 
-Gem::Specification.new do |s|
-  s.platform      = Gem::Platform::RUBY
-  s.name          = 'activerecord-sqlserver-adapter'
-  s.version       = File.read(File.expand_path('../VERSION', __FILE__)).strip
-  s.summary       = 'ActiveRecord SQL Server Adapter. For SQL Server 2005 And Higher.'
-  s.description   = 'ActiveRecord SQL Server Adapter. For SQL Server 2005 And Higher.'
-
-  s.authors       = ['Ken Collins', 'Anna Carey', 'Will Bond', 'Murray Steele', 'Shawn Balestracci', 'Joe Rafaniello', 'Tom Ward']
-  s.email         = 'ken@metaskills.net'
-  s.homepage      = 'http://github.com/rails-sqlserver/activerecord-sqlserver-adapter'
-
-  s.files         = Dir['CHANGELOG', 'MIT-LICENSE', 'README.rdoc', 'VERSION', 'lib/**/*']
-  s.require_path  = 'lib'
-  s.rubyforge_project = 'activerecord-sqlserver-adapter'
-
-  s.add_dependency('activerecord', '~> 4.1.0')
-  s.add_dependency('arel')
+Gem::Specification.new do |spec|
+  spec.name          = 'activerecord-sqlserver-adapter'
+  spec.version       = ActiveRecord::ConnectionAdapters::Sqlserver::Version::VERSION
+  spec.platform      = Gem::Platform::RUBY
+  spec.authors       = ['Ken Collins', 'Anna Carey', 'Will Bond', 'Murray Steele', 'Shawn Balestracci', 'Joe Rafaniello', 'Tom Ward']
+  spec.email         = ['ken@metaskills.net', 'will@wbond.net']
+  spec.homepage      = 'http://github.com/rails-sqlserver/activerecord-sqlserver-adapter'
+  spec.summary       = 'ActiveRecord SQL Server Adapter.'
+  spec.description   = spec.summary
+  spec.files         = `git ls-files -z`.split("\x0")
+  spec.executables   = spec.files.grep(%r{^bin/}) { |f| File.basename(f) }
+  spec.test_files    = spec.files.grep(%r{^(test|spec|features)/})
+  spec.require_paths = ['lib']
+  spec.add_dependency 'activerecord', '~> 4.2.0'
+  spec.add_development_dependency 'bundler'
+  spec.add_development_dependency 'rake'
+  spec.add_development_dependency 'minitest-spec-rails'
+  spec.add_development_dependency 'mocha'
+  spec.add_development_dependency 'nokogiri'
+  spec.add_development_dependency 'pry'
 end
-

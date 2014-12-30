@@ -9,16 +9,7 @@ ENV['ARCONFIG']           = File.expand_path(File.join(SQLSERVER_TEST_ROOT,'conf
 
 $LOAD_PATH.unshift ACTIVERECORD_TEST_ROOT
 
-require 'rubygems'
-require 'bundler'
-Bundler.setup
-require 'simplecov'
-SimpleCov.start do
-  add_filter "/test/"
-end
-require 'pry'
-require 'graphviz'
-require 'mocha/api'
+require 'bundler' ; Bundler.require :development, :test
 require 'active_support/dependencies'
 require 'active_record'
 require 'active_record/version'
@@ -28,19 +19,16 @@ require 'minitest-spec-rails/init/active_support'
 require 'minitest-spec-rails/init/mini_shoulda'
 require 'cases/helper'
 require 'models/topic'
-require 'cases/arel_helper'
 require 'cases/sqlserver_test_case'
-
-GC.copy_on_write_friendly = true if GC.respond_to?(:copy_on_write_friendly?)
 
 ActiveRecord::Migration.verbose = false
 ActiveRecord::Base.logger = Logger.new(File.expand_path(File.join(SQLSERVER_TEST_ROOT,'debug.log')))
 ActiveRecord::Base.logger.level = 0
 
-
 # A module that we can include in classes where we want to override an active record test.
-
+#
 module SqlserverCoercedTest
+
   def self.included(base)
     base.extend ClassMethods
   end
@@ -113,6 +101,8 @@ module ActiveRecord
     end
   end
 end
+
+require 'mocha/mini_test'
 
 # Core AR.
 schema_file = "#{ACTIVERECORD_TEST_ROOT}/schema/schema.rb"
