@@ -13,3 +13,5 @@ test/profile/output/*
 coverage/*
 .flooignore
 .floo
+.ruby-gemset
+.ruby-version
