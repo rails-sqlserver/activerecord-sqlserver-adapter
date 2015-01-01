@@ -1,4 +1,4 @@
-require 'cases/sqlserver_helper'
+require 'cases/helper_sqlserver'
 require 'models/topic'
 require 'models_sqlserver/topic'
 require 'cases/bind_parameter_test'

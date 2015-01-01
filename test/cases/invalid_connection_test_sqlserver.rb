@@ -1,6 +1,6 @@
 #cases/invalid_connection_test was added in rails 4.0.1
 if Pathname.new("#{ACTIVERECORD_TEST_ROOT}/cases/invalid_connection_test.rb").exist?
-  require 'cases/sqlserver_helper'
+  require 'cases/helper_sqlserver'
   require 'cases/invalid_connection_test'
 
   class TestAdapterWithInvalidConnection < ActiveRecord::TestCase

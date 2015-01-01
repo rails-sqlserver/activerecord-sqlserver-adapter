@@ -1,4 +1,4 @@
-require 'cases/sqlserver_helper'
+require 'cases/helper_sqlserver'
 require 'models/binary'
 require 'models_sqlserver/float_data'
 require 'models_sqlserver/numeric_data'

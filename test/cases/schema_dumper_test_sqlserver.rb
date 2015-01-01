@@ -1,4 +1,4 @@
-require 'cases/sqlserver_helper'
+require 'cases/helper_sqlserver'
 require 'cases/schema_dumper_test'
 require 'stringio'
 

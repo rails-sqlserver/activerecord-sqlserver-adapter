@@ -1,4 +1,4 @@
-require 'cases/sqlserver_helper'
+require 'cases/helper_sqlserver'
 require 'models/person'
 require 'models/reader'
 require 'models_sqlserver/person'

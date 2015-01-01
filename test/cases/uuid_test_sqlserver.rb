@@ -1,4 +1,4 @@
-require 'cases/sqlserver_helper'
+require 'cases/helper_sqlserver'
 
 class SQLServerUUIDTest < ActiveRecord::TestCase
   class UUID < ActiveRecord::Base

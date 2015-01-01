@@ -1,4 +1,4 @@
-require 'cases/sqlserver_helper'
+require 'cases/helper_sqlserver'
 require 'models_sqlserver/no_pk_data'
 require 'models_sqlserver/sql_server_dollar_table_name'
 require 'models_sqlserver/sql_server_edge_schema'

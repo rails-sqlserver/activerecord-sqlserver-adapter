@@ -1,6 +1,6 @@
 #This rails pull request will make this code unnecessary https://github.com/rails/rails/pull/13745
 
-require "cases/sqlserver_helper"
+require "cases/helper_sqlserver"
 require "rack"
 
 module ActiveRecord

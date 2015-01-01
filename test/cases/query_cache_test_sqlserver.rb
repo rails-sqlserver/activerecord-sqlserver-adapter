@@ -1,4 +1,4 @@
-require 'cases/sqlserver_helper'
+require 'cases/helper_sqlserver'
 require 'models/task'
 
 class QueryCacheTestSqlserver < ActiveRecord::TestCase

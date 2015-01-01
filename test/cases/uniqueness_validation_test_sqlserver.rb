@@ -1,5 +1,5 @@
 # encoding: utf-8
-require 'cases/sqlserver_helper'
+require 'cases/helper_sqlserver'
 require 'models/event'
 
 class Event < ActiveRecord::Base

@@ -15,7 +15,7 @@ def test_libs
 end
 
 def test_files
-  test_setup = ['test/cases/sqlserver_helper.rb']
+  test_setup = ['test/cases/helper_sqlserver.rb']
   return test_setup + (ENV['TEST_FILES']).split(',') if ENV['TEST_FILES']
   sqlserver_cases = Dir.glob('test/cases/**/*_test_sqlserver.rb')
   ar_cases = Dir.glob("#{AR_PATH}/test/cases/**/*_test.rb")
