@@ -7,7 +7,7 @@ module ActiveRecord
 
     COERCED_TESTS = [:test_registering_new_handlers]
 
-    include SqlserverCoercedTest
+    include ARTest::Sqlserver::CoercedTest
 
     def test_coerced_registering_new_handlers
       ActiveRecord::PredicateBuilder.register_handler(Regexp, proc do |column, value|

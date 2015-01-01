@@ -1,14 +1,13 @@
 require "cases/helper_sqlserver"
 require 'models/post'
 
-
 class RelationTest < ActiveRecord::TestCase
   COERCED_TESTS = [
     :test_merging_reorders_bind_params,
     :test_to_sql_on_eager_join
   ]
   # Until that patch is made to rails we are preventing this test from running in this gem.
-  include SqlserverCoercedTest
+  include ARTest::Sqlserver::CoercedTest
   fixtures :posts
 
   def test_coerced_merging_reorders_bind_params

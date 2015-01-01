@@ -25,7 +25,7 @@ class PersistenceTest < ActiveRecord::TestCase
 
   COERCED_TESTS = [:test_update_all_doesnt_ignore_order, :test_update_columns_changing_id, :test_update_attributes]
 
-  include SqlserverCoercedTest
+  include ARTest::Sqlserver::CoercedTest
 
   def test_coerced_update_all_doesnt_ignore_order
     assert_equal authors(:david).id + 1, authors(:mary).id

@@ -17,7 +17,7 @@ class FinderTest < ActiveRecord::TestCase
     :test_take_and_first_and_last_with_integer_should_use_sql_limit
   ]
 
-  include SqlserverCoercedTest
+  include ARTest::Sqlserver::CoercedTest
 
 
   def test_find_with_order_on_included_associations_with_construct_finder_sql_for_association_limiting_and_is_distinct_and_offset

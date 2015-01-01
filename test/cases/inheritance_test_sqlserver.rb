@@ -15,7 +15,7 @@ class InheritanceTest < ActiveRecord::TestCase
     :test_eager_load_belongs_to_primary_key_quoting
   ]
 
-  include SqlserverCoercedTest
+  include ARTest::Sqlserver::CoercedTest
 
   def test_coerced_a_bad_type_column
     Company.connection.execute "SET IDENTITY_INSERT [companies] ON"

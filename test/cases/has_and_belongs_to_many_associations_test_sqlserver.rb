@@ -10,7 +10,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     :test_caching_of_columns
   ]
 
-  include SqlserverCoercedTest
+  include ARTest::Sqlserver::CoercedTest
 
   # TODO: put a real test here
   def test_coerced_count_with_finder_sql

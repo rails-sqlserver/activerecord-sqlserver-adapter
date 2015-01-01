@@ -18,7 +18,7 @@ class CalculationsTest < ActiveRecord::TestCase
     :test_offset_is_kept
   ]
 
-  include SqlserverCoercedTest
+  include ARTest::Sqlserver::CoercedTest
 
   fixtures :accounts
 

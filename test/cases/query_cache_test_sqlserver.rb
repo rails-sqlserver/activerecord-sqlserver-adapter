@@ -8,7 +8,7 @@ class QueryCacheTest < ActiveRecord::TestCase
 
   COERCED_TESTS = [:test_cache_does_not_wrap_string_results_in_arrays]
 
-  include SqlserverCoercedTest
+  include ARTest::Sqlserver::CoercedTest
 
   fixtures :tasks
 

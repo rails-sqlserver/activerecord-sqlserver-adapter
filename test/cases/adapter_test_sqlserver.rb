@@ -811,7 +811,7 @@ module ActiveRecord
     # SELECT 'a'+CONVERT(varchar(5), @mybin1) + 'aaaaa'
     # This is not run for PostgreSQL at the rails level and the same should happen for SQL Server
     # Until that patch is made to rails we are preventing this test from running in this gem.
-    include SqlserverCoercedTest
+    include ARTest::Sqlserver::CoercedTest
 
     fixtures :authors
   end

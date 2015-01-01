@@ -6,7 +6,7 @@ module ActiveRecord
 
       class ResolverTest < ActiveRecord::TestCase
 
-        include SqlserverCoercedTest
+        include ARTest::Sqlserver::CoercedTest
 
         COERCED_TESTS = [
           :test_url_host_no_db,

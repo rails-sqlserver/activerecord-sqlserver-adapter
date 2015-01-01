@@ -14,7 +14,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     :test_typecast_attribute_from_select_to_true
   ]
 
-  include SqlserverCoercedTest
+  include ARTest::Sqlserver::CoercedTest
 
   fixtures :developers
 

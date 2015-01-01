@@ -10,7 +10,7 @@ class BasicsTest < ActiveRecord::TestCase
   # Until that patch is made to rails we are preventing this test from running in this gem.
 
 
-  include SqlserverCoercedTest
+  include ARTest::Sqlserver::CoercedTest
 
   should 'operate as other database adapters when finding primary keys, standards are postgresql adapter' do
     assert_nil Post.where(id:'').first

@@ -3,43 +3,8 @@ require 'support/paths_sqlserver'
 require 'support/minitest_sqlserver'
 require 'cases/helper'
 require 'support/load_schema_sqlserver'
+require 'support/coerced_test_sqlserver'
 require 'cases/sqlserver_test_case'
-
-# A module that we can include in classes where we want to override an active record test.
-#
-module SqlserverCoercedTest
-
-  def self.included(base)
-    base.extend ClassMethods
-  end
-
-  module ClassMethods
-
-    def self.extended(base)
-      base.class_eval do
-        Array(coerced_tests).each do |method_name|
-          undefine_and_puts(method_name)
-        end
-      end
-    end
-
-    def coerced_tests
-      self.const_get(:COERCED_TESTS) rescue nil
-    end
-
-    def method_added(method)
-      if coerced_tests && coerced_tests.include?(method)
-        undefine_and_puts(method)
-      end
-    end
-
-    def undefine_and_puts(method)
-      result = undef_method(method) rescue nil
-      STDOUT.puts("Info: Undefined coerced test: #{self.name}##{method}") unless result.blank?
-    end
-
-  end
-end
 
 module ActiveRecord
   class TestCase < ActiveSupport::TestCase

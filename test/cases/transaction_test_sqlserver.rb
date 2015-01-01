@@ -47,7 +47,7 @@ class TransactionTestSqlserver < ActiveRecord::TestCase
 end
 
 class TransactionTest < ActiveRecord::TestCase
-  include SqlserverCoercedTest
+  include ARTest::Sqlserver::CoercedTest
 
   COERCED_TESTS = [:test_releasing_named_savepoints]
 

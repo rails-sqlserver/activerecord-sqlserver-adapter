@@ -10,7 +10,7 @@ class EachTest < ActiveRecord::TestCase
     :test_find_in_batches_should_quote_batch_order
   ]
 
-  include SqlserverCoercedTest
+  include ARTest::Sqlserver::CoercedTest
 
   fixtures :posts
 

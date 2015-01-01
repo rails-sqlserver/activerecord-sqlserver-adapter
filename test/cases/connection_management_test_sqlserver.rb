@@ -9,7 +9,7 @@ module ActiveRecord
 
     COERCED_TESTS = [:test_connection_pool_per_pid]
 
-    include SqlserverCoercedTest
+    include ARTest::Sqlserver::CoercedTest
 
     #https://www.ruby-forum.com/topic/4221299
     def test_coerced_connection_pool_per_pid

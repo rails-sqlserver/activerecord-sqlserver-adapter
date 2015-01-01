@@ -353,7 +353,7 @@ module ActiveRecord
         # The if current_adapter? conditional below should also contain :SQLServerAdapter.
         # Until that patch is made to rails we are preventing this test from running in this gem.
 
-      include SqlserverCoercedTest
+      include ARTest::Sqlserver::CoercedTest
 
       #the only thing we changed in this method was to add :SQLServerAdapter
       def test_coerced_remove_column_with_multi_column_index

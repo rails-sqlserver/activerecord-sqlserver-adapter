@@ -10,7 +10,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
 
   COERCED_TESTS = [:test_count_with_include]
 
-  include SqlserverCoercedTest
+  include ARTest::Sqlserver::CoercedTest
 
   fixtures :posts, :comments, :authors
 

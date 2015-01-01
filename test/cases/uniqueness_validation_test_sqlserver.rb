@@ -17,14 +17,14 @@ class UniquenessValidationTest < ActiveRecord::TestCase
 
   COERCED_TESTS = [:test_validate_uniqueness_with_limit_and_utf8]
 
-  include SqlserverCoercedTest
+  include ARTest::Sqlserver::CoercedTest
 
   # I guess most databases just truncate a string when inserting. To pass this test we do a few things.
   # First, we make sure the type is unicode safe, second we extend the limit to well beyond what is
   # needed. At the top we make sure to auto truncate the :title string like other databases would do
   # automatically.
   #
-  #   "一二三四五".mb_chars.size           # => 5
+  #   "一二三四五".mb_chars.size              # => 5
   #   "一二三四五六七八".mb_chars.size        # => 8
   #   "一二三四五六七八".mb_chars.to(4).to_s  # => "一二三四五"
 
