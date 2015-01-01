@@ -2,7 +2,6 @@ SQLSERVER_TEST_ROOT       = File.expand_path(File.join(File.dirname(__FILE__),'.
 SQLSERVER_ASSETS_ROOT     = File.expand_path(File.join(SQLSERVER_TEST_ROOT,'assets'))
 SQLSERVER_FIXTURES_ROOT   = File.expand_path(File.join(SQLSERVER_TEST_ROOT,'fixtures'))
 SQLSERVER_MIGRATIONS_ROOT = File.expand_path(File.join(SQLSERVER_TEST_ROOT,'migrations'))
-SQLSERVER_SCHEMA_ROOT     = File.expand_path(File.join(SQLSERVER_TEST_ROOT,'schema'))
 ACTIVERECORD_TEST_ROOT    = File.expand_path(File.join(Gem.loaded_specs['activerecord'].full_gem_path,'test'))
 
 ENV['ARCONFIG']           = File.expand_path(File.join(SQLSERVER_TEST_ROOT,'config.yml'))
@@ -18,6 +17,7 @@ require 'minitest-spec-rails'
 require 'minitest-spec-rails/init/active_support'
 require 'minitest-spec-rails/init/mini_shoulda'
 require 'cases/helper'
+require 'support/load_schema_sqlserver'
 require 'cases/sqlserver_test_case'
 
 # A module that we can include in classes where we want to override an active record test.
@@ -103,7 +103,3 @@ module ActiveRecord
 end
 
 require 'mocha/mini_test'
-
-# SQL Server.
-sqlserver_specific_schema_file = "#{SQLSERVER_SCHEMA_ROOT}/sqlserver_specific_schema.rb"
-eval(File.read(sqlserver_specific_schema_file)) unless ENV["SKIP_SCHEMA"]
