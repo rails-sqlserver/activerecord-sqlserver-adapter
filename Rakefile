@@ -1,12 +1,6 @@
 require 'rake/testtask'
 require_relative 'test/support/paths_sqlserver'
 
-def test_libs
-  ar_lib = File.join ARTest::Sqlserver.root_activerecord, 'lib'
-  ar_test = File.join ARTest::Sqlserver.root_activerecord, 'test'
-  ['lib', 'test', ar_lib, ar_test]
-end
-
 def test_files
   test_setup = ['test/cases/helper_sqlserver.rb']
   return test_setup + (ENV['TEST_FILES']).split(',') if ENV['TEST_FILES']
@@ -30,7 +24,7 @@ namespace :test do
   %w(dblib odbc).each do |mode|
 
     Rake::TestTask.new(mode) do |t|
-      t.libs = test_libs
+      t.libs = ARTest::Sqlserver.test_load_paths
       t.test_files = test_files
       t.verbose = true
     end
@@ -56,7 +50,7 @@ namespace :profile do
       Dir.glob('test/profile/*_profile_case.rb').sort.each do |test_file|
         profile_case = File.basename(test_file).sub('_profile_case.rb', '')
         Rake::TestTask.new(profile_case) do |t|
-          t.libs = test_libs
+          t.libs = ARTest::Sqlserver.test_load_paths
           t.test_files = [test_file]
           t.verbose = true
         end

@@ -1,5 +1,7 @@
 require_relative 'test/support/paths_sqlserver'
 
+notification :terminal_notifier if Guard::Notifier::TerminalNotifier.available?
+
 guard :minitest, {
   all_on_start: false,
   autorun: false,

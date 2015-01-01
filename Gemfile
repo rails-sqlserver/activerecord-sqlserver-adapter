@@ -1,6 +1,10 @@
 source 'https://rubygems.org'
 gemspec
 
+if RbConfig::CONFIG["host_os"] =~ /darwin/
+  gem 'terminal-notifier-guard'
+end
+
 if ENV['RAILS_SOURCE']
   gemspec path: ENV['RAILS_SOURCE']
 else

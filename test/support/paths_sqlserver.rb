@@ -19,9 +19,14 @@ module ARTest
       File.join root_activerecord, 'test'
     end
 
-    def test_root_activerecord_add_to_load_path
-      return if $LOAD_PATH.include? test_root_activerecord
-      $LOAD_PATH.unshift(test_root_activerecord)
+    def test_load_paths
+      ar_lib = File.join root_activerecord, 'lib'
+      ar_test = File.join root_activerecord, 'test'
+      ['lib', 'test', ar_lib, ar_test]
+    end
+
+    def add_to_load_paths!
+      test_load_paths.each { |p| $LOAD_PATH.unshift(p) unless $LOAD_PATH.include?(p) }
     end
 
     def migrations_root
@@ -39,5 +44,5 @@ module ARTest
   end
 end
 
-ARTest::Sqlserver.test_root_activerecord_add_to_load_path
+ARTest::Sqlserver.add_to_load_paths!
 ARTest::Sqlserver.arconfig_file_env!
