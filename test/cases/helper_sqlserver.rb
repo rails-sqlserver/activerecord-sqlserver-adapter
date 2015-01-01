@@ -1,12 +1,6 @@
+require 'bundler' ; Bundler.require :default, :development, :test
 require 'support/paths_sqlserver'
-require 'bundler' ; Bundler.require :development, :test
-require 'active_support/dependencies'
-require 'active_record'
-require 'active_record/version'
-require 'active_record/connection_adapters/abstract_adapter'
-require 'minitest-spec-rails'
-require 'minitest-spec-rails/init/active_support'
-require 'minitest-spec-rails/init/mini_shoulda'
+require 'support/minitest_sqlserver'
 require 'cases/helper'
 require 'support/load_schema_sqlserver'
 require 'cases/sqlserver_test_case'
