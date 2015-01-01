@@ -4,7 +4,7 @@ require 'support/minitest_sqlserver'
 require 'cases/helper'
 require 'support/load_schema_sqlserver'
 require 'support/coerced_test_sqlserver'
-require 'cases/sqlserver_test_case'
+require 'support/sql_counter_sqlserver'
 
 module ActiveRecord
   class TestCase < ActiveSupport::TestCase
