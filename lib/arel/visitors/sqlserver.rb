@@ -60,6 +60,9 @@ module Arel
         groups = core.groups
         orders = o.orders.uniq
 
+        # split out any projections that may have > 1 specified (comma-separated)
+        projections = projections.each_with_object(',').map(&:split).flatten
+
         select_frags = projections.map do |x|
           frag = projection_to_sql_remove_distinct(x, core, a)
           # Remove the table specifier
@@ -76,6 +79,9 @@ module Arel
 
         projection_list = projections.map { |x| projection_to_sql_remove_distinct(x, core, a) }.join(', ')
 
+        # strip aliases from projection list for PARTITION BY value expression
+        partitions = projection_list.gsub(/\s+AS\s+[^,]*/i, '')
+
         sql = [
           ('SELECT'),
           (visit(core.set_quantifier, a) if core.set_quantifier && !o.offset),
@@ -90,7 +96,7 @@ module Arel
                   ("ORDER BY #{orders.map { |x| visit(x, a) }.join(', ')}" unless orders.empty?),
                 (') AS __order'),
                 (', ROW_NUMBER() OVER ('),
-                  ("PARTITION BY #{projection_list}" if !orders.empty?),
+                  ("PARTITION BY #{partitions}" if !orders.empty?),
                   (" ORDER BY #{orders.map { |x| visit(x, a) }.join(', ')}" unless orders.empty?),
                 (') AS __joined_row_num')
               ].join('')
