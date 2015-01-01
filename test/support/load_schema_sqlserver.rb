@@ -4,11 +4,11 @@ module ARTest
     extend self
 
     def schema_root
-      File.join SQLSERVER_TEST_ROOT, 'schema'
+      @schema_root ||= File.join ARTest::Sqlserver.test_root_sqlserver, 'schema'
     end
 
     def schema_file
-      File.join schema_root, 'sqlserver_specific_schema.rb'
+      @schema_file ||= File.join schema_root, 'sqlserver_specific_schema.rb'
     end
 
     def load_schema
