@@ -1,16 +1,9 @@
-require 'rake'
 require 'rake/testtask'
-
-AR_PATH = Gem.loaded_specs['activerecord'].full_gem_path
-
-# Since the Gemfile for this project requires, rails, it ends up causing
-# Rails.env to be defined, which affects some of the unit tests. We fix this
-# by setting the RAILS_ENV to "default_env"
-ENV['RAILS_ENV'] = 'default_env'
+require_relative 'test/support/paths_sqlserver'
 
 def test_libs
-  ar_lib = File.join AR_PATH, 'lib'
-  ar_test = File.join AR_PATH, 'test'
+  ar_lib = File.join ARTest::Sqlserver.root_activerecord, 'lib'
+  ar_test = File.join ARTest::Sqlserver.root_activerecord, 'test'
   ['lib', 'test', ar_lib, ar_test]
 end
 
@@ -18,8 +11,8 @@ def test_files
   test_setup = ['test/cases/helper_sqlserver.rb']
   return test_setup + (ENV['TEST_FILES']).split(',') if ENV['TEST_FILES']
   sqlserver_cases = Dir.glob('test/cases/**/*_test_sqlserver.rb')
-  ar_cases = Dir.glob("#{AR_PATH}/test/cases/**/*_test.rb")
-  adapter_cases = Dir.glob("#{AR_PATH}/test/cases/adapters/**/*_test.rb")
+  ar_cases = Dir.glob("#{ARTest::Sqlserver.root_activerecord}/test/cases/**/*_test.rb")
+  adapter_cases = Dir.glob("#{ARTest::Sqlserver.root_activerecord}/test/cases/adapters/**/*_test.rb")
   if ENV['SQLSERVER_ONLY']
     sqlserver_cases
   elsif ENV['ACTIVERECORD_ONLY']

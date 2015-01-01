@@ -5,6 +5,7 @@ require 'cases/helper'
 require 'support/load_schema_sqlserver'
 require 'support/coerced_test_sqlserver'
 require 'support/sql_counter_sqlserver'
+require 'mocha/mini_test'
 
 module ActiveRecord
   class TestCase < ActiveSupport::TestCase
@@ -51,5 +52,3 @@ module ActiveRecord
 
   end
 end
-
-require 'mocha/mini_test'
