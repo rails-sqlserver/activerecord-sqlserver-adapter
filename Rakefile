@@ -2,17 +2,15 @@ require 'rake/testtask'
 require_relative 'test/support/paths_sqlserver'
 
 def test_files
-  test_setup = ['test/cases/helper_sqlserver.rb']
-  return test_setup + (ENV['TEST_FILES']).split(',') if ENV['TEST_FILES']
+  return ENV['TEST_FILES'].split(',') if ENV['TEST_FILES']
   sqlserver_cases = Dir.glob('test/cases/**/*_test_sqlserver.rb')
   ar_cases = Dir.glob("#{ARTest::Sqlserver.root_activerecord}/test/cases/**/*_test.rb")
-  adapter_cases = Dir.glob("#{ARTest::Sqlserver.root_activerecord}/test/cases/adapters/**/*_test.rb")
   if ENV['SQLSERVER_ONLY']
     sqlserver_cases
   elsif ENV['ACTIVERECORD_ONLY']
-    test_setup + (ar_cases - adapter_cases)
+    ar_cases
   else
-    test_setup + sqlserver_cases + (ar_cases - adapter_cases)
+    sqlserver_cases + ar_cases
   end
 end
 
