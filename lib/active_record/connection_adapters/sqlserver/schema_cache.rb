@@ -2,6 +2,7 @@ module ActiveRecord
   module ConnectionAdapters
     module Sqlserver
       class SchemaCache < ActiveRecord::ConnectionAdapters::SchemaCache
+
         attr_reader :view_information
 
         def initialize(conn)
@@ -9,7 +10,6 @@ module ActiveRecord
           @table_names = nil
           @view_names = nil
           @view_information = {}
-          @quoted_names = {}
         end
 
         # Superclass Overrides
@@ -26,7 +26,6 @@ module ActiveRecord
           @table_names = nil
           @view_names = nil
           @view_information.clear
-          @quoted_names.clear
         end
 
         def clear_table_cache!(table_name)
@@ -65,25 +64,13 @@ module ActiveRecord
           @view_information[key] = connection.send(:view_information, table_name)
         end
 
-        def quote_name(name, split_on_dots = true)
-          return @quoted_names[name] if @quoted_names.key? name
-
-          @quoted_names[name] = if split_on_dots
-                                  name.to_s.split('.').map { |n| quote_name_part(n) }.join('.')
-                                else
-                                  quote_name_part(name.to_s)
-                                end
-        end
 
         private
 
-        def quote_name_part(part)
-          part =~ /^\[.*\]$/ ? part : "[#{part.to_s.gsub(']', ']]')}]"
+        def table_name_key(table_name)
+          Sqlserver::Utils.extract_identifiers(table_name).object
         end
 
-        def table_name_key(table_name)
-          Utils.unqualify_table_name(table_name)
-        end
       end
     end
   end

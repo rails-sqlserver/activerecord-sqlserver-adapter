@@ -8,10 +8,6 @@ class SchemaTestSqlserver < ActiveRecord::TestCase
     @connection = ActiveRecord::Base.connection
   end
 
-  def read_schema_name(table_name)
-    ActiveRecord::ConnectionAdapters::Sqlserver::Utils.unqualify_table_schema(table_name)
-  end
-
   context 'When table is dbo schema' do
 
     should 'find primary key for tables with odd schema' do
@@ -48,14 +44,6 @@ class SchemaTestSqlserver < ActiveRecord::TestCase
       assert_equal 1, test_columns.select{ |c| c.primary }.size
       assert_equal 1, dbo_columns.select{ |c| c.primary }.size
       assert_equal 1, columns.select{ |c| c.primary }.size
-    end
-
-    should "return schema name in all cases" do
-      assert_nil read_schema_name("table")
-      assert_equal "schema1", read_schema_name("schema1.table")
-      assert_equal "schema2", read_schema_name("database.schema2.table")
-      assert_equal "schema3", read_schema_name("server.database.schema3.table")
-      assert_equal "schema3", read_schema_name("[server].[database].[schema3].[table]")
     end
 
     should "return correct varchar and nvarchar column limit (length) when table is in non dbo schema" do

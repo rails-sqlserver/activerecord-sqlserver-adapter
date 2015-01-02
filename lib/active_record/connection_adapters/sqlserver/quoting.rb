@@ -38,20 +38,16 @@ module ActiveRecord
           QUOTED_STRING_PREFIX
         end
 
-        def quote_string(string)
-          string.to_s.gsub(/\'/, "''")
+        def quote_string(s)
+          Sqlserver::Utils.quote_string(s)
         end
 
         def quote_column_name(name)
-          schema_cache.quote_name(name)
+          Sqlserver::Utils.extract_identifiers(name).object_quoted
         end
 
         def quote_table_name(name)
           quote_column_name(name)
-        end
-
-        def quote_database_name(name)
-          schema_cache.quote_name(name, false)
         end
 
         # Does not quote function default values for UUID columns

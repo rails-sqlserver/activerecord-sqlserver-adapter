@@ -116,8 +116,8 @@ module ActiveRecord
 
         def use_database(database = nil)
           return if sqlserver_azure?
-          database ||= @connection_options[:database]
-          do_execute "USE #{quote_database_name(database)}" unless database.blank?
+          name = Sqlserver::Utils.extract_identifiers(database || @connection_options[:database])
+          do_execute "USE #{name}" unless database.blank?
         end
 
         def user_options
@@ -258,7 +258,7 @@ module ActiveRecord
           retry_count = 0
           max_retries = 1
           begin
-            do_execute "DROP DATABASE #{quote_database_name(database)}"
+            do_execute "DROP DATABASE #{Sqlserver::Utils.extract_identifiers(database)}"
           rescue ActiveRecord::StatementInvalid => err
             if err.message =~ /because it is currently in use/i
               raise if retry_count >= max_retries
@@ -274,10 +274,11 @@ module ActiveRecord
         end
 
         def create_database(database, collation = @connection_options[:collation])
+          name = Sqlserver::Utils.extract_identifiers(database)
           if collation
-            do_execute "CREATE DATABASE #{quote_database_name(database)} COLLATE #{collation}"
+            do_execute "CREATE DATABASE #{name} COLLATE #{collation}"
           else
-            do_execute "CREATE DATABASE #{quote_database_name(database)}"
+            do_execute "CREATE DATABASE #{name}"
           end
         end
 

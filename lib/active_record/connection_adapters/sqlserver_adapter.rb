@@ -373,12 +373,12 @@ module ActiveRecord
       end
 
       def remove_database_connections_and_rollback(database = nil)
-        database ||= current_database
-        do_execute "ALTER DATABASE #{quote_database_name(database)} SET SINGLE_USER WITH ROLLBACK IMMEDIATE"
+        name = Sqlserver::Utils.extract_identifiers(database || current_database)
+        do_execute "ALTER DATABASE #{name} SET SINGLE_USER WITH ROLLBACK IMMEDIATE"
         begin
           yield
         ensure
-          do_execute "ALTER DATABASE #{quote_database_name(database)} SET MULTI_USER"
+          do_execute "ALTER DATABASE #{name} SET MULTI_USER"
         end if block_given?
       end
 
