@@ -1,6 +1,6 @@
 require 'base64'
 require 'active_record'
-require 'arel/arel_sqlserver'
+require 'arel_sqlserver'
 require 'active_record/connection_adapters/abstract_adapter'
 require 'active_record/connection_adapters/sqlserver/core_ext/active_record'
 require 'active_record/connection_adapters/sqlserver/core_ext/explain'
@@ -41,10 +41,6 @@ module ActiveRecord
                      :lowercase_schema_reflection, :auto_connect_duration, :showplan_option
 
       self.enable_default_unicode_types = true
-
-      class BindSubstitution < Arel::Visitors::SQLServer # :nodoc:
-        include Arel::Visitors::BindVisitor
-      end
 
       def initialize(connection, logger, pool, config)
         super(connection, logger, pool)

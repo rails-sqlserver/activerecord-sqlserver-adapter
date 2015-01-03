@@ -2,6 +2,7 @@ module ActiveRecord
   module ConnectionAdapters
     module Sqlserver
       module SchemaStatements
+
         def native_database_types
           @native_database_types ||= initialize_native_database_types.freeze
         end
@@ -45,8 +46,13 @@ module ActiveRecord
           return [] if table_name.blank?
           column_definitions(table_name).map do |ci|
             sqlserver_options = ci.except(:name, :default_value, :type, :null).merge(database_year: database_year)
-            SQLServerColumn.new ci[:name], ci[:default_value], ci[:type], ci[:null], sqlserver_options
+            cast_type = lookup_cast_type(ci[:type])
+            new_column ci[:name], ci[:default_value], cast_type, ci[:type], ci[:null], sqlserver_options
           end
+        end
+
+        def new_column(name, default, cast_type, sql_type = nil, null = true, sqlserver_options={})
+          SQLServerColumn.new name, default, cast_type, sql_type, null, sqlserver_options
         end
 
         # like postgres, sqlserver requires the ORDER BY columns in the select list for distinct queries, and
@@ -417,6 +423,7 @@ module ActiveRecord
         def create_table_definition(name, temporary, options, as = nil)
           TableDefinition.new native_database_types, name, temporary, options, as
         end
+
       end
     end
   end

@@ -2,41 +2,10 @@ module ActiveRecord
   module ConnectionAdapters
     module Sqlserver
       module Quoting
-        QUOTED_TRUE, QUOTED_FALSE = '1', '0'
+
+        QUOTED_TRUE  = '1'
+        QUOTED_FALSE = '0'
         QUOTED_STRING_PREFIX = 'N'
-
-        def quote(value, column = nil)
-          case value
-          when String, ActiveSupport::Multibyte::Chars
-            if column && column.type == :integer && value.blank?
-              value.to_i.to_s
-            elsif column && column.type == :binary
-              column.class.string_to_binary(value)
-            elsif column && [:uuid, :uniqueidentifier].include?(column.type)
-              "'#{quote_string(value)}'"
-            elsif value.is_utf8? || (column && column.type == :string)
-              "#{quoted_string_prefix}'#{quote_string(value)}'"
-            else
-              super
-            end
-          when Date, Time
-            if column && column.sql_type == 'datetime'
-              "'#{quoted_datetime(value)}'"
-            elsif column && (column.sql_type == 'datetimeoffset' || column.sql_type == 'time')
-              "'#{quoted_full_iso8601(value)}'"
-            else
-              super
-            end
-          when nil
-            column.respond_to?(:sql_type) && column.sql_type == 'timestamp' ? 'DEFAULT' : super
-          else
-            super
-          end
-        end
-
-        def quoted_string_prefix
-          QUOTED_STRING_PREFIX
-        end
 
         def quote_string(s)
           Sqlserver::Utils.quote_string(s)
@@ -46,11 +15,6 @@ module ActiveRecord
           Sqlserver::Utils.extract_identifiers(name).object_quoted
         end
 
-        def quote_table_name(name)
-          quote_column_name(name)
-        end
-
-        # Does not quote function default values for UUID columns
         def quote_default_value(value, column)
           if column.type == :uuid && value =~ /\(\)/
             value
@@ -59,20 +23,25 @@ module ActiveRecord
           end
         end
 
-        def substitute_at(column, index)
-          if column.respond_to?(:sql_type) && column.sql_type == 'timestamp'
-            nil
-          else
-            Arel::Nodes::BindParam.new "@#{index}"
-          end
+        def substitute_at(column, _unused = 0)
+          return nil if column.respond_to?(:sql_type) && column.sql_type == 'timestamp'
+          super
         end
 
         def quoted_true
           QUOTED_TRUE
         end
 
+        def unquoted_true
+          1
+        end
+
         def quoted_false
           QUOTED_FALSE
+        end
+
+        def unquoted_false
+          0
         end
 
         def quoted_datetime(value)
@@ -106,12 +75,27 @@ module ActiveRecord
           end
         end
 
-        protected
+
+        private
+
+        def _quote(value) # , column = nil
+          case value
+          when String, ActiveSupport::Multibyte::Chars
+            if value.is_utf8?
+              "#{QUOTED_STRING_PREFIX}#{super}"
+            else
+              super
+            end
+          else
+            super(value)
+          end
+        end
 
         def quoted_value_acts_like_time_filter(value)
           zone_conversion_method = ActiveRecord::Base.default_timezone == :utc ? :getutc : :getlocal
           value.respond_to?(zone_conversion_method) ? value.send(zone_conversion_method) : value
         end
+
       end
     end
   end

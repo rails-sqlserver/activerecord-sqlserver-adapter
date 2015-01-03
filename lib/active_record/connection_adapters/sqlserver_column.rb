@@ -1,9 +1,10 @@
 module ActiveRecord
   module ConnectionAdapters
     class SQLServerColumn < Column
-      def initialize(name, default, sql_type = nil, null = true, sqlserver_options = {})
+
+      def initialize(name, default, cast_type, sql_type = nil, null = true, sqlserver_options = {})
         @sqlserver_options = sqlserver_options.symbolize_keys
-        super(name, default, sql_type, null)
+        super(name, default, cast_type, sql_type, null)
         @primary = @sqlserver_options[:is_identity] || @sqlserver_options[:is_primary]
       end
 
@@ -52,22 +53,6 @@ module ActiveRecord
         @sqlserver_options[:default_function]
       end
 
-      def table_name
-        @sqlserver_options[:table_name]
-      end
-
-      def table_klass
-        @table_klass ||= begin
-          table_name.classify.constantize
-        rescue StandardError, NameError, LoadError
-          nil
-        end
-        (@table_klass && @table_klass < ActiveRecord::Base) ? @table_klass : nil
-      end
-
-      def database_year
-        @sqlserver_options[:database_year]
-      end
 
       private
 
@@ -93,24 +78,13 @@ module ActiveRecord
         when /image/i             then :binary
         when /bit/i               then :boolean
         when /uniqueidentifier/i  then :uuid
-        when /datetime/i          then simplified_datetime
+        when /datetime/i          then :datetime
         when /varchar\(max\)/     then :text
         when /timestamp/          then :binary
         else super
         end
       end
 
-      def simplified_datetime
-        if database_year >= 2008
-          :datetime
-        elsif table_klass && table_klass.coerced_sqlserver_date_columns.include?(name)
-          :date
-        elsif table_klass && table_klass.coerced_sqlserver_time_columns.include?(name)
-          :time
-        else
-          :datetime
-        end
-      end
-    end # class SQLServerColumn
-  end # module ConnectionAdapters
-end # module ActiveRecord
+    end
+  end
+end
