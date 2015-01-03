@@ -18,6 +18,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'activerecord', '~> 4.2.0'
   spec.add_development_dependency 'bundler'
   spec.add_development_dependency 'guard-minitest'
+  spec.add_development_dependency 'minitest-focus'
   spec.add_development_dependency 'minitest-spec-rails'
   spec.add_development_dependency 'mocha'
   spec.add_development_dependency 'nokogiri'
