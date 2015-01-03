@@ -3,7 +3,7 @@ require 'cases/schema_dumper_test'
 require 'stringio'
 
 
-class SchemaDumperTestSqlserver < ActiveRecord::TestCase
+class SchemaDumperTestSQLServer < ActiveRecord::TestCase
 
   setup :find_all_tables
 
@@ -77,7 +77,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
 
   COERCED_TESTS = [:test_schema_dump_keeps_large_precision_integer_columns_as_decimal, :test_types_line_up]
 
-  include ARTest::Sqlserver::CoercedTest
+  include ARTest::SQLServer::CoercedTest
 
   def test_coerced_schema_dump_keeps_large_precision_integer_columns_as_decimal
     output = standard_dump

@@ -1,6 +1,6 @@
 ActiveRecord::Schema.define do
 
-  execute File.read(ARTest::Sqlserver.schema_datatypes_2012_file)
+  execute File.read(ARTest::SQLServer.schema_datatypes_2012_file)
 
   create_table :UPPER_TESTS, force: true do |t|
     t.column :COLUMN1, :string

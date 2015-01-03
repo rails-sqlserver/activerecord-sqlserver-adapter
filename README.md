@@ -178,7 +178,7 @@ EXPLAIN for: SELECT [cars].* FROM [cars] WHERE [cars].[id] = 1
 You can configure a few options to your needs. First is the max column width for the logged table. The default value is 50 characters. You can change it like so.
 
 ```ruby
-ActiveRecord::ConnectionAdapters::Sqlserver::Showplan::PrinterTable.max_column_width = 500
+ActiveRecord::ConnectionAdapters::SQLServer::Showplan::PrinterTable.max_column_width = 500
 ```
 
 Another configuration is the showplan option. Some might find the XML format more useful. If you have Nokogiri installed, we will format the XML string. I will gladly accept pathches that make the XML printer more useful!

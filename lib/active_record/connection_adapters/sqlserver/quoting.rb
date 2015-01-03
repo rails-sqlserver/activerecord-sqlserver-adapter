@@ -1,6 +1,6 @@
 module ActiveRecord
   module ConnectionAdapters
-    module Sqlserver
+    module SQLServer
       module Quoting
 
         QUOTED_TRUE  = '1'
@@ -8,11 +8,11 @@ module ActiveRecord
         QUOTED_STRING_PREFIX = 'N'
 
         def quote_string(s)
-          Sqlserver::Utils.quote_string(s)
+          SQLServer::Utils.quote_string(s)
         end
 
         def quote_column_name(name)
-          Sqlserver::Utils.extract_identifiers(name).object_quoted
+          SQLServer::Utils.extract_identifiers(name).object_quoted
         end
 
         def quote_default_value(value, column)

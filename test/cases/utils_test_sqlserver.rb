@@ -1,8 +1,8 @@
 require 'cases/helper_sqlserver'
 
-class UtilsTestSqlserver < ActiveRecord::TestCase
+class UtilsTestSQLServer < ActiveRecord::TestCase
 
-  Utils = ActiveRecord::ConnectionAdapters::Sqlserver::Utils
+  Utils = ActiveRecord::ConnectionAdapters::SQLServer::Utils
 
   it '.quote_string' do
     Utils.quote_string("I'll store this in C:\\Users").must_equal "I''ll store this in C:\\Users"
@@ -12,7 +12,7 @@ class UtilsTestSqlserver < ActiveRecord::TestCase
     Utils.unquote_string("I''ll store this in C:\\Users").must_equal "I'll store this in C:\\Users"
   end
 
-  describe '.extract_identifiers constructor and thus Sqlserver::Utils::Name value object' do
+  describe '.extract_identifiers constructor and thus SQLServer::Utils::Name value object' do
 
     let(:valid_names) { valid_names_unquoted + valid_names_quoted }
 

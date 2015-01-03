@@ -3,11 +3,11 @@ require 'cases/disconnected_test'
 
 class TestDisconnectedAdapter < ActiveRecord::TestCase
   def setup
-    skip "TestDisconnectedAdapterSqlserver instead "
+    skip "TestDisconnectedAdapterSQLServer instead "
   end
 end
 
-class TestDisconnectedAdapterSqlserver < ActiveRecord::TestCase
+class TestDisconnectedAdapterSQLServer < ActiveRecord::TestCase
   self.use_transactional_fixtures = false
 
   def setup

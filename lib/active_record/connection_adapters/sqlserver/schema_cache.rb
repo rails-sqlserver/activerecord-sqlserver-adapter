@@ -1,6 +1,6 @@
 module ActiveRecord
   module ConnectionAdapters
-    module Sqlserver
+    module SQLServer
       class SchemaCache < ActiveRecord::ConnectionAdapters::SchemaCache
 
         attr_reader :view_information
@@ -68,7 +68,7 @@ module ActiveRecord
         private
 
         def table_name_key(table_name)
-          Sqlserver::Utils.extract_identifiers(table_name).object
+          SQLServer::Utils.extract_identifiers(table_name).object
         end
 
       end

@@ -1,6 +1,6 @@
 module ActiveRecord
   module ConnectionAdapters
-    module Sqlserver
+    module SQLServer
       module CoreExt
         module Relation
           private
@@ -14,4 +14,4 @@ module ActiveRecord
   end
 end
 
-ActiveRecord::Relation.send :include, ActiveRecord::ConnectionAdapters::Sqlserver::CoreExt::Relation
+ActiveRecord::Relation.send :include, ActiveRecord::ConnectionAdapters::SQLServer::CoreExt::Relation

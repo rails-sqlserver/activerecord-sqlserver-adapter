@@ -6,7 +6,7 @@ module ActiveRecord
   end
 
   module ConnectionAdapters
-    module Sqlserver
+    module SQLServer
       module Errors
         LOST_CONNECTION_EXCEPTIONS  = {
           dblib: ['TinyTds::Error'],

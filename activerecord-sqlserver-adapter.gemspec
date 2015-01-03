@@ -4,7 +4,7 @@ require "active_record/connection_adapters/sqlserver/version"
 
 Gem::Specification.new do |spec|
   spec.name          = 'activerecord-sqlserver-adapter'
-  spec.version       = ActiveRecord::ConnectionAdapters::Sqlserver::Version::VERSION
+  spec.version       = ActiveRecord::ConnectionAdapters::SQLServer::Version::VERSION
   spec.platform      = Gem::Platform::RUBY
   spec.authors       = ['Ken Collins', 'Anna Carey', 'Will Bond', 'Murray Steele', 'Shawn Balestracci', 'Joe Rafaniello', 'Tom Ward']
   spec.email         = ['ken@metaskills.net', 'will@wbond.net']

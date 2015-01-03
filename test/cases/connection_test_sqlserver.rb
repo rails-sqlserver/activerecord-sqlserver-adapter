@@ -2,7 +2,7 @@ require 'cases/helper_sqlserver'
 require 'models/reply'
 require 'models/sqlserver/topic'
 
-class ConnectionTestSqlserver < ActiveRecord::TestCase
+class ConnectionTestSQLServer < ActiveRecord::TestCase
 
   self.use_transactional_fixtures = false
 

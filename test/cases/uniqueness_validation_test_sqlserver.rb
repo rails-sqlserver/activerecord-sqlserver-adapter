@@ -10,14 +10,14 @@ class Event < ActiveRecord::Base
   end
 end
 
-class UniquenessValidationTestSqlserver < ActiveRecord::TestCase
+class UniquenessValidationTestSQLServer < ActiveRecord::TestCase
 end
 
 class UniquenessValidationTest < ActiveRecord::TestCase
 
   COERCED_TESTS = [:test_validate_uniqueness_with_limit_and_utf8]
 
-  include ARTest::Sqlserver::CoercedTest
+  include ARTest::SQLServer::CoercedTest
 
   # I guess most databases just truncate a string when inserting. To pass this test we do a few things.
   # First, we make sure the type is unicode safe, second we extend the limit to well beyond what is

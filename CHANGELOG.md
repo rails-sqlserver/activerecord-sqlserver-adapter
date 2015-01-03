@@ -106,7 +106,7 @@
 * Remove our log_info_schema_queries config since we are not hooking properly into AR's 'SCHEMA' names.
 * Properly use 'SCHEMA' name arguement in DB statements to comply with ActiveRecord::ExplainSubscriber::IGNORED_PAYLOADS.
 * Make use of the new ConnectionAdapters::SchemaCache for our needs.
-* New Sqlserver::Utils class for out helpers. Moved table name unquotes there.
+* New SQLServer::Utils class for out helpers. Moved table name unquotes there.
 
 
 ## v3.1.5
@@ -367,7 +367,7 @@
 
 ## v2.2.14 (2009-03-17)
 
-* Back passing tests on 2.2 work. Includes: (1) Created new test helpers that check ActiveRecordversion strings so we can conditionally run 2.2 and 2.3 tests. (2) Making TransactionTestSqlserver use Ship vsBird model. Also made it conditional run a few blocks for different versions of ActiveRecord. (3) PreviousJoinDependency#aliased_table_name_for is now only patched in ActiveRecord equal or greater than 2.3. [Ken Collins]
+* Back passing tests on 2.2 work. Includes: (1) Created new test helpers that check ActiveRecordversion strings so we can conditionally run 2.2 and 2.3 tests. (2) Making TransactionTestSQLServer use Ship vsBird model. Also made it conditional run a few blocks for different versions of ActiveRecord. (3) PreviousJoinDependency#aliased_table_name_for is now only patched in ActiveRecord equal or greater than 2.3. [Ken Collins]
 * Implement new savepoint support [Ken Collins]http://rails.lighthouseapp.com/projects/8994/tickets/383http://www.codeproject.com/KB/database/sqlservertransactions.aspx
 * Coerce NestedScopingTest#test_merged_scoped_find to use correct regexp for adapter. [Ken Collins]
 * Implement a custom ActiveRecord::Associations::ClassMethods::JoinDependency::JoinAssociation#aliased_table_name_formethod that uses a Regexp.escape so that table/column quoting does not get ignored. [Ken Collins]
@@ -417,7 +417,7 @@
 ## v2.2.5 (2009-01-04)
 
 * Added a log_info_schema_queries class attribute and make all queries to INFORMATION_SCHEMA silent bydefault. [Ken Collins]
-* Fix millisecond support in datetime columns. ODBC::Timestamp incorrectly takes SQL Server millisecondsand applies them as nanoseconds. We cope with this at the DBI layer by using SQLServerDBI::Type::SqlserverTimestampclass to parse the before type cast value appropriately. Also update the adapters #quoted_date methodto work more simply by converting ruby's #usec milliseconds to SQL Server microseconds. [Ken Collins]
+* Fix millisecond support in datetime columns. ODBC::Timestamp incorrectly takes SQL Server millisecondsand applies them as nanoseconds. We cope with this at the DBI layer by using SQLServerDBI::Type::SQLServerTimestampclass to parse the before type cast value appropriately. Also update the adapters #quoted_date methodto work more simply by converting ruby's #usec milliseconds to SQL Server microseconds. [Ken Collins]
 * Core extensions for ActiveRecord now reflect on the connection before doing SQL Server things. Nowthis adapter is compatible for using with other adapters. [Ken Collins]
 
 

@@ -1,14 +1,14 @@
 require 'cases/helper_sqlserver'
 require 'models/task'
 
-class QueryCacheTestSqlserver < ActiveRecord::TestCase
+class QueryCacheTestSQLServer < ActiveRecord::TestCase
 end
 
 class QueryCacheTest < ActiveRecord::TestCase
 
   COERCED_TESTS = [:test_cache_does_not_wrap_string_results_in_arrays]
 
-  include ARTest::Sqlserver::CoercedTest
+  include ARTest::SQLServer::CoercedTest
 
   fixtures :tasks
 

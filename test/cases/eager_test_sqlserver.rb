@@ -3,14 +3,14 @@ require 'models/post'
 require 'models/comment'
 require 'models/author'
 
-class EagerAssociationTestSqlserver < ActiveRecord::TestCase
+class EagerAssociationTestSQLServer < ActiveRecord::TestCase
 end
 
 class EagerAssociationTest < ActiveRecord::TestCase
 
   COERCED_TESTS = [:test_count_with_include]
 
-  include ARTest::Sqlserver::CoercedTest
+  include ARTest::SQLServer::CoercedTest
 
   fixtures :posts, :comments, :authors
 

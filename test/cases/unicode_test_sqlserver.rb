@@ -1,7 +1,7 @@
 # encoding: UTF-8
 require 'cases/helper_sqlserver'
 
-class UnicodeTestSqlserver < ActiveRecord::TestCase
+class UnicodeTestSQLServer < ActiveRecord::TestCase
 
 
   context 'Testing basic saves and unicode limits' do

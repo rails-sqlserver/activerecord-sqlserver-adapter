@@ -1,6 +1,6 @@
 module ActiveRecord
   module ConnectionAdapters
-    module Sqlserver
+    module SQLServer
       module Showplan
         class PrinterTable
           cattr_accessor :max_column_width, :cell_padding

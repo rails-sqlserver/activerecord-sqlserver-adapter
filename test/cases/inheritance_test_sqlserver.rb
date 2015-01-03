@@ -3,7 +3,7 @@ require 'models/company'
 require 'models/project'
 require 'models/subscriber'
 
-class InheritanceTestSqlserver < ActiveRecord::TestCase
+class InheritanceTestSQLServer < ActiveRecord::TestCase
 end
 
 class InheritanceTest < ActiveRecord::TestCase
@@ -15,7 +15,7 @@ class InheritanceTest < ActiveRecord::TestCase
     :test_eager_load_belongs_to_primary_key_quoting
   ]
 
-  include ARTest::Sqlserver::CoercedTest
+  include ARTest::SQLServer::CoercedTest
 
   def test_coerced_a_bad_type_column
     Company.connection.execute "SET IDENTITY_INSERT [companies] ON"

@@ -5,7 +5,7 @@ require 'models/edge'
 require 'models/club'
 require 'models/organization'
 
-class CalculationsTestSqlserver < ActiveRecord::TestCase
+class CalculationsTestSQLServer < ActiveRecord::TestCase
 end
 
 class CalculationsTest < ActiveRecord::TestCase
@@ -18,7 +18,7 @@ class CalculationsTest < ActiveRecord::TestCase
     :test_offset_is_kept
   ]
 
-  include ARTest::Sqlserver::CoercedTest
+  include ARTest::SQLServer::CoercedTest
 
   fixtures :accounts
 

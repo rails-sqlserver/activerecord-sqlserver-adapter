@@ -1,6 +1,6 @@
 module ActiveRecord
   module ConnectionAdapters
-    module Sqlserver
+    module SQLServer
       class SchemaCreation < AbstractAdapter::SchemaCreation
         private
 

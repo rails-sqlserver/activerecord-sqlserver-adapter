@@ -2,7 +2,7 @@ require 'strscan'
 
 module ActiveRecord
   module ConnectionAdapters
-    module Sqlserver
+    module SQLServer
       module Utils
 
         # Value object to return identifiers from SQL Server names http://bit.ly/1CZ3EiL
@@ -109,7 +109,7 @@ module ActiveRecord
         end
 
         def extract_identifiers(name)
-          Sqlserver::Utils::Name.new(name)
+          SQLServer::Utils::Name.new(name)
         end
 
       end

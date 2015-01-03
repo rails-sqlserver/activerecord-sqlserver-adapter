@@ -24,13 +24,13 @@ module ActiveRecord
   module ConnectionAdapters
     class SQLServerAdapter < AbstractAdapter
 
-      include Sqlserver::Version,
-              Sqlserver::Quoting,
-              Sqlserver::DatabaseStatements,
-              Sqlserver::Showplan,
-              Sqlserver::SchemaStatements,
-              Sqlserver::DatabaseLimits,
-              Sqlserver::Errors
+      include SQLServer::Version,
+              SQLServer::Quoting,
+              SQLServer::DatabaseStatements,
+              SQLServer::Showplan,
+              SQLServer::SchemaStatements,
+              SQLServer::DatabaseLimits,
+              SQLServer::Errors
 
       ADAPTER_NAME = 'SQLServer'.freeze
 
@@ -45,7 +45,7 @@ module ActiveRecord
       def initialize(connection, logger, pool, config)
         super(connection, logger, pool)
         # AbstractAdapter Responsibility
-        @schema_cache = Sqlserver::SchemaCache.new self
+        @schema_cache = SQLServer::SchemaCache.new self
         @visitor = Arel::Visitors::SQLServer.new self
         # Our Responsibility
         @config = config
@@ -170,7 +170,7 @@ module ActiveRecord
       end
 
       def schema_creation
-        Sqlserver::SchemaCreation.new self
+        SQLServer::SchemaCreation.new self
       end
 
       # === SQLServer Specific (DB Reflection) ======================== #
@@ -360,7 +360,7 @@ module ActiveRecord
       end
 
       def remove_database_connections_and_rollback(database = nil)
-        name = Sqlserver::Utils.extract_identifiers(database || current_database)
+        name = SQLServer::Utils.extract_identifiers(database || current_database)
         do_execute "ALTER DATABASE #{name} SET SINGLE_USER WITH ROLLBACK IMMEDIATE"
         begin
           yield

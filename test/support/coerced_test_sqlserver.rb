@@ -1,5 +1,5 @@
 module ARTest
-  module Sqlserver
+  module SQLServer
     module CoercedTest
 
       def self.included(base)

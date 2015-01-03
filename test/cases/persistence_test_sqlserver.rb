@@ -16,7 +16,7 @@ require 'models/person'
 require 'models/sqlserver/topic'
 require 'rexml/document'
 
-class PersistenceTestSqlserver < ActiveRecord::TestCase
+class PersistenceTestSQLServer < ActiveRecord::TestCase
 end
 
 class PersistenceTest < ActiveRecord::TestCase
@@ -25,7 +25,7 @@ class PersistenceTest < ActiveRecord::TestCase
 
   COERCED_TESTS = [:test_update_all_doesnt_ignore_order, :test_update_columns_changing_id, :test_update_attributes]
 
-  include ARTest::Sqlserver::CoercedTest
+  include ARTest::SQLServer::CoercedTest
 
   def test_coerced_update_all_doesnt_ignore_order
     assert_equal authors(:david).id + 1, authors(:mary).id

@@ -1,7 +1,7 @@
 require 'cases/helper_sqlserver'
 require 'models/post'
 
-class BatchesTestSqlserver < ActiveRecord::TestCase
+class BatchesTestSQLServer < ActiveRecord::TestCase
 end
 
 class EachTest < ActiveRecord::TestCase
@@ -10,7 +10,7 @@ class EachTest < ActiveRecord::TestCase
     :test_find_in_batches_should_quote_batch_order
   ]
 
-  include ARTest::Sqlserver::CoercedTest
+  include ARTest::SQLServer::CoercedTest
 
   fixtures :posts
 

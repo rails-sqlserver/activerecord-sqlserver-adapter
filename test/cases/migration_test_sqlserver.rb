@@ -2,7 +2,7 @@ require 'cases/helper_sqlserver'
 require 'models/person'
 require 'models/sqlserver/person'
 
-class MigrationTestSqlserver < ActiveRecord::TestCase
+class MigrationTestSQLServer < ActiveRecord::TestCase
 
   setup do
     @connection = ActiveRecord::Base.connection
@@ -24,7 +24,7 @@ class MigrationTestSqlserver < ActiveRecord::TestCase
 
     should 'not create a tables if error in migrations' do
       begin
-        migrations_dir = File.join ARTest::Sqlserver.migrations_root, 'transaction_table'
+        migrations_dir = File.join ARTest::SQLServer.migrations_root, 'transaction_table'
         ActiveRecord::Migrator.up(migrations_dir)
       rescue Exception => e
         assert_match %r|this and all later migrations canceled|, e.message
@@ -68,7 +68,7 @@ end
 if ActiveRecord::TestCase.sqlserver_azure?
   class MigrationTest < ActiveRecord::TestCase
     COERCED_TESTS = [:test_migrator_db_has_no_schema_migrations_table]
-    include ARTest::Sqlserver::CoercedTest
+    include ARTest::SQLServer::CoercedTest
 
     # TODO: put a real test here
     def test_coerced_test_migrator_db_has_no_schema_migrations_table

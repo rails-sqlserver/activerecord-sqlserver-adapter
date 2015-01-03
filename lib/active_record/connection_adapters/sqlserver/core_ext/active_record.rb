@@ -1,6 +1,6 @@
 module ActiveRecord
   module ConnectionAdapters
-    module Sqlserver
+    module SQLServer
       module CoreExt
         module ActiveRecord
           extend ActiveSupport::Concern
@@ -34,4 +34,4 @@ module ActiveRecord
   end
 end
 
-ActiveRecord::Base.send :include, ActiveRecord::ConnectionAdapters::Sqlserver::CoreExt::ActiveRecord
+ActiveRecord::Base.send :include, ActiveRecord::ConnectionAdapters::SQLServer::CoreExt::ActiveRecord

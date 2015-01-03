@@ -6,7 +6,7 @@ class HasManyThroughAssociationsTest <  ActiveRecord::TestCase
   # Rails does not do a case-insensive comparison
   # Until that patch is made to rails we are preventing this test from running in this gem.
 
-  include ARTest::Sqlserver::CoercedTest
+  include ARTest::SQLServer::CoercedTest
   def test_coerced_has_many_through_obeys_order_on_through_association
     owner = owners(:blackbeard)
     # assert owner.toys.to_sql.include?("pets.name desc") # What's currently in rails

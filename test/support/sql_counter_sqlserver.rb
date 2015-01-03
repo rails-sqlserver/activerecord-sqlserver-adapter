@@ -1,5 +1,5 @@
 module ARTest
-  module Sqlserver
+  module SQLServer
 
     extend self
 
@@ -26,6 +26,6 @@ module ARTest
   end
 end
 
-ActiveRecord::SQLCounter.ignored_sql.concat ARTest::Sqlserver.ignored_sql
-ARTest::Sqlserver.sql_counter_listenters_unsubscribe
-ARTest::Sqlserver.sql_counter_listenter = ActiveSupport::Notifications.subscribe 'sql.active_record', ActiveRecord::SQLCounter.new
+ActiveRecord::SQLCounter.ignored_sql.concat ARTest::SQLServer.ignored_sql
+ARTest::SQLServer.sql_counter_listenters_unsubscribe
+ARTest::SQLServer.sql_counter_listenter = ActiveSupport::Notifications.subscribe 'sql.active_record', ActiveRecord::SQLCounter.new

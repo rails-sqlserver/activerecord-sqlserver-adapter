@@ -7,7 +7,7 @@ class RelationTest < ActiveRecord::TestCase
     :test_to_sql_on_eager_join
   ]
   # Until that patch is made to rails we are preventing this test from running in this gem.
-  include ARTest::Sqlserver::CoercedTest
+  include ARTest::SQLServer::CoercedTest
   fixtures :posts
 
   def test_coerced_merging_reorders_bind_params

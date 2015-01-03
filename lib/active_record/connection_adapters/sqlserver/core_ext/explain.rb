@@ -1,6 +1,6 @@
 module ActiveRecord
   module ConnectionAdapters
-    module Sqlserver
+    module SQLServer
       module CoreExt
         module Explain
           SQLSERVER_STATEMENT_PREFIX = 'EXEC sp_executesql '
@@ -34,5 +34,5 @@ module ActiveRecord
   end
 end
 
-ActiveRecord::Base.extend ActiveRecord::ConnectionAdapters::Sqlserver::CoreExt::Explain
-ActiveRecord::Relation.send :include, ActiveRecord::ConnectionAdapters::Sqlserver::CoreExt::Explain
+ActiveRecord::Base.extend ActiveRecord::ConnectionAdapters::SQLServer::CoreExt::Explain
+ActiveRecord::Relation.send :include, ActiveRecord::ConnectionAdapters::SQLServer::CoreExt::Explain

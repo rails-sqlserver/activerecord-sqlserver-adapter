@@ -1,6 +1,6 @@
 require 'cases/helper_sqlserver'
 
-class HasAndBelongsToManyAssociationsTestSqlserver < ActiveRecord::TestCase
+class HasAndBelongsToManyAssociationsTestSQLServer < ActiveRecord::TestCase
 end
 
 class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
@@ -10,7 +10,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     :test_caching_of_columns
   ]
 
-  include ARTest::Sqlserver::CoercedTest
+  include ARTest::SQLServer::CoercedTest
 
   # TODO: put a real test here
   def test_coerced_count_with_finder_sql

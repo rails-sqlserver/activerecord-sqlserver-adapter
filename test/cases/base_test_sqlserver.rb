@@ -4,7 +4,7 @@ require 'models/auto_id'
 
 class BasicsTest < ActiveRecord::TestCase
 
-  include ARTest::Sqlserver::CoercedTest
+  include ARTest::SQLServer::CoercedTest
 
   COERCED_TESTS = [
     :test_column_names_are_escaped

@@ -1,5 +1,5 @@
 module ARTest
-  module Sqlserver
+  module SQLServer
 
     extend self
 
@@ -44,5 +44,5 @@ module ARTest
   end
 end
 
-ARTest::Sqlserver.add_to_load_paths!
-ARTest::Sqlserver.arconfig_file_env!
+ARTest::SQLServer.add_to_load_paths!
+ARTest::SQLServer.arconfig_file_env!

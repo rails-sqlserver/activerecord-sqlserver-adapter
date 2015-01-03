@@ -3,8 +3,8 @@ require_relative 'test/support/paths_sqlserver'
 notification :terminal_notifier if Guard::Notifier::TerminalNotifier.available?
 ignore %r{debug\.log}
 
-ar_lib  = File.join ARTest::Sqlserver.root_activerecord, 'lib'
-ar_test = File.join ARTest::Sqlserver.root_activerecord, 'test'
+ar_lib  = File.join ARTest::SQLServer.root_activerecord, 'lib'
+ar_test = File.join ARTest::SQLServer.root_activerecord, 'test'
 
 guard :minitest, {
   all_on_start: false,

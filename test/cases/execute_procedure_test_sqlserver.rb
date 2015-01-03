@@ -1,6 +1,6 @@
 require 'cases/helper_sqlserver'
 
-class ExecuteProcedureTestSqlserver < ActiveRecord::TestCase
+class ExecuteProcedureTestSQLServer < ActiveRecord::TestCase
 
   setup do
     @klass = ActiveRecord::Base

@@ -1,7 +1,7 @@
 require 'cases/helper_sqlserver'
 require 'models/post'
 
-class OrderTestSqlserver < ActiveRecord::TestCase
+class OrderTestSQLServer < ActiveRecord::TestCase
 
   fixtures :posts
 

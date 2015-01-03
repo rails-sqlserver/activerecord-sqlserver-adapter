@@ -5,7 +5,7 @@ require 'models/comment'
 module ActiveRecord
   class WhereChainTest < ActiveRecord::TestCase
 
-    include ARTest::Sqlserver::CoercedTest
+    include ARTest::SQLServer::CoercedTest
 
     COERCED_TESTS = [:test_not_eq_with_array_parameter]
 

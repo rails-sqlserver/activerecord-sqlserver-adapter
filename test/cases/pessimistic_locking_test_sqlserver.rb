@@ -3,7 +3,7 @@ require 'models/person'
 require 'models/reader'
 require 'models/sqlserver/person'
 
-class PessimisticLockingTestSqlserver < ActiveRecord::TestCase
+class PessimisticLockingTestSQLServer < ActiveRecord::TestCase
 
   self.use_transactional_fixtures = false
   fixtures :people, :readers

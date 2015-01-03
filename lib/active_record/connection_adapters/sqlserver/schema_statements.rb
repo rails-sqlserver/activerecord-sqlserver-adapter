@@ -1,6 +1,6 @@
 module ActiveRecord
   module ConnectionAdapters
-    module Sqlserver
+    module SQLServer
       module SchemaStatements
 
         def native_database_types
@@ -13,7 +13,7 @@ module ActiveRecord
 
         def table_exists?(table_name)
           return false if table_name.blank?
-          unquoted_table_name = Sqlserver::Utils.extract_identifiers(table_name).object
+          unquoted_table_name = SQLServer::Utils.extract_identifiers(table_name).object
           super || tables.include?(unquoted_table_name) || views.include?(unquoted_table_name)
         end
 
@@ -187,10 +187,10 @@ module ActiveRecord
         end
 
         def column_definitions(table_name)
-          db_name = Sqlserver::Utils.extract_identifiers(table_name).database
+          db_name = SQLServer::Utils.extract_identifiers(table_name).database
           db_name_with_period = "#{db_name}." if db_name
-          table_schema = Sqlserver::Utils.extract_identifiers(table_name).schema
-          table_name = Sqlserver::Utils.extract_identifiers(table_name).object
+          table_schema = SQLServer::Utils.extract_identifiers(table_name).schema
+          table_name = SQLServer::Utils.extract_identifiers(table_name).object
           sql = %{
             SELECT DISTINCT
             #{lowercase_schema_reflection_sql('columns.TABLE_NAME')} AS table_name,
@@ -335,7 +335,7 @@ module ActiveRecord
         end
 
         def view_information(table_name)
-          table_name = Sqlserver::Utils.extract_identifiers(table_name).object
+          table_name = SQLServer::Utils.extract_identifiers(table_name).object
           view_info = select_one "SELECT * FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_NAME = '#{table_name}'", 'SCHEMA'
           if view_info
             view_info = view_info.with_indifferent_access
@@ -352,7 +352,7 @@ module ActiveRecord
         end
 
         def table_name_or_views_table_name(table_name)
-          unquoted_table_name = Sqlserver::Utils.extract_identifiers(table_name).object
+          unquoted_table_name = SQLServer::Utils.extract_identifiers(table_name).object
           schema_cache.view_names.include?(unquoted_table_name) ? view_table_name(unquoted_table_name) : unquoted_table_name
         end
 

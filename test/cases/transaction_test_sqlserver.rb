@@ -2,7 +2,7 @@ require 'cases/helper_sqlserver'
 require 'models/ship'
 require 'models/developer'
 
-class TransactionTestSqlserver < ActiveRecord::TestCase
+class TransactionTestSQLServer < ActiveRecord::TestCase
 
   self.use_transactional_fixtures = false
 
@@ -47,7 +47,7 @@ class TransactionTestSqlserver < ActiveRecord::TestCase
 end
 
 class TransactionTest < ActiveRecord::TestCase
-  include ARTest::Sqlserver::CoercedTest
+  include ARTest::SQLServer::CoercedTest
 
   COERCED_TESTS = [:test_releasing_named_savepoints]
 

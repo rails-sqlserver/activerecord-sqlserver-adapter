@@ -15,7 +15,7 @@ require 'models/sqlserver/topic'
 require 'models/sqlserver/upper_test_default'
 require 'models/sqlserver/upper_test_lowered'
 
-class AdapterTestSqlserver < ActiveRecord::TestCase
+class AdapterTestSQLServer < ActiveRecord::TestCase
 
   fixtures :tasks, :posts
 
@@ -776,7 +776,7 @@ module ActiveRecord
     # SELECT 'a'+CONVERT(varchar(5), @mybin1) + 'aaaaa'
     # This is not run for PostgreSQL at the rails level and the same should happen for SQL Server
     # Until that patch is made to rails we are preventing this test from running in this gem.
-    include ARTest::Sqlserver::CoercedTest
+    include ARTest::SQLServer::CoercedTest
 
     fixtures :authors
   end

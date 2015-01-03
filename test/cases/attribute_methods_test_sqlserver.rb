@@ -3,7 +3,7 @@ require 'models/developer'
 require 'models/topic'
 require 'models/sqlserver/topic'
 
-class AttributeMethodsTestSqlserver < ActiveRecord::TestCase
+class AttributeMethodsTestSQLServer < ActiveRecord::TestCase
 end
 
 class AttributeMethodsTest < ActiveRecord::TestCase
@@ -14,7 +14,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     :test_typecast_attribute_from_select_to_true
   ]
 
-  include ARTest::Sqlserver::CoercedTest
+  include ARTest::SQLServer::CoercedTest
 
   fixtures :developers
 

@@ -10,7 +10,7 @@ require 'models/comment'
 require 'models/categorization'
 require 'models/sqlserver/sql_server_order_row_number'
 
-class OffsetAndLimitTestSqlserver < ActiveRecord::TestCase
+class OffsetAndLimitTestSQLServer < ActiveRecord::TestCase
 
   fixtures :jobs, :people, :references, :subscriptions,
            :authors, :posts, :comments, :categorizations

@@ -1,7 +1,7 @@
 require 'cases/helper_sqlserver'
 require 'models/car'
 
-class ShowplanTestSqlserver < ActiveRecord::TestCase
+class ShowplanTestSQLServer < ActiveRecord::TestCase
 
   fixtures :cars
 

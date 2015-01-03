@@ -5,7 +5,7 @@ class SqlServerRailsOrders < ActiveRecord::Base
   self.table_name = 'rails.orders'
 end
 
-class TableNameTestSqlserver < ActiveRecord::TestCase
+class TableNameTestSQLServer < ActiveRecord::TestCase
 
   self.use_transactional_fixtures = false
 

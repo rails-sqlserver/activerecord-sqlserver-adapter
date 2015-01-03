@@ -8,7 +8,7 @@ require 'models/sqlserver/sql_server_quoted_view_1'
 require 'models/sqlserver/sql_server_quoted_view_2'
 require 'models/sqlserver/sql_server_tinyint_pk'
 require 'models/sqlserver/string_default'
-class SpecificSchemaTestSqlserver < ActiveRecord::TestCase
+class SpecificSchemaTestSQLServer < ActiveRecord::TestCase
 
   should 'be able to complex count tables with no primary key' do
     NoPkData.delete_all

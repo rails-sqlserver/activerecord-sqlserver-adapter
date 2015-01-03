@@ -1,6 +1,6 @@
 module ActiveRecord
   module ConnectionAdapters
-    module Sqlserver
+    module SQLServer
       class TableDefinition < ActiveRecord::ConnectionAdapters::TableDefinition
         def uuid(name, options = {})
           column(name, 'uniqueidentifier', options)

@@ -1,10 +1,10 @@
 module ARTest
-  module Sqlserver
+  module SQLServer
 
     extend self
 
     def schema_root
-      File.join ARTest::Sqlserver.test_root_sqlserver, 'schema'
+      File.join ARTest::SQLServer.test_root_sqlserver, 'schema'
     end
 
     def schema_file
@@ -26,4 +26,4 @@ module ARTest
   end
 end
 
-ARTest::Sqlserver.load_schema
+ARTest::SQLServer.load_schema

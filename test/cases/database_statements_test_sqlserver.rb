@@ -1,6 +1,6 @@
 require 'cases/helper_sqlserver'
 
-class DatabaseStatementsTestSqlserver < ActiveRecord::TestCase
+class DatabaseStatementsTestSQLServer < ActiveRecord::TestCase
 
   self.use_transactional_fixtures = false
 
