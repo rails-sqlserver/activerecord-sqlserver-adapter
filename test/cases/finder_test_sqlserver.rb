@@ -3,7 +3,7 @@ require 'models/event'
 require 'models/author'
 require 'models/post'
 require 'models/categorization'
-require 'models_sqlserver/topic'
+require 'models/sqlserver/topic'
 # require 'cases/finder_test.rb'
 
 class FinderTestSqlserver < ActiveRecord::TestCase

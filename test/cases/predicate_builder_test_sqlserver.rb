@@ -1,6 +1,6 @@
 require 'cases/helper_sqlserver'
 require 'models/topic'
-require 'models_sqlserver/topic'
+require 'models/sqlserver/topic'
 
 module ActiveRecord
   class PredicateBuilderTest < ActiveRecord::TestCase

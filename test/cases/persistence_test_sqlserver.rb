@@ -13,7 +13,7 @@ require 'models/warehouse_thing'
 require 'models/parrot'
 require 'models/minivan'
 require 'models/person'
-require 'models_sqlserver/topic'
+require 'models/sqlserver/topic'
 require 'rexml/document'
 
 class PersistenceTestSqlserver < ActiveRecord::TestCase

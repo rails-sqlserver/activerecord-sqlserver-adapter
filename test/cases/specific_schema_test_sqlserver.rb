@@ -1,13 +1,13 @@
 require 'cases/helper_sqlserver'
-require 'models_sqlserver/no_pk_data'
-require 'models_sqlserver/sql_server_dollar_table_name'
-require 'models_sqlserver/sql_server_edge_schema'
-require 'models_sqlserver/sql_server_natural_pk_int_data'
-require 'models_sqlserver/sql_server_quoted_table'
-require 'models_sqlserver/sql_server_quoted_view_1'
-require 'models_sqlserver/sql_server_quoted_view_2'
-require 'models_sqlserver/sql_server_tinyint_pk'
-require 'models_sqlserver/string_default'
+require 'models/sqlserver/no_pk_data'
+require 'models/sqlserver/sql_server_dollar_table_name'
+require 'models/sqlserver/sql_server_edge_schema'
+require 'models/sqlserver/sql_server_natural_pk_int_data'
+require 'models/sqlserver/sql_server_quoted_table'
+require 'models/sqlserver/sql_server_quoted_view_1'
+require 'models/sqlserver/sql_server_quoted_view_2'
+require 'models/sqlserver/sql_server_tinyint_pk'
+require 'models/sqlserver/string_default'
 class SpecificSchemaTestSqlserver < ActiveRecord::TestCase
 
   should 'be able to complex count tables with no primary key' do

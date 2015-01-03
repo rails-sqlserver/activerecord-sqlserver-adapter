@@ -1,6 +1,6 @@
 require 'cases/helper_sqlserver'
 require 'models/topic'
-require 'models_sqlserver/topic'
+require 'models/sqlserver/topic'
 require 'cases/bind_parameter_test'
 
 # We don't coerce here because these tests are located inside of an if block
