@@ -284,19 +284,19 @@ module ActiveRecord
 
       def dblib_connect(config)
         TinyTds::Client.new(
-                              dataserver: config[:dataserver],
-                              host: config[:host],
-                              port: config[:port],
-                              username: config[:username],
-                              password: config[:password],
-                              database: config[:database],
-                              tds_version: config[:tds_version],
-                              appname: appname(config),
-                              login_timeout: login_timeout(config),
-                              timeout: timeout(config),
-                              encoding:  encoding(config),
-                              azure: config[:azure]
-                            ).tap do |client|
+          dataserver: config[:dataserver],
+          host: config[:host],
+          port: config[:port],
+          username: config[:username],
+          password: config[:password],
+          database: config[:database],
+          tds_version: config[:tds_version],
+          appname: config_appname(config),
+          login_timeout: config_login_timeout(config),
+          timeout: config_timeout(config),
+          encoding:  config_encoding(config),
+          azure: config[:azure]
+        ).tap do |client|
           if config[:azure]
             client.execute('SET ANSI_NULLS ON').do
             client.execute('SET CURSOR_CLOSE_ON_COMMIT OFF').do
@@ -313,22 +313,6 @@ module ActiveRecord
           client.execute('SET TEXTSIZE 2147483647').do
           client.execute('SET CONCAT_NULL_YIELDS_NULL ON').do
         end
-      end
-
-      def appname(config)
-        config[:appname] || configure_application_name || Rails.application.class.name.split('::').first rescue nil
-      end
-
-      def login_timeout(config)
-        config[:login_timeout].present? ? config[:login_timeout].to_i : nil
-      end
-
-      def timeout(config)
-        config[:timeout].present? ? config[:timeout].to_i / 1000 : nil
-      end
-
-      def encoding(config)
-        config[:encoding].present? ? config[:encoding] : nil
       end
 
       def odbc_connect(config)
@@ -350,18 +334,25 @@ module ActiveRecord
         end
       end
 
-      # Override this method so every connection can be configured to your needs.
-      # For example:
-      #    raw_connection_do "SET TEXTSIZE #{64.megabytes}"
-      #    raw_connection_do "SET CONCAT_NULL_YIELDS_NULL ON"
-      def configure_connection
+      def config_appname(config)
+        config[:appname] || configure_application_name || Rails.application.class.name.split('::').first rescue nil
       end
 
-      # Override this method so every connection can have a unique name. Max 30 characters. Used by TinyTDS only.
-      # For example:
-      #    "myapp_#{$$}_#{Thread.current.object_id}".to(29)
-      def configure_application_name
+      def config_login_timeout(config)
+        config[:login_timeout].present? ? config[:login_timeout].to_i : nil
       end
+
+      def config_timeout(config)
+        config[:timeout].present? ? config[:timeout].to_i / 1000 : nil
+      end
+
+      def config_encoding(config)
+        config[:encoding].present? ? config[:encoding] : nil
+      end
+
+      def configure_connection ; end
+
+      def configure_application_name ; end
 
       def initialize_dateformatter
         @database_dateformat = user_options_dateformat
@@ -414,6 +405,7 @@ module ActiveRecord
       ensure
         @auto_connecting = false
       end
-    end # class SQLServerAdapter < AbstractAdapter
-  end # module ConnectionAdapters
-end # module ActiveRecord
+
+    end
+  end
+end
