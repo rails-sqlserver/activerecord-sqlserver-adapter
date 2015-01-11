@@ -22,11 +22,16 @@
 
 * SQL Server versions < 2012 which do not support OFFSET and FETCH. http://bit.ly/1B5Bwsd
 * The `enable_default_unicode_types` option. Default to national types all the time. Use SQL type name in migrations if needed.
-* Native type configs for older DB support. Includes the following with new default value.
+* Native type configs for older DB support. Includes the following with new default value:
   * native_string_database_type => `nvarchar`
   * native_text_database_type   => `nvarchar(max)`
   * native_binary_database_type => `varbinary(max)`
-
+* Various version and inspection methods removed. These include:
+  * database_version
+  * database_year
+  * product_level
+  * product_version
+  * edition
 
 #### Fixed
 
@@ -34,6 +39,6 @@
 
 #### Security
 
-* n/a
+* The connection's `inspect` method no longer returns sensitive connection info. Very basic now.
 
 

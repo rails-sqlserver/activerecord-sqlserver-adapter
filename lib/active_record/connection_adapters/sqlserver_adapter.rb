@@ -35,7 +35,7 @@ module ActiveRecord
 
       ADAPTER_NAME = 'SQLServer'.freeze
 
-      attr_reader :database_version, :database_year, :spid, :product_level, :product_version, :edition
+      attr_reader :spid
 
       cattr_accessor :auto_connect, :cs_equality_operator,
                      :lowercase_schema_reflection, :auto_connect_duration, :showplan_option
@@ -50,27 +50,9 @@ module ActiveRecord
         @config = config
         @connection_options = config
         connect
-        @database_version = select_value 'SELECT @@version', 'SCHEMA'
-        @database_year = begin
-                           if @database_version =~ /Azure/i
-                             @sqlserver_azure = true
-                             @database_version.match(/\s-\s([0-9.]+)/)[1]
-                             year = 2012
-                           else
-                             year = DATABASE_VERSION_REGEXP.match(@database_version)[1]
-                             year == 'Denali' ? 2011 : year.to_i
-                           end
-                         rescue
-                           0
-                         end
-        @product_level    = select_value "SELECT CAST(SERVERPROPERTY('productlevel') AS VARCHAR(128))", 'SCHEMA'
-        @product_version  = select_value "SELECT CAST(SERVERPROPERTY('productversion') AS VARCHAR(128))", 'SCHEMA'
-        @edition          = select_value "SELECT CAST(SERVERPROPERTY('edition') AS VARCHAR(128))", 'SCHEMA'
+        @sqlserver_azure = !!(select_value('SELECT @@version', 'SCHEMA') =~ /Azure/i)
         initialize_dateformatter
         use_database
-        unless @sqlserver_azure == true || SUPPORTED_VERSIONS.include?(@database_year)
-          raise NotImplementedError, "Currently, only #{SUPPORTED_VERSIONS.to_sentence} are supported. We got back #{@database_version}."
-        end
       end
 
       # === Abstract Adapter ========================================== #
@@ -108,7 +90,7 @@ module ActiveRecord
       end
 
       def supports_partial_index?
-        @database_year >= 2008
+        true
       end
 
       def supports_explain?
@@ -178,26 +160,6 @@ module ActiveRecord
         true
       end
 
-      def sqlserver_2005?
-        @database_year == 2005
-      end
-
-      def sqlserver_2008?
-        @database_year == 2008
-      end
-
-      def sqlserver_2011?
-        @database_year == 2011
-      end
-
-      def sqlserver_2012?
-        @database_year == 2012
-      end
-
-      def sqlserver_2014?
-        @database_year == 2014
-      end
-
       def sqlserver_azure?
         @sqlserver_azure
       end
@@ -207,7 +169,7 @@ module ActiveRecord
       end
 
       def inspect
-        "#<#{self.class} version: #{version}, year: #{@database_year}, product_level: #{@product_level.inspect}, product_version: #{@product_version.inspect}, edition: #{@edition.inspect}, connection_options: #{@connection_options.inspect}>"
+        "#<#{self.class} version: #{version}, mode: #{@connection_options[:mode]}, azure: #{sqlserver_azure?.inspect}>"
       end
 
       def auto_connect

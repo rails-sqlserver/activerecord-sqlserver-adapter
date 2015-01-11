@@ -28,6 +28,18 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
     @basic_select_sql = "SELECT * FROM [customers] WHERE ([customers].[id] = 1)"
   end
 
+  it 'has basic and non-senstive information in the adpaters inspect method' do
+    string = connection.inspect
+    string.must_match %r{ActiveRecord::ConnectionAdapters::SQLServerAdapter}
+    string.must_match %r{version\: \d.\d}
+    string.must_match %r{mode: (dblib|odbc)}
+    string.must_match %r{azure: (true|false)}
+    string.wont_match %r{host}
+    string.wont_match %r{password}
+    string.wont_match %r{username}
+    string.wont_match %r{port}
+  end
+
   it 'has a 128 max #table_alias_length' do
     assert connection.table_alias_length <= 128
   end
@@ -38,34 +50,6 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
 
   it 'is has our adapter_name' do
     assert_equal 'SQLServer', connection.adapter_name
-  end
-
-  it 'include version in inspect' do
-    assert_match(/version\: \d.\d/, )
-  end
-
-  it 'include database product level in inspect' do
-    assert_match(/product_level\: "\w+/, connection.inspect)
-  end
-
-  it 'include database product version in inspect' do
-    assert_match(/product_version\: "\d+/, connection.inspect)
-  end
-
-  it 'include database edition in inspect' do
-    assert_match(/edition\: "\w+/, connection.inspect)
-  end
-
-  it 'set database product level' do
-    assert_match(/\w+/, connection.product_level)
-  end
-
-  it 'set database product version' do
-    assert_match(/\d+/, connection.product_version)
-  end
-
-  it 'set database edition' do
-    assert_match(/\w+/, connection.edition)
   end
 
   it 'support migrations' do
@@ -85,31 +69,6 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
     ensure
       Task.table_name = 'tasks'
     end
-  end
-
-  describe 'for database version' do
-
-    before do
-      @version_regexp = ActiveRecord::ConnectionAdapters::SQLServerAdapter::DATABASE_VERSION_REGEXP
-      @supported_versions = ActiveRecord::ConnectionAdapters::SQLServerAdapter::SUPPORTED_VERSIONS
-      @sqlserver_2005_string = "Microsoft SQL Server 2005 - 9.00.3215.00 (Intel X86)"
-      @sqlserver_2008_string = "Microsoft SQL Server 2008 (RTM) - 10.0.1600.22 (Intel X86)"
-      @sqlserver_2011_string1 = %|Microsoft SQL Server "Denali" (CTP1) - 11.0.1103.9 (Intel X86) Sep 24 2010 22:02:43 Copyright (c) Microsoft Corporation Enterprise Evaluation Edition on Windows NT 6.0 (Build 6002: Service Pack 2)|
-    end
-
-    it 'return a string from #database_version that matches class regexp' do
-      assert_match @version_regexp, connection.database_version
-    end unless sqlserver_azure?
-
-    it 'return a 4 digit year fixnum for #database_year' do
-      assert_instance_of Fixnum, connection.database_year
-      @supported_versions.must_include connection.database_year
-    end
-
-    it 'return a code name if year not available' do
-      assert_equal "Denali", @version_regexp.match(@sqlserver_2011_string1)[1]
-    end
-
   end
 
   it 'return true to #insert_sql? for inserts only' do
