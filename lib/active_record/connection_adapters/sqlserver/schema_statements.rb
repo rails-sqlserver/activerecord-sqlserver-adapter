@@ -163,16 +163,16 @@ module ActiveRecord
         def initialize_native_database_types
           {
             primary_key: 'int NOT NULL IDENTITY(1,1) PRIMARY KEY',
-            string: { name: native_string_database_type, limit: 255  },
-            text: { name: native_text_database_type },
+            string: { name: 'nvarchar', limit: 255  },
+            text: { name: 'nvarchar(max)' },
             integer: { name: 'int', limit: 4 },
             float: { name: 'float', limit: 8 },
             decimal: { name: 'decimal' },
             datetime: { name: 'datetime' },
             timestamp: { name: 'datetime' },
-            time: { name: native_time_database_type },
-            date: { name: native_date_database_type },
-            binary: { name: native_binary_database_type },
+            time: { name: 'time' },
+            date: { name: 'date' },
+            binary: { name: 'varbinary(max)' },
             boolean: { name: 'bit' },
             uuid: { name: 'uniqueidentifier' },
             # These are custom types that may move somewhere else for good schema_dumper.rb hacking to output them.

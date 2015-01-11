@@ -1,4 +1,5 @@
-# ActiveRecord SQL Server Adapter. For SQL Server 2005 And Higher.
+
+# ActiveRecord SQL Server Adapter. For SQL Server 2012 And Higher.
 
 **This project is looking for a new maintainers. Join the [discusion here](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/issues/364)**
 
@@ -53,45 +54,6 @@ end
 ```
 
 Manually creating a `varchar(max)` is not necessary since this is the default type created when specifying a `:text` field. As time goes on we will be testing other SQL Server specific data types are handled correctly when created in a migration.
-
-
-#### Native Text/String/Binary Data Type Accessor
-
-To pass the ActiveRecord tests we had to implement an class accessor for the native type created for `:text` columns. By default any `:text` column created by migrations will create a `varchar(max)` data type. This type can be queried using the SQL = operator and has plenty of storage space which is why we made it the default. If for some reason you want to change the data type created during migrations you can configure this line to your liking in a config/initializers file.
-
-```ruby
-ActiveRecord::ConnectionAdapters::SQLServerAdapter.native_text_database_type = 'varchar(8000)'
-```
-
-Also, there is a class attribute setter for the native string database type. This is the same for all SQL Server versions, `varchar`. However it can be used instead of the #enable_default_unicode_types below for finer grain control over which types you want unicode safe when adding or changing the schema.
-
-```ruby
-ActiveRecord::ConnectionAdapters::SQLServerAdapter.native_string_database_type = 'nvarchar'
-```
-
-By default any :binary column created by migrations will create a `varbinary(max)` data type. This too can be set using an initializer.
-
-```ruby
-ActiveRecord::ConnectionAdapters::SQLServerAdapter.native_binary_database_type = 'image'
-```
-
-####  Setting Unicode Types As Default
-
-By default the adapter will use unicode safe data types for `:string` and `:text` types when defining/changing the schema! This was changed in version 3.1 since it is about time we push better unicode support and since we default to TinyTDS (DBLIB) which supports unicode queries and data. If you choose, you can set the following class attribute in a config/initializers file that will disable this behavior.
-
-```ruby
-# Default
-ActiveRecord::ConnectionAdapters::SQLServerAdapter.enable_default_unicode_types = true
-ActiveRecord::ConnectionAdapters::SQLServerAdapter.native_text_database_type = 'nvarchar(max)'
-ActiveRecord::ConnectionAdapters::SQLServerAdapter.native_string_database_type = 'nvarchar'
-
-# Disabled
-ActiveRecord::ConnectionAdapters::SQLServerAdapter.enable_default_unicode_types = false
-ActiveRecord::ConnectionAdapters::SQLServerAdapter.native_text_database_type = 'varchar(max)'
-ActiveRecord::ConnectionAdapters::SQLServerAdapter.native_string_database_type = 'varchar'
-```
-
-It is important to remember that unicode types in SQL Server have approximately half the storage capacity as their counter parts. So where a normal string would max out at (8000) a unicode string will top off at (4000).
 
 
 #### Force Schema To Lowercase

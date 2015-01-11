@@ -395,7 +395,7 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
 
   end
 
-  context 'When disabling referential integrity' do
+  describe 'When disabling referential integrity' do
 
     setup do
       @connection.disable_referential_integrity { FkTestHasPk.delete_all; FkTestHasFk.delete_all }
@@ -403,16 +403,16 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
       @member = FkTestHasFk.create!(fk_id: @parent.id)
     end
 
-    should 'NOT ALLOW by default the deletion of a referenced parent' do
+    it 'NOT ALLOW by default the deletion of a referenced parent' do
       FkTestHasPk.connection.disable_referential_integrity { }
       assert_raise(ActiveRecord::StatementInvalid) { @parent.destroy }
     end
 
-    should 'ALLOW deletion of referenced parent using #disable_referential_integrity block' do
+    it 'ALLOW deletion of referenced parent using #disable_referential_integrity block' do
       FkTestHasPk.connection.disable_referential_integrity { @parent.destroy }
     end
 
-    should 'again NOT ALLOW deletion of referenced parent after #disable_referential_integrity block' do
+    it 'again NOT ALLOW deletion of referenced parent after #disable_referential_integrity block' do
       assert_raise(ActiveRecord::StatementInvalid) do
         FkTestHasPk.connection.disable_referential_integrity { }
         @parent.destroy
@@ -421,11 +421,11 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
 
   end
 
-  context 'For DatabaseStatements' do
+  describe 'For DatabaseStatements' do
 
-    context "finding out what user_options are available" do
+    describe "finding out what user_options are available" do
 
-      should "run the database consistency checker useroptions command" do
+      it "run the database consistency checker useroptions command" do
         keys = [:textsize, :language, :isolation_level, :dateformat]
         user_options = @connection.user_options
         keys.each do |key|
@@ -434,7 +434,7 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
         end
       end
 
-      should "return a underscored key hash with indifferent access of the results" do
+      it "return a underscored key hash with indifferent access of the results" do
         user_options = @connection.user_options
         assert_equal 'read committed', user_options['isolation_level']
         assert_equal 'read committed', user_options[:isolation_level]
@@ -442,15 +442,15 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
 
     end unless sqlserver_azure?
 
-    context "altering isolation levels" do
+    describe "altering isolation levels" do
 
-      should "barf if the requested isolation level is not valid" do
+      it "barf if the requested isolation level is not valid" do
         assert_raise(ArgumentError) do
           @connection.run_with_isolation_level 'INVALID ISOLATION LEVEL' do; end
         end
       end
 
-      context "with a valid isolation level" do
+      describe "with a valid isolation level" do
 
         setup do
           @t1 = tasks(:first_task)
@@ -461,7 +461,7 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
           assert good_isolation_level, "User isolation level is not at a happy starting place: #{@connection.user_options_isolation_level.inspect}"
         end
 
-        should 'allow #run_with_isolation_level to not take a block to set it' do
+        it 'allow #run_with_isolation_level to not take a block to set it' do
           begin
             @connection.run_with_isolation_level 'READ UNCOMMITTED'
             assert_match %r|read uncommitted|i, @connection.user_options_isolation_level
@@ -470,11 +470,11 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
           end
         end
 
-        should 'return block value using #run_with_isolation_level' do
+        it 'return block value using #run_with_isolation_level' do
           assert_equal Task.all.sort, @connection.run_with_isolation_level('READ UNCOMMITTED') { Task.all.sort }
         end
 
-        should 'pass a read uncommitted isolation level test' do
+        it 'pass a read uncommitted isolation level test' do
           assert_nil @t2.starting, 'Fixture should have this empty.'
           begin
             Task.transaction do
@@ -497,39 +497,39 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
 
   end
 
-  context 'For SchemaStatements' do
+  describe 'For SchemaStatements' do
 
-    context 'returning from #type_to_sql' do
+    describe 'returning from #type_to_sql' do
 
-      should 'create integers when no limit supplied' do
+      it 'create integers when no limit supplied' do
         assert_equal 'integer', @connection.type_to_sql(:integer)
       end
 
-      should 'create integers when limit is 4' do
+      it 'create integers when limit is 4' do
         assert_equal 'integer', @connection.type_to_sql(:integer, 4)
       end
 
-      should 'create integers when limit is 3' do
+      it 'create integers when limit is 3' do
         assert_equal 'integer', @connection.type_to_sql(:integer, 3)
       end
 
-      should 'create smallints when limit is less than 3' do
+      it 'create smallints when limit is less than 3' do
         assert_equal 'smallint', @connection.type_to_sql(:integer, 2)
         assert_equal 'smallint', @connection.type_to_sql(:integer, 1)
       end
 
-      should 'create bigints when limit is greateer than 4' do
+      it 'create bigints when limit is greateer than 4' do
         assert_equal 'bigint', @connection.type_to_sql(:integer, 5)
         assert_equal 'bigint', @connection.type_to_sql(:integer, 6)
         assert_equal 'bigint', @connection.type_to_sql(:integer, 7)
         assert_equal 'bigint', @connection.type_to_sql(:integer, 8)
       end
 
-      should 'create floats when no limit supplied' do
+      it 'create floats when no limit supplied' do
         assert_equal 'float(8)', @connection.type_to_sql(:float)
       end
 
-      should 'create floats when limit is supplied' do
+      it 'create floats when limit is supplied' do
         assert_equal 'float(27)', @connection.type_to_sql(:float, 27)
       end
 
@@ -537,7 +537,7 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
 
   end
 
-  context 'For indexes' do
+  describe 'For indexes' do
 
     setup do
       @desc_index_name = 'idx_credit_limit_test_desc'
@@ -548,55 +548,55 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
       @connection.execute "DROP INDEX [#{@desc_index_name}] ON [accounts]"
     end
 
-    should 'have indexes with descending order' do
+    it 'have indexes with descending order' do
       assert @connection.indexes('accounts').find { |i| i.name == @desc_index_name }
     end
 
   end
 
-  context 'For views' do
+  describe 'For views' do
 
-    context 'using @connection.views' do
+    describe 'using @connection.views' do
 
-      should 'return an array' do
+      it 'return an array' do
         assert_instance_of Array, @connection.views
       end
 
-      should 'find CustomersView table name' do
+      it 'find CustomersView table name' do
         @connection.views.must_include 'customers_view'
       end
 
-      should 'work with dynamic finders' do
+      it 'work with dynamic finders' do
         name = 'MetaSkills'
         customer = CustomersView.create! name: name
         assert_equal customer, CustomersView.find_by_name(name)
       end
 
-      should 'not contain system views' do
+      it 'not contain system views' do
         systables = ['sysconstraints','syssegments']
         systables.each do |systable|
           assert !@connection.views.include?(systable), "This systable #{systable} should not be in the views array."
         end
       end
 
-      should 'allow the connection#view_information method to return meta data on the view' do
+      it 'allow the connection#view_information method to return meta data on the view' do
         view_info = @connection.send(:view_information,'customers_view')
         assert_equal('customers_view', view_info['TABLE_NAME'])
         assert_match(/CREATE VIEW customers_view/, view_info['VIEW_DEFINITION'])
       end
 
-      should 'allow the connection#view_table_name method to return true table_name for the view' do
+      it 'allow the connection#view_table_name method to return true table_name for the view' do
         assert_equal 'customers', @connection.send(:view_table_name,'customers_view')
         assert_equal 'topics', @connection.send(:view_table_name,'topics'), 'No view here, the same table name should come back.'
       end
 
     end
 
-    context 'used by a class for table_name' do
+    describe 'used by a class for table_name' do
 
-      context 'with same column names' do
+      describe 'with same column names' do
 
-        should 'have matching column objects' do
+        it 'have matching column objects' do
           columns = ['id','name','balance']
           assert !CustomersView.columns.blank?
           assert_equal columns.size, CustomersView.columns.size
@@ -607,28 +607,28 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
           end
         end
 
-        should 'find identity column' do
+        it 'find identity column' do
           assert CustomersView.columns_hash['id'].primary
         end
 
-        should 'find default values' do
+        it 'find default values' do
           assert_equal 0, CustomersView.new.balance
         end
 
-        should 'respond true to table_exists?' do
+        it 'respond true to table_exists?' do
           assert CustomersView.table_exists?
         end
 
-        should 'have correct table name for all column objects' do
+        it 'have correct table name for all column objects' do
           assert CustomersView.columns.all?{ |c| c.table_name == 'customers_view' },
             CustomersView.columns.map(&:table_name).inspect
         end
 
       end
 
-      context 'with aliased column names' do
+      describe 'with aliased column names' do
 
-        should 'have matching column objects' do
+        it 'have matching column objects' do
           columns = ['id','pretend_null']
           assert !StringDefaultsView.columns.blank?
           assert_equal columns.size, StringDefaultsView.columns.size
@@ -639,20 +639,20 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
           end
         end
 
-        should 'find identity column' do
+        it 'find identity column' do
           assert StringDefaultsView.columns_hash['id'].primary
         end
 
-        should 'find default values' do
+        it 'find default values' do
           assert_equal 'null', StringDefaultsView.new.pretend_null,
             StringDefaultsView.columns_hash['pretend_null'].inspect
         end
 
-        should 'respond true to table_exists?' do
+        it 'respond true to table_exists?' do
           assert StringDefaultsView.table_exists?
         end
 
-        should 'have correct table name for all column objects' do
+        it 'have correct table name for all column objects' do
           assert StringDefaultsView.columns.all?{ |c| c.table_name == 'string_defaults_view' },
             StringDefaultsView.columns.map(&:table_name).inspect
         end
@@ -661,30 +661,30 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
 
     end
 
-    context 'doing identity inserts' do
+    describe 'doing identity inserts' do
 
       setup do
         @view_insert_sql = "INSERT INTO [customers_view] ([id],[name],[balance]) VALUES (420,'Microsoft',0)"
       end
 
-      should 'respond true/tablename to #query_requires_identity_insert?' do
+      it 'respond true/tablename to #query_requires_identity_insert?' do
         assert_equal '[customers_view]', @connection.send(:query_requires_identity_insert?,@view_insert_sql)
       end
 
-      should 'be able to do an identity insert' do
+      it 'be able to do an identity insert' do
         assert_nothing_raised { @connection.execute(@view_insert_sql) }
         assert CustomersView.find(420)
       end
 
     end
 
-    context 'that have more than 4000 chars for their defintion' do
+    describe 'that have more than 4000 chars for their defintion' do
 
-      should 'cope with null returned for the defintion' do
+      it 'cope with null returned for the defintion' do
         assert_nothing_raised() { StringDefaultsBigView.columns }
       end
 
-      should 'using alternate view defintion still be able to find real default' do
+      it 'using alternate view defintion still be able to find real default' do
         assert_equal 'null', StringDefaultsBigView.new.pretend_null,
           StringDefaultsBigView.columns_hash['pretend_null'].inspect
       end

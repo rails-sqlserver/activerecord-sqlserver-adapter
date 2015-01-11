@@ -37,11 +37,8 @@ module ActiveRecord
 
       attr_reader :database_version, :database_year, :spid, :product_level, :product_version, :edition
 
-      cattr_accessor :native_text_database_type, :native_binary_database_type, :native_string_database_type,
-                     :enable_default_unicode_types, :auto_connect, :cs_equality_operator,
+      cattr_accessor :auto_connect, :cs_equality_operator,
                      :lowercase_schema_reflection, :auto_connect_duration, :showplan_option
-
-      self.enable_default_unicode_types = true
 
       def initialize(connection, logger, pool, config)
         super(connection, logger, pool)
@@ -219,26 +216,6 @@ module ActiveRecord
 
       def auto_connect_duration
         @@auto_connect_duration ||= 10
-      end
-
-      def native_string_database_type
-        @@native_string_database_type || (enable_default_unicode_types ? 'nvarchar' : 'varchar')
-      end
-
-      def native_text_database_type
-        @@native_text_database_type || enable_default_unicode_types ? 'nvarchar(max)' : 'varchar(max)'
-      end
-
-      def native_time_database_type
-        sqlserver_2005? ? 'datetime' : 'time'
-      end
-
-      def native_date_database_type
-        sqlserver_2005? ? 'datetime' : 'date'
-      end
-
-      def native_binary_database_type
-        @@native_binary_database_type || 'varbinary(max)'
       end
 
       def cs_equality_operator

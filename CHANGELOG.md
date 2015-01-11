@@ -14,21 +14,26 @@
   * Use `ARTest` namespace with `SQLServer` module for our helpers/objects.
   * Simple 2012 schmea addition and extensive column/type_cast object tests.
 
+#### Deprecated
 
-## v4.1.0
+* n/a
 
-* Not sure if this even happened. Just got to 4.2.0 :)
+#### Removed
 
-
-## v4.0.0
-
-* Dropped support for ruby 1.8.7
-* Removed deadlock victim retry in favor of Isolation Level
-* Removed auto_explain_threshold_in_seconds (not used in rails 4)
-
-
-## v3.2.12
+* SQL Server versions < 2012 which do not support OFFSET and FETCH. http://bit.ly/1B5Bwsd
+* The `enable_default_unicode_types` option. Default to national types all the time. Use SQL type name in migrations if needed.
+* Native type configs for older DB support. Includes the following with new default value.
+  * native_string_database_type => `nvarchar`
+  * native_text_database_type   => `nvarchar(max)`
+  * native_binary_database_type => `varbinary(max)`
 
 
+#### Fixed
+
+* n/a
+
+#### Security
+
+* n/a
 
 
