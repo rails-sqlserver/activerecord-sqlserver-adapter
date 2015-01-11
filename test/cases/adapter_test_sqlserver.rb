@@ -1,7 +1,7 @@
 require 'cases/helper_sqlserver'
 require 'models/topic'
+require 'models/task'
 
-# require 'models/task'
 # require 'models/reply'
 # require 'models/joke'
 # require 'models/subscriber'
@@ -18,15 +18,12 @@ require 'models/topic'
 
 class AdapterTestSQLServer < ActiveRecord::TestCase
 
-  # fixtures :tasks, :posts
-
   let(:connection) { ActiveRecord::Base.connection }
 
-  before do
-    @basic_insert_sql = "INSERT INTO [funny_jokes] ([name]) VALUES('Knock knock')"
-    @basic_update_sql = "UPDATE [customers] SET [address_street] = NULL WHERE [id] = 2"
-    @basic_select_sql = "SELECT * FROM [customers] WHERE ([customers].[id] = 1)"
-  end
+  let(:basic_insert_sql) { "INSERT INTO [funny_jokes] ([name]) VALUES('Knock knock')" }
+  let(:basic_update_sql) { "UPDATE [customers] SET [address_street] = NULL WHERE [id] = 2" }
+  let(:basic_select_sql) { "SELECT * FROM [customers] WHERE ([customers].[id] = 1)" }
+
 
   it 'has basic and non-senstive information in the adpaters inspect method' do
     string = connection.inspect
@@ -52,7 +49,7 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
     assert_equal 'SQLServer', connection.adapter_name
   end
 
-  it 'support migrations' do
+  it 'supports migrations' do
     assert connection.supports_migrations?
   end
 
@@ -60,32 +57,28 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
     assert connection.supports_ddl_transactions?
   end
 
-  it 'allow owner table name prefixs like dbo. to still allow table_exists? to return true' do
+  it 'allow owner table name prefixs like dbo to still allow table exists to return true' do
     begin
-      assert_equal 'tasks', Task.table_name
-      assert Task.table_exists?
-      Task.table_name = 'dbo.tasks'
-      assert Task.table_exists?, 'Tasks table name of dbo.tasks should return true for exists.'
+      assert_equal 'topics', Topic.table_name
+      assert Topic.table_exists?
+      Topic.table_name = 'dbo.topics'
+      assert Topic.table_exists?, 'Tasks table name of dbo.topics should return true for exists.'
     ensure
-      Task.table_name = 'tasks'
+      Topic.table_name = 'topics'
     end
   end
 
-  it 'return true to #insert_sql? for inserts only' do
+  it 'return true to insert sql query for inserts only' do
     assert connection.send(:insert_sql?,'INSERT...')
     assert connection.send(:insert_sql?, "EXEC sp_executesql N'INSERT INTO [fk_test_has_fks] ([fk_id]) VALUES (@0); SELECT CAST(SCOPE_IDENTITY() AS bigint) AS Ident', N'@0 int', @0 = 0")
     assert !connection.send(:insert_sql?,'UPDATE...')
     assert !connection.send(:insert_sql?,'SELECT...')
   end
 
-  describe 'for #get_table_name' do
-
-    it 'return quoted table name from basic INSERT, UPDATE and SELECT statements' do
-      assert_equal '[funny_jokes]', connection.send(:get_table_name,@basic_insert_sql)
-      assert_equal '[customers]', connection.send(:get_table_name,@basic_update_sql)
-      assert_equal '[customers]', connection.send(:get_table_name,@basic_select_sql)
-    end
-
+  it 'return quoted table name from basic INSERT UPDATE and SELECT statements' do
+    assert_equal '[funny_jokes]', connection.send(:get_table_name, basic_insert_sql)
+    assert_equal '[customers]', connection.send(:get_table_name, basic_update_sql)
+    assert_equal '[customers]', connection.send(:get_table_name, basic_select_sql)
   end
 
   describe 'with different language' do
@@ -99,22 +92,24 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
       connection.send :initialize_dateformatter
     end
 
-    it 'memoize users dateformat' do
+    it 'memos users dateformat' do
       connection.execute("SET LANGUAGE us_english") rescue nil
       dateformat = connection.instance_variable_get(:@database_dateformat)
       assert_equal 'mdy', dateformat
     end
 
-    it 'have a dateformatter' do
+    it 'has a dateformatter' do
       assert Date::DATE_FORMATS[:_sqlserver_dateformat]
       assert Time::DATE_FORMATS[:_sqlserver_dateformat]
     end
 
-    it 'do a date insertion when language is german' do
+    it 'does a datetime insertion when language is german' do
       connection.execute("SET LANGUAGE deutsch")
       connection.send :initialize_dateformatter
       assert_nothing_raised do
-        Task.create(starting: Time.utc(2000, 1, 31, 5, 42, 0), ending: Date.new(2006, 12, 31))
+        starting = Time.utc(2000, 1, 31, 5, 42, 0)
+        ending = Date.new(2006, 12, 31)
+        Task.create! starting: starting, ending: ending
       end
     end
 
@@ -171,7 +166,7 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
     end
 
     it 'return false to #query_requires_identity_insert? for normal SQL' do
-      [@basic_insert_sql, @basic_update_sql, @basic_select_sql].each do |sql|
+      [basic_insert_sql, basic_update_sql, basic_select_sql].each do |sql|
         assert !connection.send(:query_requires_identity_insert?,sql), "SQL was #{sql}"
       end
     end

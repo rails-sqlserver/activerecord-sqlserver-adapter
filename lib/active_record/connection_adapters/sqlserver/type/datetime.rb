@@ -16,7 +16,7 @@ module ActiveRecord
           end
 
           def cast_usec(value)
-            return 0 if value.usec.zero?
+            return 0 if !value.respond_to?(:usec) || value.usec.zero?
             seconds = value.usec.to_f / 1_000_000.0
             ss_seconds = ((seconds * (1 / second_precision)).round / (1 / second_precision)).round(3)
             (ss_seconds * 1_000_000).to_i

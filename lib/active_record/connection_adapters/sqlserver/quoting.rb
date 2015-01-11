@@ -45,13 +45,15 @@ module ActiveRecord
         end
 
         def quoted_date(value)
-          if value.acts_like?(:time) && value.respond_to?(:usec)
-            precision = (BigDecimal(value.usec.to_s) / 1_000_000).round(3).to_s.split('.').last
-            "#{super}.#{precision}"
-          elsif value.acts_like?(:date)
-            value.to_s(:_sqlserver_dateformat)
-          else
-            super
+          SQLServer::Utils.with_sqlserver_db_date_formats do
+            if value.acts_like?(:time) && value.respond_to?(:usec)
+              precision = (BigDecimal(value.usec.to_s) / 1_000_000).round(3).to_s.split('.').last
+              "#{super}.#{precision}"
+            elsif value.acts_like?(:date)
+              value.to_s(:_sqlserver_dateformat)
+            else
+              super
+            end
           end
         end
 
