@@ -1,6 +1,5 @@
 require 'cases/helper_sqlserver'
 require 'models/person'
-require 'models/sqlserver/person'
 
 class MigrationTestSQLServer < ActiveRecord::TestCase
 

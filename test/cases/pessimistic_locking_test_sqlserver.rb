@@ -1,7 +1,6 @@
 require 'cases/helper_sqlserver'
 require 'models/person'
 require 'models/reader'
-require 'models/sqlserver/person'
 
 class PessimisticLockingTestSQLServer < ActiveRecord::TestCase
 

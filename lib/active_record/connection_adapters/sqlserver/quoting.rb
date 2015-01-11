@@ -44,30 +44,10 @@ module ActiveRecord
           0
         end
 
-        def quoted_datetime(value)
-          if value.acts_like?(:time)
-            time_zone_qualified_value = quoted_value_acts_like_time_filter(value)
-            if value.is_a?(Date)
-              time_zone_qualified_value.iso8601(3).to(18)
-            else
-              time_zone_qualified_value.iso8601(3).to(22)
-            end
-          else
-            quoted_date(value)
-          end
-        end
-
-        def quoted_full_iso8601(value)
-          if value.acts_like?(:time)
-            value.is_a?(Date) ? quoted_value_acts_like_time_filter(value).to_time.xmlschema.to(18) : quoted_value_acts_like_time_filter(value).iso8601(7).to(22)
-          else
-            quoted_date(value)
-          end
-        end
-
         def quoted_date(value)
           if value.acts_like?(:time) && value.respond_to?(:usec)
-            "#{super}.#{sprintf('%03d', value.usec / 1000)}"
+            precision = (BigDecimal(value.usec.to_s) / 1_000_000).round(3).to_s.split('.').last
+            "#{super}.#{precision}"
           elsif value.acts_like?(:date)
             value.to_s(:_sqlserver_dateformat)
           else
@@ -78,8 +58,12 @@ module ActiveRecord
 
         private
 
-        def _quote(value) # , column = nil
+        def _quote(value)
           case value
+          when Type::Binary::Data
+            "0x#{value.hex}"
+          when SQLServer::Type::Quoter
+            value.quote_ss_value
           when String, ActiveSupport::Multibyte::Chars
             if value.is_utf8?
               "#{QUOTED_STRING_PREFIX}#{super}"
@@ -87,7 +71,7 @@ module ActiveRecord
               super
             end
           else
-            super(value)
+            super
           end
         end
 

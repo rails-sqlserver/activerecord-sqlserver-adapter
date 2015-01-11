@@ -2,6 +2,13 @@ ActiveRecord::Schema.define do
 
   execute File.read(ARTest::SQLServer.schema_datatypes_2012_file)
 
+  create_table :datatypes_migration, force: true do |t|
+    t.column :real, :real
+  end
+
+
+
+
   create_table :UPPER_TESTS, force: true do |t|
     t.column :COLUMN1, :string
     t.column :COLUMN2, :integer
@@ -13,10 +20,6 @@ ActiveRecord::Schema.define do
     t.float   :temperature_24, limit: 24
     t.float   :temperature_32, limit: 32
     t.float   :temperature_53, limit: 53
-  end
-
-  create_table :table_with_real_columns, force: true do |t|
-    t.column :real_number, :real
   end
 
   create_table :defaults, force: true do |t|

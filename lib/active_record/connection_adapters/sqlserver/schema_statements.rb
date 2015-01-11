@@ -45,7 +45,7 @@ module ActiveRecord
         def columns(table_name, _name = nil)
           return [] if table_name.blank?
           column_definitions(table_name).map do |ci|
-            sqlserver_options = ci.except(:name, :default_value, :type, :null).merge(database_year: database_year)
+            sqlserver_options = ci.slice :ordinal_position, :is_primary, :is_identity, :default_function
             cast_type = lookup_cast_type(ci[:type])
             new_column ci[:name], ci[:default_value], cast_type, ci[:type], ci[:null], sqlserver_options
           end
@@ -199,6 +199,7 @@ module ActiveRecord
             columns.COLUMN_DEFAULT AS default_value,
             columns.NUMERIC_SCALE AS numeric_scale,
             columns.NUMERIC_PRECISION AS numeric_precision,
+            columns.DATETIME_PRECISION AS datetime_precision,
             columns.ordinal_position,
             CASE
               WHEN columns.DATA_TYPE IN ('nchar','nvarchar') THEN columns.CHARACTER_MAXIMUM_LENGTH
@@ -245,11 +246,13 @@ module ActiveRecord
             ci[:type] = case ci[:type]
                         when /^bit|image|text|ntext|datetime$/
                           ci[:type]
+                        when /^time$/i
+                          "#{ci[:type]}(#{ci[:datetime_precision]})"
                         when /^numeric|decimal$/i
                           "#{ci[:type]}(#{ci[:numeric_precision]},#{ci[:numeric_scale]})"
                         when /^float|real$/i
                           "#{ci[:type]}(#{ci[:numeric_precision]})"
-                        when /^char|nchar|varchar|nvarchar|varbinary|bigint|int|smallint$/
+                        when /^char|nchar|varchar|nvarchar|binary|varbinary|bigint|int|smallint$/
                           ci[:length].to_i == -1 ? "#{ci[:type]}(max)" : "#{ci[:type]}(#{ci[:length]})"
                         else
                           ci[:type]

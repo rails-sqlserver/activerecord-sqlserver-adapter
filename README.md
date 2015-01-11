@@ -18,20 +18,6 @@ This is a long story, but if you are not working with a legacy database and you 
 http://wiki.github.com/rails-sqlserver/activerecord-sqlserver-adapter/rails-db-rake-tasks
 
 
-#### Date/Time Data Type Hinting
-
-SQL Server 2005 does not include a native data type for just `date` or `time`, it only has `datetime`. To pass the ActiveRecord tests we implemented two simple class methods that can teach your models to coerce column information to be cast correctly. Simply pass a list of symbols to either the `coerce_sqlserver_date` or `coerce_sqlserver_time` methods that correspond to 'datetime' columns that need to be cast correctly.
-
-```ruby
-class Topic < ActiveRecord::Base
-  coerce_sqlserver_date :last_read
-  coerce_sqlserver_time :bonus_time
-end
-```
-
-This implementation has some limitations. To date we can only coerce date/time types for models that conform to the expected ActiveRecord class to table naming conventions. So a table of 'foo_bar_widgets' will look for coerced column types in the FooBarWidget class.
-
-
 #### Executing Stored Procedures
 
 Every class that sub classes ActiveRecord::Base will now have an execute_procedure class method to use. This method takes the name of the stored procedure which can be a string or symbol and any number of variables to pass to the procedure. Arguments will automatically be quoted per the connection's standards as normal. For example:

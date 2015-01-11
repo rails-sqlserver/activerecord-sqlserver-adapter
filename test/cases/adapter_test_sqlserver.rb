@@ -8,7 +8,6 @@ require 'models/post'
 require 'models/sqlserver/fk_test_has_pk'
 require 'models/sqlserver/fk_test_has_fk'
 require 'models/sqlserver/customers_view'
-require 'models/sqlserver/sql_server_chronic'
 require 'models/sqlserver/string_defaults_big_view'
 require 'models/sqlserver/string_defaults_view'
 require 'models/sqlserver/topic'
@@ -211,58 +210,6 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
 
   end
 
-  context 'For chronic data types' do
-
-    context 'with a usec' do
-
-      setup do
-        @time = Time.now
-        @db_datetime_003 = '2012-11-08 10:24:36.003'
-        @db_datetime_123 = '2012-11-08 10:24:36.123'
-        @all_datetimes = [@db_datetime_003, @db_datetime_123]
-        @all_datetimes.each do |datetime|
-          @connection.execute("INSERT INTO [sql_server_chronics] ([datetime]) VALUES('#{datetime}')")
-        end
-      end
-
-      teardown do
-        @all_datetimes.each do |datetime|
-          @connection.execute("DELETE FROM [sql_server_chronics] WHERE [datetime] = '#{datetime}'")
-        end
-      end
-
-      context 'finding existing DB objects' do
-
-        should 'find 003 millisecond in the DB with before and after casting' do
-          existing_003 = SqlServerChronic.find_by_datetime!(@db_datetime_003)
-          assert_equal @db_datetime_003, existing_003.datetime_before_type_cast if existing_003.datetime_before_type_cast.is_a?(String)
-          assert_equal 3000, existing_003.datetime.usec, 'A 003 millisecond in SQL Server is 3000 microseconds'
-        end
-
-        should 'find 123 millisecond in the DB with before and after casting' do
-          existing_123 = SqlServerChronic.find_by_datetime!(@db_datetime_123)
-          assert_equal @db_datetime_123, existing_123.datetime_before_type_cast if existing_123.datetime_before_type_cast.is_a?(String)
-          assert_equal 123000, existing_123.datetime.usec, 'A 123 millisecond in SQL Server is 123000 microseconds'
-        end
-
-      end
-
-      context 'saving new datetime objects' do
-
-        should 'truncate 123456 usec to just 123 in the DB cast back to 123000' do
-          Time.any_instance.stubs iso8601: "2011-07-26T12:29:01.123-04:00"
-          saved = SqlServerChronic.create!(datetime: @time).reload
-          saved.reload
-          assert_equal '123', saved.datetime_before_type_cast.split('.')[1] if saved.datetime_before_type_cast.is_a?(String)
-          assert_equal 123000, saved.datetime.usec
-        end
-
-      end
-
-    end
-
-  end
-
   context 'For identity inserts' do
 
     setup do
@@ -365,23 +312,6 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
 
           should "escape all single quotes by repeating them" do
             assert_equal "N'''quotation''s'''", @connection.quote("'quotation's'")
-          end
-
-        end
-
-      end
-
-      context "date and time values" do
-
-        setup do
-          @date = Date.parse '2000-01-01'
-          @column = SqlServerChronic.columns_hash['datetime']
-        end
-
-        context "on a sql datetime column" do
-
-          should "call quoted_datetime and surrounds its result with single quotes" do
-            assert_equal "'01-01-2000'", @connection.quote(@date, @column)
           end
 
         end

@@ -52,3 +52,5 @@ module ActiveRecord
 
   end
 end
+
+Dir["#{ARTest::SQLServer.test_root_sqlserver}/models/**/*.rb"].each { |f| require f }

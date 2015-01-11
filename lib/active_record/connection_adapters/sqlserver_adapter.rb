@@ -7,6 +7,7 @@ require 'active_record/connection_adapters/sqlserver/core_ext/explain'
 require 'active_record/connection_adapters/sqlserver/core_ext/explain_subscriber'
 require 'active_record/connection_adapters/sqlserver/core_ext/relation'
 require 'active_record/connection_adapters/sqlserver/version'
+require 'active_record/connection_adapters/sqlserver/type'
 require 'active_record/connection_adapters/sqlserver/database_limits'
 require 'active_record/connection_adapters/sqlserver/database_statements'
 require 'active_record/connection_adapters/sqlserver/errors'
@@ -246,6 +247,50 @@ module ActiveRecord
       protected
 
       # === Abstract Adapter (Misc Support) =========================== #
+
+      def initialize_type_map(m)
+        m.register_type              %r{.*},            SQLServer::Type::UnicodeString.new
+        # Exact Numerics
+        register_class_with_limit m, 'bigint(8)',       SQLServer::Type::BigInteger
+        register_class_with_limit m, 'int(4)',          SQLServer::Type::Integer
+        register_class_with_limit m, 'smallint(2)',     SQLServer::Type::SmallInteger
+        register_class_with_limit m, 'tinyint(1)',      SQLServer::Type::TinyInteger
+        m.register_type              'bit',             SQLServer::Type::Boolean.new
+        m.register_type              %r{\Adecimal}i do |sql_type|
+          scale = extract_scale(sql_type)
+          precision = extract_precision(sql_type)
+          SQLServer::Type::Decimal.new precision: precision, scale: scale
+        end
+        m.alias_type                 %r{\Anumeric}i,    'decimal'
+        m.register_type              'money',           SQLServer::Type::Money.new
+        m.register_type              'smallmoney',      SQLServer::Type::SmallMoney.new
+        # Approximate Numerics
+        register_class_with_limit m, %r{\Afloat},       SQLServer::Type::Float
+        m.alias_type                 %r{\Areal}i,       'float'
+        # Date and Time
+        m.register_type              'date',            SQLServer::Type::Date.new
+        m.register_type              'datetime',        SQLServer::Type::DateTime.new
+        m.register_type              'smalldatetime',   SQLServer::Type::SmallDateTime.new
+        m.register_type              %r{\Atime}i do |sql_type|
+          scale = extract_scale(sql_type)
+          precision = extract_precision(sql_type)
+          SQLServer::Type::Time.new precision: precision
+        end
+        # Character Strings
+        register_class_with_limit m, %r{\Achar}i,       SQLServer::Type::Char
+        register_class_with_limit m, %r{\Avarchar}i,    SQLServer::Type::Varchar
+        m.register_type              'varchar(max)',    SQLServer::Type::VarcharMax.new
+        m.register_type              'text',            SQLServer::Type::Text.new
+        # Unicode Character Strings
+        register_class_with_limit m, %r{\Anchar}i,      SQLServer::Type::UnicodeChar
+        register_class_with_limit m, %r{\Anvarchar}i,   SQLServer::Type::UnicodeVarchar
+        m.register_type              'nvarchar(max)',   SQLServer::Type::UnicodeVarcharMax.new
+        m.register_type              'ntext',           SQLServer::Type::UnicodeText.new
+        # Binary Strings
+        register_class_with_limit m, %r{\Abinary}i,     SQLServer::Type::Binary
+        register_class_with_limit m, %r{\Avarbinary}i,  SQLServer::Type::Varbinary
+        m.register_type              'varbinary(max)',  SQLServer::Type::VarbinaryMax.new
+      end
 
       def translate_exception(e, message)
         case message
