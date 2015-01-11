@@ -1,7 +1,18 @@
 
 ## v4.2.0
 
-* ...
+#### Added
+
+* New `ActiveRecord::Type` objects. See `active_record/connection_adapters/sqlserver/type` dir.
+* New `SQLServer::Utils::Name` object for decomposing and quoting SQL Server names/identifiers.
+
+#### Changed
+
+* Complete rewrite of our Arel visitor. Focuing on 2012 and upward so we can make FETCH happen.
+* Testing enhancements.
+  * Guard support, check our Guardfile.
+  * Use `ARTest` namespace with `SQLServer` module for our helpers/objects.
+  * Simple 2012 schmea addition and extensive column/type_cast object tests.
 
 
 ## v4.1.0
