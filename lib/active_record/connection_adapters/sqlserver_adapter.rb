@@ -48,6 +48,7 @@ module ActiveRecord
         # AbstractAdapter Responsibility
         @schema_cache = SQLServer::SchemaCache.new self
         @visitor = Arel::Visitors::SQLServer.new self
+        @prepared_statements = true
         # Our Responsibility
         @config = config
         @connection_options = config
