@@ -15,7 +15,9 @@ guard :minitest, {
 } do
   # Our project watchers.
   if ENV['FOCUS_TEST']
-    watch(%r{.*}) { ENV['FOCUS_TEST'] } if ENV['FOCUS_TEST']
+    ENV['FOCUS_TEST'].split(',').map(&:strip).each do |file|
+      watch(%r{.*}) { file }
+    end
   else
     watch(%r{^test/cases/\w+_test_sqlserver.rb$})
     watch(%r{^lib/active_record/connection_adapters/sqlserver/([^/]+)\.rb$})  { |m| "test/cases/#{m[1]}_test_sqlserver.rb" }
