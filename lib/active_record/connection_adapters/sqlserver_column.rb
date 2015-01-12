@@ -16,6 +16,10 @@ module ActiveRecord
         end
       end
 
+      def primary?
+        is_identity? || is_primary?
+      end
+
       def is_identity?
         @sqlserver_options[:is_identity]
       end

@@ -4,18 +4,6 @@ require 'models/task'
 require 'models/subscriber'
 require 'models/minimalistic'
 
-# require 'models/reply'
-# require 'models/joke'
-# require 'models/post'
-# require 'models/sqlserver/fk_test_has_pk'
-# require 'models/sqlserver/fk_test_has_fk'
-# require 'models/sqlserver/customers_view'
-# require 'models/sqlserver/string_defaults_big_view'
-# require 'models/sqlserver/string_defaults_view'
-# require 'models/sqlserver/topic'
-# require 'models/sqlserver/upper_test_default'
-# require 'models/sqlserver/upper_test_lowered'
-
 class AdapterTestSQLServer < ActiveRecord::TestCase
 
   fixtures :tasks
@@ -324,198 +312,179 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
 
   end
 
-  describe 'For SchemaStatements' do
+  describe 'schema statements' do
 
-    describe 'returning from #type_to_sql' do
+    it 'create integers when no limit supplied' do
+      assert_equal 'integer', connection.type_to_sql(:integer)
+    end
 
-      it 'create integers when no limit supplied' do
-        assert_equal 'integer', connection.type_to_sql(:integer)
-      end
+    it 'create integers when limit is 4' do
+      assert_equal 'integer', connection.type_to_sql(:integer, 4)
+    end
 
-      it 'create integers when limit is 4' do
-        assert_equal 'integer', connection.type_to_sql(:integer, 4)
-      end
+    it 'create integers when limit is 3' do
+      assert_equal 'integer', connection.type_to_sql(:integer, 3)
+    end
 
-      it 'create integers when limit is 3' do
-        assert_equal 'integer', connection.type_to_sql(:integer, 3)
-      end
+    it 'create smallints when limit is less than 3' do
+      assert_equal 'smallint', connection.type_to_sql(:integer, 2)
+      assert_equal 'smallint', connection.type_to_sql(:integer, 1)
+    end
 
-      it 'create smallints when limit is less than 3' do
-        assert_equal 'smallint', connection.type_to_sql(:integer, 2)
-        assert_equal 'smallint', connection.type_to_sql(:integer, 1)
-      end
+    it 'create bigints when limit is greateer than 4' do
+      assert_equal 'bigint', connection.type_to_sql(:integer, 5)
+      assert_equal 'bigint', connection.type_to_sql(:integer, 6)
+      assert_equal 'bigint', connection.type_to_sql(:integer, 7)
+      assert_equal 'bigint', connection.type_to_sql(:integer, 8)
+    end
 
-      it 'create bigints when limit is greateer than 4' do
-        assert_equal 'bigint', connection.type_to_sql(:integer, 5)
-        assert_equal 'bigint', connection.type_to_sql(:integer, 6)
-        assert_equal 'bigint', connection.type_to_sql(:integer, 7)
-        assert_equal 'bigint', connection.type_to_sql(:integer, 8)
-      end
+    it 'create floats when no limit supplied' do
+      assert_equal 'float(8)', connection.type_to_sql(:float)
+    end
 
-      it 'create floats when no limit supplied' do
-        assert_equal 'float(8)', connection.type_to_sql(:float)
-      end
-
-      it 'create floats when limit is supplied' do
-        assert_equal 'float(27)', connection.type_to_sql(:float, 27)
-      end
-
+    it 'create floats when limit is supplied' do
+      assert_equal 'float(27)', connection.type_to_sql(:float, 27)
     end
 
   end
 
-  describe 'For indexes' do
+  describe 'indexes' do
 
-    before do
-      @desc_index_name = 'idx_credit_limit_test_desc'
-      connection.execute "CREATE INDEX [#{@desc_index_name}] ON [accounts] (credit_limit DESC)"
-    end
-
-    after do
-      connection.execute "DROP INDEX [#{@desc_index_name}] ON [accounts]"
-    end
+    let(:desc_index_name) { 'idx_credit_limit_test_desc' }
 
     it 'have indexes with descending order' do
-      assert connection.indexes('accounts').find { |i| i.name == @desc_index_name }
+      begin
+        connection.execute "CREATE INDEX [#{desc_index_name}] ON [accounts] (credit_limit DESC)"
+        assert connection.indexes('accounts').find { |i| i.name == desc_index_name }
+      ensure
+        connection.execute "DROP INDEX [#{desc_index_name}] ON [accounts]"
+      end
     end
 
   end
 
-  describe 'For views' do
+  describe 'views' do
 
-    describe 'using connection.views' do
+    # Using connection.views
 
-      it 'return an array' do
-        assert_instance_of Array, connection.views
-      end
-
-      it 'find CustomersView table name' do
-        connection.views.must_include 'customers_view'
-      end
-
-      it 'work with dynamic finders' do
-        name = 'MetaSkills'
-        customer = CustomersView.create! name: name
-        assert_equal customer, CustomersView.find_by_name(name)
-      end
-
-      it 'not contain system views' do
-        systables = ['sysconstraints','syssegments']
-        systables.each do |systable|
-          assert !connection.views.include?(systable), "This systable #{systable} should not be in the views array."
-        end
-      end
-
-      it 'allow the connection#view_information method to return meta data on the view' do
-        view_info = connection.send(:view_information,'customers_view')
-        assert_equal('customers_view', view_info['TABLE_NAME'])
-        assert_match(/CREATE VIEW customers_view/, view_info['VIEW_DEFINITION'])
-      end
-
-      it 'allow the connection#view_table_name method to return true table_name for the view' do
-        assert_equal 'customers', connection.send(:view_table_name,'customers_view')
-        assert_equal 'topics', connection.send(:view_table_name,'topics'), 'No view here, the same table name should come back.'
-      end
-
+    it 'return an array' do
+      assert_instance_of Array, connection.views
     end
 
-    describe 'used by a class for table_name' do
-
-      describe 'with same column names' do
-
-        it 'have matching column objects' do
-          columns = ['id','name','balance']
-          assert !CustomersView.columns.blank?
-          assert_equal columns.size, CustomersView.columns.size
-          columns.each do |colname|
-            assert_instance_of ActiveRecord::ConnectionAdapters::SQLServerColumn,
-              CustomersView.columns_hash[colname],
-              "Column name #{colname.inspect} was not found in these columns #{CustomersView.columns.map(&:name).inspect}"
-          end
-        end
-
-        it 'find identity column' do
-          assert CustomersView.columns_hash['id'].primary
-        end
-
-        it 'find default values' do
-          assert_equal 0, CustomersView.new.balance
-        end
-
-        it 'respond true to table_exists?' do
-          assert CustomersView.table_exists?
-        end
-
-        it 'have correct table name for all column objects' do
-          assert CustomersView.columns.all?{ |c| c.table_name == 'customers_view' },
-            CustomersView.columns.map(&:table_name).inspect
-        end
-
-      end
-
-      describe 'with aliased column names' do
-
-        it 'have matching column objects' do
-          columns = ['id','pretend_null']
-          assert !StringDefaultsView.columns.blank?
-          assert_equal columns.size, StringDefaultsView.columns.size
-          columns.each do |colname|
-            assert_instance_of ActiveRecord::ConnectionAdapters::SQLServerColumn,
-              StringDefaultsView.columns_hash[colname],
-              "Column name #{colname.inspect} was not found in these columns #{StringDefaultsView.columns.map(&:name).inspect}"
-          end
-        end
-
-        it 'find identity column' do
-          assert StringDefaultsView.columns_hash['id'].primary
-        end
-
-        it 'find default values' do
-          assert_equal 'null', StringDefaultsView.new.pretend_null,
-            StringDefaultsView.columns_hash['pretend_null'].inspect
-        end
-
-        it 'respond true to table_exists?' do
-          assert StringDefaultsView.table_exists?
-        end
-
-        it 'have correct table name for all column objects' do
-          assert StringDefaultsView.columns.all?{ |c| c.table_name == 'string_defaults_view' },
-            StringDefaultsView.columns.map(&:table_name).inspect
-        end
-
-      end
-
+    it 'find SSTestCustomersView table name' do
+      connection.views.must_include 'sst_customers_view'
     end
 
-    describe 'doing identity inserts' do
-
-      before do
-        @view_insert_sql = "INSERT INTO [customers_view] ([id],[name],[balance]) VALUES (420,'Microsoft',0)"
-      end
-
-      it 'respond true/tablename to #query_requires_identity_insert?' do
-        assert_equal '[customers_view]', connection.send(:query_requires_identity_insert?,@view_insert_sql)
-      end
-
-      it 'be able to do an identity insert' do
-        assert_nothing_raised { connection.execute(@view_insert_sql) }
-        assert CustomersView.find(420)
-      end
-
+    it 'work with dynamic finders' do
+      name = 'MetaSkills'
+      customer = SSTestCustomersView.create! name: name
+      assert_equal customer, SSTestCustomersView.find_by_name(name)
     end
 
-    describe 'that have more than 4000 chars for their defintion' do
-
-      it 'cope with null returned for the defintion' do
-        assert_nothing_raised() { StringDefaultsBigView.columns }
+    it 'not contain system views' do
+      systables = ['sysconstraints','syssegments']
+      systables.each do |systable|
+        assert !connection.views.include?(systable), "This systable #{systable} should not be in the views array."
       end
+    end
 
-      it 'using alternate view defintion still be able to find real default' do
-        assert_equal 'null', StringDefaultsBigView.new.pretend_null,
-          StringDefaultsBigView.columns_hash['pretend_null'].inspect
+    it 'allow the connection#view_information method to return meta data on the view' do
+      view_info = connection.send(:view_information,'sst_customers_view')
+      assert_equal('sst_customers_view', view_info['TABLE_NAME'])
+      assert_match(/CREATE VIEW sst_customers_view/, view_info['VIEW_DEFINITION'])
+    end
+
+    it 'allow the connection#view_table_name method to return true table_name for the view' do
+      assert_equal 'customers', connection.send(:view_table_name,'sst_customers_view')
+      assert_equal 'topics', connection.send(:view_table_name,'topics'), 'No view here, the same table name should come back.'
+    end
+
+    # With same column names
+
+    it 'have matching column objects' do
+      columns = ['id','name','balance']
+      assert !SSTestCustomersView.columns.blank?
+      assert_equal columns.size, SSTestCustomersView.columns.size
+      columns.each do |colname|
+        assert_instance_of ActiveRecord::ConnectionAdapters::SQLServerColumn,
+          SSTestCustomersView.columns_hash[colname],
+          "Column name #{colname.inspect} was not found in these columns #{SSTestCustomersView.columns.map(&:name).inspect}"
       end
+    end
 
+    it 'find identity column' do
+      pk_name = connection.primary_key(SSTestCustomersView.table_name)
+      pk_name.must_equal 'id'
+      pk_column = SSTestCustomersView.columns_hash[pk_name]
+      pk_column.must_be :primary?
+    end
+
+    it 'find default values' do
+      assert_equal 0, SSTestCustomersView.new.balance
+    end
+
+    it 'respond true to table_exists?' do
+      assert SSTestCustomersView.table_exists?
+    end
+
+    it 'have correct table name for all column objects' do
+      assert SSTestCustomersView.columns.all?{ |c| c.table_name == 'sst_customers_view' },
+        SSTestCustomersView.columns.map(&:table_name).inspect
+    end
+
+    # With aliased column names
+
+    it 'have matching column objects' do
+      columns = ['id','pretend_null']
+      assert !StringDefaultsView.columns.blank?
+      assert_equal columns.size, StringDefaultsView.columns.size
+      columns.each do |colname|
+        assert_instance_of ActiveRecord::ConnectionAdapters::SQLServerColumn,
+          StringDefaultsView.columns_hash[colname],
+          "Column name #{colname.inspect} was not found in these columns #{StringDefaultsView.columns.map(&:name).inspect}"
+      end
+    end
+
+    it 'find identity column' do
+      assert StringDefaultsView.columns_hash['id'].primary
+    end
+
+    it 'find default values' do
+      assert_equal 'null', StringDefaultsView.new.pretend_null,
+        StringDefaultsView.columns_hash['pretend_null'].inspect
+    end
+
+    it 'respond true to table_exists?' do
+      assert StringDefaultsView.table_exists?
+    end
+
+    it 'have correct table name for all column objects' do
+      assert StringDefaultsView.columns.all?{ |c| c.table_name == 'string_defaults_view' },
+        StringDefaultsView.columns.map(&:table_name).inspect
+    end
+
+    # Doing identity inserts
+
+    let(:view_insert_sql) { "INSERT INTO [sst_customers_view] ([id],[name],[balance]) VALUES (420,'Microsoft',0)" }
+
+    it 'respond true/tablename to #query_requires_identity_insert?' do
+      assert_equal '[sst_customers_view]', connection.send(:query_requires_identity_insert?, view_insert_sql)
+    end
+
+    it 'be able to do an identity insert' do
+      assert_nothing_raised { connection.execute( view_insert_sql) }
+      assert SSTestCustomersView.find(420)
+    end
+
+    # That have more than 4000 chars for their defintion
+
+    it 'cope with null returned for the defintion' do
+      assert_nothing_raised() { StringDefaultsBigView.columns }
+    end
+
+    it 'using alternate view defintion still be able to find real default' do
+      assert_equal 'null', StringDefaultsBigView.new.pretend_null,
+        StringDefaultsBigView.columns_hash['pretend_null'].inspect
     end
 
   end

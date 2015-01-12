@@ -20,6 +20,24 @@ ActiveRecord::Schema.define do
     REFERENCES [sst_has_pks] ([id])
   ADDFKSQL
 
+  # Views
+
+  execute "IF EXISTS (SELECT TABLE_NAME FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_NAME = 'sst_customers_view') DROP VIEW sst_customers_view"
+  execute <<-CUSTOMERSVIEW
+    CREATE VIEW sst_customers_view AS
+      SELECT id, name, balance
+      FROM customers
+  CUSTOMERSVIEW
+
+  execute "IF EXISTS (SELECT TABLE_NAME FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_NAME = 'string_defaults_view') DROP VIEW string_defaults_view"
+  execute <<-STRINGDEFAULTSVIEW
+    CREATE VIEW string_defaults_view AS
+      SELECT id, string_with_pretend_null_one as pretend_null
+      FROM string_defaults
+  STRINGDEFAULTSVIEW
+
+
+
 
 
 
@@ -143,19 +161,8 @@ ActiveRecord::Schema.define do
   execute "IF EXISTS (SELECT TABLE_NAME FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_NAME = 'quoted-view2') DROP VIEW [quoted-view2]"
   execute "CREATE VIEW [quoted-view2] AS \n /*#{'x'*4000}}*/ \n SELECT * FROM [quoted-table]"
 
-  execute "IF EXISTS (SELECT TABLE_NAME FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_NAME = 'customers_view') DROP VIEW customers_view"
-  execute <<-CUSTOMERSVIEW
-    CREATE VIEW customers_view AS
-      SELECT id, name, balance
-      FROM customers
-  CUSTOMERSVIEW
 
-  execute "IF EXISTS (SELECT TABLE_NAME FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_NAME = 'string_defaults_view') DROP VIEW string_defaults_view"
-  execute <<-STRINGDEFAULTSVIEW
-    CREATE VIEW string_defaults_view AS
-      SELECT id, string_with_pretend_null_one as pretend_null
-      FROM string_defaults
-  STRINGDEFAULTSVIEW
+
 
   execute "IF EXISTS (SELECT TABLE_NAME FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_NAME = 'string_defaults_big_view') DROP VIEW string_defaults_big_view"
   execute <<-STRINGDEFAULTSBIGVIEW
