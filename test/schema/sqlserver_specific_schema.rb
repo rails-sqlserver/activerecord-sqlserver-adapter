@@ -11,6 +11,15 @@ ActiveRecord::Schema.define do
     t.column :COLUMN2, :integer
   end
 
+  create_table(:sst_has_fks, force: true) { |t| t.column(:fk_id, :integer, null: false) }
+  create_table(:sst_has_pks, force: true) { }
+  execute <<-ADDFKSQL
+    ALTER TABLE sst_has_fks
+    ADD CONSTRAINT FK__sst_has_fks_id
+    FOREIGN KEY ([fk_id])
+    REFERENCES [sst_has_pks] ([id])
+  ADDFKSQL
+
 
 
 
@@ -46,15 +55,6 @@ ActiveRecord::Schema.define do
     t.column :ss_timestamp, :ss_timestamp  unless sqlserver_azure?
     t.column :smalldatetime, :smalldatetime
   end
-
-  create_table(:fk_test_has_fks, force: true) { |t| t.column(:fk_id, :integer, null: false) }
-  create_table(:fk_test_has_pks, force: true) { }
-  execute <<-ADDFKSQL
-    ALTER TABLE fk_test_has_fks
-    ADD CONSTRAINT FK__fk_test_has_fk_fk_id
-    FOREIGN KEY (#{quote_column_name('fk_id')})
-    REFERENCES #{quote_table_name('fk_test_has_pks')} (#{quote_column_name('id')})
-  ADDFKSQL
 
   create_table :sql_server_unicodes, force: true do |t|
     t.column :nchar,          :nchar

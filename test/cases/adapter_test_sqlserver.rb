@@ -230,23 +230,23 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
   describe 'disabling referential integrity' do
 
     before do
-      connection.disable_referential_integrity { FkTestHasPk.delete_all; FkTestHasFk.delete_all }
-      @parent = FkTestHasPk.create!
-      @member = FkTestHasFk.create!(fk_id: @parent.id)
+      connection.disable_referential_integrity { SSTestHasPk.delete_all; SSTestHasFk.delete_all }
+      @parent = SSTestHasPk.create!
+      @member = SSTestHasFk.create!(fk_id: @parent.id)
     end
 
     it 'NOT ALLOW by default the deletion of a referenced parent' do
-      FkTestHasPk.connection.disable_referential_integrity { }
+      SSTestHasPk.connection.disable_referential_integrity { }
       assert_raise(ActiveRecord::StatementInvalid) { @parent.destroy }
     end
 
     it 'ALLOW deletion of referenced parent using #disable_referential_integrity block' do
-      FkTestHasPk.connection.disable_referential_integrity { @parent.destroy }
+      SSTestHasPk.connection.disable_referential_integrity { @parent.destroy }
     end
 
     it 'again NOT ALLOW deletion of referenced parent after #disable_referential_integrity block' do
       assert_raise(ActiveRecord::StatementInvalid) do
-        FkTestHasPk.connection.disable_referential_integrity { }
+        SSTestHasPk.connection.disable_referential_integrity { }
         @parent.destroy
       end
     end
