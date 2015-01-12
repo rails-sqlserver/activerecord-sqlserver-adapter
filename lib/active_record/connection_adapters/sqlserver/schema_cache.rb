@@ -79,8 +79,8 @@ module ActiveRecord
 
         def view_information(table_name)
           name = table_name_key(table_name)
-          return @view_information[key] if @view_information.key? key
-          @view_information[key] = connection.send(:view_information, table_name)
+          return @view_information[name] if @view_information.key? name
+          @view_information[name] = connection.send(:view_information, table_name)
         end
 
 

@@ -12,7 +12,7 @@ module ActiveRecord
         end
 
         def quote_column_name(name)
-          SQLServer::Utils.extract_identifiers(name).object_quoted
+          SQLServer::Utils.extract_identifiers(name).quoted
         end
 
         def quote_default_value(value, column)

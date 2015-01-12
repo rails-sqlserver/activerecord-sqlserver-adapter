@@ -1,11 +1,11 @@
 require 'cases/helper_sqlserver'
 require 'models/topic'
 require 'models/task'
+require 'models/subscriber'
+require 'models/minimalistic'
 
 # require 'models/reply'
 # require 'models/joke'
-# require 'models/subscriber'
-# require 'models/minimalistic'
 # require 'models/post'
 # require 'models/sqlserver/fk_test_has_pk'
 # require 'models/sqlserver/fk_test_has_fk'
@@ -144,7 +144,7 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
 
   end
 
-  describe 'For identity inserts' do
+  describe 'identity inserts' do
 
     before do
       @identity_insert_sql = "INSERT INTO [funny_jokes] ([id],[name]) VALUES(420,'Knock knock')"
@@ -171,27 +171,18 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
     end
 
     it 'find identity column using #identity_column' do
-      joke_id_column = Joke.columns.find { |c| c.name == 'id' }
-      assert_equal joke_id_column.name, connection.send(:identity_column,Joke.table_name).name
-      assert_equal joke_id_column.sql_type, connection.send(:identity_column,Joke.table_name).sql_type
+      task_id_column = Task.columns_hash['id']
+      assert_equal task_id_column.name, connection.send(:identity_column, Task.table_name).name
+      assert_equal task_id_column.sql_type, connection.send(:identity_column, Task.table_name).sql_type
     end
 
     it 'return nil when calling #identity_column for a table_name with no identity' do
-      assert_nil connection.send(:identity_column,Subscriber.table_name)
-    end unless sqlserver_azure?
-
-    it 'be able to disable referential integrity' do
-      Minimalistic.delete_all
-      connection.send :set_identity_insert, Minimalistic.table_name, false
-      connection.execute_procedure :sp_MSforeachtable, 'ALTER TABLE ? CHECK CONSTRAINT ALL'
-      o = Minimalistic.new
-      o.id = 420
-      o.save!
+      assert_nil connection.send(:identity_column, Subscriber.table_name)
     end
 
   end
 
-  describe 'For Quoting' do
+  describe 'quoting' do
 
     it 'return 1 for #quoted_true' do
       assert_equal '1', connection.quoted_true
@@ -222,114 +213,21 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
       assert_equal '[foo].[bar].[baz]', connection.quote_column_name('foo.bar.baz')
     end
 
-    describe "#quote" do
-
-      describe "string and multibyte values" do
-
-        describe "on an activerecord :integer column" do
-
-          before do
-            @column = Post.columns_hash['id']
-          end
-
-          it "return 0 for empty string" do
-            assert_equal '0', connection.quote('', @column)
-          end
-
-        end
-
-        describe "on an activerecord :string column or with any value" do
-
-          it "surround it when N'...'" do
-            assert_equal "N'foo'", connection.quote("foo")
-          end
-
-          it "escape all single quotes by repeating them" do
-            assert_equal "N'''quotation''s'''", connection.quote("'quotation's'")
-          end
-
-        end
-
-      end
-
+    it "return 0 for empty string" do
+      assert_equal '0', connection.quote('', Post.columns_hash['id'])
     end
 
-    describe "#quoted_datetime" do
+    it "surround string with national prefix" do
+      assert_equal "N'foo'", connection.quote("foo")
+    end
 
-      before do
-        @iso_string = '2001-02-03T04:05:06-0700'
-        @date = Date.parse @iso_string
-        @time = Time.parse @iso_string
-        @datetime = DateTime.parse @iso_string
-      end
-
-      describe "with a Date" do
-
-        it "return a dd-mm-yyyy date string" do
-          assert_equal '02-03-2001', connection.quoted_datetime(@date)
-        end
-
-      end
-
-      describe "when the ActiveRecord default timezone is UTC" do
-
-        before do
-          @old_activerecord_timezone = ActiveRecord::Base.default_timezone
-          ActiveRecord::Base.default_timezone = :utc
-        end
-
-        after do
-          ActiveRecord::Base.default_timezone = @old_activerecord_timezone
-          @old_activerecord_timezone = nil
-        end
-
-        describe "with a Time" do
-
-          it "return an ISO 8601 datetime string" do
-            assert_equal '2001-02-03T11:05:06.000', connection.quoted_datetime(@time)
-          end
-
-        end
-
-        describe "with a DateTime" do
-
-          it "return an ISO 8601 datetime string" do
-            assert_equal '2001-02-03T11:05:06', connection.quoted_datetime(@datetime)
-          end
-
-        end
-
-        describe "with an ActiveSupport::TimeWithZone" do
-
-          describe "wrapping a datetime" do
-
-            it "return an ISO 8601 datetime string with milliseconds" do
-              Time.use_zone('Eastern Time (US & Canada)') do
-                assert_equal '2001-02-03T11:05:06.000', connection.quoted_datetime(@datetime.in_time_zone)
-              end
-            end
-
-          end
-
-          describe "wrapping a time" do
-
-            it "return an ISO 8601 datetime string with milliseconds" do
-              Time.use_zone('Eastern Time (US & Canada)') do
-                assert_equal '2001-02-03T11:05:06.000', connection.quoted_datetime(@time.in_time_zone)
-              end
-            end
-
-          end
-
-        end
-
-      end
-
+    it "escape all single quotes by repeating them" do
+      assert_equal "N'''quotation''s'''", connection.quote("'quotation's'")
     end
 
   end
 
-  describe 'When disabling referential integrity' do
+  describe 'disabling referential integrity' do
 
     before do
       connection.disable_referential_integrity { FkTestHasPk.delete_all; FkTestHasFk.delete_all }
