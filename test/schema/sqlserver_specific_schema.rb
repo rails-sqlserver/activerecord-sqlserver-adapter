@@ -23,13 +23,7 @@ ActiveRecord::Schema.define do
 
 
 
-  create_table :float_data, force: true do |t|
-    t.float   :temperature
-    t.float   :temperature_8, limit: 8
-    t.float   :temperature_24, limit: 24
-    t.float   :temperature_32, limit: 32
-    t.float   :temperature_53, limit: 53
-  end
+
 
   create_table :defaults, force: true do |t|
     t.column :positive_integer, :integer, default: 1

@@ -87,7 +87,7 @@ module ActiveRecord
         private
 
         def table_name_key(table_name)
-          SQLServer::Utils.extract_identifiers(table_name).object
+          SQLServer::Utils.extract_identifiers(table_name).quoted
         end
 
         def prepare_views
