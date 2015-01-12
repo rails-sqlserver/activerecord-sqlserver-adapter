@@ -2,17 +2,17 @@ ActiveRecord::Schema.define do
 
   execute File.read(ARTest::SQLServer.schema_datatypes_2012_file)
 
-  create_table :datatypes_migration, force: true do |t|
+  create_table :sst_datatypes_migration, force: true do |t|
     t.column :real, :real
   end
 
-
-
-
-  create_table :UPPER_TESTS, force: true do |t|
+  create_table :SST_UPPER_TESTS, force: true do |t|
     t.column :COLUMN1, :string
     t.column :COLUMN2, :integer
   end
+
+
+
 
   create_table :float_data, force: true do |t|
     t.float   :temperature

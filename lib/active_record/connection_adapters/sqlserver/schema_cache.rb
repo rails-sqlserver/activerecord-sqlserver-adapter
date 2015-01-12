@@ -7,59 +7,78 @@ module ActiveRecord
 
         def initialize(conn)
           super
-          @table_names = nil
-          @view_names = nil
+          @views = {}
           @view_information = {}
         end
 
         # Superclass Overrides
 
+        def primary_keys(table_name)
+          super(table_name_key(table_name))
+        end
+
         def table_exists?(table_name)
-          return false if table_name.blank?
-          key = table_name_key(table_name)
-          return @tables[key] if @tables.key? key
-          @tables[key] = connection.table_exists?(table_name)
+          name = table_name_key(table_name)
+          super(name) || view_exists?(name)
+        end
+
+        def add(table_name)
+          super(table_name_key(table_name))
+        end
+
+        def tables(name)
+          super(table_name_key(name))
+        end
+
+        def columns(table_name)
+          super(table_name_key(table_name))
+        end
+
+        def columns_hash(table_name)
+          super(table_name_key(table_name))
         end
 
         def clear!
           super
-          @table_names = nil
-          @view_names = nil
+          @views.clear
           @view_information.clear
         end
 
+        def size
+          super + [@views, @view_information].map{ |x| x.size }.inject(:+)
+        end
+
         def clear_table_cache!(table_name)
-          key = table_name_key(table_name)
-          super(key)
+          table_name = table_name_key(table_name)
           super(table_name)
-          # SQL Server Specific
-          if @table_names
-            @table_names.delete key
-            @table_names.delete table_name
-          end
-          if @view_names
-            @view_names.delete key
-            @view_names.delete table_name
-          end
-          @view_information.delete key
+          @views.delete table_name
+          @view_information.delete table_name
+        end
+
+        def marshal_dump
+          super + [@views, @view_information]
+        end
+
+        def marshal_load(array)
+          @views, @view_information = array[-2..-1]
+          super(array[0..-3])
         end
 
         # SQL Server Specific
 
-        def table_names
-          @table_names ||= connection.tables
-        end
-
         def view_names
-          @view_names ||= connection.views
+          @views.select{ |k,v| v }.keys
         end
 
         def view_exists?(table_name)
-          table_exists?(table_name)
+          name = table_name_key(table_name)
+          prepare_views if @views.empty?
+          return @views[name] if @views.key? name
+          @views[name] = connection.views.include?(name)
         end
 
         def view_information(table_name)
-          key = table_name_key(table_name)
+          name = table_name_key(table_name)
           return @view_information[key] if @view_information.key? key
           @view_information[key] = connection.send(:view_information, table_name)
         end
@@ -69,6 +88,10 @@ module ActiveRecord
 
         def table_name_key(table_name)
           SQLServer::Utils.extract_identifiers(table_name).object
+        end
+
+        def prepare_views
+          connection.views.each { |view| @views[view] = true }
         end
 
       end
