@@ -1,6 +1,7 @@
 require 'cases/helper_sqlserver'
 require 'models/topic'
 require 'models/task'
+require 'models/post'
 require 'models/subscriber'
 require 'models/minimalistic'
 
@@ -65,10 +66,10 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
     assert !connection.send(:insert_sql?,'SELECT...')
   end
 
-  it 'return quoted table name from basic INSERT UPDATE and SELECT statements' do
-    assert_equal '[funny_jokes]', connection.send(:get_table_name, basic_insert_sql)
-    assert_equal '[customers]', connection.send(:get_table_name, basic_update_sql)
-    assert_equal '[customers]', connection.send(:get_table_name, basic_select_sql)
+  it 'return unquoted table name object from basic INSERT UPDATE and SELECT statements' do
+    assert_equal 'funny_jokes', connection.send(:get_table_name, basic_insert_sql)
+    assert_equal 'customers', connection.send(:get_table_name, basic_update_sql)
+    assert_equal 'customers', connection.send(:get_table_name, basic_select_sql)
   end
 
   describe 'with different language' do
@@ -413,10 +414,9 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
     end
 
     it 'find identity column' do
-      pk_name = connection.primary_key(SSTestCustomersView.table_name)
-      pk_name.must_equal 'id'
-      pk_column = SSTestCustomersView.columns_hash[pk_name]
-      pk_column.must_be :primary?
+      SSTestCustomersView.primary_key.must_equal 'id'
+      connection.primary_key(SSTestCustomersView.table_name).must_equal 'id'
+      SSTestCustomersView.columns_hash['id'].must_be :is_identity?
     end
 
     it 'find default values' do
@@ -427,40 +427,32 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
       assert SSTestCustomersView.table_exists?
     end
 
-    it 'have correct table name for all column objects' do
-      assert SSTestCustomersView.columns.all?{ |c| c.table_name == 'sst_customers_view' },
-        SSTestCustomersView.columns.map(&:table_name).inspect
-    end
-
     # With aliased column names
 
     it 'have matching column objects' do
       columns = ['id','pretend_null']
-      assert !StringDefaultsView.columns.blank?
-      assert_equal columns.size, StringDefaultsView.columns.size
+      assert !SSTestStringDefaultsView.columns.blank?
+      assert_equal columns.size, SSTestStringDefaultsView.columns.size
       columns.each do |colname|
         assert_instance_of ActiveRecord::ConnectionAdapters::SQLServerColumn,
-          StringDefaultsView.columns_hash[colname],
-          "Column name #{colname.inspect} was not found in these columns #{StringDefaultsView.columns.map(&:name).inspect}"
+          SSTestStringDefaultsView.columns_hash[colname],
+          "Column name #{colname.inspect} was not found in these columns #{SSTestStringDefaultsView.columns.map(&:name).inspect}"
       end
     end
 
     it 'find identity column' do
-      assert StringDefaultsView.columns_hash['id'].primary
+      SSTestStringDefaultsView.primary_key.must_equal 'id'
+      connection.primary_key(SSTestStringDefaultsView.table_name).must_equal 'id'
+      SSTestStringDefaultsView.columns_hash['id'].must_be :is_identity?
     end
 
     it 'find default values' do
-      assert_equal 'null', StringDefaultsView.new.pretend_null,
-        StringDefaultsView.columns_hash['pretend_null'].inspect
+      assert_equal 'null', SSTestStringDefaultsView.new.pretend_null,
+        SSTestStringDefaultsView.columns_hash['pretend_null'].inspect
     end
 
     it 'respond true to table_exists?' do
-      assert StringDefaultsView.table_exists?
-    end
-
-    it 'have correct table name for all column objects' do
-      assert StringDefaultsView.columns.all?{ |c| c.table_name == 'string_defaults_view' },
-        StringDefaultsView.columns.map(&:table_name).inspect
+      assert SSTestStringDefaultsView.table_exists?
     end
 
     # Doing identity inserts
@@ -479,31 +471,15 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
     # That have more than 4000 chars for their defintion
 
     it 'cope with null returned for the defintion' do
-      assert_nothing_raised() { StringDefaultsBigView.columns }
+      assert_nothing_raised() { SSTestStringDefaultsBigView.columns }
     end
 
     it 'using alternate view defintion still be able to find real default' do
-      assert_equal 'null', StringDefaultsBigView.new.pretend_null,
-        StringDefaultsBigView.columns_hash['pretend_null'].inspect
+      assert_equal 'null', SSTestStringDefaultsBigView.new.pretend_null,
+        SSTestStringDefaultsBigView.columns_hash['pretend_null'].inspect
     end
 
   end
 
 end
 
-
-module ActiveRecord
-  class AdapterTest < ActiveRecord::TestCase
-
-    COERCED_TESTS = [:test_update_prepared_statement]
-    # Like PostgreSQL, SQL Server does not support null bytes in strings.
-    # DECLARE @mybin1 binary(5), @mybin2 binary(5)
-    # SET @mybin1 = 0x00
-    # SELECT 'a'+CONVERT(varchar(5), @mybin1) + 'aaaaa'
-    # This is not run for PostgreSQL at the rails level and the same should happen for SQL Server
-    # Until that patch is made to rails we are preventing this test from running in this gem.
-    include ARTest::SQLServer::CoercedTest
-
-    fixtures :authors
-  end
-end

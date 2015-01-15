@@ -187,10 +187,9 @@ module ActiveRecord
         end
 
         def column_definitions(table_name)
-          db_name = SQLServer::Utils.extract_identifiers(table_name).database
-          db_name_with_period = "#{db_name}." if db_name
-          table_schema = SQLServer::Utils.extract_identifiers(table_name).schema
-          table_name = SQLServer::Utils.extract_identifiers(table_name).object
+          identifier = SQLServer::Utils.extract_identifiers(table_name)
+          database   = "#{identifier.database_quoted}." if identifier.database_quoted
+          table_name = identifier.quoted
           sql = %{
             SELECT DISTINCT
             #{lowercase_schema_reflection_sql('columns.TABLE_NAME')} AS table_name,
@@ -203,7 +202,7 @@ module ActiveRecord
             columns.ordinal_position,
             CASE
               WHEN columns.DATA_TYPE IN ('nchar','nvarchar') THEN columns.CHARACTER_MAXIMUM_LENGTH
-              ELSE COL_LENGTH('#{db_name_with_period}'+columns.TABLE_SCHEMA+'.'+columns.TABLE_NAME, columns.COLUMN_NAME)
+              ELSE COL_LENGTH('#{database}'+columns.TABLE_SCHEMA+'.'+columns.TABLE_NAME, columns.COLUMN_NAME)
             END AS [length],
             CASE
               WHEN columns.IS_NULLABLE = 'YES' THEN 1
@@ -214,32 +213,32 @@ module ActiveRecord
               ELSE NULL
             END AS [is_primary],
             c.is_identity AS [is_identity]
-            FROM #{db_name_with_period}INFORMATION_SCHEMA.COLUMNS columns
-            LEFT OUTER JOIN #{db_name_with_period}INFORMATION_SCHEMA.TABLE_CONSTRAINTS AS TC
+            FROM #{database}INFORMATION_SCHEMA.COLUMNS columns
+            LEFT OUTER JOIN #{database}INFORMATION_SCHEMA.TABLE_CONSTRAINTS AS TC
               ON TC.TABLE_NAME = columns.TABLE_NAME
               AND TC.CONSTRAINT_TYPE = N'PRIMARY KEY'
-            LEFT OUTER JOIN #{db_name_with_period}INFORMATION_SCHEMA.KEY_COLUMN_USAGE AS KCU
+            LEFT OUTER JOIN #{database}INFORMATION_SCHEMA.KEY_COLUMN_USAGE AS KCU
               ON KCU.COLUMN_NAME = columns.COLUMN_NAME
               AND KCU.CONSTRAINT_NAME = TC.CONSTRAINT_NAME
               AND KCU.CONSTRAINT_CATALOG = TC.CONSTRAINT_CATALOG
               AND KCU.CONSTRAINT_SCHEMA = TC.CONSTRAINT_SCHEMA
-            INNER JOIN #{db_name}.sys.schemas AS s
+            INNER JOIN #{identifier.database_quoted}.sys.schemas AS s
               ON s.name = columns.TABLE_SCHEMA
               AND s.schema_id = s.schema_id
-            INNER JOIN #{db_name}.sys.objects AS o
+            INNER JOIN #{identifier.database_quoted}.sys.objects AS o
               ON s.schema_id = o.schema_id
               AND o.is_ms_shipped = 0
               AND o.type IN ('U', 'V')
               AND o.name = columns.TABLE_NAME
-            INNER JOIN #{db_name}.sys.columns AS c
+            INNER JOIN #{identifier.database_quoted}.sys.columns AS c
               ON o.object_id = c.object_id
               AND c.name = columns.COLUMN_NAME
             WHERE columns.TABLE_NAME = @0
-              AND columns.TABLE_SCHEMA = #{table_schema.blank? ? 'schema_name()' : '@1'}
+              AND columns.TABLE_SCHEMA = #{identifier.schema.blank? ? 'schema_name()' : '@1'}
             ORDER BY columns.ordinal_position
           }.gsub(/[ \t\r\n]+/, ' ')
-          binds = [['table_name', table_name]]
-          binds << ['table_schema', table_schema] unless table_schema.blank?
+          binds = [['table_name', identifier.object]]
+          binds << ['table_schema', identifier.schema] unless identifier.schema.blank?
           results = do_exec_query(sql, 'SCHEMA', binds)
           results.map do |ci|
             ci = ci.symbolize_keys
@@ -257,10 +256,10 @@ module ActiveRecord
                         else
                           ci[:type]
                         end
-            if ci[:default_value].nil? && schema_cache.view_names.include?(table_name)
+            if ci[:default_value].nil? && schema_cache.view_exists?(table_name)
               real_table_name = table_name_or_views_table_name(table_name)
               real_column_name = views_real_column_name(table_name, ci[:name])
-              col_default_sql = "SELECT c.COLUMN_DEFAULT FROM #{db_name_with_period}INFORMATION_SCHEMA.COLUMNS c WHERE c.TABLE_NAME = '#{real_table_name}' AND c.COLUMN_NAME = '#{real_column_name}'"
+              col_default_sql = "SELECT c.COLUMN_DEFAULT FROM #{database}INFORMATION_SCHEMA.COLUMNS c WHERE c.TABLE_NAME = '#{real_table_name}' AND c.COLUMN_NAME = '#{real_column_name}'"
               ci[:default_value] = select_value col_default_sql, 'SCHEMA'
             end
             ci[:default_value] = case ci[:default_value]
@@ -306,13 +305,14 @@ module ActiveRecord
         # === SQLServer Specific (Misc Helpers) ========================= #
 
         def get_table_name(sql)
-          if sql =~ /^\s*(INSERT|EXEC sp_executesql N'INSERT)(\s+INTO)?\s+([^\(\s]+)\s*|^\s*update\s+([^\(\s]+)\s*/i
+          tn = if sql =~ /^\s*(INSERT|EXEC sp_executesql N'INSERT)(\s+INTO)?\s+([^\(\s]+)\s*|^\s*update\s+([^\(\s]+)\s*/i
             Regexp.last_match[3] || Regexp.last_match[4]
           elsif sql =~ /FROM\s+([^\(\s]+)\s*/i
             Regexp.last_match[1]
           else
             nil
           end
+          SQLServer::Utils.extract_identifiers(tn).object
         end
 
         def default_constraint_name(table_name, column_name)
@@ -344,19 +344,18 @@ module ActiveRecord
             view_info = view_info.with_indifferent_access
             if view_info[:VIEW_DEFINITION].blank? || view_info[:VIEW_DEFINITION].length == 4000
               view_info[:VIEW_DEFINITION] = begin
-                                              select_values("EXEC sp_helptext #{quote_table_name(table_name)}", 'SCHEMA').join
-                                            rescue
-                                              warn "No view definition found, possible permissions problem.\nPlease run GRANT VIEW DEFINITION TO your_user;"
-                                              nil
-                                            end
+                select_values("EXEC sp_helptext #{quote_table_name(table_name)}", 'SCHEMA').join
+              rescue
+                warn "No view definition found, possible permissions problem.\nPlease run GRANT VIEW DEFINITION TO your_user;"
+                nil
+              end
             end
           end
           view_info
         end
 
         def table_name_or_views_table_name(table_name)
-          unquoted_table_name = SQLServer::Utils.extract_identifiers(table_name).object
-          schema_cache.view_names.include?(unquoted_table_name) ? view_table_name(unquoted_table_name) : unquoted_table_name
+          schema_cache.view_exists?(table_name) ? view_table_name(table_name) : table_name
         end
 
         def views_real_column_name(table_name, column_name)

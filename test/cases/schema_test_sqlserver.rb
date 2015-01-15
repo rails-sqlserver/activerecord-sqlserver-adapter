@@ -12,7 +12,7 @@ class SchemaTestSQLServer < ActiveRecord::TestCase
 
     should 'find primary key for tables with odd schema' do
       assert_equal 'legacy_id', @connection.primary_key('natural_pk_data')
-      assert SqlServerNaturalPkData.columns_hash['legacy_id'].primary
+      assert SSTestNaturalPkData.columns_hash['legacy_id'].primary
     end
 
   end

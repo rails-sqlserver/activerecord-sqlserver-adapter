@@ -1,15 +1,77 @@
 ActiveRecord::Schema.define do
 
+  # Exhaustive Data Types
+
   execute File.read(ARTest::SQLServer.schema_datatypes_2012_file)
 
   create_table :sst_datatypes_migration, force: true do |t|
     t.column :real, :real
   end
 
+
+  # Edge Cases
+
+  create_table 'sst_my$strange_table', force: true do |t|
+    t.column :number, :real
+  end
+
   create_table :SST_UPPER_TESTS, force: true do |t|
     t.column :COLUMN1, :string
     t.column :COLUMN2, :integer
   end
+
+  create_table :sst_no_pk_data, force: true, id: false do |t|
+    t.string :name
+  end
+
+  create_table 'sst_quoted-table', force: true do |t|
+  end
+  execute "IF EXISTS (SELECT TABLE_NAME FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_NAME = 'sst_quoted-view1') DROP VIEW [sst_quoted-view1]"
+  execute "CREATE VIEW [sst_quoted-view1] AS SELECT * FROM [sst_quoted-table]"
+  execute "IF EXISTS (SELECT TABLE_NAME FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_NAME = 'sst_quoted-view2') DROP VIEW [sst_quoted-view2]"
+  execute "CREATE VIEW [sst_quoted-view2] AS \n /*#{'x'*4000}}*/ \n SELECT * FROM [sst_quoted-table]"
+
+  create_table :sst_string_defaults, force: true do |t|
+    t.column :string_with_null_default, :string, default: nil
+    t.column :string_with_pretend_null_one, :string, default: 'null'
+    t.column :string_with_pretend_null_two, :string, default: '(null)'
+    t.column :string_with_pretend_null_three, :string, default: 'NULL'
+    t.column :string_with_pretend_null_four, :string, default: '(NULL)'
+    t.column :string_with_pretend_paren_three, :string, default: '(3)'
+    t.column :string_with_multiline_default, :string, default: "Some long default with a\nnew line."
+  end
+
+  create_table :sst_edge_schemas, force: true do |t|
+    t.string :description
+    t.column :guid, :uniqueidentifier
+    t.column 'crazy]]quote', :string
+    t.column 'with spaces', :string
+  end
+  execute %|ALTER TABLE [sst_edge_schemas] ADD [guid_newid] uniqueidentifier DEFAULT NEWID();|
+  execute %|ALTER TABLE [sst_edge_schemas] ADD [guid_newseqid] uniqueidentifier DEFAULT NEWSEQUENTIALID();|
+
+  execute "IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'sst_natural_pk_data') DROP TABLE sst_natural_pk_data"
+  execute <<-NATURALPKTABLESQL
+    CREATE TABLE sst_natural_pk_data(
+      parent_id int,
+      name nvarchar(255),
+      description nvarchar(1000),
+      legacy_id nvarchar(10) NOT NULL PRIMARY KEY
+    )
+  NATURALPKTABLESQL
+
+  execute "IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'sst_natural_pk_int_data') DROP TABLE sst_natural_pk_int_data"
+  execute <<-NATURALPKINTTABLESQL
+    CREATE TABLE sst_natural_pk_int_data(
+      legacy_id int NOT NULL PRIMARY KEY,
+      parent_id int,
+      name nvarchar(255),
+      description nvarchar(1000)
+    )
+  NATURALPKINTTABLESQL
+
+
+  # Constraints
 
   create_table(:sst_has_fks, force: true) { |t| t.column(:fk_id, :integer, null: false) }
   create_table(:sst_has_pks, force: true) { }
@@ -29,12 +91,22 @@ ActiveRecord::Schema.define do
       FROM customers
   CUSTOMERSVIEW
 
-  execute "IF EXISTS (SELECT TABLE_NAME FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_NAME = 'string_defaults_view') DROP VIEW string_defaults_view"
+  execute "IF EXISTS (SELECT TABLE_NAME FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_NAME = 'sst_string_defaults_view') DROP VIEW sst_string_defaults_view"
   execute <<-STRINGDEFAULTSVIEW
-    CREATE VIEW string_defaults_view AS
+    CREATE VIEW sst_string_defaults_view AS
       SELECT id, string_with_pretend_null_one as pretend_null
-      FROM string_defaults
+      FROM sst_string_defaults
   STRINGDEFAULTSVIEW
+
+  execute "IF EXISTS (SELECT TABLE_NAME FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_NAME = 'sst_string_defaults_big_view') DROP VIEW sst_string_defaults_big_view"
+  execute <<-STRINGDEFAULTSBIGVIEW
+    CREATE VIEW sst_string_defaults_big_view AS
+      SELECT id, string_with_pretend_null_one as pretend_null
+      /*#{'x'*4000}}*/
+      FROM sst_string_defaults
+  STRINGDEFAULTSBIGVIEW
+
+
 
 
 
@@ -47,16 +119,6 @@ ActiveRecord::Schema.define do
     t.column :positive_integer, :integer, default: 1
     t.column :negative_integer, :integer, default: -1
     t.column :decimal_number, :decimal, precision: 3, scale: 2, default: 2.78
-  end
-
-  create_table :string_defaults, force: true do |t|
-    t.column :string_with_null_default, :string, default: nil
-    t.column :string_with_pretend_null_one, :string, default: 'null'
-    t.column :string_with_pretend_null_two, :string, default: '(null)'
-    t.column :string_with_pretend_null_three, :string, default: 'NULL'
-    t.column :string_with_pretend_null_four, :string, default: '(NULL)'
-    t.column :string_with_pretend_paren_three, :string, default: '(3)'
-    t.column :string_with_multiline_default, :string, default: "Some long default with a\nnew line."
   end
 
   create_table :sql_server_chronics, force: true do |t|
@@ -90,25 +152,6 @@ ActiveRecord::Schema.define do
     # TODO: Add some different native binary types and test.
   end
 
-  create_table 'my$strange_table', force: true do |t|
-    t.column :number, :real
-  end
-
-  create_table :sql_server_edge_schemas, force: true do |t|
-    t.string :description
-    t.column :bigint, :bigint
-    t.column :tinyint, :tinyint
-    t.column :guid, :uniqueidentifier
-    t.column 'crazy]]quote', :string
-    t.column 'with spaces', :string
-  end
-  execute %|ALTER TABLE [sql_server_edge_schemas] ADD [guid_newid] uniqueidentifier DEFAULT NEWID();|
-  execute %|ALTER TABLE [sql_server_edge_schemas] ADD [guid_newseqid] uniqueidentifier DEFAULT NEWSEQUENTIALID();| unless sqlserver_azure?
-
-  create_table :no_pk_data, force: true, id: false do |t|
-    t.string :name
-  end
-
   # http://blogs.msdn.com/b/craigfr/archive/2008/03/19/ranking-functions-row-number.aspx
   execute "IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'order_row_number') DROP TABLE order_row_number"
   execute <<-ORDERROWNUMBERSQL
@@ -126,26 +169,6 @@ ActiveRecord::Schema.define do
     INSERT [order_row_number] VALUES (1, 8, 1)
   ORDERROWNUMBERSQL
 
-  execute "IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'natural_pk_data') DROP TABLE natural_pk_data"
-  execute <<-NATURALPKTABLESQL
-    CREATE TABLE natural_pk_data(
-      parent_id int,
-      name nvarchar(255),
-      description nvarchar(1000),
-      legacy_id nvarchar(10) NOT NULL PRIMARY KEY
-    )
-  NATURALPKTABLESQL
-
-  execute "IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'natural_pk_int_data') DROP TABLE natural_pk_int_data"
-  execute <<-NATURALPKINTTABLESQL
-    CREATE TABLE natural_pk_int_data(
-      legacy_id int NOT NULL PRIMARY KEY,
-      parent_id int,
-      name nvarchar(255),
-      description nvarchar(1000)
-    )
-  NATURALPKINTTABLESQL
-
   execute "IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'tinyint_pk_table') DROP TABLE tinyint_pk_table"
   execute <<-TINYITPKTABLE
     CREATE TABLE tinyint_pk_table(
@@ -154,23 +177,15 @@ ActiveRecord::Schema.define do
     )
   TINYITPKTABLE
 
-  create_table 'quoted-table', force: true do |t|
-  end
-  execute "IF EXISTS (SELECT TABLE_NAME FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_NAME = 'quoted-view1') DROP VIEW [quoted-view1]"
-  execute "CREATE VIEW [quoted-view1] AS SELECT * FROM [quoted-table]"
-  execute "IF EXISTS (SELECT TABLE_NAME FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_NAME = 'quoted-view2') DROP VIEW [quoted-view2]"
-  execute "CREATE VIEW [quoted-view2] AS \n /*#{'x'*4000}}*/ \n SELECT * FROM [quoted-table]"
 
 
 
 
-  execute "IF EXISTS (SELECT TABLE_NAME FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_NAME = 'string_defaults_big_view') DROP VIEW string_defaults_big_view"
-  execute <<-STRINGDEFAULTSBIGVIEW
-    CREATE VIEW string_defaults_big_view AS
-      SELECT id, string_with_pretend_null_one as pretend_null
-      /*#{'x'*4000}}*/
-      FROM string_defaults
-  STRINGDEFAULTSBIGVIEW
+
+
+
+
+
 
 
   # Another schema.
@@ -210,27 +225,5 @@ ActiveRecord::Schema.define do
       legacy_id nvarchar(10) NOT NULL PRIMARY KEY,
     )
   NATURALPKTABLESQLINOTHERSCHEMA
-
-
-  # Azure needs clustered indexes
-  if sqlserver_azure?
-    execute "IF NOT EXISTS (SELECT [name] FROM [sys].[indexes] WHERE [name] = N'idx_schema_migrations_version') CREATE CLUSTERED INDEX [idx_schema_migrations_version] ON [schema_migrations] ([version])"
-    execute "IF NOT EXISTS (SELECT [name] FROM [sys].[indexes] WHERE [name] = N'idx_countries_ctryid') CREATE CLUSTERED INDEX [idx_countries_ctryid] ON [countries] ([country_id])"
-    execute "IF NOT EXISTS (SELECT [name] FROM [sys].[indexes] WHERE [name] = N'idx_treaty_id_trtyid') CREATE CLUSTERED INDEX [idx_treaty_id_trtyid] ON [treaties] ([treaty_id])"
-    execute "IF NOT EXISTS (SELECT [name] FROM [sys].[indexes] WHERE [name] = N'idx_no_pk_data_name') CREATE CLUSTERED INDEX [idx_no_pk_data_name] ON [no_pk_data] ([name])"
-    execute "IF NOT EXISTS (SELECT [name] FROM [sys].[indexes] WHERE [name] = N'idx_developers_projects_did_pid') CREATE CLUSTERED INDEX [idx_developers_projects_did_pid] ON [developers_projects] ([developer_id],[project_id])"
-    execute "IF NOT EXISTS (SELECT [name] FROM [sys].[indexes] WHERE [name] = N'idx_categories_posts_cid_pid') CREATE CLUSTERED INDEX [idx_categories_posts_cid_pid] ON [categories_posts] ([category_id],[post_id])"
-    execute "IF NOT EXISTS (SELECT [name] FROM [sys].[indexes] WHERE [name] = N'idx_dashboards_dashboard_id') CREATE CLUSTERED INDEX [idx_dashboards_dashboard_id] ON [dashboards] ([dashboard_id])"
-    execute "IF NOT EXISTS (SELECT [name] FROM [sys].[indexes] WHERE [name] = N'idx_edges_source_id_sink_id') CREATE CLUSTERED INDEX [idx_edges_source_id_sink_id] ON [edges] ([source_id],[sink_id])"
-    execute "IF NOT EXISTS (SELECT [name] FROM [sys].[indexes] WHERE [name] = N'idx_goofy_string_id_id') CREATE CLUSTERED INDEX [idx_goofy_string_id_id] ON [goofy_string_id] ([id])"
-    execute "IF NOT EXISTS (SELECT [name] FROM [sys].[indexes] WHERE [name] = N'idx_lessons_students_lid_sid') CREATE CLUSTERED INDEX [idx_lessons_students_lid_sid] ON [lessons_students] ([lesson_id],[student_id])"
-    execute "IF NOT EXISTS (SELECT [name] FROM [sys].[indexes] WHERE [name] = N'idx_mateys_pid_tid') CREATE CLUSTERED INDEX [idx_mateys_pid_tid] ON [mateys] ([pirate_id],[target_id])"
-    execute "IF NOT EXISTS (SELECT [name] FROM [sys].[indexes] WHERE [name] = N'idx_minivans_minivan_id') CREATE CLUSTERED INDEX [idx_minivans_minivan_id] ON [minivans] ([minivan_id])"
-    execute "IF NOT EXISTS (SELECT [name] FROM [sys].[indexes] WHERE [name] = N'idx_parrots_pirates_paid_pid') CREATE CLUSTERED INDEX [idx_parrots_pirates_paid_pid] ON [parrots_pirates] ([parrot_id],[pirate_id])"
-    execute "IF NOT EXISTS (SELECT [name] FROM [sys].[indexes] WHERE [name] = N'idx_parrots_treasures_pid_tid') CREATE CLUSTERED INDEX [idx_parrots_treasures_pid_tid] ON [parrots_treasures] ([parrot_id],[treasure_id])"
-    execute "IF NOT EXISTS (SELECT [name] FROM [sys].[indexes] WHERE [name] = N'idx_speedometers_speedometer_id') CREATE CLUSTERED INDEX [idx_speedometers_speedometer_id] ON [speedometers] ([speedometer_id])"
-    execute "IF NOT EXISTS (SELECT [name] FROM [sys].[indexes] WHERE [name] = N'idx_subscribers_nick') CREATE CLUSTERED INDEX [idx_subscribers_nick] ON [subscribers] ([nick])"
-    execute "IF NOT EXISTS (SELECT [name] FROM [sys].[indexes] WHERE [name] = N'idx_countries_treaties_cid_tid') CREATE CLUSTERED INDEX [idx_countries_treaties_cid_tid] ON [countries_treaties] ([country_id],[treaty_id])"
-  end
 
 end
