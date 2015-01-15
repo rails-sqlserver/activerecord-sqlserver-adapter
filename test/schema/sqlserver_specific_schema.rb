@@ -82,6 +82,7 @@ ActiveRecord::Schema.define do
     REFERENCES [sst_has_pks] ([id])
   ADDFKSQL
 
+
   # Views
 
   execute "IF EXISTS (SELECT TABLE_NAME FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_NAME = 'sst_customers_view') DROP VIEW sst_customers_view"

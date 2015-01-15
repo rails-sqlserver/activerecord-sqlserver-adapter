@@ -189,7 +189,6 @@ module ActiveRecord
         def column_definitions(table_name)
           identifier = SQLServer::Utils.extract_identifiers(table_name)
           database   = "#{identifier.database_quoted}." if identifier.database_quoted
-          table_name = identifier.quoted
           sql = %{
             SELECT DISTINCT
             #{lowercase_schema_reflection_sql('columns.TABLE_NAME')} AS table_name,
@@ -338,13 +337,13 @@ module ActiveRecord
         end
 
         def view_information(table_name)
-          table_name = SQLServer::Utils.extract_identifiers(table_name).object
-          view_info = select_one "SELECT * FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_NAME = '#{table_name}'", 'SCHEMA'
+          identifier = SQLServer::Utils.extract_identifiers(table_name)
+          view_info = select_one "SELECT * FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_NAME = '#{identifier.object}'", 'SCHEMA'
           if view_info
             view_info = view_info.with_indifferent_access
             if view_info[:VIEW_DEFINITION].blank? || view_info[:VIEW_DEFINITION].length == 4000
               view_info[:VIEW_DEFINITION] = begin
-                select_values("EXEC sp_helptext #{quote_table_name(table_name)}", 'SCHEMA').join
+                select_values("EXEC sp_helptext #{identifier.object_quoted}", 'SCHEMA').join
               rescue
                 warn "No view definition found, possible permissions problem.\nPlease run GRANT VIEW DEFINITION TO your_user;"
                 nil
