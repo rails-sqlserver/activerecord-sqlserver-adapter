@@ -234,18 +234,6 @@ class ConnectionTestSQLServer < ActiveRecord::TestCase
 
   end
 
-  context 'Diagnostics' do
-
-    should 'testing #activity_stats' do
-      stats = @connection.activity_stats
-      assert !stats.empty?
-      assert stats.all? { |s| s.has_key?("session_id") }
-      assert stats.all? { |s| s["database"] == @connection.current_database }
-    end
-
-  end
-
-
 
   private
 
