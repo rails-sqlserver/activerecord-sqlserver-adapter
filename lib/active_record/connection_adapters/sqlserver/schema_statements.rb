@@ -241,6 +241,7 @@ module ActiveRecord
           results = do_exec_query(sql, 'SCHEMA', binds)
           results.map do |ci|
             ci = ci.symbolize_keys
+            ci[:_type] = ci[:type]
             ci[:type] = case ci[:type]
                         when /^bit|image|text|ntext|datetime$/
                           ci[:type]
@@ -255,22 +256,35 @@ module ActiveRecord
                         else
                           ci[:type]
                         end
-            if ci[:default_value].nil? && schema_cache.view_exists?(table_name)
-              real_table_name = table_name_or_views_table_name(table_name)
-              real_column_name = views_real_column_name(table_name, ci[:name])
-              col_default_sql = "SELECT c.COLUMN_DEFAULT FROM #{database}INFORMATION_SCHEMA.COLUMNS c WHERE c.TABLE_NAME = '#{real_table_name}' AND c.COLUMN_NAME = '#{real_column_name}'"
-              ci[:default_value] = select_value col_default_sql, 'SCHEMA'
+            ci[:default_value],
+            ci[:default_function] = begin
+              default = ci[:default_value]
+              if default.nil? && schema_cache.view_exists?(table_name)
+                default = select_value "
+                  SELECT c.COLUMN_DEFAULT
+                  FROM #{database}INFORMATION_SCHEMA.COLUMNS c
+                  WHERE c.TABLE_NAME = '#{table_name_or_views_table_name(table_name)}'
+                  AND c.COLUMN_NAME = '#{views_real_column_name(table_name, ci[:name])}'".squish, 'SCHEMA'
+              end
+              case default
+              when nil
+                [nil, nil]
+              when /\A\((\w+\(\))\)\Z/
+                default_function = Regexp.last_match[1]
+                [nil, default_function]
+              when /\A\(N'(.*)'\)\Z/m
+                string_literal = SQLServer::Utils.unquote_string(Regexp.last_match[1])
+                [string_literal, nil]
+              else
+                type = case ci[:type]
+                       when /smallint|int|bigint/ then ci[:_type]
+                       else ci[:type]
+                       end
+                value = default.match(/\A\((.*)\)\Z/m)[1]
+                value = select_value "SELECT CAST(#{value} AS #{type}) AS value", 'SCHEMA'
+                [value, nil]
+              end
             end
-            ci[:default_value] = case ci[:default_value]
-                                 when nil, '(null)', '(NULL)'
-                                   nil
-                                 when /\A\((\w+\(\))\)\Z/
-                                   ci[:default_function] = Regexp.last_match[1]
-                                   nil
-                                 else
-                                   match_data = ci[:default_value].match(/\A\(+N?'?(.*?)'?\)+\Z/m)
-                                   match_data ? match_data[1].gsub("''", "'") : nil
-                                 end
             ci[:null] = ci[:is_nullable].to_i == 1
             ci.delete(:is_nullable)
             ci[:is_primary] = ci[:is_primary].to_i == 1

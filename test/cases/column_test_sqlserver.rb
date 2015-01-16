@@ -32,7 +32,8 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       col = column('bigint')
       col.sql_type.must_equal           'bigint(8)'
       col.null.must_equal               true
-      col.default.must_equal            nil
+      col.default.must_equal            42
+      obj.bigint.must_equal             42
       col.default_function.must_equal   nil
       type = col.cast_type
       type.must_be_instance_of          Type::BigInteger
@@ -49,7 +50,8 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       col = column('int')
       col.sql_type.must_equal           'int(4)'
       col.null.must_equal               true
-      col.default.must_equal            nil
+      col.default.must_equal            42
+      obj.int.must_equal                42
       col.default_function.must_equal   nil
       type = col.cast_type
       type.must_be_instance_of          Type::Integer
@@ -66,7 +68,8 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       col = column('smallint')
       col.sql_type.must_equal           'smallint(2)'
       col.null.must_equal               true
-      col.default.must_equal            nil
+      col.default.must_equal            42
+      obj.smallint.must_equal           42
       col.default_function.must_equal   nil
       type = col.cast_type
       type.must_be_instance_of          Type::SmallInteger
@@ -83,7 +86,8 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       col = column('tinyint')
       col.sql_type.must_equal           'tinyint(1)'
       col.null.must_equal               true
-      col.default.must_equal            nil
+      col.default.must_equal            42
+      obj.tinyint.must_equal            42
       col.default_function.must_equal   nil
       type = col.cast_type
       type.must_be_instance_of          Type::TinyInteger
@@ -100,7 +104,8 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       col = column('bit')
       col.sql_type.must_equal           'bit'
       col.null.must_equal               true
-      col.default.must_equal            nil
+      col.default.must_equal            true
+      obj.bit.must_equal                true
       col.default_function.must_equal   nil
       type = col.cast_type
       type.must_be_instance_of          Type::Boolean
@@ -121,7 +126,8 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       col = column('decimal_9_2')
       col.sql_type.must_equal           'decimal(9,2)'
       col.null.must_equal               true
-      col.default.must_equal            nil
+      col.default.must_equal            BigDecimal('12345.01')
+      obj.decimal_9_2.must_equal        BigDecimal('12345.01')
       col.default_function.must_equal   nil
       type = col.cast_type
       type.must_be_instance_of          Type::Decimal
@@ -131,7 +137,7 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       type.precision.must_equal         9
       type.scale.must_equal             2
       obj.decimal_9_2 = '1234567.8901'
-      obj.decimal_9_2.must_equal        BigDecimal('1234567.8901')
+      obj.decimal_9_2.must_equal        BigDecimal('1234567.8901') # Cast from user one day.
       obj.save!
       obj.reload.decimal_9_2.must_equal BigDecimal('1234567.89')
     end
@@ -139,11 +145,14 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
     it 'decimal(16,4)' do
       col = column('decimal_16_4')
       col.sql_type.must_equal           'decimal(16,4)'
+      col.default.must_equal            BigDecimal('1234567.89')
+      obj.decimal_16_4.must_equal       BigDecimal('1234567.89')
+      col.default_function.must_equal   nil
       type = col.cast_type
       type.precision.must_equal         16
       type.scale.must_equal             4
       obj.decimal_16_4 = '1234567.8901001'
-      obj.decimal_16_4.must_equal        BigDecimal('1234567.8901001')
+      obj.decimal_16_4.must_equal        BigDecimal('1234567.8901001') # Cast from user one day.
       obj.save!
       obj.reload.decimal_16_4.must_equal BigDecimal('1234567.8901')
     end
@@ -152,7 +161,8 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       col = column('numeric_18_0')
       col.sql_type.must_equal           'numeric(18,0)'
       col.null.must_equal               true
-      col.default.must_equal            nil
+      col.default.must_equal            BigDecimal('191')
+      obj.numeric_18_0.must_equal       BigDecimal('191')
       col.default_function.must_equal   nil
       type = col.cast_type
       type.must_be_instance_of          Type::Decimal
@@ -162,16 +172,37 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       type.precision.must_equal         18
       type.scale.must_equal             0
       obj.numeric_18_0 = '192.1'
-      obj.numeric_18_0.must_equal        BigDecimal('192.1')
+      obj.numeric_18_0.must_equal        BigDecimal('192.1') # Cast from user one day.
       obj.save!
       obj.reload.numeric_18_0.must_equal BigDecimal('192')
+    end
+
+    it 'numeric(36,2)' do
+      col = column('numeric_36_2')
+      col.sql_type.must_equal           'numeric(36,2)'
+      col.null.must_equal               true
+      col.default.must_equal            BigDecimal('12345678901234567890.01')
+      obj.numeric_36_2.must_equal       BigDecimal('12345678901234567890.01')
+      col.default_function.must_equal   nil
+      type = col.cast_type
+      type.must_be_instance_of          Type::Decimal
+      type.type.must_equal              :decimal
+      type.must_be                      :number?
+      type.limit.must_equal             nil
+      type.precision.must_equal         36
+      type.scale.must_equal             2
+      obj.numeric_36_2 = '192.123'
+      obj.numeric_36_2.must_equal        BigDecimal('192.123') # Cast from user one day.
+      obj.save!
+      obj.reload.numeric_36_2.must_equal BigDecimal('192.12')
     end
 
     it 'money' do
       col = column('money')
       col.sql_type.must_equal           'money'
       col.null.must_equal               true
-      col.default.must_equal            nil
+      col.default.must_equal            BigDecimal('4.20')
+      obj.money.must_equal              BigDecimal('4.20')
       col.default_function.must_equal   nil
       type = col.cast_type
       type.must_be_instance_of          Type::Money
@@ -190,7 +221,8 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       col = column('smallmoney')
       col.sql_type.must_equal           'smallmoney'
       col.null.must_equal               true
-      col.default.must_equal            nil
+      col.default.must_equal            BigDecimal('4.20')
+      obj.smallmoney.must_equal         BigDecimal('4.20')
       col.default_function.must_equal   nil
       type = col.cast_type
       type.must_be_instance_of          Type::SmallMoney
@@ -213,7 +245,8 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       col = column('float')
       col.sql_type.must_equal           'float(53)'
       col.null.must_equal               true
-      col.default.must_equal            nil
+      col.default.must_equal            123.00000001
+      obj.float.must_equal              123.00000001
       col.default_function.must_equal   nil
       type = col.cast_type
       type.must_be_instance_of          Type::Float
@@ -231,6 +264,9 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
     it 'float(25)' do
       col = column('float_25')
       col.sql_type.must_equal           'float(53)'
+      col.null.must_equal               true
+      col.default.must_equal            420.11
+      col.default_function.must_equal   nil
       type = col.cast_type
       type.must_be_instance_of          Type::Float
       type.type.must_equal              :float
@@ -241,7 +277,8 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       col = column('real')
       col.sql_type.must_equal           'real(24)'
       col.null.must_equal               true
-      col.default.must_equal            nil
+      col.default.must_be_close_to      123.45, 0.01
+      obj.real.must_be_close_to         123.45, 0.01
       col.default_function.must_equal   nil
       type = col.cast_type
       type.must_be_instance_of          Type::Float
@@ -250,10 +287,10 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       type.limit.must_equal             24
       type.precision.must_equal         nil
       type.scale.must_equal             nil
-      obj.float = '214748.36461'
-      obj.float.must_equal        214748.36461
+      obj.real = '214748.36461'
+      obj.real.must_be_close_to         214748.36461, 0.01
       obj.save!
-      obj.reload.float.must_equal 214748.36461
+      obj.reload.real.must_be_close_to  214748.36461, 0.01
     end
 
     # Date and Time
@@ -262,7 +299,8 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       col = column('date')
       col.sql_type.must_equal           'date'
       col.null.must_equal               true
-      col.default.must_equal            nil
+      col.default.must_equal            '0001-01-01' # TODO: None type casted default. Really want Date.civil(0001, 1, 1).
+      obj.date.must_equal               Date.civil(0001, 1, 1)
       col.default_function.must_equal   nil
       type = col.cast_type
       type.must_be_instance_of          Type::Date
@@ -289,7 +327,8 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       col = column('datetime')
       col.sql_type.must_equal           'datetime'
       col.null.must_equal               true
-      col.default.must_equal            nil
+      col.default.must_equal            Time.utc(1753, 01, 01, 00, 00, 00, 000)
+      obj.datetime.must_equal           Time.utc(1753, 01, 01, 00, 00, 00, 000)
       col.default_function.must_equal   nil
       type = col.cast_type
       type.must_be_instance_of          Type::DateTime
@@ -314,7 +353,8 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       col = column('smalldatetime')
       col.sql_type.must_equal           'smalldatetime'
       col.null.must_equal               true
-      col.default.must_equal            nil
+      col.default.must_equal            Time.utc(1901, 01, 01, 15, 45, 00, 000)
+      obj.smalldatetime.must_equal      Time.utc(1901, 01, 01, 15, 45, 00, 000)
       col.default_function.must_equal   nil
       type = col.cast_type
       type.must_be_instance_of          Type::SmallDateTime
@@ -401,7 +441,8 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       col = column('char_10')
       col.sql_type.must_equal           'char(10)'
       col.null.must_equal               true
-      col.default.must_equal            nil
+      col.default.must_equal            '1234567890'
+      obj.char_10.must_equal            '1234567890'
       col.default_function.must_equal   nil
       type = col.cast_type
       type.must_be_instance_of          Type::Char
@@ -421,7 +462,8 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       col = column('varchar_50')
       col.sql_type.must_equal           'varchar(50)'
       col.null.must_equal               true
-      col.default.must_equal            nil
+      col.default.must_equal            'test varchar_50'
+      obj.varchar_50.must_equal         'test varchar_50'
       col.default_function.must_equal   nil
       type = col.cast_type
       type.must_be_instance_of          Type::Varchar
@@ -438,7 +480,8 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       col = column('varchar_max')
       col.sql_type.must_equal           'varchar(max)'
       col.null.must_equal               true
-      col.default.must_equal            nil
+      col.default.must_equal            'test varchar_max'
+      obj.varchar_max.must_equal        'test varchar_max'
       col.default_function.must_equal   nil
       type = col.cast_type
       type.must_be_instance_of          Type::VarcharMax
@@ -455,7 +498,8 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       col = column('text')
       col.sql_type.must_equal           'text'
       col.null.must_equal               true
-      col.default.must_equal            nil
+      col.default.must_equal            'test text'
+      obj.text.must_equal               'test text'
       col.default_function.must_equal   nil
       type = col.cast_type
       type.must_be_instance_of          Type::Text
@@ -474,7 +518,8 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       col = column('nchar_10')
       col.sql_type.must_equal           'nchar(10)'
       col.null.must_equal               true
-      col.default.must_equal            nil
+      col.default.must_equal            '12345678åå'
+      obj.nchar_10.must_equal           '12345678åå'
       col.default_function.must_equal   nil
       type = col.cast_type
       type.must_be_instance_of          Type::UnicodeChar
@@ -494,7 +539,8 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       col = column('nvarchar_50')
       col.sql_type.must_equal           'nvarchar(50)'
       col.null.must_equal               true
-      col.default.must_equal            nil
+      col.default.must_equal            'test nvarchar_50 åå'
+      obj.nvarchar_50.must_equal        'test nvarchar_50 åå'
       col.default_function.must_equal   nil
       type = col.cast_type
       type.must_be_instance_of          Type::UnicodeVarchar
@@ -511,7 +557,8 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       col = column('nvarchar_max')
       col.sql_type.must_equal           'nvarchar(max)'
       col.null.must_equal               true
-      col.default.must_equal            nil
+      col.default.must_equal            'test nvarchar_max åå'
+      obj.nvarchar_max.must_equal       'test nvarchar_max åå'
       col.default_function.must_equal   nil
       type = col.cast_type
       type.must_be_instance_of          Type::UnicodeVarcharMax
@@ -528,7 +575,8 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       col = column('ntext')
       col.sql_type.must_equal           'ntext'
       col.null.must_equal               true
-      col.default.must_equal            nil
+      col.default.must_equal            'test ntext åå'
+      obj.ntext.must_equal              'test ntext åå'
       col.default_function.must_equal   nil
       type = col.cast_type
       type.must_be_instance_of          Type::UnicodeText

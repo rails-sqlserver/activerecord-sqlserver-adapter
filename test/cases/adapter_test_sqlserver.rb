@@ -204,10 +204,6 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
       assert_equal '[foo].[bar].[baz]', connection.quote_column_name('foo.bar.baz')
     end
 
-    it "return 0 for empty string" do
-      assert_equal '0', connection.quote('', Post.columns_hash['id'])
-    end
-
     it "surround string with national prefix" do
       assert_equal "N'foo'", connection.quote("foo")
     end

@@ -192,9 +192,14 @@ module ActiveRecord
         m.register_type              %r{.*},            SQLServer::Type::UnicodeString.new
         # Exact Numerics
         register_class_with_limit m, 'bigint(8)',       SQLServer::Type::BigInteger
+        m.alias_type                 'bigint',          'bigint(8)'
         register_class_with_limit m, 'int(4)',          SQLServer::Type::Integer
+        m.alias_type                 'integer',         'int(4)'
+        m.alias_type                 'int',             'int(4)'
         register_class_with_limit m, 'smallint(2)',     SQLServer::Type::SmallInteger
+        m.alias_type                 'smallint',        'smallint(2)'
         register_class_with_limit m, 'tinyint(1)',      SQLServer::Type::TinyInteger
+        m.alias_type                 'tinyint',         'tinyint(1)'
         m.register_type              'bit',             SQLServer::Type::Boolean.new
         m.register_type              %r{\Adecimal}i do |sql_type|
           scale = extract_scale(sql_type)

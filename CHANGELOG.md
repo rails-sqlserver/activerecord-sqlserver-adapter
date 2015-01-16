@@ -32,6 +32,7 @@
   * product_level
   * product_version
   * edition
+* Removed tests for old issue #164. Handled by core types now.
 
 #### Fixed
 
