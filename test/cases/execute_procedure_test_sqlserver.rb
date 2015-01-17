@@ -9,7 +9,7 @@ class ExecuteProcedureTestSQLServer < ActiveRecord::TestCase
   end
 
   it 'take parameter arguments' do
-    tables = ActiveRecord::Base.execute_procedure :sp_tables, 'datatypes'
+    tables = ActiveRecord::Base.execute_procedure :sp_tables, 'sst_datatypes'
     table_info = tables.first
     assert_equal 1, tables.size
     assert_equal (ENV['ARUNIT_DB_NAME'] || 'activerecord_unittest'), table_info['TABLE_QUALIFIER'], "Table Info: #{table_info.inspect}"

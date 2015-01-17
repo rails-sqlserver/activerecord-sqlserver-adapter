@@ -1,3 +1,3 @@
 class SSTestDatatype < ActiveRecord::Base
-  self.table_name = :datatypes
+  self.table_name = :sst_datatypes
 end
