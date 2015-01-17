@@ -37,7 +37,7 @@
 
 #### Fixed
 
-* n/a
+* Default lock is now "WITH (UPDLOCK)". Fixes #368
 
 #### Security
 

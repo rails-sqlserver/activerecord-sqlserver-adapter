@@ -16,6 +16,12 @@ module Arel
         collector.add_bind(o) { |i| "@#{i-1}" }
       end
 
+      def visit_Arel_Nodes_Lock o, collector
+        o.expr = Arel.sql('WITH (UPDLOCK)') if o.expr.to_s =~ /FOR UPDATE/
+        collector << SPACE
+        visit o.expr, collector
+      end
+
       def visit_Arel_Nodes_Offset o, collector
         collector << OFFSET
         visit o.expr, collector
@@ -29,6 +35,7 @@ module Arel
       end
 
       def visit_Arel_Nodes_SelectStatement o, collector
+        @select_statement = o
         if o.with
           collector = visit o.with, collector
           collector << SPACE
@@ -38,11 +45,40 @@ module Arel
         }
         collector = visit_Orders_And_Let_Fetch_Happen o, collector
         collector = visit_Make_Fetch_Happen o, collector
-        collector = visit o.lock, collector if o.lock
+        collector
+      ensure
+        @select_statement = nil
+      end
+
+      def visit_Arel_Nodes_JoinSource o, collector
+        if o.left
+          collector = visit o.left, collector
+          collector = visit_Arel_Nodes_SelectStatement_SQLServer_Lock collector
+        end
+        if o.right.any?
+          collector << " " if o.left
+          collector = inject_join o.right, collector, ' '
+        end
         collector
       end
 
+      def visit_Arel_Nodes_OuterJoin o, collector
+        collector << "LEFT OUTER JOIN "
+        collector = visit o.left, collector
+        collector = visit_Arel_Nodes_SelectStatement_SQLServer_Lock collector, space: true
+        collector << " "
+        visit o.right, collector
+      end
+
       # SQLServer ToSql/Visitor (Additions)
+
+      def visit_Arel_Nodes_SelectStatement_SQLServer_Lock collector, options = {}
+        if select_statement_lock?
+          collector = visit @select_statement.lock, collector
+          collector << SPACE if options[:space]
+        end
+        collector
+      end
 
       def visit_Orders_And_Let_Fetch_Happen o, collector
         if (o.limit || o.offset) && o.orders.empty?
@@ -70,6 +106,10 @@ module Arel
       end
 
       # SQLServer Helpers
+
+      def select_statement_lock?
+        @select_statement && @select_statement.lock
+      end
 
       def table_From_Statement o
         core = o.cores.first
