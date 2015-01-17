@@ -3,58 +3,54 @@ require 'models/person'
 
 class MigrationTestSQLServer < ActiveRecord::TestCase
 
-  setup do
-    @connection = ActiveRecord::Base.connection
-  end
+  describe 'For transactions' do
 
-  context 'For transactions' do
-
-    setup do
+    before do
       @trans_test_table1 = 'sqlserver_trans_table1'
       @trans_test_table2 = 'sqlserver_trans_table2'
       @trans_tables = [@trans_test_table1,@trans_test_table2]
     end
 
-    teardown do
+    after do
       @trans_tables.each do |table_name|
-        ActiveRecord::Migration.drop_table(table_name) if @connection.tables.include?(table_name)
+        ActiveRecord::Migration.drop_table(table_name) if connection.tables.include?(table_name)
       end
     end
 
-    should 'not create a tables if error in migrations' do
+    it 'not create a tables if error in migrations' do
       begin
         migrations_dir = File.join ARTest::SQLServer.migrations_root, 'transaction_table'
-        ActiveRecord::Migrator.up(migrations_dir)
+        quietly { ActiveRecord::Migrator.up(migrations_dir) }
       rescue Exception => e
         assert_match %r|this and all later migrations canceled|, e.message
       end
-      @connection.tables.wont_include @trans_test_table1
-      @connection.tables.wont_include @trans_test_table2
+      connection.tables.wont_include @trans_test_table1
+      connection.tables.wont_include @trans_test_table2
     end
 
   end
 
-  context 'For changing column' do
+  describe 'For changing column' do
 
-    should 'not raise exception when column contains default constraint' do
+    it 'not raise exception when column contains default constraint' do
       lock_version_column = Person.columns_hash['lock_version']
       assert_equal :integer, lock_version_column.type
       assert lock_version_column.default.present?
-      assert_nothing_raised { @connection.change_column 'people', 'lock_version', :string }
+      assert_nothing_raised { connection.change_column 'people', 'lock_version', :string }
       Person.reset_column_information
       lock_version_column = Person.columns_hash['lock_version']
       assert_equal :string, lock_version_column.type
       assert lock_version_column.default.nil?
     end
 
-    should 'not drop the default contraint if just renaming' do
+    it 'not drop the default contraint if just renaming' do
       find_default = lambda do
-        @connection.execute_procedure(:sp_helpconstraint, 'defaults', 'nomsg').select do |row|
+        connection.execute_procedure(:sp_helpconstraint, 'defaults', 'nomsg').select do |row|
           row['constraint_type'] == "DEFAULT on column decimal_number"
         end.last
       end
       default_before = find_default.call
-      @connection.change_column :defaults, :decimal_number, :decimal, precision: 4
+      connection.change_column :defaults, :decimal_number, :decimal, precision: 4
       default_after = find_default.call
       assert default_after
       assert_equal default_before['constraint_keys'], default_after['constraint_keys']
@@ -62,17 +58,9 @@ class MigrationTestSQLServer < ActiveRecord::TestCase
 
   end
 
-end
 
-if ActiveRecord::TestCase.sqlserver_azure?
-  class MigrationTest < ActiveRecord::TestCase
-    COERCED_TESTS = [:test_migrator_db_has_no_schema_migrations_table]
-    include ARTest::SQLServer::CoercedTest
-
-    # TODO: put a real test here
-    def test_coerced_test_migrator_db_has_no_schema_migrations_table
-      assert true
-    end
-
+  def quietly
+    silence_stream(STDOUT) { silence_stream(STDERR) { yield } }
   end
+
 end
