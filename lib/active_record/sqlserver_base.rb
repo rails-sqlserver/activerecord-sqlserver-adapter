@@ -1,5 +1,6 @@
 module ActiveRecord
   class Base
+
     def self.sqlserver_connection(config) #:nodoc:
       config = config.symbolize_keys
       config.reverse_merge! mode: :dblib
@@ -24,5 +25,6 @@ module ActiveRecord
     def self.did_lose_sqlserver_connection(connection)
       logger.info "CONNECTION LOST: #{connection.class.name}"
     end
+
   end
 end

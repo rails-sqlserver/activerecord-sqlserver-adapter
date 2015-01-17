@@ -9,12 +9,9 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
 
   fixtures :tasks
 
-  let(:connection) { ActiveRecord::Base.connection }
-
   let(:basic_insert_sql) { "INSERT INTO [funny_jokes] ([name]) VALUES('Knock knock')" }
   let(:basic_update_sql) { "UPDATE [customers] SET [address_street] = NULL WHERE [id] = 2" }
   let(:basic_select_sql) { "SELECT * FROM [customers] WHERE ([customers].[id] = 1)" }
-
 
   it 'has basic and non-senstive information in the adpaters inspect method' do
     string = connection.inspect

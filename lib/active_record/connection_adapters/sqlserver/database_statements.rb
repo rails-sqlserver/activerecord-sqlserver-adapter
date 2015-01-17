@@ -2,6 +2,7 @@ module ActiveRecord
   module ConnectionAdapters
     module SQLServer
       module DatabaseStatements
+
         def select_rows(sql, name = nil, binds = [])
           do_exec_query sql, name, binds, fetch: :rows
         end
@@ -56,15 +57,17 @@ module ActiveRecord
           do_execute 'IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION'
         end
 
+        include Savepoints
+
         def create_savepoint(name = current_savepoint_name)
           disable_auto_reconnect { do_execute "SAVE TRANSACTION #{name}" }
         end
 
-        def release_savepoint(name = current_savepoint_name)
-        end
-
         def rollback_to_savepoint(name = current_savepoint_name)
           disable_auto_reconnect { do_execute "ROLLBACK TRANSACTION #{name}" }
+        end
+
+        def release_savepoint(name = current_savepoint_name)
         end
 
         def add_limit_offset!(_sql, _options)
@@ -116,8 +119,8 @@ module ActiveRecord
 
         def use_database(database = nil)
           return if sqlserver_azure?
-          name = SQLServer::Utils.extract_identifiers(database || @connection_options[:database])
-          do_execute "USE #{name}" unless database.blank?
+          name = SQLServer::Utils.extract_identifiers(database || @connection_options[:database]).quoted
+          do_execute "USE #{name}" unless name.blank?
         end
 
         def user_options
@@ -135,7 +138,6 @@ module ActiveRecord
           end
         end
 
-        # TODO: Rails 4 now supports isolation levels
         def user_options_dateformat
           if sqlserver_azure?
             select_value 'SELECT [dateformat] FROM [sys].[syslanguages] WHERE [langid] = @@LANGID', 'SCHEMA'
@@ -245,6 +247,7 @@ module ActiveRecord
           select_value "SELECT SERVERPROPERTY('SqlCharSetName')"
         end
 
+
         protected
 
         def select(sql, name = nil, binds = [])
@@ -281,7 +284,6 @@ module ActiveRecord
           if options[:fetch] != :rows
             options[:ar_result] = true
           end
-
           explaining = name == 'EXPLAIN'
           names_and_types = []
           params = []
@@ -406,6 +408,7 @@ module ActiveRecord
           end
           handle
         end
+
       end
     end
   end

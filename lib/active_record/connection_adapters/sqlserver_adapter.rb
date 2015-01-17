@@ -37,8 +37,8 @@ module ActiveRecord
 
       attr_reader :spid
 
-      cattr_accessor :auto_connect, :cs_equality_operator,
-                     :lowercase_schema_reflection, :auto_connect_duration, :showplan_option
+      cattr_accessor :auto_connect, :auto_connect_duration, instance_accessor: false
+      cattr_accessor :cs_equality_operator, :lowercase_schema_reflection, :showplan_option
 
       def initialize(connection, logger, pool, config)
         super(connection, logger, pool)
@@ -81,10 +81,6 @@ module ActiveRecord
         false
       end
 
-      def supports_savepoints?
-        true
-      end
-
       def supports_index_sort_order?
         true
       end
@@ -107,6 +103,7 @@ module ActiveRecord
       # === Abstract Adapter (Connection Management) ================== #
 
       def active?
+        return false unless @connection
         case @connection_options[:mode]
         when :dblib
           return @connection.active?
@@ -118,14 +115,13 @@ module ActiveRecord
       end
 
       def reconnect!
-        reset_transaction
+        super
         disconnect!
         connect
-        active?
       end
 
       def disconnect!
-        reset_transaction
+        super
         @spid = nil
         case @connection_options[:mode]
         when :dblib
@@ -133,6 +129,7 @@ module ActiveRecord
         when :odbc
           @connection.disconnect rescue nil
         end
+        @connection = nil
       end
 
       def reset!
@@ -173,11 +170,11 @@ module ActiveRecord
       end
 
       def auto_connect
-        @@auto_connect.is_a?(FalseClass) ? false : true
+        self.class.auto_connect.is_a?(FalseClass) ? false : true
       end
 
       def auto_connect_duration
-        @@auto_connect_duration ||= 10
+        self.class.auto_connect_duration ||= 10
       end
 
       def cs_equality_operator
@@ -380,9 +377,10 @@ module ActiveRecord
         @auto_connecting = true
         count = 0
         while count <= (auto_connect_duration / 2)
-          result = reconnect!
+          disconnect!
+          reconnect!
           ActiveRecord::Base.did_retry_sqlserver_connection(self, count)
-          return true if result
+          return true if active?
           sleep 2**count
           count += 1
         end
