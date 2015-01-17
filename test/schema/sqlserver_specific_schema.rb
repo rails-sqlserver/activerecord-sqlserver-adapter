@@ -122,15 +122,6 @@ ActiveRecord::Schema.define do
     t.column :decimal_number, :decimal, precision: 3, scale: 2, default: 2.78
   end
 
-  create_table :sql_server_chronics, force: true do |t|
-    t.column :date,       :date
-    t.column :time,       :time
-    t.column :datetime,   :datetime
-    t.column :timestamp,  :timestamp
-    t.column :ss_timestamp, :ss_timestamp  unless sqlserver_azure?
-    t.column :smalldatetime, :smalldatetime
-  end
-
   create_table :sql_server_unicodes, force: true do |t|
     t.column :nchar,          :nchar
     t.column :nvarchar,       :nvarchar
