@@ -70,10 +70,6 @@ module ActiveRecord
         def release_savepoint(name = current_savepoint_name)
         end
 
-        def add_limit_offset!(_sql, _options)
-          raise NotImplementedError, 'This has been moved to the SQLServerCompiler in Arel.'
-        end
-
         def empty_insert_statement_value
           'DEFAULT VALUES'
         end
@@ -201,21 +197,25 @@ module ActiveRecord
         end
 
         def recreate_database!(database = nil)
-          current_db = current_database
-          database ||= current_db
-          this_db = database.to_s == current_db
-          do_execute 'USE master' if this_db
+          database ||= current_database
           drop_database(database)
           create_database(database)
         ensure
-          use_database(current_db) if this_db
+          use_database(database)
         end
 
         def drop_database(database)
           retry_count = 0
           max_retries = 1
+          name = SQLServer::Utils.extract_identifiers(database)
           begin
-            do_execute "DROP DATABASE #{SQLServer::Utils.extract_identifiers(database)}"
+            do_execute "
+              USE master
+              IF EXISTS (
+                SELECT * FROM [sys].[databases]
+                WHERE name = #{quote(name.object)}
+              ) DROP DATABASE #{name}
+            ".squish
           rescue ActiveRecord::StatementInvalid => err
             if err.message =~ /because it is currently in use/i
               raise if retry_count >= max_retries
@@ -230,13 +230,19 @@ module ActiveRecord
           end
         end
 
-        def create_database(database, collation = @connection_options[:collation])
+        def create_database(database, options = {})
           name = SQLServer::Utils.extract_identifiers(database)
-          if collation
-            do_execute "CREATE DATABASE #{name} COLLATE #{collation}"
-          else
-            do_execute "CREATE DATABASE #{name}"
+          options = {collation: @connection_options[:collation]}.merge!(options.symbolize_keys)
+          options = options.select { |_, v| v.present? }
+          option_string = options.inject("") do |memo, (key, value)|
+            memo += case key
+            when :collation
+              " COLLATE #{value}"
+            else
+              ""
+            end
           end
+          do_execute "CREATE DATABASE #{name}#{option_string}"
         end
 
         def current_database

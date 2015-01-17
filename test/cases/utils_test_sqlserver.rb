@@ -83,6 +83,11 @@ class UtilsTestSQLServer < ActiveRecord::TestCase
       Utils.extract_identifiers(:object).object.must_equal 'object'
     end
 
+    it 'allows identifiers with periods to work' do
+      Utils.extract_identifiers('[obj.name]').quoted.must_equal '[obj.name]'
+      Utils.extract_identifiers('[obj.name].[foo]').quoted.must_equal '[obj.name].[foo]'
+    end
+
   end
 
 end

@@ -8,6 +8,7 @@
 
 #### Changed
 
+* The `create_database` now takes an options hash. Only key/value now is `collation`. Unknown keys just use raw values for SQL.
 * Complete rewrite of our Arel visitor. Focuing on 2012 and upward so we can make FETCH happen.
 * Testing enhancements.
   * Guard support, check our Guardfile.

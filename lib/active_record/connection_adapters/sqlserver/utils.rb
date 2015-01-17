@@ -11,7 +11,9 @@ module ActiveRecord
         class Name
 
           SEPARATOR = "."
-          SCANNER   = /\]?\./
+          UNQUOTED_SCANNER = /\]?\./
+          QUOTED_SCANNER   = /\A\[.*?\]\./
+          QUOTED_CHECKER   = /\A\[/
 
           attr_reader :server, :database, :schema, :object
           attr_reader :raw_name
@@ -60,11 +62,11 @@ module ActiveRecord
             @parts = []
             return if raw_name.blank?
             scanner = StringScanner.new(raw_name)
-            matched = scanner.scan_until(SCANNER)
+            matched = scanner.exist?(QUOTED_CHECKER) ? scanner.scan_until(QUOTED_SCANNER) : scanner.scan_until(UNQUOTED_SCANNER)
             while matched
               part = matched[0..-2]
               @parts << (part.blank? ? nil : unquote(part))
-              matched = scanner.scan_until(SCANNER)
+              matched = scanner.exist?(QUOTED_CHECKER) ? scanner.scan_until(QUOTED_SCANNER) : scanner.scan_until(UNQUOTED_SCANNER)
             end
             case @parts.length
             when 3
