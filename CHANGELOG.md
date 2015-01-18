@@ -15,6 +15,7 @@
   * Guard support, check our Guardfile.
   * Use `ARTest` namespace with `SQLServer` module for our helpers/objects.
   * Simple 2012 schmea addition and extensive column/type_cast object tests.
+* Follow Rails convention and remove varying character default limits.
 
 #### Deprecated
 

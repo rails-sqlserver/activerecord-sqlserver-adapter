@@ -5,9 +5,12 @@ ActiveRecord::Schema.define do
   execute File.read(ARTest::SQLServer.schema_datatypes_2012_file)
 
   create_table :sst_datatypes_migration, force: true do |t|
-    t.column :real, :real
+    # Rails conventions
+    t.string  :string_col
+    t.text    :text_col
+    # Our type methods
+    # ...
   end
-
 
   # Edge Cases
 
@@ -70,7 +73,6 @@ ActiveRecord::Schema.define do
     )
   NATURALPKINTTABLESQL
 
-
   # Constraints
 
   create_table(:sst_has_fks, force: true) { |t| t.column(:fk_id, :integer, null: false) }
@@ -81,7 +83,6 @@ ActiveRecord::Schema.define do
     FOREIGN KEY ([fk_id])
     REFERENCES [sst_has_pks] ([id])
   ADDFKSQL
-
 
   # Views
 

@@ -1,5 +1,4 @@
 require 'cases/helper_sqlserver'
-require 'stringio'
 
 class SchemaDumperTestSQLServer < ActiveRecord::TestCase
 
@@ -55,10 +54,23 @@ class SchemaDumperTestSQLServer < ActiveRecord::TestCase
     end
   end
 
+  it 'a string type is nvarchar without a limit' do
+    generate_schema_for_table 'sst_datatypes_migration'
+    SSTestDatatypeMigration.columns_hash['string_col'].sql_type.must_equal 'nvarchar(4000)'
+    assert_line :string_col, type: 'string', limit: '4000', precision: nil, scale: nil, default: nil
+  end
+
+  it 'a text type is nvarchar max' do
+    generate_schema_for_table 'sst_datatypes_migration'
+    SSTestDatatypeMigration.columns_hash['text_col'].sql_type.must_equal 'nvarchar(max)'
+    assert_line :text_col, type: 'text', limit: '2147483647', precision: nil, scale: nil, default: nil
+  end
+
 
   private
 
   def generate_schema_for_table(*table_names)
+    require 'stringio'
     stream = StringIO.new
     ActiveRecord::SchemaDumper.ignore_tables = all_tables - table_names
     ActiveRecord::SchemaDumper.dump(ActiveRecord::Base.connection, stream)
