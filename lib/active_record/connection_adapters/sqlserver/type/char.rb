@@ -4,6 +4,9 @@ module ActiveRecord
       module Type
         class Char < String
 
+          def type
+            :char
+          end
 
         end
       end

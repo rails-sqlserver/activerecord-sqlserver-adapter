@@ -4,6 +4,9 @@ module ActiveRecord
       module Type
         class UnicodeText < UnicodeVarcharMax
 
+          def type
+            :ntext
+          end
 
         end
       end

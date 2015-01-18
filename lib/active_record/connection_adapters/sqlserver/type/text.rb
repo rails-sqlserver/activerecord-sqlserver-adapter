@@ -4,6 +4,9 @@ module ActiveRecord
       module Type
         class Text < VarcharMax
 
+          def type
+            :text_basic
+          end
 
         end
       end

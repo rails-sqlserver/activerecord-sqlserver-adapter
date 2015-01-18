@@ -122,28 +122,6 @@ ActiveRecord::Schema.define do
     t.column :decimal_number, :decimal, precision: 3, scale: 2, default: 2.78
   end
 
-  create_table :sql_server_unicodes, force: true do |t|
-    t.column :nchar,          :nchar
-    t.column :nvarchar,       :nvarchar
-    t.column :ntext,          :ntext
-    t.column :ntext_10,       :ntext,     limit: 10
-    t.column :nchar_10,       :nchar,     limit: 10
-    t.column :nvarchar_100,   :nvarchar,  limit: 100
-    t.column :nvarchar_max,     :nvarchar_max
-    t.column :nvarchar_max_10,  :nvarchar_max, limit: 10
-  end
-
-  create_table :sql_server_strings, force: true do |t|
-    t.column :char,     :char
-    t.column :char_10,  :char,  limit: 10
-    t.column :varchar_max,     :varchar_max
-    t.column :varchar_max_10,  :varchar_max, limit: 10
-  end
-
-  create_table :sql_server_binary_types, force: true do |t|
-    # TODO: Add some different native binary types and test.
-  end
-
   # http://blogs.msdn.com/b/craigfr/archive/2008/03/19/ranking-functions-row-number.aspx
   execute "IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'order_row_number') DROP TABLE order_row_number"
   execute <<-ORDERROWNUMBERSQL

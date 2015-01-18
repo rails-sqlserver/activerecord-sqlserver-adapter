@@ -4,6 +4,9 @@ module ActiveRecord
       module Type
         class Varbinary < Binary
 
+          def type
+            :varbinary
+          end
 
         end
       end

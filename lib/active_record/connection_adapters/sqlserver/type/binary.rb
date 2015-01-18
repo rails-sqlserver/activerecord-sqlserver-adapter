@@ -4,6 +4,9 @@ module ActiveRecord
       module Type
         class Binary < ActiveRecord::Type::Binary
 
+          def type
+            :binary_basic
+          end
 
         end
       end

@@ -4,6 +4,9 @@ module ActiveRecord
       module Type
         class UnicodeChar < UnicodeString
 
+          def type
+            :nchar
+          end
 
         end
       end

@@ -13,6 +13,7 @@ require 'active_record/connection_adapters/sqlserver/type/money.rb'
 require 'active_record/connection_adapters/sqlserver/type/small_money.rb'
 # Approximate Numerics
 require 'active_record/connection_adapters/sqlserver/type/float.rb'
+require 'active_record/connection_adapters/sqlserver/type/real.rb'
 # Date and Time
 require 'active_record/connection_adapters/sqlserver/type/date.rb'
 require 'active_record/connection_adapters/sqlserver/type/datetime.rb'

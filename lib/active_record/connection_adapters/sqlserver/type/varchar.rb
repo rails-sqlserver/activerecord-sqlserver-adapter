@@ -4,6 +4,10 @@ module ActiveRecord
       module Type
         class Varchar < Char
 
+          def type
+            :varchar
+          end
+
 
         end
       end

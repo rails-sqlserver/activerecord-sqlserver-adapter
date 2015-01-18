@@ -9,6 +9,10 @@ module ActiveRecord
             @limit = 2_147_483_647
           end
 
+          def type
+            :binary
+          end
+
         end
       end
     end

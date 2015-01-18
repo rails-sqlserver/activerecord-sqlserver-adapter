@@ -10,6 +10,10 @@ module ActiveRecord
             @scale = 4
           end
 
+          def type
+            :smallmoney
+          end
+
         end
       end
     end

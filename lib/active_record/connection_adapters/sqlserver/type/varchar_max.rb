@@ -10,7 +10,7 @@ module ActiveRecord
           end
 
           def type
-            :text
+            :varchar_max
           end
 
         end

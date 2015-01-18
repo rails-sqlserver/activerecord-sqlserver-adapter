@@ -226,7 +226,7 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       col.default_function.must_equal   nil
       type = col.cast_type
       type.must_be_instance_of          Type::SmallMoney
-      type.type.must_equal              :money
+      type.type.must_equal              :smallmoney
       type.must_be                      :number?
       type.limit.must_equal             nil
       type.precision.must_equal         10
@@ -281,8 +281,8 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       obj.real.must_be_close_to         123.45, 0.01
       col.default_function.must_equal   nil
       type = col.cast_type
-      type.must_be_instance_of          Type::Float
-      type.type.must_equal              :float
+      type.must_be_instance_of          Type::Real
+      type.type.must_equal              :real
       type.must_be                      :number?
       type.limit.must_equal             24
       type.precision.must_equal         nil
@@ -446,7 +446,7 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       col.default_function.must_equal   nil
       type = col.cast_type
       type.must_be_instance_of          Type::Char
-      type.type.must_equal              :string
+      type.type.must_equal              :char
       type.wont_be                      :number?
       type.limit.must_equal             10
       type.precision.must_equal         nil
@@ -467,7 +467,7 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       col.default_function.must_equal   nil
       type = col.cast_type
       type.must_be_instance_of          Type::Varchar
-      type.type.must_equal              :string
+      type.type.must_equal              :varchar
       type.wont_be                      :number?
       type.limit.must_equal             50
       type.precision.must_equal         nil
@@ -485,7 +485,7 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       col.default_function.must_equal   nil
       type = col.cast_type
       type.must_be_instance_of          Type::VarcharMax
-      type.type.must_equal              :text
+      type.type.must_equal              :varchar_max
       type.wont_be                      :number?
       type.limit.must_equal             2_147_483_647
       type.precision.must_equal         nil
@@ -503,7 +503,7 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       col.default_function.must_equal   nil
       type = col.cast_type
       type.must_be_instance_of          Type::Text
-      type.type.must_equal              :text
+      type.type.must_equal              :text_basic
       type.wont_be                      :number?
       type.limit.must_equal             2_147_483_647
       type.precision.must_equal         nil
@@ -523,7 +523,7 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       col.default_function.must_equal   nil
       type = col.cast_type
       type.must_be_instance_of          Type::UnicodeChar
-      type.type.must_equal              :string
+      type.type.must_equal              :nchar
       type.wont_be                      :number?
       type.limit.must_equal             10
       type.precision.must_equal         nil
@@ -580,7 +580,7 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       col.default_function.must_equal   nil
       type = col.cast_type
       type.must_be_instance_of          Type::UnicodeText
-      type.type.must_equal              :text
+      type.type.must_equal              :ntext
       type.wont_be                      :number?
       type.limit.must_equal             2_147_483_647
       type.precision.must_equal         nil
@@ -602,7 +602,7 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       col.default_function.must_equal   nil
       type = col.cast_type
       type.must_be_instance_of          Type::Binary
-      type.type.must_equal              :binary
+      type.type.must_equal              :binary_basic
       type.wont_be                      :number?
       type.limit.must_equal             49
       type.precision.must_equal         nil
@@ -624,7 +624,7 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       col.default_function.must_equal   nil
       type = col.cast_type
       type.must_be_instance_of          Type::Varbinary
-      type.type.must_equal              :binary
+      type.type.must_equal              :varbinary
       type.wont_be                      :number?
       type.limit.must_equal             49
       type.precision.must_equal         nil
