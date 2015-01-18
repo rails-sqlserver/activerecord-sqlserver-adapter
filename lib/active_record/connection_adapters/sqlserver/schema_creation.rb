@@ -16,9 +16,8 @@ module ActiveRecord
 
         def add_column_options!(sql, options)
           column = options.fetch(:column) { return super }
-          if [:uniqueidentifier, :uuid].include?(column.type) && options[:default] =~ /\(\)/
+          if (column.type == :uuid || column.type == :uniqueidentifier) && options[:default] =~ /\(\)/
             sql << " DEFAULT #{options.delete(:default)}"
-            super
           else
             super
           end

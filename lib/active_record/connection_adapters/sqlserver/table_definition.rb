@@ -55,7 +55,7 @@ module ActiveRecord
         end
 
         def uuid(name, options = {})
-          column(name, 'uniqueidentifier', options)
+          column(name, :uniqueidentifier, options)
         end
 
       end

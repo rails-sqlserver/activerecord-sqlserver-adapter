@@ -29,9 +29,16 @@ ActiveRecord::Schema.define do
     t.ntext         :ntext_col
     t.binary_basic  :binary_basic_col
     t.varbinary     :varbinary_col
+    t.uuid          :uuid_col
   end
 
   # Edge Cases
+
+  create_table 'sst_uuids', force: true, id: :uuid do |t|
+    t.string :name
+    t.uuid   :other_uuid, default: 'NEWID()'
+    t.uuid   :uuid_nil_default, default: nil
+  end
 
   create_table 'sst_my$strange_table', force: true do |t|
     t.string :name
@@ -65,7 +72,6 @@ ActiveRecord::Schema.define do
 
   create_table :sst_edge_schemas, force: true do |t|
     t.string :description
-    t.column :guid, :uniqueidentifier
     t.column 'crazy]]quote', :string
     t.column 'with spaces', :string
   end
@@ -134,13 +140,6 @@ ActiveRecord::Schema.define do
 
 
 
-
-
-  create_table :defaults, force: true do |t|
-    t.column :positive_integer, :integer, default: 1
-    t.column :negative_integer, :integer, default: -1
-    t.column :decimal_number, :decimal, precision: 3, scale: 2, default: 2.78
-  end
 
   # http://blogs.msdn.com/b/craigfr/archive/2008/03/19/ranking-functions-row-number.aspx
   execute "IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'order_row_number') DROP TABLE order_row_number"

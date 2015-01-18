@@ -35,3 +35,5 @@ require 'active_record/connection_adapters/sqlserver/type/unicode_text.rb'
 require 'active_record/connection_adapters/sqlserver/type/binary.rb'
 require 'active_record/connection_adapters/sqlserver/type/varbinary.rb'
 require 'active_record/connection_adapters/sqlserver/type/varbinary_max.rb'
+# Other Data Types
+require 'active_record/connection_adapters/sqlserver/type/uuid.rb'

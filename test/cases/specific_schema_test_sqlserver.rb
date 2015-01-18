@@ -99,42 +99,12 @@ class SpecificSchemaTestSQLServer < ActiveRecord::TestCase
     assert_equal ['C','B','A'], SSTestEdgeSchema.order('description DESC').map(&:description)
   end
 
-  # With uniqueidentifier column
-
-  let(:newid) { ActiveRecord::Base.connection.newid_function }
+  # For uniqueidentifier model helpers
 
   it 'returns a new id via connection newid_function' do
-    assert_guid newid
-  end
-
-  it 'allow a simple insert and read of a column without a default function' do
-    obj = SSTestEdgeSchema.create! guid: newid
-    assert_equal newid, SSTestEdgeSchema.find(obj.id).guid
-  end
-
-  it 'record the default function name in the column definition but still show a nil real default, will use one day for insert/update' do
-    newid_column = SSTestEdgeSchema.columns_hash['guid_newid']
-    assert newid_column.default_function.present?
-    assert_nil newid_column.default
-    assert_equal 'newid()', newid_column.default_function
-    newseqid_column = SSTestEdgeSchema.columns_hash['guid_newseqid']
-    assert newseqid_column.default_function.present?
-    assert_nil newseqid_column.default
-    assert_equal 'newsequentialid()', newseqid_column.default_function
-  end
-
-  it 'use model callback to set get a new guid' do
-    obj = SSTestEdgeSchema.new
-    obj.new_id_setting = true
-    obj.save!
-    assert_guid obj.guid_newid
-  end
-
-
-  protected
-
-  def assert_guid(guid)
-    assert_match %r|\w{8}-\w{4}-\w{4}-\w{4}-\w{12}|, guid
+    acceptable_uuid = ActiveRecord::ConnectionAdapters::SQLServer::Type::Uuid::ACCEPTABLE_UUID
+    db_uuid = ActiveRecord::Base.connection.newid_function
+    db_uuid.must_match(acceptable_uuid)
   end
 
 end

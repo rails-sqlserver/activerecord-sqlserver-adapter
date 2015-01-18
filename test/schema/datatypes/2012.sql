@@ -42,6 +42,8 @@ CREATE TABLE [sst_datatypes] (
   [binary_49] [binary](49) NULL,
   [varbinary_49] [varbinary](49) NULL,
   [varbinary_max] [varbinary](max) NULL,
+  -- Other Data Types
+  [uniqueidentifier] [uniqueidentifier] NULL DEFAULT NEWID(),
 ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
 
 -- Date and Time (TODO)

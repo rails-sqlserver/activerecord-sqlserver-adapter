@@ -644,6 +644,32 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       assert_obj_set_and_save :varbinary_max, binary_data
     end
 
+    # Other Data Types
+
+    it 'uniqueidentifier' do
+      col = column('uniqueidentifier')
+      col.sql_type.must_equal           'uniqueidentifier'
+      col.null.must_equal               true
+      col.default.must_equal            nil
+      col.default_function.must_equal   'newid()'
+      type = col.cast_type
+      type.must_be_instance_of          Type::Uuid
+      type.type.must_equal              :uuid
+      type.wont_be                      :number?
+      type.limit.must_equal             nil
+      type.precision.must_equal         nil
+      type.scale.must_equal             nil
+      # Basic set and save.
+      obj.uniqueidentifier = "this will not qualify as valid"
+      obj.uniqueidentifier.must_equal   nil
+      obj.save! ; obj.reload
+      obj.uniqueidentifier.must_match   Type::Uuid::ACCEPTABLE_UUID
+      obj.uniqueidentifier = "6F9619FF-8B86-D011-B42D-00C04FC964FF"
+      obj.uniqueidentifier.must_equal   "6F9619FF-8B86-D011-B42D-00C04FC964FF"
+      obj.save! ; obj.reload
+      obj.uniqueidentifier.must_equal   "6F9619FF-8B86-D011-B42D-00C04FC964FF"
+    end
+
   end
 
 end

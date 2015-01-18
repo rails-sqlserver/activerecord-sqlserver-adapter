@@ -61,6 +61,10 @@ module ActiveRecord
         !native_database_types[type].nil?
       end
 
+      def schema_creation
+        SQLServer::SchemaCreation.new self
+      end
+
       def adapter_name
         ADAPTER_NAME
       end
@@ -151,10 +155,6 @@ module ActiveRecord
         identity_column(table_name).try(:name) || schema_cache.columns(table_name).find(&:is_primary?).try(:name)
       end
 
-      def schema_creation
-        SQLServer::SchemaCreation.new self
-      end
-
       # === SQLServer Specific (DB Reflection) ======================== #
 
       def sqlserver?
@@ -237,6 +237,8 @@ module ActiveRecord
         register_class_with_limit m, %r{\Abinary}i,       SQLServer::Type::Binary
         register_class_with_limit m, %r{\Avarbinary}i,    SQLServer::Type::Varbinary
         m.register_type              'varbinary(max)',    SQLServer::Type::VarbinaryMax.new
+        # Other Data Types
+        m.register_type              'uniqueidentifier',  SQLServer::Type::Uuid.new
       end
 
       def translate_exception(e, message)

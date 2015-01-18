@@ -1,127 +1,41 @@
 require 'cases/helper_sqlserver'
 
-class SQLServerUUIDTest < ActiveRecord::TestCase
-  class UUID < ActiveRecord::Base
-    self.table_name = 'sql_server_uuids'
+class SQLServerUuidTest < ActiveRecord::TestCase
+
+  let(:acceptable_uuid) { ActiveRecord::ConnectionAdapters::SQLServer::Type::Uuid::ACCEPTABLE_UUID }
+
+  it 'has a uuid primary key' do
+    SSTestUuid.columns_hash['id'].type.must_equal :uuid
+    assert SSTestUuid.primary_key
   end
 
-  def setup
-    @connection = ActiveRecord::Base.connection
-
-    @connection.reconnect!
-
-    @connection.transaction do
-      @connection.create_table('sql_server_uuids', id: :uuid, default: 'NEWSEQUENTIALID()') do |t|
-        t.string 'name'
-        t.uuid 'other_uuid', default: 'NEWID()'
-      end
-    end
+  it 'can create with a new pk' do
+    obj = SSTestUuid.create!
+    obj.id.must_be :present?
+    obj.id.must_match acceptable_uuid
   end
 
-  def teardown
-    @connection.execute "IF OBJECT_ID('sql_server_uuids', 'U') IS NOT NULL DROP TABLE sql_server_uuids"
+  it 'can create other uuid column on reload' do
+    obj = SSTestUuid.create!
+    obj.reload
+    obj.other_uuid.must_match acceptable_uuid
   end
 
-  def test_id_is_uuid
-    assert_equal :uuid, UUID.columns_hash['id'].type
-    assert UUID.primary_key
+  it 'can find uuid pk via connection' do
+    connection.primary_key(SSTestUuid.table_name).must_equal 'id'
   end
 
-  def test_id_has_a_default
-    u = UUID.create
-    assert_not_nil u.id
+  it 'changing column default' do
+    table_name = SSTestUuid.table_name
+    connection.add_column table_name, :thingy, :uuid, null: false, default: "NEWSEQUENTIALID()"
+    SSTestUuid.reset_column_information
+    column = SSTestUuid.columns_hash['thingy']
+    column.default_function.must_equal "newsequentialid()"
+    # Now to a different function.
+    connection.change_column table_name, :thingy, :uuid, null: false, default: "NEWID()"
+    SSTestUuid.reset_column_information
+    column = SSTestUuid.columns_hash['thingy']
+    column.default_function.must_equal "newid()"
   end
 
-  def test_auto_create_uuid
-    u = UUID.create
-    u.reload
-    assert_not_nil u.other_uuid
-  end
-
-  def test_pk_and_sequence_for_uuid_primary_key
-    pk, seq = @connection.pk_and_sequence_for('sql_server_uuids')
-    assert_equal 'id', pk
-    assert_equal nil, seq
-  end
-
-  def primary_key_for_uuid_primary_key
-    assert_equal 'id', @connection.primary_key('sql_server_uuids')
-  end
-
-  def test_change_column_default
-    @connection.add_column :sql_server_uuids, :thingy, :uuid, null: false, default: "NEWSEQUENTIALID()"
-    UUID.reset_column_information
-    column = UUID.columns.find { |c| c.name == 'thingy' }
-    assert_equal "newsequentialid()", column.default_function
-
-    @connection.change_column :sql_server_uuids, :thingy, :uuid, null: false, default: "NEWID()"
-
-    UUID.reset_column_information
-    column = UUID.columns.find { |c| c.name == 'thingy' }
-    assert_equal "newid()", column.default_function
-  end
-end
-
-class SQLServerUUIDTestNilDefault < ActiveRecord::TestCase
-  class UUID < ActiveRecord::Base
-    self.table_name = 'sql_server_uuids'
-  end
-
-  def setup
-    @connection = ActiveRecord::Base.connection
-
-    @connection.reconnect!
-
-    @connection.transaction do
-      @connection.create_table('sql_server_uuids', id: false) do |t|
-        t.primary_key :id, :uuid, default: nil
-        t.string 'name'
-      end
-    end
-  end
-
-  def teardown
-    @connection.execute "IF OBJECT_ID('sql_server_uuids', 'U') IS NOT NULL DROP TABLE sql_server_uuids"
-  end
-
-end
-
-class SQLServerUUIDTestInverseOf < ActiveRecord::TestCase
-  class UuidPost < ActiveRecord::Base
-    self.table_name = 'sql_server_uuid_posts'
-    has_many :uuid_comments, inverse_of: :uuid_post
-  end
-
-  class UuidComment < ActiveRecord::Base
-    self.table_name = 'sql_server_uuid_comments'
-    belongs_to :uuid_post
-  end
-
-  def setup
-    @connection = ActiveRecord::Base.connection
-    @connection.reconnect!
-
-    @connection.transaction do
-      @connection.create_table('sql_server_uuid_posts', id: :uuid) do |t|
-        t.string 'title'
-      end
-      @connection.create_table('sql_server_uuid_comments', id: :uuid) do |t|
-        t.uuid :uuid_post_id, default: 'NEWID()'
-        t.string 'content'
-      end
-    end
-  end
-
-  def teardown
-    @connection.transaction do
-      @connection.execute "IF OBJECT_ID('sql_server_uuid_comments', 'U') IS NOT NULL DROP TABLE sql_server_uuid_comments"
-      @connection.execute "IF OBJECT_ID('sql_server_uuid_posts', 'U') IS NOT NULL DROP TABLE sql_server_uuid_posts"
-    end
-  end
-
-  def test_collection_association_with_uuid
-    post    = UuidPost.create!
-    comment = post.uuid_comments.create!
-    assert post.uuid_comments.find(comment.id)
-  end
 end
