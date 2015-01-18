@@ -75,8 +75,6 @@ ActiveRecord::Schema.define do
     t.column 'crazy]]quote', :string
     t.column 'with spaces', :string
   end
-  execute %|ALTER TABLE [sst_edge_schemas] ADD [guid_newid] uniqueidentifier DEFAULT NEWID();|
-  execute %|ALTER TABLE [sst_edge_schemas] ADD [guid_newseqid] uniqueidentifier DEFAULT NEWSEQUENTIALID();|
 
   execute "IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'sst_natural_pk_data') DROP TABLE sst_natural_pk_data"
   execute <<-NATURALPKTABLESQL
@@ -97,6 +95,14 @@ ActiveRecord::Schema.define do
       description nvarchar(1000)
     )
   NATURALPKINTTABLESQL
+
+  execute "IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'sst_tinyint_pk') DROP TABLE sst_tinyint_pk"
+  execute <<-TINYITPKTABLE
+    CREATE TABLE sst_tinyint_pk(
+      id tinyint IDENTITY NOT NULL PRIMARY KEY,
+      name nvarchar(255)
+    )
+  TINYITPKTABLE
 
   # Constraints
 
@@ -138,33 +144,6 @@ ActiveRecord::Schema.define do
 
 
 
-
-
-
-  # http://blogs.msdn.com/b/craigfr/archive/2008/03/19/ranking-functions-row-number.aspx
-  execute "IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'order_row_number') DROP TABLE order_row_number"
-  execute <<-ORDERROWNUMBERSQL
-    CREATE TABLE [order_row_number] (id int IDENTITY, a int, b int, c int)
-    CREATE UNIQUE CLUSTERED INDEX [idx_order_row_number_id] ON [order_row_number] ([id])
-    INSERT [order_row_number] VALUES (0, 1, 8)
-    INSERT [order_row_number] VALUES (0, 3, 6)
-    INSERT [order_row_number] VALUES (0, 5, 4)
-    INSERT [order_row_number] VALUES (0, 7, 2)
-    INSERT [order_row_number] VALUES (0, 9, 0)
-    INSERT [order_row_number] VALUES (1, 0, 9)
-    INSERT [order_row_number] VALUES (1, 2, 7)
-    INSERT [order_row_number] VALUES (1, 4, 5)
-    INSERT [order_row_number] VALUES (1, 6, 3)
-    INSERT [order_row_number] VALUES (1, 8, 1)
-  ORDERROWNUMBERSQL
-
-  execute "IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'tinyint_pk_table') DROP TABLE tinyint_pk_table"
-  execute <<-TINYITPKTABLE
-    CREATE TABLE tinyint_pk_table(
-      id tinyint NOT NULL PRIMARY KEY,
-      name nvarchar(255)
-    )
-  TINYITPKTABLE
 
 
 

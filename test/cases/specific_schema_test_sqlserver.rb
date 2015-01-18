@@ -9,6 +9,12 @@ class SpecificSchemaTestSQLServer < ActiveRecord::TestCase
     SSTestDollarTableName.limit(20).offset(1)
   end
 
+  it 'models can use tinyint pk tables' do
+    obj = SSTestTinyintPk.create! name: '1'
+    obj.id.is_a? Fixnum
+    SSTestTinyintPk.find(obj.id).must_equal obj
+  end
+
   it 'be able to complex count tables with no primary key' do
     SSTestNoPkData.delete_all
     10.times { |n| SSTestNoPkData.create! name: "Test#{n}" }
