@@ -208,35 +208,35 @@ module ActiveRecord
           SQLServer::Type::Decimal.new precision: precision, scale: scale
         end
         m.alias_type                 %r{\Anumeric}i,    'decimal'
-        m.register_type              'money',           SQLServer::Type::Money.new
-        m.register_type              'smallmoney',      SQLServer::Type::SmallMoney.new
+        m.register_type              'money',            SQLServer::Type::Money.new
+        m.register_type              'smallmoney',       SQLServer::Type::SmallMoney.new
         # Approximate Numerics
-        m.register_type              'float',           SQLServer::Type::Float.new
-        m.register_type              'real',            SQLServer::Type::Real.new
+        m.register_type              'float',            SQLServer::Type::Float.new
+        m.register_type              'real',             SQLServer::Type::Real.new
         # Date and Time
-        m.register_type              'date',            SQLServer::Type::Date.new
-        m.register_type              'datetime',        SQLServer::Type::DateTime.new
-        m.register_type              'smalldatetime',   SQLServer::Type::SmallDateTime.new
+        m.register_type              'date',             SQLServer::Type::Date.new
+        m.register_type              'datetime',         SQLServer::Type::DateTime.new
+        m.register_type              'smalldatetime',    SQLServer::Type::SmallDateTime.new
         m.register_type              %r{\Atime}i do |sql_type|
           scale = extract_scale(sql_type)
           precision = extract_precision(sql_type)
           SQLServer::Type::Time.new precision: precision
         end
         # Character Strings
-        register_class_with_limit m, %r{\Achar}i,       SQLServer::Type::Char
-        register_class_with_limit m, %r{\Avarchar}i,    SQLServer::Type::Varchar
-        m.register_type              'varchar(max)',    SQLServer::Type::VarcharMax.new
-        m.register_type              'text',            SQLServer::Type::Text.new
+        register_class_with_limit m, %r{\Achar}i,        SQLServer::Type::Char
+        register_class_with_limit m, %r{\Avarchar}i,     SQLServer::Type::Varchar
+        m.register_type              'varchar(max)',     SQLServer::Type::VarcharMax.new
+        m.register_type              'text',             SQLServer::Type::Text.new
         # Unicode Character Strings
-        register_class_with_limit m, %r{\Anchar}i,      SQLServer::Type::UnicodeChar
-        register_class_with_limit m, %r{\Anvarchar}i,   SQLServer::Type::UnicodeVarchar
-        m.alias_type                 'string',          'nvarchar(4000)'
-        m.register_type              'nvarchar(max)',   SQLServer::Type::UnicodeVarcharMax.new
-        m.register_type              'ntext',           SQLServer::Type::UnicodeText.new
+        register_class_with_limit m, %r{\Anchar}i,       SQLServer::Type::UnicodeChar
+        register_class_with_limit m, %r{\Anvarchar}i,    SQLServer::Type::UnicodeVarchar
+        m.alias_type                 'string',           'nvarchar(4000)'
+        m.register_type              'nvarchar(max)',    SQLServer::Type::UnicodeVarcharMax.new
+        m.register_type              'ntext',            SQLServer::Type::UnicodeText.new
         # Binary Strings
-        register_class_with_limit m, %r{\Abinary}i,     SQLServer::Type::Binary
-        register_class_with_limit m, %r{\Avarbinary}i,  SQLServer::Type::Varbinary
-        m.register_type              'varbinary(max)',  SQLServer::Type::VarbinaryMax.new
+        register_class_with_limit m, %r{\Abinary}i,      SQLServer::Type::Binary
+        register_class_with_limit m, %r{\Avarbinary}i,   SQLServer::Type::Varbinary
+        m.register_type              'varbinary(max)',   SQLServer::Type::VarbinaryMax.new
       end
 
       def translate_exception(e, message)
