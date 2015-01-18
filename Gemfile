@@ -1,6 +1,8 @@
 source 'https://rubygems.org'
 gemspec
 
+gem 'bcrypt'
+
 if RbConfig::CONFIG["host_os"] =~ /darwin/
   gem 'terminal-notifier-guard'
 end

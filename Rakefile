@@ -1,26 +1,6 @@
 require 'rake/testtask'
 require_relative 'test/support/paths_sqlserver'
-
-def test_files
-  if files = ENV['AR_TEST_FILES']
-    files = files.split(',').map do |file|
-      File.join ARTest::SQLServer.root_activerecord, file.strip
-    end
-    return files.unshift 'test/cases/helper_sqlserver.rb'
-  end
-  if files = ENV['TEST_FILES']
-    return files.split(',').map(&:strip)
-  end
-  sqlserver_cases = Dir.glob('test/cases/**/*_test_sqlserver.rb')
-  ar_cases = Dir.glob("#{ARTest::SQLServer.root_activerecord}/test/cases/**/*_test.rb")
-  if ENV['SQLSERVER_ONLY']
-    sqlserver_cases
-  elsif ENV['ACTIVERECORD_ONLY']
-    ar_cases
-  else
-    sqlserver_cases + ar_cases
-  end
-end
+require_relative 'test/support/rake_helpers'
 
 task test: ['test:dblib']
 task default: [:test]
