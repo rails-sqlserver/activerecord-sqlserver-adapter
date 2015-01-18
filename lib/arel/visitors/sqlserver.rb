@@ -83,7 +83,7 @@ module Arel
       def visit_Orders_And_Let_Fetch_Happen o, collector
         if (o.limit || o.offset) && o.orders.empty?
           table = table_From_Statement o
-          column = table.primary_key || table.columns.first
+          column = primary_Key_From_Table(table)
           o.orders = [column.asc]
         end
         unless o.orders.empty?
@@ -120,6 +120,18 @@ module Arel
         elsif Arel::Nodes::JoinSource === core.source
           Arel::Nodes::SqlLiteral === core.source.left ? Arel::Table.new(core.source.left, @engine) : core.source.left
         end
+      end
+
+      def primary_Key_From_Table t
+        return t.primary_key if t.primary_key
+        if engine_pk = t.engine.primary_key
+          pk = t.engine.arel_table[engine_pk]
+          return pk if pk
+        end
+        pk = t.engine.connection.schema_cache.primary_keys(t.engine.table_name)
+        return pk if pk
+        column_name = t.engine.columns.first.try(:name)
+        column_name ? t[column_name] : nil
       end
 
     end
