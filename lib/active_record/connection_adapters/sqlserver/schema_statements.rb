@@ -164,6 +164,7 @@ module ActiveRecord
           {
             primary_key: 'int NOT NULL IDENTITY(1,1) PRIMARY KEY',
             integer: { name: 'int', limit: 4 },
+            bigint: { name: 'bigint' },
             boolean: { name: 'bit' },
             decimal: { name: 'decimal' },
             money: { name: 'money' },

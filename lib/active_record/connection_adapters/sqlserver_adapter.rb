@@ -57,6 +57,10 @@ module ActiveRecord
 
       # === Abstract Adapter ========================================== #
 
+      def valid_type?(type)
+        !native_database_types[type].nil?
+      end
+
       def adapter_name
         ADAPTER_NAME
       end
