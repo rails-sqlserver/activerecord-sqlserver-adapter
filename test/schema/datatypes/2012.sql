@@ -21,7 +21,6 @@ CREATE TABLE [sst_datatypes] (
   [smallmoney] [smallmoney] NULL DEFAULT 4.20,
   -- Approximate Numerics
   [float] [float] NULL DEFAULT 123.00000001,
-  [float_25] [float](25) NULL DEFAULT 420.11,
   [real] [real] NULL DEFAULT 123.45,
   -- Date and Time
   [date] [date] NULL DEFAULT '0001-01-01',
@@ -44,7 +43,6 @@ CREATE TABLE [sst_datatypes] (
   [varbinary_49] [varbinary](49) NULL,
   [varbinary_max] [varbinary](max) NULL,
 ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
-
 
 -- Date and Time (TODO)
 -- --------------------

@@ -21,9 +21,8 @@ class SchemaDumperTestSQLServer < ActiveRecord::TestCase
     assert_line :money,         type: 'money',        limit: nil,           precision: '19',  scale: '4',  default: '4.2'
     assert_line :smallmoney,    type: 'smallmoney',   limit: nil,           precision: '10',  scale: '4',  default: '4.2'
     # Approximate Numerics
-    assert_line :float,         type: 'float',        limit: '53',          precision: nil,   scale: nil,  default: '123.00000001'
-    assert_line :float_25,      type: 'float',        limit: '53',          precision: nil,   scale: nil,  default: '420.11'
-    assert_line :real,          type: 'real',         limit: '24',          precision: nil,   scale: nil,  default: %r{123.4[45]}
+    assert_line :float,         type: 'float',        limit: nil,          precision: nil,   scale: nil,  default: '123.00000001'
+    assert_line :real,          type: 'real',         limit: nil,          precision: nil,   scale: nil,  default: %r{123.4[45]}
     # Date and Time
     assert_line :date,          type: 'date',         limit: nil,           precision: nil,   scale: nil,  default: "'0001-01-01'"
     assert_line :datetime,      type: 'datetime',     limit: nil,           precision: nil,   scale: nil,  default: "'1753-01-01 00:00:00'"
@@ -54,7 +53,7 @@ class SchemaDumperTestSQLServer < ActiveRecord::TestCase
     columns['bigint_col'].sql_type.must_equal     'bigint(8)'
     columns['boolean_col'].sql_type.must_equal    'bit'
     columns['decimal_col'].sql_type.must_equal    'decimal(18,0)'
-    columns['float_col'].sql_type.must_equal      'real(24)'
+    columns['float_col'].sql_type.must_equal      'float'
     columns['string_col'].sql_type.must_equal     'nvarchar(4000)'
     columns['text_col'].sql_type.must_equal       'nvarchar(max)'
     columns['datetime_col'].sql_type.must_equal   'datetime'
@@ -66,7 +65,7 @@ class SchemaDumperTestSQLServer < ActiveRecord::TestCase
     assert_line :bigint_col,    type: 'bigint',   limit: '8',          precision: nil,  scale: nil, default: nil
     assert_line :boolean_col,   type: 'boolean',  limit: nil,          precision: nil,  scale: nil, default: nil
     assert_line :decimal_col,   type: 'decimal',  limit: nil,          precision: '18', scale: '0', default: nil
-    assert_line :float_col,     type: 'real',     limit: '24',         precision: nil,  scale: nil, default: nil
+    assert_line :float_col,     type: 'float',    limit: nil,          precision: nil,  scale: nil, default: nil
     assert_line :string_col,    type: 'string',   limit: '4000',       precision: nil,  scale: nil, default: nil
     assert_line :text_col,      type: 'text',     limit: '2147483647', precision: nil,  scale: nil, default: nil
     assert_line :datetime_col,  type: 'datetime', limit: nil,          precision: nil,  scale: nil, default: nil
@@ -74,6 +73,27 @@ class SchemaDumperTestSQLServer < ActiveRecord::TestCase
     assert_line :time_col,      type: 'time',     limit: nil,          precision: '7',  scale: nil, default: nil
     assert_line :date_col,      type: 'date',     limit: nil,          precision: nil,  scale: nil, default: nil
     assert_line :binary_col,    type: 'binary',   limit: '2147483647', precision: nil,  scale: nil, default: nil
+    # Our type methods.
+    columns['real_col'].sql_type.must_equal         'real'
+    columns['money_col'].sql_type.must_equal        'money'
+    columns['smallmoney_col'].sql_type.must_equal   'smallmoney'
+    columns['char_col'].sql_type.must_equal         'char(1)'
+    columns['varchar_col'].sql_type.must_equal      'varchar(8000)'
+    columns['text_basic_col'].sql_type.must_equal   'text'
+    columns['nchar_col'].sql_type.must_equal        'nchar(1)'
+    columns['ntext_col'].sql_type.must_equal        'ntext'
+    columns['binary_basic_col'].sql_type.must_equal 'binary(1)'
+    columns['varbinary_col'].sql_type.must_equal    'varbinary(8000)'
+    assert_line :real_col,          type: 'real',         limit: nil,           precision: nil,   scale: nil,  default: nil
+    assert_line :money_col,         type: 'money',        limit: nil,           precision: '19',  scale: '4',  default: nil
+    assert_line :smallmoney_col,    type: 'smallmoney',   limit: nil,           precision: '10',  scale: '4',  default: nil
+    assert_line :char_col,          type: 'char',         limit: '1',           precision: nil,   scale: nil,  default: nil
+    assert_line :varchar_col,       type: 'varchar',      limit: '8000',        precision: nil,   scale: nil,  default: nil
+    assert_line :text_basic_col,    type: 'text_basic',   limit: '2147483647',  precision: nil,   scale: nil,  default: nil
+    assert_line :nchar_col,         type: 'nchar',        limit: '1',           precision: nil,   scale: nil,  default: nil
+    assert_line :ntext_col,         type: 'ntext',        limit: '2147483647',  precision: nil,   scale: nil,  default: nil
+    assert_line :binary_basic_col,  type: 'binary_basic', limit: '1',           precision: nil,   scale: nil,  default: nil
+    assert_line :varbinary_col,     type: 'varbinary',    limit: '8000',        precision: nil,   scale: nil,  default: nil
   end
 
   # Special Cases

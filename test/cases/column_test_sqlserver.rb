@@ -241,9 +241,9 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
     # Float limits are adjusted to 24 or 53 by the database as per http://msdn.microsoft.com/en-us/library/ms173773.aspx
     # Floats with a limit of <= 24 are reduced to reals by sqlserver on creation.
 
-    it 'float(53)' do
+    it 'float' do
       col = column('float')
-      col.sql_type.must_equal           'float(53)'
+      col.sql_type.must_equal           'float'
       col.null.must_equal               true
       col.default.must_equal            123.00000001
       obj.float.must_equal              123.00000001
@@ -252,7 +252,7 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       type.must_be_instance_of          Type::Float
       type.type.must_equal              :float
       type.must_be                      :number?
-      type.limit.must_equal             53
+      type.limit.must_equal             nil
       type.precision.must_equal         nil
       type.scale.must_equal             nil
       obj.float = '214748.36461'
@@ -261,21 +261,9 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       obj.reload.float.must_equal 214748.36461
     end
 
-    it 'float(25)' do
-      col = column('float_25')
-      col.sql_type.must_equal           'float(53)'
-      col.null.must_equal               true
-      col.default.must_equal            420.11
-      col.default_function.must_equal   nil
-      type = col.cast_type
-      type.must_be_instance_of          Type::Float
-      type.type.must_equal              :float
-      type.limit.must_equal             53
-    end
-
-    it 'real(24)' do
+    it 'real' do
       col = column('real')
-      col.sql_type.must_equal           'real(24)'
+      col.sql_type.must_equal           'real'
       col.null.must_equal               true
       col.default.must_be_close_to      123.45, 0.01
       obj.real.must_be_close_to         123.45, 0.01
@@ -284,7 +272,7 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       type.must_be_instance_of          Type::Real
       type.type.must_equal              :real
       type.must_be                      :number?
-      type.limit.must_equal             24
+      type.limit.must_equal             nil
       type.precision.must_equal         nil
       type.scale.must_equal             nil
       obj.real = '214748.36461'

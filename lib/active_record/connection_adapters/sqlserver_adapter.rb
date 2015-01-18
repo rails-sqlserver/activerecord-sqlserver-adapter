@@ -207,8 +207,8 @@ module ActiveRecord
         m.register_type              'money',           SQLServer::Type::Money.new
         m.register_type              'smallmoney',      SQLServer::Type::SmallMoney.new
         # Approximate Numerics
-        register_class_with_limit m, %r{\Afloat},       SQLServer::Type::Float
-        register_class_with_limit m, %r{\Areal},        SQLServer::Type::Real
+        m.register_type              'float',           SQLServer::Type::Float.new
+        m.register_type              'real',            SQLServer::Type::Real.new
         # Date and Time
         m.register_type              'date',            SQLServer::Type::Date.new
         m.register_type              'datetime',        SQLServer::Type::DateTime.new

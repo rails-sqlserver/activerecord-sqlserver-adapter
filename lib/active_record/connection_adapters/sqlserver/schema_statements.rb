@@ -168,7 +168,7 @@ module ActiveRecord
             decimal: { name: 'decimal' },
             money: { name: 'money' },
             smallmoney: { name: 'smallmoney' },
-            float: { name: 'float', limit: 24 },
+            float: { name: 'float' },
             real: { name: 'real' },
             date: { name: 'date' },
             datetime: { name: 'datetime' },
@@ -183,7 +183,7 @@ module ActiveRecord
             text: { name: 'nvarchar(max)' },
             ntext: { name: 'ntext' },
             binary_basic: { name: 'binary' },
-            varbinary: { name: 'varbinary' },
+            varbinary: { name: 'varbinary', limit: 8000 },
             binary: { name: 'varbinary(max)' },
             uuid: { name: 'uniqueidentifier' },
             ss_timestamp: { name: 'timestamp' }
@@ -254,7 +254,7 @@ module ActiveRecord
                         when /^numeric|decimal$/i
                           "#{ci[:type]}(#{ci[:numeric_precision]},#{ci[:numeric_scale]})"
                         when /^float|real$/i
-                          "#{ci[:type]}(#{ci[:numeric_precision]})"
+                          "#{ci[:type]}"
                         when /^char|nchar|varchar|nvarchar|binary|varbinary|bigint|int|smallint$/
                           ci[:length].to_i == -1 ? "#{ci[:type]}(max)" : "#{ci[:type]}(#{ci[:length]})"
                         else
