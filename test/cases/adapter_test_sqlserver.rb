@@ -333,7 +333,7 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
     end
 
     it 'create floats when no limit supplied' do
-      assert_equal 'float(8)', connection.type_to_sql(:float)
+      assert_equal 'float(24)', connection.type_to_sql(:float)
     end
 
     it 'create floats when limit is supplied' do

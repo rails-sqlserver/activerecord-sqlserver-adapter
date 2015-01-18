@@ -168,7 +168,7 @@ module ActiveRecord
             decimal: { name: 'decimal' },
             money: { name: 'money' },
             smallmoney: { name: 'smallmoney' },
-            float: { name: 'float', limit: 8 },
+            float: { name: 'float', limit: 24 },
             real: { name: 'real' },
             date: { name: 'date' },
             datetime: { name: 'datetime' },
@@ -402,7 +402,6 @@ module ActiveRecord
           # There has to be a better way to handle this, but this'll do for now.
           table_name = get_table_name(sql)
           id_column = identity_column(table_name)
-
           if id_column
             regex_col_name = Regexp.quote(quote_column_name(id_column.name))
             if sql =~ /, #{regex_col_name} = @?[0-9]*/
@@ -437,10 +436,11 @@ module ActiveRecord
           schema_cache.columns(table_name).find(&:is_identity?)
         end
 
+
         private
 
         def create_table_definition(name, temporary, options, as = nil)
-          TableDefinition.new native_database_types, name, temporary, options, as
+          SQLServer::TableDefinition.new native_database_types, name, temporary, options, as
         end
 
       end

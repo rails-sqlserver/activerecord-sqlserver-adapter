@@ -10,7 +10,7 @@ class SchemaDumperTestSQLServer < ActiveRecord::TestCase
   it 'sst_datatypes' do
     generate_schema_for_table 'sst_datatypes'
     # Exact Numerics
-    assert_line :bigint,        type: 'integer',      limit: '8',           precision: nil,   scale: nil,  default: '42'
+    assert_line :bigint,        type: 'bigint',       limit: '8',           precision: nil,   scale: nil,  default: '42'
     assert_line :int,           type: 'integer',      limit: '4',           precision: nil,   scale: nil,  default: '42'
     assert_line :smallint,      type: 'integer',      limit: '2',           precision: nil,   scale: nil,  default: '42'
     assert_line :tinyint,       type: 'integer',      limit: '1',           precision: nil,   scale: nil,  default: '42'
@@ -46,24 +46,44 @@ class SchemaDumperTestSQLServer < ActiveRecord::TestCase
     assert_line :varbinary_max, type: 'binary',       limit: '2147483647',  precision: nil,   scale: nil,  default: nil
   end
 
+  it 'sst_datatypes_migration' do
+    columns = SSTestDatatypeMigration.columns_hash
+    generate_schema_for_table 'sst_datatypes_migration'
+    # Simple Rails conventions
+    columns['integer_col'].sql_type.must_equal    'int(4)'
+    columns['bigint_col'].sql_type.must_equal     'bigint(8)'
+    columns['boolean_col'].sql_type.must_equal    'bit'
+    columns['decimal_col'].sql_type.must_equal    'decimal(18,0)'
+    columns['float_col'].sql_type.must_equal      'real(24)'
+    columns['string_col'].sql_type.must_equal     'nvarchar(4000)'
+    columns['text_col'].sql_type.must_equal       'nvarchar(max)'
+    columns['datetime_col'].sql_type.must_equal   'datetime'
+    columns['timestamp_col'].sql_type.must_equal  'datetime'
+    columns['time_col'].sql_type.must_equal       'time(7)'
+    columns['date_col'].sql_type.must_equal       'date'
+    columns['binary_col'].sql_type.must_equal     'varbinary(max)'
+    assert_line :integer_col,   type: 'integer',  limit: '4',          precision: nil,  scale: nil, default: nil
+    assert_line :bigint_col,    type: 'bigint',   limit: '8',          precision: nil,  scale: nil, default: nil
+    assert_line :boolean_col,   type: 'boolean',  limit: nil,          precision: nil,  scale: nil, default: nil
+    assert_line :decimal_col,   type: 'decimal',  limit: nil,          precision: '18', scale: '0', default: nil
+    assert_line :float_col,     type: 'real',     limit: '24',         precision: nil,  scale: nil, default: nil
+    assert_line :string_col,    type: 'string',   limit: '4000',       precision: nil,  scale: nil, default: nil
+    assert_line :text_col,      type: 'text',     limit: '2147483647', precision: nil,  scale: nil, default: nil
+    assert_line :datetime_col,  type: 'datetime', limit: nil,          precision: nil,  scale: nil, default: nil
+    assert_line :timestamp_col, type: 'datetime', limit: nil,          precision: nil,  scale: nil, default: nil
+    assert_line :time_col,      type: 'time',     limit: nil,          precision: '7',  scale: nil, default: nil
+    assert_line :date_col,      type: 'date',     limit: nil,          precision: nil,  scale: nil, default: nil
+    assert_line :binary_col,    type: 'binary',   limit: '2147483647', precision: nil,  scale: nil, default: nil
+  end
+
+  # Special Cases
+
   it 'primary_key' do
     generate_schema_for_table('movies') do |output|
       match = output.match(%r{create_table "movies"(.*)do})
       assert_not_nil(match, "nonstandardpk table not found")
       assert_match %r(primary_key: "movieid"), match[1], "non-standard primary key not preserved"
     end
-  end
-
-  it 'a string type is nvarchar without a limit' do
-    generate_schema_for_table 'sst_datatypes_migration'
-    SSTestDatatypeMigration.columns_hash['string_col'].sql_type.must_equal 'nvarchar(4000)'
-    assert_line :string_col, type: 'string', limit: '4000', precision: nil, scale: nil, default: nil
-  end
-
-  it 'a text type is nvarchar max' do
-    generate_schema_for_table 'sst_datatypes_migration'
-    SSTestDatatypeMigration.columns_hash['text_col'].sql_type.must_equal 'nvarchar(max)'
-    assert_line :text_col, type: 'text', limit: '2147483647', precision: nil, scale: nil, default: nil
   end
 
 
@@ -77,7 +97,7 @@ class SchemaDumperTestSQLServer < ActiveRecord::TestCase
     @generated_schema = stream.string
     yield @generated_schema if block_given?
     @schema_lines = Hash.new
-    type_matcher = /\A\s+t\.\w+\s+"(.*?)",/
+    type_matcher = /\A\s+t\.\w+\s+"(.*?)"[,\n]/
     @generated_schema.each_line do |line|
       next unless line =~ type_matcher
       @schema_lines[Regexp.last_match[1]] = SchemaLine.new(line)
@@ -91,7 +111,7 @@ class SchemaDumperTestSQLServer < ActiveRecord::TestCase
 
   def assert_line(column_name, options={})
     line = line(column_name)
-    assert line, "Count not find line with column name: #{column_name.inspect}"
+    assert line, "Count not find line with column name: #{column_name.inspect} in schema:\n#{schema}"
     line.type_method.must_equal  options[:type],      "Type of #{options[:type].inspect} not found in:\n #{line}"            if options.key?(:type)
     line.limit.must_equal        options[:limit],     "Limit of #{options[:limit].inspect} not found in:\n #{line}"          if options.key?(:limit)
     line.precision.must_equal    options[:precision], "Precision of #{options[:precision].inspect} not found in:\n #{line}"  if options.key?(:precision)

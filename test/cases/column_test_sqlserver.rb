@@ -37,7 +37,7 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       col.default_function.must_equal   nil
       type = col.cast_type
       type.must_be_instance_of          Type::BigInteger
-      type.type.must_equal              :integer
+      type.type.must_equal              :bigint
       type.must_be                      :number?
       type.limit.must_equal             8
       assert_obj_set_and_save :bigint, -9_223_372_036_854_775_808

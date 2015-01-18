@@ -2,6 +2,7 @@ module ActiveRecord
   module ConnectionAdapters
     module SQLServer
       class SchemaCreation < AbstractAdapter::SchemaCreation
+
         private
 
         def visit_ColumnDefinition(o)
@@ -50,6 +51,7 @@ module ActiveRecord
 
           create_sql
         end
+
       end
     end
   end

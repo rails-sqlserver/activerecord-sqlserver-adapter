@@ -5,17 +5,29 @@ ActiveRecord::Schema.define do
   execute File.read(ARTest::SQLServer.schema_datatypes_2012_file)
 
   create_table :sst_datatypes_migration, force: true do |t|
-    # Rails conventions
-    t.string  :string_col
-    t.text    :text_col
-    # Our type methods
+    # Simple Rails conventions.
+    t.integer   :integer_col
+    t.bigint    :bigint_col
+    t.boolean   :boolean_col
+    t.decimal   :decimal_col
+    t.float     :float_col
+    t.string    :string_col
+    t.text      :text_col
+    t.datetime  :datetime_col
+    t.timestamp :timestamp_col
+    t.time      :time_col
+    t.date      :date_col
+    t.binary    :binary_col
+
+
+    # Our type methods. Make sure we can reverse schema dump for [sst_datatypes] table.
     # ...
   end
 
   # Edge Cases
 
   create_table 'sst_my$strange_table', force: true do |t|
-    t.column :number, :real
+    t.string :name
   end
 
   create_table :SST_UPPER_TESTS, force: true do |t|

@@ -2,6 +2,7 @@ module ActiveRecord
   module ConnectionAdapters
     module SQLServer
       class TableDefinition < ActiveRecord::ConnectionAdapters::TableDefinition
+
         def uuid(name, options = {})
           column(name, 'uniqueidentifier', options)
         end
@@ -13,10 +14,6 @@ module ActiveRecord
           column name, type, options
         end
 
-        def column(name, type = nil, options = {})
-          super
-          self
-        end
       end
     end
   end

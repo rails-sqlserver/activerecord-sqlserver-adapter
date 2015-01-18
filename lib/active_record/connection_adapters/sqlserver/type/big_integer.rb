@@ -4,7 +4,9 @@ module ActiveRecord
       module Type
         class BigInteger < Integer
 
-
+          def type
+            :bigint
+          end
 
         end
       end
