@@ -74,7 +74,7 @@ module ActiveRecord
           'DEFAULT VALUES'
         end
 
-        def case_sensitive_modifier(node)
+        def case_sensitive_modifier(node, table_attribute)
           node.acts_like?(:string) ? Arel::Nodes::Bin.new(node) : node
         end
 

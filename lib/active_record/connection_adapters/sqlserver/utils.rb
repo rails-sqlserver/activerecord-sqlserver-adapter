@@ -103,7 +103,7 @@ module ActiveRecord
         extend self
 
         def quote_string(s)
-          s.gsub /\'/, "''"
+          s.to_s.gsub /\'/, "''"
         end
 
         def unquote_string(s)
