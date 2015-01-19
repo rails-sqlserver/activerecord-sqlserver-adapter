@@ -37,6 +37,7 @@
   * product_version
   * edition
 * Removed tests for old issue #164. Handled by core types now.
+* The `activity_stats` method. Please put this in a gem if needed.
 
 #### Fixed
 
