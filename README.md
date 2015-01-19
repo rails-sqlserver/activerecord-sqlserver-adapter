@@ -1,6 +1,9 @@
 
 # ActiveRecord SQL Server Adapter. For SQL Server 2012 And Higher.
 
+[![Gem Version](http://img.shields.io/gem/v/activerecord-sqlserver-adapter.svg?style=flat)](https://rubygems.org/gems/activerecord-sqlserver-adapter)
+[![Gitter chat](https://img.shields.io/badge/gitter-rails-sqlserver/activerecord-sqlserver-adapter-ae3dd2.svg?style=flat)](https://gitter.im/rails-sqlserver/activerecord-sqlserver-adapter)
+
 **This project is looking for a new maintainers. Join the [discusion here](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/issues/364)**
 
 The SQL Server adapter for ActiveRecord. If you need the adapter for SQL Server 2000, you are still in the right spot. Just install the latest 2.3.x version of the adapter. Note, we follow a rational versioning policy that tracks ActiveRecord. That means that our 2.3.x version of the adapter is only for the latest 2.3 version of Rails. We also have stable branches for each major/minor release of ActiveRecord.
