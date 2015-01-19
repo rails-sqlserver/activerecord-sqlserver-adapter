@@ -75,7 +75,8 @@ module ActiveRecord
         end
 
         def case_sensitive_modifier(node, table_attribute)
-          node.acts_like?(:string) ? Arel::Nodes::Bin.new(node) : node
+          node = Arel::Nodes.build_quoted node, table_attribute
+          Arel::Nodes::Bin.new(node)
         end
 
         # === SQLServer Specific ======================================== #

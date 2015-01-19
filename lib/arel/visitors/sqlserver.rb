@@ -16,6 +16,12 @@ module Arel
         collector.add_bind(o) { |i| "@#{i-1}" }
       end
 
+      def visit_Arel_Nodes_Bin o, collector
+        visit o.expr, collector
+        collector << ActiveRecord::ConnectionAdapters::SQLServerAdapter.cs_equality_operator
+        collector << SPACE
+      end
+
       def visit_Arel_Nodes_Lock o, collector
         o.expr = Arel.sql('WITH (UPDLOCK)') if o.expr.to_s =~ /FOR UPDATE/
         collector << SPACE
