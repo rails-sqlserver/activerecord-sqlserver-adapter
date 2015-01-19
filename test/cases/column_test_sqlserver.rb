@@ -1,377 +1,675 @@
-require 'cases/sqlserver_helper'
-require 'models/binary'
-require 'models_sqlserver/float_data'
-require 'models_sqlserver/numeric_data'
-require 'models_sqlserver/sql_server_chronic'
-require 'models_sqlserver/sql_server_edge_schema'
-require 'models_sqlserver/sql_server_string'
-require 'models_sqlserver/sql_server_unicode'
-require 'models_sqlserver/table_with_real_column'
-require 'models_sqlserver/topic'
-require "cases/migration/helper"
+# encoding: UTF-8
+require 'cases/helper_sqlserver'
 
-class ColumnTestSqlserver < ActiveRecord::TestCase
+class ColumnTestSQLServer < ActiveRecord::TestCase
 
-  setup do
-    @connection = ActiveRecord::Base.connection
-    @column_klass = ActiveRecord::ConnectionAdapters::SQLServerColumn
+  describe 'ActiveRecord::ConnectionAdapters::SQLServer::Type' do
+
+    let(:obj) { SSTestDatatype.new }
+
+    Type = ActiveRecord::ConnectionAdapters::SQLServer::Type
+
+    def new_obj ; SSTestDatatype.new ; end
+    def column(name) ; SSTestDatatype.columns_hash[name] ; end
+    def assert_obj_set_and_save(attribute, value)
+      obj.send :"#{attribute}=", value
+      obj.send(attribute).must_equal value
+      obj.save!
+      obj.reload.send(attribute).must_equal value
+    end
+
+    # http://msdn.microsoft.com/en-us/library/ms187752.aspx
+
+    # Exact Numerics
+
+    it 'int(4) PRIMARY KEY' do
+      col = column('id')
+      col.sql_type.must_equal          'int(4)'
+      col.null.must_equal              false
+    end
+
+    it 'bigint(8)' do
+      col = column('bigint')
+      col.sql_type.must_equal           'bigint(8)'
+      col.null.must_equal               true
+      col.default.must_equal            42
+      obj.bigint.must_equal             42
+      col.default_function.must_equal   nil
+      type = col.cast_type
+      type.must_be_instance_of          Type::BigInteger
+      type.type.must_equal              :bigint
+      type.must_be                      :number?
+      type.limit.must_equal             8
+      assert_obj_set_and_save :bigint, -9_223_372_036_854_775_808
+      assert_raises(RangeError) { new_obj.bigint = -9_223_372_036_854_775_809 }
+      assert_obj_set_and_save :bigint, 9_223_372_036_854_775_807
+      assert_raises(RangeError) { new_obj.bigint = 9_223_372_036_854_775_808 }
+    end
+
+    it 'int(4)' do
+      col = column('int')
+      col.sql_type.must_equal           'int(4)'
+      col.null.must_equal               true
+      col.default.must_equal            42
+      obj.int.must_equal                42
+      col.default_function.must_equal   nil
+      type = col.cast_type
+      type.must_be_instance_of          Type::Integer
+      type.type.must_equal              :integer
+      type.must_be                      :number?
+      type.limit.must_equal             4
+      assert_obj_set_and_save :int, -2_147_483_648
+      assert_raises(RangeError) { new_obj.int = -2_147_483_649 }
+      assert_obj_set_and_save :int, 2_147_483_647
+      assert_raises(RangeError) { new_obj.int = 2_147_483_648 }
+    end
+
+    it 'smallint(2)' do
+      col = column('smallint')
+      col.sql_type.must_equal           'smallint(2)'
+      col.null.must_equal               true
+      col.default.must_equal            42
+      obj.smallint.must_equal           42
+      col.default_function.must_equal   nil
+      type = col.cast_type
+      type.must_be_instance_of          Type::SmallInteger
+      type.type.must_equal              :integer
+      type.must_be                      :number?
+      type.limit.must_equal             2
+      assert_obj_set_and_save :smallint, -32_768
+      assert_raises(RangeError) { new_obj.smallint = -32_769 }
+      assert_obj_set_and_save :smallint, 32_767
+      assert_raises(RangeError) { new_obj.smallint = 32_768 }
+    end
+
+    it 'tinyint(1)' do
+      col = column('tinyint')
+      col.sql_type.must_equal           'tinyint(1)'
+      col.null.must_equal               true
+      col.default.must_equal            42
+      obj.tinyint.must_equal            42
+      col.default_function.must_equal   nil
+      type = col.cast_type
+      type.must_be_instance_of          Type::TinyInteger
+      type.type.must_equal              :integer
+      type.must_be                      :number?
+      type.limit.must_equal             1
+      assert_obj_set_and_save :tinyint, 0
+      assert_raises(RangeError) { new_obj.tinyint = -1 }
+      assert_obj_set_and_save :tinyint, 255
+      assert_raises(RangeError) { new_obj.tinyint = 256 }
+    end
+
+    it 'bit' do
+      col = column('bit')
+      col.sql_type.must_equal           'bit'
+      col.null.must_equal               true
+      col.default.must_equal            true
+      obj.bit.must_equal                true
+      col.default_function.must_equal   nil
+      type = col.cast_type
+      type.must_be_instance_of          Type::Boolean
+      type.type.must_equal              :boolean
+      type.wont_be                      :number?
+      type.limit.must_equal             nil
+      obj.bit = 0
+      obj.bit.must_equal false
+      obj.save!
+      obj.reload.bit.must_equal false
+      obj.bit = '1'
+      obj.bit.must_equal true
+      obj.save!
+      obj.reload.bit.must_equal true
+    end
+
+    it 'decimal(9,2)' do
+      col = column('decimal_9_2')
+      col.sql_type.must_equal           'decimal(9,2)'
+      col.null.must_equal               true
+      col.default.must_equal            BigDecimal('12345.01')
+      obj.decimal_9_2.must_equal        BigDecimal('12345.01')
+      col.default_function.must_equal   nil
+      type = col.cast_type
+      type.must_be_instance_of          Type::Decimal
+      type.type.must_equal              :decimal
+      type.must_be                      :number?
+      type.limit.must_equal             nil
+      type.precision.must_equal         9
+      type.scale.must_equal             2
+      obj.decimal_9_2 = '1234567.8901'
+      obj.decimal_9_2.must_equal        BigDecimal('1234567.8901') # Cast from user one day.
+      obj.save!
+      obj.reload.decimal_9_2.must_equal BigDecimal('1234567.89')
+    end
+
+    it 'decimal(16,4)' do
+      col = column('decimal_16_4')
+      col.sql_type.must_equal           'decimal(16,4)'
+      col.default.must_equal            BigDecimal('1234567.89')
+      obj.decimal_16_4.must_equal       BigDecimal('1234567.89')
+      col.default_function.must_equal   nil
+      type = col.cast_type
+      type.precision.must_equal         16
+      type.scale.must_equal             4
+      obj.decimal_16_4 = '1234567.8901001'
+      obj.decimal_16_4.must_equal        BigDecimal('1234567.8901001') # Cast from user one day.
+      obj.save!
+      obj.reload.decimal_16_4.must_equal BigDecimal('1234567.8901')
+    end
+
+    it 'numeric(18,0)' do
+      col = column('numeric_18_0')
+      col.sql_type.must_equal           'numeric(18,0)'
+      col.null.must_equal               true
+      col.default.must_equal            BigDecimal('191')
+      obj.numeric_18_0.must_equal       BigDecimal('191')
+      col.default_function.must_equal   nil
+      type = col.cast_type
+      type.must_be_instance_of          Type::Decimal
+      type.type.must_equal              :decimal
+      type.must_be                      :number?
+      type.limit.must_equal             nil
+      type.precision.must_equal         18
+      type.scale.must_equal             0
+      obj.numeric_18_0 = '192.1'
+      obj.numeric_18_0.must_equal        BigDecimal('192.1') # Cast from user one day.
+      obj.save!
+      obj.reload.numeric_18_0.must_equal BigDecimal('192')
+    end
+
+    it 'numeric(36,2)' do
+      col = column('numeric_36_2')
+      col.sql_type.must_equal           'numeric(36,2)'
+      col.null.must_equal               true
+      col.default.must_equal            BigDecimal('12345678901234567890.01')
+      obj.numeric_36_2.must_equal       BigDecimal('12345678901234567890.01')
+      col.default_function.must_equal   nil
+      type = col.cast_type
+      type.must_be_instance_of          Type::Decimal
+      type.type.must_equal              :decimal
+      type.must_be                      :number?
+      type.limit.must_equal             nil
+      type.precision.must_equal         36
+      type.scale.must_equal             2
+      obj.numeric_36_2 = '192.123'
+      obj.numeric_36_2.must_equal        BigDecimal('192.123') # Cast from user one day.
+      obj.save!
+      obj.reload.numeric_36_2.must_equal BigDecimal('192.12')
+    end
+
+    it 'money' do
+      col = column('money')
+      col.sql_type.must_equal           'money'
+      col.null.must_equal               true
+      col.default.must_equal            BigDecimal('4.20')
+      obj.money.must_equal              BigDecimal('4.20')
+      col.default_function.must_equal   nil
+      type = col.cast_type
+      type.must_be_instance_of          Type::Money
+      type.type.must_equal              :money
+      type.must_be                      :number?
+      type.limit.must_equal             nil
+      type.precision.must_equal         19
+      type.scale.must_equal             4
+      obj.money = '922337203685477.58061'
+      obj.money.must_equal              BigDecimal('922337203685477.58061')
+      obj.save!
+      obj.reload.money.must_equal       BigDecimal('922337203685477.5806')
+    end
+
+    it 'smallmoney' do
+      col = column('smallmoney')
+      col.sql_type.must_equal           'smallmoney'
+      col.null.must_equal               true
+      col.default.must_equal            BigDecimal('4.20')
+      obj.smallmoney.must_equal         BigDecimal('4.20')
+      col.default_function.must_equal   nil
+      type = col.cast_type
+      type.must_be_instance_of          Type::SmallMoney
+      type.type.must_equal              :smallmoney
+      type.must_be                      :number?
+      type.limit.must_equal             nil
+      type.precision.must_equal         10
+      type.scale.must_equal             4
+      obj.smallmoney = '214748.36461'
+      obj.smallmoney.must_equal        BigDecimal('214748.36461')
+      obj.save!
+      obj.reload.smallmoney.must_equal BigDecimal('214748.3646')
+    end
+
+    # Approximate Numerics
+    # Float limits are adjusted to 24 or 53 by the database as per http://msdn.microsoft.com/en-us/library/ms173773.aspx
+    # Floats with a limit of <= 24 are reduced to reals by sqlserver on creation.
+
+    it 'float' do
+      col = column('float')
+      col.sql_type.must_equal           'float'
+      col.null.must_equal               true
+      col.default.must_equal            123.00000001
+      obj.float.must_equal              123.00000001
+      col.default_function.must_equal   nil
+      type = col.cast_type
+      type.must_be_instance_of          Type::Float
+      type.type.must_equal              :float
+      type.must_be                      :number?
+      type.limit.must_equal             nil
+      type.precision.must_equal         nil
+      type.scale.must_equal             nil
+      obj.float = '214748.36461'
+      obj.float.must_equal        214748.36461
+      obj.save!
+      obj.reload.float.must_equal 214748.36461
+    end
+
+    it 'real' do
+      col = column('real')
+      col.sql_type.must_equal           'real'
+      col.null.must_equal               true
+      col.default.must_be_close_to      123.45, 0.01
+      obj.real.must_be_close_to         123.45, 0.01
+      col.default_function.must_equal   nil
+      type = col.cast_type
+      type.must_be_instance_of          Type::Real
+      type.type.must_equal              :real
+      type.must_be                      :number?
+      type.limit.must_equal             nil
+      type.precision.must_equal         nil
+      type.scale.must_equal             nil
+      obj.real = '214748.36461'
+      obj.real.must_be_close_to         214748.36461, 0.01
+      obj.save!
+      obj.reload.real.must_be_close_to  214748.36461, 0.01
+    end
+
+    # Date and Time
+
+    it 'date' do
+      col = column('date')
+      col.sql_type.must_equal           'date'
+      col.null.must_equal               true
+      col.default.must_equal            '0001-01-01' # TODO: None type casted default. Really want Date.civil(0001, 1, 1).
+      obj.date.must_equal               Date.civil(0001, 1, 1)
+      col.default_function.must_equal   nil
+      type = col.cast_type
+      type.must_be_instance_of          Type::Date
+      type.type.must_equal              :date
+      type.wont_be                      :number?
+      type.limit.must_equal             nil
+      type.precision.must_equal         nil
+      type.scale.must_equal             nil
+      # Can cast strings.
+      obj.date = '0001-01-01'
+      obj.date.must_equal               Date.civil(0001, 1, 1)
+      obj.save!
+      obj.reload.date.must_equal        Date.civil(0001, 1, 1)
+      # Can keep and return assigned date.
+      assert_obj_set_and_save :date, Date.civil(1972, 04, 14)
+      # Can accept and cast time objects.
+      obj.date = Time.utc(2010, 4, 14, 12, 34, 56, 3000)
+      obj.date.must_equal               Date.civil(2010, 4, 14)
+      obj.save!
+      obj.reload.date.must_equal        Date.civil(2010, 4, 14)
+    end
+
+    it 'datetime' do
+      col = column('datetime')
+      col.sql_type.must_equal           'datetime'
+      col.null.must_equal               true
+      col.default.must_equal            Time.utc(1753, 01, 01, 00, 00, 00, 000)
+      obj.datetime.must_equal           Time.utc(1753, 01, 01, 00, 00, 00, 000)
+      col.default_function.must_equal   nil
+      type = col.cast_type
+      type.must_be_instance_of          Type::DateTime
+      type.type.must_equal              :datetime
+      type.wont_be                      :number?
+      type.limit.must_equal             nil
+      type.precision.must_equal         nil
+      type.scale.must_equal             nil
+      # Can save .003 seconds and return again.
+      obj.datetime = Time.utc(2010, 01, 01, 12, 34, 56, 3000)
+      obj.datetime.must_equal           Time.utc(2010, 01, 01, 12, 34, 56, 3000), "Microseconds were <#{obj.datetime.usec}> vs <3000>"
+      obj.save!
+      obj.reload.datetime.must_equal    Time.utc(2010, 01, 01, 12, 34, 56, 3000), "Microseconds were <#{obj.reload.datetime.usec}> vs <3000>"
+      # Will cast to true DB value on attribute write, save and return again.
+      obj.datetime = Time.utc(2010, 01, 01, 12, 34, 56, 234567)
+      obj.datetime.must_equal           Time.utc(2010, 01, 01, 12, 34, 56, 233000), "Microseconds were <#{obj.datetime.usec}> vs <233000>"
+      obj.save!
+      obj.reload.datetime.must_equal    Time.utc(2010, 01, 01, 12, 34, 56, 233000), "Microseconds were <#{obj.reload.datetime.usec}> vs <233000>"
+    end
+
+    it 'smalldatetime' do
+      col = column('smalldatetime')
+      col.sql_type.must_equal           'smalldatetime'
+      col.null.must_equal               true
+      col.default.must_equal            Time.utc(1901, 01, 01, 15, 45, 00, 000)
+      obj.smalldatetime.must_equal      Time.utc(1901, 01, 01, 15, 45, 00, 000)
+      col.default_function.must_equal   nil
+      type = col.cast_type
+      type.must_be_instance_of          Type::SmallDateTime
+      type.type.must_equal              :datetime
+      type.wont_be                      :number?
+      type.limit.must_equal             nil
+      type.precision.must_equal         nil
+      type.scale.must_equal             nil
+      # Will remove fractional seconds and return again.
+      obj.smalldatetime = Time.utc(2078, 06, 05, 4, 20, 00, 3000)
+      obj.smalldatetime.must_equal          Time.utc(2078, 06, 05, 4, 20, 00, 0), "Microseconds were <#{obj.smalldatetime.usec}> vs <0>"
+      obj.save!
+      obj.reload.smalldatetime.must_equal   Time.utc(2078, 06, 05, 4, 20, 00, 0), "Microseconds were <#{obj.reload.smalldatetime.usec}> vs <0>"
+    end
+
+    it 'time(2)' do
+      col = column('time_2')
+      col.sql_type.must_equal           'time(2)'
+      col.null.must_equal               true
+      col.default.must_equal            nil
+      col.default_function.must_equal   nil
+      type = col.cast_type
+      type.must_be_instance_of          Type::Time
+      type.type.must_equal              :time
+      type.wont_be                      :number?
+      type.limit.must_equal             nil
+      type.precision.must_equal         2
+      type.scale.must_equal             nil
+      # Always uses ActiveRecord's 2000-01-01 convention too.
+      obj.time_2 = Time.utc(2015, 01, 10, 15, 45, 00, 0)
+      obj.time_2.must_equal             Time.utc(2000, 01, 01, 15, 45, 00, 0)
+      obj.save!
+      obj.reload.time_2.must_equal      Time.utc(2000, 01, 01, 15, 45, 00, 0)
+      # Midnight the beggining of the day.
+      obj.time_2 = Time.utc(2000, 01, 01).midnight.change(usec: 0)
+      obj.time_2.must_equal             Time.utc(2000, 01, 01, 00, 00, 00, 0)
+      obj.save!
+      obj.reload.time_2.must_equal      Time.utc(2000, 01, 01, 00, 00, 00, 0)
+      # The end of day.
+      obj.time_2 = Time.utc(2000, 01, 01).end_of_day.change(usec: 0)
+      obj.time_2.must_equal             Time.utc(2000, 01, 01, 23, 59, 59, 0)
+      obj.save!
+      obj.reload.time_2.must_equal      Time.utc(2000, 01, 01, 23, 59, 59, 0)
+      # Time's #usec precision (barely in 2 precision equal to 0.03 seconds)
+      obj.time_2 = Time.utc(2000, 01, 01, 15, 45, 00, 30000)
+      obj.time_2.must_equal             Time.utc(2000, 01, 01, 15, 45, 00, 30000), "Microseconds were <#{obj.time_2.usec}> vs <30000>"
+      obj.save!
+      obj.reload.time_2.must_equal      Time.utc(2000, 01, 01, 15, 45, 00, 30000), "Microseconds were <#{obj.reload.time_2.usec}> vs <30000>"
+      # Time's #usec precision (below 2 precision)
+      obj.time_2 = Time.utc(2000, 01, 01, 15, 45, 00, 4000)
+      obj.time_2.must_equal             Time.utc(2000, 01, 01, 15, 45, 00, 0), "Microseconds were <#{obj.time_2.usec}> vs <0>"
+      obj.save!
+      obj.reload.time_2.must_equal      Time.utc(2000, 01, 01, 15, 45, 00, 0), "Microseconds were <#{obj.reload.time_2.usec}> vs <0>"
+    end
+
+    it 'time(7)' do
+      col = column('time_7')
+      col.sql_type.must_equal           'time(7)'
+      col.null.must_equal               true
+      col.default.must_equal            nil
+      col.default_function.must_equal   nil
+      type = col.cast_type
+      type.must_be_instance_of          Type::Time
+      type.type.must_equal              :time
+      type.wont_be                      :number?
+      type.limit.must_equal             nil
+      type.precision.must_equal         7
+      type.scale.must_equal             nil
+      # Time's #usec precision (low)
+      obj.time_7 = Time.utc(2000, 01, 01, 15, 45, 00, 300)
+      obj.time_7.must_equal             Time.utc(2000, 01, 01, 15, 45, 00, 300), "Microseconds were <#{obj.time_7.usec}> vs <300>"
+      obj.save!
+      obj.reload.time_7.must_equal      Time.utc(2000, 01, 01, 15, 45, 00, 300), "Microseconds were <#{obj.reload.time_7.usec}> vs <300>"
+      # Time's #usec precision (high)
+      obj.time_7 = Time.utc(2000, 01, 01, 15, 45, 00, 234567)
+      obj.time_7.must_equal             Time.utc(2000, 01, 01, 15, 45, 00, 234567), "Microseconds were <#{obj.time_7.usec}> vs <234567>"
+      obj.save!
+      obj.reload.time_7.must_equal      Time.utc(2000, 01, 01, 15, 45, 00, 234567), "Microseconds were <#{obj.reload.time_7.usec}> vs <234567>"
+    end
+
+    # Character Strings
+
+    it 'char(10)' do
+      col = column('char_10')
+      col.sql_type.must_equal           'char(10)'
+      col.null.must_equal               true
+      col.default.must_equal            '1234567890'
+      obj.char_10.must_equal            '1234567890'
+      col.default_function.must_equal   nil
+      type = col.cast_type
+      type.must_be_instance_of          Type::Char
+      type.type.must_equal              :char
+      type.wont_be                      :number?
+      type.limit.must_equal             10
+      type.precision.must_equal         nil
+      type.scale.must_equal             nil
+      # Basic set and save.
+      obj.char_10 = '012345'
+      obj.char_10.strip.must_equal         '012345'
+      obj.save!
+      obj.reload.char_10.strip.must_equal  '012345'
+    end
+
+    it 'varchar(50)' do
+      col = column('varchar_50')
+      col.sql_type.must_equal           'varchar(50)'
+      col.null.must_equal               true
+      col.default.must_equal            'test varchar_50'
+      obj.varchar_50.must_equal         'test varchar_50'
+      col.default_function.must_equal   nil
+      type = col.cast_type
+      type.must_be_instance_of          Type::Varchar
+      type.type.must_equal              :varchar
+      type.wont_be                      :number?
+      type.limit.must_equal             50
+      type.precision.must_equal         nil
+      type.scale.must_equal             nil
+      # Basic set and save.
+      assert_obj_set_and_save :varchar_50, 'Hello World'
+    end
+
+    it 'varchar(max)' do
+      col = column('varchar_max')
+      col.sql_type.must_equal           'varchar(max)'
+      col.null.must_equal               true
+      col.default.must_equal            'test varchar_max'
+      obj.varchar_max.must_equal        'test varchar_max'
+      col.default_function.must_equal   nil
+      type = col.cast_type
+      type.must_be_instance_of          Type::VarcharMax
+      type.type.must_equal              :varchar_max
+      type.wont_be                      :number?
+      type.limit.must_equal             2_147_483_647
+      type.precision.must_equal         nil
+      type.scale.must_equal             nil
+      # Basic set and save.
+      assert_obj_set_and_save :varchar_max, 'Hello World'
+    end
+
+    it 'text' do
+      col = column('text')
+      col.sql_type.must_equal           'text'
+      col.null.must_equal               true
+      col.default.must_equal            'test text'
+      obj.text.must_equal               'test text'
+      col.default_function.must_equal   nil
+      type = col.cast_type
+      type.must_be_instance_of          Type::Text
+      type.type.must_equal              :text_basic
+      type.wont_be                      :number?
+      type.limit.must_equal             2_147_483_647
+      type.precision.must_equal         nil
+      type.scale.must_equal             nil
+      # Basic set and save.
+      assert_obj_set_and_save :text, 'Hello World'
+    end
+
+    # Unicode Character Strings
+
+    it 'nchar(10)' do
+      col = column('nchar_10')
+      col.sql_type.must_equal           'nchar(10)'
+      col.null.must_equal               true
+      col.default.must_equal            '12345678åå'
+      obj.nchar_10.must_equal           '12345678åå'
+      col.default_function.must_equal   nil
+      type = col.cast_type
+      type.must_be_instance_of          Type::UnicodeChar
+      type.type.must_equal              :nchar
+      type.wont_be                      :number?
+      type.limit.must_equal             10
+      type.precision.must_equal         nil
+      type.scale.must_equal             nil
+      # Basic set and save.
+      obj.nchar_10 = "五六"
+      obj.nchar_10.strip.must_equal         "五六"
+      obj.save!
+      obj.reload.nchar_10.strip.must_equal  "五六"
+    end
+
+    it 'nvarchar(50)' do
+      col = column('nvarchar_50')
+      col.sql_type.must_equal           'nvarchar(50)'
+      col.null.must_equal               true
+      col.default.must_equal            'test nvarchar_50 åå'
+      obj.nvarchar_50.must_equal        'test nvarchar_50 åå'
+      col.default_function.must_equal   nil
+      type = col.cast_type
+      type.must_be_instance_of          Type::UnicodeVarchar
+      type.type.must_equal              :string
+      type.wont_be                      :number?
+      type.limit.must_equal             50
+      type.precision.must_equal         nil
+      type.scale.must_equal             nil
+      # Basic set and save.
+      assert_obj_set_and_save :nvarchar_50, "一二34五六"
+    end
+
+    it 'nvarchar(max)' do
+      col = column('nvarchar_max')
+      col.sql_type.must_equal           'nvarchar(max)'
+      col.null.must_equal               true
+      col.default.must_equal            'test nvarchar_max åå'
+      obj.nvarchar_max.must_equal       'test nvarchar_max åå'
+      col.default_function.must_equal   nil
+      type = col.cast_type
+      type.must_be_instance_of          Type::UnicodeVarcharMax
+      type.type.must_equal              :text
+      type.wont_be                      :number?
+      type.limit.must_equal             2_147_483_647
+      type.precision.must_equal         nil
+      type.scale.must_equal             nil
+      # Basic set and save.
+      assert_obj_set_and_save :nvarchar_max, "一二34五六"
+    end
+
+    it 'ntext' do
+      col = column('ntext')
+      col.sql_type.must_equal           'ntext'
+      col.null.must_equal               true
+      col.default.must_equal            'test ntext åå'
+      obj.ntext.must_equal              'test ntext åå'
+      col.default_function.must_equal   nil
+      type = col.cast_type
+      type.must_be_instance_of          Type::UnicodeText
+      type.type.must_equal              :ntext
+      type.wont_be                      :number?
+      type.limit.must_equal             2_147_483_647
+      type.precision.must_equal         nil
+      type.scale.must_equal             nil
+      # Basic set and save.
+      assert_obj_set_and_save :ntext, "一二34五六"
+    end
+
+    # Binary Strings
+
+    let(:binary_file) { File.join ARTest::SQLServer.test_root_sqlserver, 'fixtures', '1px.gif' }
+    let(:binary_data) { File.open(binary_file, 'rb') { |f| f.read } }
+
+    it 'binary(49)' do
+      col = column('binary_49')
+      col.sql_type.must_equal           'binary(49)'
+      col.null.must_equal               true
+      col.default.must_equal            nil
+      col.default_function.must_equal   nil
+      type = col.cast_type
+      type.must_be_instance_of          Type::Binary
+      type.type.must_equal              :binary_basic
+      type.wont_be                      :number?
+      type.limit.must_equal             49
+      type.precision.must_equal         nil
+      type.scale.must_equal             nil
+      # Basic set and save.
+      binary_data.encoding.must_equal Encoding::BINARY
+      binary_data.length.must_equal 49
+      obj.binary_49 = binary_data
+      obj.binary_49.must_equal binary_data
+      obj.save!
+      obj.reload.binary_49.must_equal binary_data
+    end
+
+    it 'varbinary(49)' do
+      col = column('varbinary_49')
+      col.sql_type.must_equal           'varbinary(49)'
+      col.null.must_equal               true
+      col.default.must_equal            nil
+      col.default_function.must_equal   nil
+      type = col.cast_type
+      type.must_be_instance_of          Type::Varbinary
+      type.type.must_equal              :varbinary
+      type.wont_be                      :number?
+      type.limit.must_equal             49
+      type.precision.must_equal         nil
+      type.scale.must_equal             nil
+      # Basic set and save.
+      binary_data_20 = binary_data.to(20)
+      binary_data_20.encoding.must_equal Encoding::BINARY
+      obj.varbinary_49 = binary_data_20
+      obj.varbinary_49.must_equal binary_data_20
+      obj.save!
+      obj.reload.varbinary_49.must_equal binary_data_20
+    end
+
+    it 'varbinary(max)' do
+      col = column('varbinary_max')
+      col.sql_type.must_equal           'varbinary(max)'
+      col.null.must_equal               true
+      col.default.must_equal            nil
+      col.default_function.must_equal   nil
+      type = col.cast_type
+      type.must_be_instance_of          Type::VarbinaryMax
+      type.type.must_equal              :binary
+      type.wont_be                      :number?
+      type.limit.must_equal             2_147_483_647
+      type.precision.must_equal         nil
+      type.scale.must_equal             nil
+      # Basic set and save.
+      binary_data.encoding.must_equal Encoding::BINARY
+      assert_obj_set_and_save :varbinary_max, binary_data
+    end
+
+    # Other Data Types
+
+    it 'uniqueidentifier' do
+      col = column('uniqueidentifier')
+      col.sql_type.must_equal           'uniqueidentifier'
+      col.null.must_equal               true
+      col.default.must_equal            nil
+      col.default_function.must_equal   'newid()'
+      type = col.cast_type
+      type.must_be_instance_of          Type::Uuid
+      type.type.must_equal              :uuid
+      type.wont_be                      :number?
+      type.limit.must_equal             nil
+      type.precision.must_equal         nil
+      type.scale.must_equal             nil
+      # Basic set and save.
+      obj.uniqueidentifier = "this will not qualify as valid"
+      obj.uniqueidentifier.must_equal   nil
+      obj.save! ; obj.reload
+      obj.uniqueidentifier.must_match   Type::Uuid::ACCEPTABLE_UUID
+      obj.uniqueidentifier = "6F9619FF-8B86-D011-B42D-00C04FC964FF"
+      obj.uniqueidentifier.must_equal   "6F9619FF-8B86-D011-B42D-00C04FC964FF"
+      obj.save! ; obj.reload
+      obj.uniqueidentifier.must_equal   "6F9619FF-8B86-D011-B42D-00C04FC964FF"
+    end
+
   end
 
-  should 'return real_number as float' do
-    assert_equal :float, TableWithRealColumn.columns_hash["real_number"].type
-  end
-
-  should 'know its #table_name and #table_klass' do
-    Topic.columns.each do |column|
-      assert_equal 'topics', column.table_name, "This column #{column.inspect} did not know it's #table_name"
-      assert_equal Topic, column.table_klass, "This column #{column.inspect} did not know it's #table_klass"
-    end
-  end
-
-  should 'return correct null, limit, and default for Topic' do
-    tch = Topic.columns_hash
-    assert_equal false, tch['id'].null
-    assert_equal true,  tch['title'].null
-    assert_equal 255,   tch['author_name'].limit
-    assert_equal true,  tch['approved'].default
-    assert_equal 0,     tch['replies_count'].default
-  end
-
-  context 'For binary columns' do
-
-    setup do
-      @binary_string = "GIF89a\001\000\001\000\200\000\000\377\377\377\000\000\000!\371\004\000\000\000\000\000,\000\000\000\000\001\000\001\000\000\002\002D\001\000;"
-      @saved_bdata = Binary.create!(data: @binary_string)
-    end
-
-    should 'read and write binary data equally' do
-      assert_equal @binary_string, Binary.find(@saved_bdata).data
-    end
-
-    should 'have correct attributes' do
-      column = Binary.columns_hash['data']
-      assert_equal :binary, column.type
-      assert_equal @connection.native_binary_database_type, column.sql_type
-      assert_equal nil, column.limit
-    end
-
-    should 'quote data for sqlserver with literal 0x prefix' do
-      # See the output of the stored procedure: 'exec sp_datatype_info'
-      sqlserver_encoded_bdata = "0x47494638396101000100800000ffffff00000021f90400000000002c00000000010001000002024401003b"
-      assert_equal sqlserver_encoded_bdata, @column_klass.string_to_binary(@binary_string)
-    end
-
-  end
-
-  context 'For string columns' do
-
-    setup do
-      @char         = SqlServerString.columns_hash['char']
-      @char10       = SqlServerString.columns_hash['char_10']
-      @varcharmax   = SqlServerString.columns_hash['varchar_max']
-      @varcharmax10 = SqlServerString.columns_hash['varchar_max_10']
-    end
-
-    should 'have correct simplified types' do
-      assert_equal :string, @char.type
-      assert_equal :string, @char10.type
-      assert_equal :text, @varcharmax.type, @varcharmax.inspect
-      assert_equal :text, @varcharmax10.type, @varcharmax10.inspect
-    end
-
-    should 'have correct #sql_type per schema definition' do
-      assert_equal 'char(1)',     @char.sql_type,       'Specifing a char type with no limit is 1 by SQL Server standards.'
-      assert_equal 'char(10)',    @char10.sql_type,      @char10.inspect
-      assert_equal 'varchar(max)', @varcharmax.sql_type,   'A -1 limit should be converted to max (max) type.'
-      assert_equal 'varchar(max)', @varcharmax10.sql_type, 'A -1 limit should be converted to max (max) type.'
-    end
-
-    should 'have correct #limit per schema definition' do
-      assert_equal 1,   @char.limit
-      assert_equal 10,  @char10.limit
-      assert_equal nil, @varcharmax.limit,   'Limits on max types are moot and we should let rails know that.'
-      assert_equal nil, @varcharmax10.limit, 'Limits on max types are moot and we should let rails know that.'
-    end
-
-  end
-
-  context 'For all national/unicode columns' do
-
-    setup do
-      @nchar         = SqlServerUnicode.columns_hash['nchar']
-      @nvarchar      = SqlServerUnicode.columns_hash['nvarchar']
-      @ntext         = SqlServerUnicode.columns_hash['ntext']
-      @ntext10       = SqlServerUnicode.columns_hash['ntext_10']
-      @nchar10       = SqlServerUnicode.columns_hash['nchar_10']
-      @nvarchar100   = SqlServerUnicode.columns_hash['nvarchar_100']
-      @nvarcharmax   = SqlServerUnicode.columns_hash['nvarchar_max']
-      @nvarcharmax10 = SqlServerUnicode.columns_hash['nvarchar_max_10']
-    end
-
-    should 'all respond true to #is_utf8?' do
-      SqlServerUnicode.columns_hash.except('id').values.each do |column|
-        assert column.is_utf8?, "This column #{column.inspect} should have been a unicode column."
-      end
-    end
-
-    should 'have correct simplified types' do
-      assert_equal :string, @nchar.type
-      assert_equal :string, @nvarchar.type
-      assert_equal :text,   @ntext.type
-      assert_equal :text,   @ntext10.type
-      assert_equal :string, @nchar10.type
-      assert_equal :string, @nvarchar100.type
-      assert_equal :text, @nvarcharmax.type, @nvarcharmax.inspect
-      assert_equal :text, @nvarcharmax10.type, @nvarcharmax10.inspect
-    end
-
-    should 'have correct #sql_type per schema definition' do
-      assert_equal 'nchar(1)',      @nchar.sql_type,       'Specifing a nchar type with no limit is 1 by SQL Server standards.'
-      assert_equal 'nvarchar(255)', @nvarchar.sql_type,    'Default nvarchar limit is 255.'
-      assert_equal 'ntext',         @ntext.sql_type,       'Nice and clean ntext, limit means nothing here.'
-      assert_equal 'ntext',         @ntext10.sql_type,     'Even a next with a limit of 10 specified will mean nothing.'
-      assert_equal 'nchar(10)',     @nchar10.sql_type,     'An nchar with a limit of 10 needs to have it show up here.'
-      assert_equal 'nvarchar(100)', @nvarchar100.sql_type, 'An nvarchar with a specified limit of 100 needs to show it.'
-      assert_equal 'nvarchar(max)', @nvarcharmax.sql_type,   'A -1 limit should be converted to max (max) type.'
-      assert_equal 'nvarchar(max)', @nvarcharmax10.sql_type, 'A -1 limit should be converted to max (max) type.'
-    end
-
-    should 'have correct #limit per schema definition' do
-      assert_equal 1,   @nchar.limit
-      assert_equal 255, @nvarchar.limit
-      assert_equal nil, @ntext.limit,       'An ntext column limit is moot, it is a fixed variable length'
-      assert_equal 10,  @nchar10.limit
-      assert_equal 100, @nvarchar100.limit
-      assert_equal nil, @nvarcharmax.limit,   'Limits on max types are moot and we should let rails know that.'
-      assert_equal nil, @nvarcharmax10.limit, 'Limits on max types are moot and we should let rails know that.'
-    end
-
-  end
-
-  context 'For datetime columns' do
-
-    setup do
-      @date = SqlServerChronic.columns_hash['date']
-      @time = SqlServerChronic.columns_hash['time']
-      @datetime = SqlServerChronic.columns_hash['datetime']
-      @smalldatetime = SqlServerChronic.columns_hash['smalldatetime']
-      @timestamp = SqlServerChronic.columns_hash['timestamp']
-      @ss_timestamp = SqlServerChronic.columns_hash['ss_timestamp']
-    end
-
-    should 'have correct simplified type for uncast datetime' do
-      assert_equal :datetime, @datetime.type
-    end
-
-    should 'use correct #sql_type for different sql server versions' do
-      assert_equal 'datetime', @datetime.sql_type
-      if sqlserver_2005?
-        assert_equal 'datetime', @date.sql_type
-        assert_equal 'datetime', @time.sql_type
-      else
-        assert_equal 'date', @date.sql_type
-        assert_equal 'time', @time.sql_type
-      end
-    end
-
-    should 'all be have nil #limit' do
-      assert_equal nil, @date.limit
-      assert_equal nil, @time.limit
-      assert_equal nil, @datetime.limit
-    end
-
-    context 'with timestamps' do
-
-      should 'use datetime sql type when using :timestamp in schema statements' do
-        assert_equal :datetime, @timestamp.type
-        assert_equal 'datetime', @timestamp.sql_type
-      end
-
-      should 'be able to use real sql server timestamp if you really want to' do
-        assert_equal :binary, @ss_timestamp.type
-        assert_equal 'timestamp', @ss_timestamp.sql_type
-      end unless sqlserver_azure?
-
-      should 'return :timestamp as a binaryish string' do
-        chronic = SqlServerChronic.create!.reload
-        assert_match %r|\000|, chronic.ss_timestamp
-      end unless sqlserver_azure?
-
-    end
-
-    context 'For smalldatetime types' do
-
-      should 'have created that type using rails migrations' do
-        assert_equal 'smalldatetime', @smalldatetime.sql_type
-      end
-
-      should 'be able to insert column without truncation warnings or the like' do
-        SqlServerChronic.create! smalldatetime: Time.now
-      end
-
-      should 'be able to update column without truncation warnings or the like' do
-        ssc = SqlServerChronic.create! smalldatetime: 2.days.ago
-        ssc.update_attributes! smalldatetime: Time.now
-      end
-
-    end
-
-    context 'which have coerced types' do
-
-      setup do
-        christmas_08 = "2008-12-25".to_time
-        christmas_08_afternoon = "2008-12-25 12:00".to_time
-        @chronic_date = SqlServerChronic.create!(date: christmas_08).reload
-        @chronic_time = SqlServerChronic.create!(time: christmas_08_afternoon).reload
-      end
-
-      should 'have an inheritable attribute ' do
-        assert SqlServerChronic.coerced_sqlserver_date_columns.include?('date') unless sqlserver_2008?
-      end
-
-      should 'have column and objects cast to date' do
-        assert_equal :date, @date.type, "This column: \n#{@date.inspect}"
-        assert_instance_of Date, @chronic_date.date
-      end
-
-      should 'have column objects cast to time' do
-        assert_equal :time, @time.type, "This column: \n#{@time.inspect}"
-        assert_instance_of Time, @chronic_time.time
-      end
-
-    end
-
-  end
-
-  context 'For decimal and numeric columns' do
-
-    setup do
-      @bank_balance = NumericData.columns_hash['bank_balance']
-      @big_bank_balance = NumericData.columns_hash['big_bank_balance']
-      @world_population = NumericData.columns_hash['world_population']
-      @my_house_population = NumericData.columns_hash['my_house_population']
-    end
-
-    should 'have correct simplified types' do
-      assert_equal :decimal, @bank_balance.type
-      assert_equal :decimal, @big_bank_balance.type
-      assert_equal :integer, @world_population.type, 'Since #extract_scale == 0'
-      assert_equal :integer, @my_house_population.type, 'Since #extract_scale == 0'
-    end
-
-    should 'have correct #sql_type' do
-      assert_equal 'decimal(10,2)', @bank_balance.sql_type
-      assert_equal 'decimal(15,2)', @big_bank_balance.sql_type
-      assert_equal 'decimal(10,0)', @world_population.sql_type
-      assert_equal 'decimal(2,0)',  @my_house_population.sql_type
-    end
-
-    should 'have correct #limit' do
-      assert_equal nil, @bank_balance.limit
-      assert_equal nil, @big_bank_balance.limit
-      assert_equal nil, @world_population.limit
-      assert_equal nil, @my_house_population.limit
-    end
-
-    should 'return correct precisions and scales' do
-      assert_equal [10,2], [@bank_balance.precision, @bank_balance.scale]
-      assert_equal [15,2], [@big_bank_balance.precision, @big_bank_balance.scale]
-      assert_equal [10,0], [@world_population.precision, @world_population.scale]
-      assert_equal [2,0],  [@my_house_population.precision, @my_house_population.scale]
-    end
-
-  end
-
-  context 'For float columns' do
-    # NOTE: float limits are adjusted to 24 or 53 by the database as per
-    # http://msdn.microsoft.com/en-us/library/ms173773.aspx
-    # NOTE: floats with a limit of <= 24 are reduced to reals by sqlserver on creation
-
-    setup do
-      @temperature = FloatData.columns_hash['temperature']
-      @freezing = FloatData.columns_hash['temperature_8']
-      @mild = FloatData.columns_hash['temperature_24']
-      @beach = FloatData.columns_hash['temperature_32']
-      @desert = FloatData.columns_hash['temperature_53']
-    end
-
-    should 'have correct simplified types' do
-      assert_equal :float, @temperature.type
-      assert_equal :float, @freezing.type
-      assert_equal :float, @mild.type
-      assert_equal :float, @beach.type
-      assert_equal :float, @desert.type
-    end
-
-    should 'have correct #sql_type' do
-      assert_equal 'real(24)', @temperature.sql_type
-      assert_equal 'real(24)', @freezing.sql_type
-      assert_equal 'real(24)', @mild.sql_type
-      assert_equal 'float(53)', @beach.sql_type
-      assert_equal 'float(53)',  @desert.sql_type
-    end
-
-    should 'have correct #limit' do
-      assert_equal 24, @temperature.limit
-      assert_equal 24, @freezing.limit
-      assert_equal 24, @mild.limit
-      assert_equal 53, @beach.limit
-      assert_equal 53, @desert.limit
-    end
-
-    should 'return nil precisions and scales' do
-      assert_equal [nil,nil], [@temperature.precision, @temperature.scale]
-      assert_equal [nil,nil], [@freezing.precision, @freezing.scale]
-      assert_equal [nil,nil], [@mild.precision, @mild.scale]
-      assert_equal [nil,nil], [@beach.precision, @beach.scale]
-      assert_equal [nil,nil], [@desert.precision, @desert.scale]
-    end
-
-  end
-
-  context 'For tinyint columns' do
-
-    setup do
-      @tinyint = SqlServerEdgeSchema.columns_hash['tinyint']
-    end
-
-    should 'be all it should be' do
-      assert_equal :integer, @tinyint.type
-      assert_nil @tinyint.scale
-      assert_equal 'tinyint(1)', @tinyint.sql_type
-    end
-
-  end
-end
-
-module ActiveRecord
-  class Migration
-    class ColumnsTest < ActiveRecord::TestCase
-      include ActiveRecord::Migration::TestHelper
-
-      COERCED_TESTS = [:test_remove_column_with_multi_column_index]
-        # The if current_adapter? conditional below should also contain :SQLServerAdapter.
-        # Until that patch is made to rails we are preventing this test from running in this gem.
-
-      include SqlserverCoercedTest
-
-      #the only thing we changed in this method was to add :SQLServerAdapter
-      def test_coerced_remove_column_with_multi_column_index
-        add_column "test_models", :hat_size, :integer
-        add_column "test_models", :hat_style, :string, limit: 100
-        add_index "test_models", ["hat_style", "hat_size"], unique: true
-
-        assert_equal 1, connection.indexes('test_models').size
-        remove_column("test_models", "hat_size")
-
-        # Every database and/or database adapter has their own behavior
-        # if it drops the multi-column index when any of the indexed columns dropped by remove_column.
-        if current_adapter?(:PostgreSQLAdapter, :OracleAdapter, :SQLServerAdapter)
-          assert_equal [], connection.indexes('test_models').map(&:name)
-        else
-          assert_equal ['index_test_models_on_hat_style_and_hat_size'], connection.indexes('test_models').map(&:name)
-        end
-      end
-    end
-  end
 end

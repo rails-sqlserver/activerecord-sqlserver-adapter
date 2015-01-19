@@ -1,89 +1,113 @@
 module ActiveRecord
   module ConnectionAdapters
-    module Sqlserver
+    module SQLServer
       class SchemaCache < ActiveRecord::ConnectionAdapters::SchemaCache
-        attr_reader :view_information
 
         def initialize(conn)
           super
-          @table_names = nil
-          @view_names = nil
+          @views = {}
           @view_information = {}
-          @quoted_names = {}
         end
 
         # Superclass Overrides
 
+        def primary_keys(table_name)
+          name = key(table_name)
+          @primary_keys[name] ||= table_exists?(table_name) ? connection.primary_key(table_name) : nil
+        end
+
         def table_exists?(table_name)
-          return false if table_name.blank?
-          key = table_name_key(table_name)
-          return @tables[key] if @tables.key? key
-          @tables[key] = connection.table_exists?(table_name)
+          name = key(table_name)
+          prepare_tables_and_views
+          return @tables[name] if @tables.key? name
+          table_exists = @tables[name] = connection.table_exists?(table_name)
+          table_exists || view_exists?(table_name)
+        end
+
+        def tables(name)
+          super(key(name))
+        end
+
+        def columns(table_name)
+          name = key(table_name)
+          @columns[name] ||= connection.columns(table_name)
+        end
+
+        def columns_hash(table_name)
+          name = key(table_name)
+          @columns_hash[name] ||= Hash[columns(table_name).map { |col|
+            [col.name, col]
+          }]
         end
 
         def clear!
           super
-          @table_names = nil
-          @view_names = nil
+          @views.clear
           @view_information.clear
-          @quoted_names.clear
+        end
+
+        def size
+          super + [@views, @view_information].map{ |x| x.size }.inject(:+)
         end
 
         def clear_table_cache!(table_name)
-          key = table_name_key(table_name)
-          super(key)
-          super(table_name)
-          # SQL Server Specific
-          if @table_names
-            @table_names.delete key
-            @table_names.delete table_name
-          end
-          if @view_names
-            @view_names.delete key
-            @view_names.delete table_name
-          end
-          @view_information.delete key
+          name = key(table_name)
+          @columns.delete name
+          @columns_hash.delete name
+          @primary_keys.delete name
+          @tables.delete name
+          @views.delete name
+          @view_information.delete name
+        end
+
+        def marshal_dump
+          super + [@views, @view_information]
+        end
+
+        def marshal_load(array)
+          @views, @view_information = array[-2..-1]
+          super(array[0..-3])
         end
 
         # SQL Server Specific
 
-        def table_names
-          @table_names ||= connection.tables
-        end
-
-        def view_names
-          @view_names ||= connection.views
-        end
-
         def view_exists?(table_name)
-          table_exists?(table_name)
+          name = key(table_name)
+          prepare_tables_and_views
+          return @views[name] if @views.key? name
+          @views[name] = connection.views.include?(table_name)
         end
 
         def view_information(table_name)
-          key = table_name_key(table_name)
-          return @view_information[key] if @view_information.key? key
-          @view_information[key] = connection.send(:view_information, table_name)
+          name = key(table_name)
+          return @view_information[name] if @view_information.key? name
+          @view_information[name] = connection.send(:view_information, table_name)
         end
 
-        def quote_name(name, split_on_dots = true)
-          return @quoted_names[name] if @quoted_names.key? name
-
-          @quoted_names[name] = if split_on_dots
-                                  name.to_s.split('.').map { |n| quote_name_part(n) }.join('.')
-                                else
-                                  quote_name_part(name.to_s)
-                                end
-        end
 
         private
 
-        def quote_name_part(part)
-          part =~ /^\[.*\]$/ ? part : "[#{part.to_s.gsub(']', ']]')}]"
+        def identifier(table_name)
+          SQLServer::Utils.extract_identifiers(table_name)
         end
 
-        def table_name_key(table_name)
-          Utils.unqualify_table_name(table_name)
+        def key(table_name)
+          identifier(table_name).quoted
         end
+
+        def prepare_tables_and_views
+          prepare_views if @views.empty?
+          prepare_tables if @tables.empty?
+        end
+
+        def prepare_tables
+          connection.tables.each { |table| @tables[key(table)] = true }
+        end
+
+        def prepare_views
+          connection.views.each { |view| @views[key(view)] = true }
+        end
+
       end
     end
   end

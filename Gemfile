@@ -1,5 +1,11 @@
-
 source 'https://rubygems.org'
+gemspec
+
+gem 'bcrypt'
+
+if RbConfig::CONFIG["host_os"] =~ /darwin/
+  gem 'terminal-notifier-guard'
+end
 
 if ENV['RAILS_SOURCE']
   gemspec path: ENV['RAILS_SOURCE']
@@ -37,17 +43,3 @@ group :odbc do
   gem 'ruby-odbc'
 end
 
-group :development do
-  gem 'bcrypt-ruby', '~> 3.0.0'
-  gem 'bench_press'
-  gem 'mocha'
-  # TODO: Change back when it's ready
-  gem 'minitest-spec-rails', git: "https://github.com/metaskills/minitest-spec-rails.git"
-  gem 'nokogiri'
-  gem 'rake', '~> 0.9.2'
-  gem 'rubocop'
-  gem 'ruby-prof'
-  gem 'simplecov'
-  gem 'ruby-graphviz'
-  gem 'pry'
-end

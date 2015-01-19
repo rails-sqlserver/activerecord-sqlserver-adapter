@@ -3,7 +3,7 @@ require 'active_record/connection_adapters/sqlserver/showplan/printer_xml'
 
 module ActiveRecord
   module ConnectionAdapters
-    module Sqlserver
+    module SQLServer
       module Showplan
         OPTION_ALL  = 'SHOWPLAN_ALL'
         OPTION_TEXT = 'SHOWPLAN_TEXT'

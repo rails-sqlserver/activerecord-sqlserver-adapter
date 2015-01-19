@@ -1,7 +1,8 @@
 module ActiveRecord
   module ConnectionAdapters
-    module Sqlserver
+    module SQLServer
       module SchemaStatements
+
         def native_database_types
           @native_database_types ||= initialize_native_database_types.freeze
         end
@@ -12,7 +13,7 @@ module ActiveRecord
 
         def table_exists?(table_name)
           return false if table_name.blank?
-          unquoted_table_name = Utils.unqualify_table_name(table_name)
+          unquoted_table_name = SQLServer::Utils.extract_identifiers(table_name).object
           super || tables.include?(unquoted_table_name) || views.include?(unquoted_table_name)
         end
 
@@ -44,18 +45,14 @@ module ActiveRecord
         def columns(table_name, _name = nil)
           return [] if table_name.blank?
           column_definitions(table_name).map do |ci|
-            sqlserver_options = ci.except(:name, :default_value, :type, :null).merge(database_year: database_year)
-            SQLServerColumn.new ci[:name], ci[:default_value], ci[:type], ci[:null], sqlserver_options
+            sqlserver_options = ci.slice :ordinal_position, :is_primary, :is_identity, :default_function
+            cast_type = lookup_cast_type(ci[:type])
+            new_column ci[:name], ci[:default_value], cast_type, ci[:type], ci[:null], sqlserver_options
           end
         end
 
-        # like postgres, sqlserver requires the ORDER BY columns in the select list for distinct queries, and
-        # requires that the ORDER BY include the distinct column. Unfortunately, sqlserver does not support
-        # DISTINCT ON () like Posgres, or FIRST_VALUE() like Oracle (at least before SQL Server 2012). Because
-        # of these facts, we don't actually add any extra columns for distinct, but instead have to create
-        # a subquery with ROW_NUMBER() and DENSE_RANK() in our monkey-patches to Arel.
-        def columns_for_distinct(columns, _orders) #:nodoc:
-          columns
+        def new_column(name, default, cast_type, sql_type = nil, null = true, sqlserver_options={})
+          SQLServerColumn.new name, default, cast_type, sql_type, null, sqlserver_options
         end
 
         def rename_table(table_name, new_name)
@@ -157,34 +154,37 @@ module ActiveRecord
         def initialize_native_database_types
           {
             primary_key: 'int NOT NULL IDENTITY(1,1) PRIMARY KEY',
-            string: { name: native_string_database_type, limit: 255  },
-            text: { name: native_text_database_type },
             integer: { name: 'int', limit: 4 },
-            float: { name: 'float', limit: 8 },
+            bigint: { name: 'bigint' },
+            boolean: { name: 'bit' },
             decimal: { name: 'decimal' },
+            money: { name: 'money' },
+            smallmoney: { name: 'smallmoney' },
+            float: { name: 'float' },
+            real: { name: 'real' },
+            date: { name: 'date' },
             datetime: { name: 'datetime' },
             timestamp: { name: 'datetime' },
-            time: { name: native_time_database_type },
-            date: { name: native_date_database_type },
-            binary: { name: native_binary_database_type },
-            boolean: { name: 'bit' },
-            uuid: { name: 'uniqueidentifier' },
-            # These are custom types that may move somewhere else for good schema_dumper.rb hacking to output them.
+            time: { name: 'time' },
             char: { name: 'char' },
+            varchar: { name: 'varchar', limit: 8000 },
             varchar_max: { name: 'varchar(max)' },
+            text_basic: { name: 'text' },
             nchar: { name: 'nchar' },
-            nvarchar: { name: 'nvarchar', limit: 255 },
-            nvarchar_max: { name: 'nvarchar(max)' },
+            string: { name: 'nvarchar', limit: 4000 },
+            text: { name: 'nvarchar(max)' },
             ntext: { name: 'ntext' },
+            binary_basic: { name: 'binary' },
+            varbinary: { name: 'varbinary', limit: 8000 },
+            binary: { name: 'varbinary(max)' },
+            uuid: { name: 'uniqueidentifier' },
             ss_timestamp: { name: 'timestamp' }
           }
         end
 
         def column_definitions(table_name)
-          db_name = Utils.unqualify_db_name(table_name)
-          db_name_with_period = "#{db_name}." if db_name
-          table_schema = Utils.unqualify_table_schema(table_name)
-          table_name = Utils.unqualify_table_name(table_name)
+          identifier = SQLServer::Utils.extract_identifiers(table_name)
+          database   = "#{identifier.database_quoted}." if identifier.database_quoted
           sql = %{
             SELECT DISTINCT
             #{lowercase_schema_reflection_sql('columns.TABLE_NAME')} AS table_name,
@@ -193,10 +193,11 @@ module ActiveRecord
             columns.COLUMN_DEFAULT AS default_value,
             columns.NUMERIC_SCALE AS numeric_scale,
             columns.NUMERIC_PRECISION AS numeric_precision,
+            columns.DATETIME_PRECISION AS datetime_precision,
             columns.ordinal_position,
             CASE
               WHEN columns.DATA_TYPE IN ('nchar','nvarchar') THEN columns.CHARACTER_MAXIMUM_LENGTH
-              ELSE COL_LENGTH('#{db_name_with_period}'+columns.TABLE_SCHEMA+'.'+columns.TABLE_NAME, columns.COLUMN_NAME)
+              ELSE COL_LENGTH('#{database}'+columns.TABLE_SCHEMA+'.'+columns.TABLE_NAME, columns.COLUMN_NAME)
             END AS [length],
             CASE
               WHEN columns.IS_NULLABLE = 'YES' THEN 1
@@ -207,63 +208,79 @@ module ActiveRecord
               ELSE NULL
             END AS [is_primary],
             c.is_identity AS [is_identity]
-            FROM #{db_name_with_period}INFORMATION_SCHEMA.COLUMNS columns
-            LEFT OUTER JOIN #{db_name_with_period}INFORMATION_SCHEMA.TABLE_CONSTRAINTS AS TC
+            FROM #{database}INFORMATION_SCHEMA.COLUMNS columns
+            LEFT OUTER JOIN #{database}INFORMATION_SCHEMA.TABLE_CONSTRAINTS AS TC
               ON TC.TABLE_NAME = columns.TABLE_NAME
               AND TC.CONSTRAINT_TYPE = N'PRIMARY KEY'
-            LEFT OUTER JOIN #{db_name_with_period}INFORMATION_SCHEMA.KEY_COLUMN_USAGE AS KCU
+            LEFT OUTER JOIN #{database}INFORMATION_SCHEMA.KEY_COLUMN_USAGE AS KCU
               ON KCU.COLUMN_NAME = columns.COLUMN_NAME
               AND KCU.CONSTRAINT_NAME = TC.CONSTRAINT_NAME
               AND KCU.CONSTRAINT_CATALOG = TC.CONSTRAINT_CATALOG
               AND KCU.CONSTRAINT_SCHEMA = TC.CONSTRAINT_SCHEMA
-            INNER JOIN #{db_name}.sys.schemas AS s
+            INNER JOIN #{identifier.database_quoted}.sys.schemas AS s
               ON s.name = columns.TABLE_SCHEMA
               AND s.schema_id = s.schema_id
-            INNER JOIN #{db_name}.sys.objects AS o
+            INNER JOIN #{identifier.database_quoted}.sys.objects AS o
               ON s.schema_id = o.schema_id
               AND o.is_ms_shipped = 0
               AND o.type IN ('U', 'V')
               AND o.name = columns.TABLE_NAME
-            INNER JOIN #{db_name}.sys.columns AS c
+            INNER JOIN #{identifier.database_quoted}.sys.columns AS c
               ON o.object_id = c.object_id
               AND c.name = columns.COLUMN_NAME
             WHERE columns.TABLE_NAME = @0
-              AND columns.TABLE_SCHEMA = #{table_schema.blank? ? 'schema_name()' : '@1'}
+              AND columns.TABLE_SCHEMA = #{identifier.schema.blank? ? 'schema_name()' : '@1'}
             ORDER BY columns.ordinal_position
           }.gsub(/[ \t\r\n]+/, ' ')
-          binds = [['table_name', table_name]]
-          binds << ['table_schema', table_schema] unless table_schema.blank?
+          binds = [['table_name', identifier.object]]
+          binds << ['table_schema', identifier.schema] unless identifier.schema.blank?
           results = do_exec_query(sql, 'SCHEMA', binds)
           results.map do |ci|
             ci = ci.symbolize_keys
+            ci[:_type] = ci[:type]
             ci[:type] = case ci[:type]
                         when /^bit|image|text|ntext|datetime$/
                           ci[:type]
+                        when /^time$/i
+                          "#{ci[:type]}(#{ci[:datetime_precision]})"
                         when /^numeric|decimal$/i
                           "#{ci[:type]}(#{ci[:numeric_precision]},#{ci[:numeric_scale]})"
                         when /^float|real$/i
-                          "#{ci[:type]}(#{ci[:numeric_precision]})"
-                        when /^char|nchar|varchar|nvarchar|varbinary|bigint|int|smallint$/
+                          "#{ci[:type]}"
+                        when /^char|nchar|varchar|nvarchar|binary|varbinary|bigint|int|smallint$/
                           ci[:length].to_i == -1 ? "#{ci[:type]}(max)" : "#{ci[:type]}(#{ci[:length]})"
                         else
                           ci[:type]
                         end
-            if ci[:default_value].nil? && schema_cache.view_names.include?(table_name)
-              real_table_name = table_name_or_views_table_name(table_name)
-              real_column_name = views_real_column_name(table_name, ci[:name])
-              col_default_sql = "SELECT c.COLUMN_DEFAULT FROM #{db_name_with_period}INFORMATION_SCHEMA.COLUMNS c WHERE c.TABLE_NAME = '#{real_table_name}' AND c.COLUMN_NAME = '#{real_column_name}'"
-              ci[:default_value] = select_value col_default_sql, 'SCHEMA'
+            ci[:default_value],
+            ci[:default_function] = begin
+              default = ci[:default_value]
+              if default.nil? && schema_cache.view_exists?(table_name)
+                default = select_value "
+                  SELECT c.COLUMN_DEFAULT
+                  FROM #{database}INFORMATION_SCHEMA.COLUMNS c
+                  WHERE c.TABLE_NAME = '#{table_name_or_views_table_name(table_name)}'
+                  AND c.COLUMN_NAME = '#{views_real_column_name(table_name, ci[:name])}'".squish, 'SCHEMA'
+              end
+              case default
+              when nil
+                [nil, nil]
+              when /\A\((\w+\(\))\)\Z/
+                default_function = Regexp.last_match[1]
+                [nil, default_function]
+              when /\A\(N'(.*)'\)\Z/m
+                string_literal = SQLServer::Utils.unquote_string(Regexp.last_match[1])
+                [string_literal, nil]
+              else
+                type = case ci[:type]
+                       when /smallint|int|bigint/ then ci[:_type]
+                       else ci[:type]
+                       end
+                value = default.match(/\A\((.*)\)\Z/m)[1]
+                value = select_value "SELECT CAST(#{value} AS #{type}) AS value", 'SCHEMA'
+                [value, nil]
+              end
             end
-            ci[:default_value] = case ci[:default_value]
-                                 when nil, '(null)', '(NULL)'
-                                   nil
-                                 when /\A\((\w+\(\))\)\Z/
-                                   ci[:default_function] = Regexp.last_match[1]
-                                   nil
-                                 else
-                                   match_data = ci[:default_value].match(/\A\(+N?'?(.*?)'?\)+\Z/m)
-                                   match_data ? match_data[1].gsub("''", "'") : nil
-                                 end
             ci[:null] = ci[:is_nullable].to_i == 1
             ci.delete(:is_nullable)
             ci[:is_primary] = ci[:is_primary].to_i == 1
@@ -297,13 +314,14 @@ module ActiveRecord
         # === SQLServer Specific (Misc Helpers) ========================= #
 
         def get_table_name(sql)
-          if sql =~ /^\s*(INSERT|EXEC sp_executesql N'INSERT)(\s+INTO)?\s+([^\(\s]+)\s*|^\s*update\s+([^\(\s]+)\s*/i
+          tn = if sql =~ /^\s*(INSERT|EXEC sp_executesql N'INSERT)(\s+INTO)?\s+([^\(\s]+)\s*|^\s*update\s+([^\(\s]+)\s*/i
             Regexp.last_match[3] || Regexp.last_match[4]
           elsif sql =~ /FROM\s+([^\(\s]+)\s*/i
             Regexp.last_match[1]
           else
             nil
           end
+          SQLServer::Utils.extract_identifiers(tn).object
         end
 
         def default_constraint_name(table_name, column_name)
@@ -329,25 +347,24 @@ module ActiveRecord
         end
 
         def view_information(table_name)
-          table_name = Utils.unqualify_table_name(table_name)
-          view_info = select_one "SELECT * FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_NAME = '#{table_name}'", 'SCHEMA'
+          identifier = SQLServer::Utils.extract_identifiers(table_name)
+          view_info = select_one "SELECT * FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_NAME = '#{identifier.object}'", 'SCHEMA'
           if view_info
             view_info = view_info.with_indifferent_access
             if view_info[:VIEW_DEFINITION].blank? || view_info[:VIEW_DEFINITION].length == 4000
               view_info[:VIEW_DEFINITION] = begin
-                                              select_values("EXEC sp_helptext #{quote_table_name(table_name)}", 'SCHEMA').join
-                                            rescue
-                                              warn "No view definition found, possible permissions problem.\nPlease run GRANT VIEW DEFINITION TO your_user;"
-                                              nil
-                                            end
+                select_values("EXEC sp_helptext #{identifier.object_quoted}", 'SCHEMA').join
+              rescue
+                warn "No view definition found, possible permissions problem.\nPlease run GRANT VIEW DEFINITION TO your_user;"
+                nil
+              end
             end
           end
           view_info
         end
 
         def table_name_or_views_table_name(table_name)
-          unquoted_table_name = Utils.unqualify_table_name(table_name)
-          schema_cache.view_names.include?(unquoted_table_name) ? view_table_name(unquoted_table_name) : unquoted_table_name
+          schema_cache.view_exists?(table_name) ? view_table_name(table_name) : table_name
         end
 
         def views_real_column_name(table_name, column_name)
@@ -377,7 +394,6 @@ module ActiveRecord
           # There has to be a better way to handle this, but this'll do for now.
           table_name = get_table_name(sql)
           id_column = identity_column(table_name)
-
           if id_column
             regex_col_name = Regexp.quote(quote_column_name(id_column.name))
             if sql =~ /, #{regex_col_name} = @?[0-9]*/
@@ -412,11 +428,13 @@ module ActiveRecord
           schema_cache.columns(table_name).find(&:is_identity?)
         end
 
+
         private
 
         def create_table_definition(name, temporary, options, as = nil)
-          TableDefinition.new native_database_types, name, temporary, options, as
+          SQLServer::TableDefinition.new native_database_types, name, temporary, options, as
         end
+
       end
     end
   end

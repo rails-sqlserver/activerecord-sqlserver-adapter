@@ -1,7 +1,8 @@
 module ActiveRecord
   module ConnectionAdapters
-    module Sqlserver
+    module SQLServer
       module DatabaseStatements
+
         def select_rows(sql, name = nil, binds = [])
           do_exec_query sql, name, binds, fetch: :rows
         end
@@ -56,27 +57,26 @@ module ActiveRecord
           do_execute 'IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION'
         end
 
+        include Savepoints
+
         def create_savepoint(name = current_savepoint_name)
           disable_auto_reconnect { do_execute "SAVE TRANSACTION #{name}" }
-        end
-
-        def release_savepoint(name = current_savepoint_name)
         end
 
         def rollback_to_savepoint(name = current_savepoint_name)
           disable_auto_reconnect { do_execute "ROLLBACK TRANSACTION #{name}" }
         end
 
-        def add_limit_offset!(_sql, _options)
-          raise NotImplementedError, 'This has been moved to the SQLServerCompiler in Arel.'
+        def release_savepoint(name = current_savepoint_name)
         end
 
         def empty_insert_statement_value
           'DEFAULT VALUES'
         end
 
-        def case_sensitive_modifier(node)
-          node.acts_like?(:string) ? Arel::Nodes::Bin.new(node) : node
+        def case_sensitive_modifier(node, table_attribute)
+          node = Arel::Nodes.build_quoted node, table_attribute
+          Arel::Nodes::Bin.new(node)
         end
 
         # === SQLServer Specific ======================================== #
@@ -116,8 +116,8 @@ module ActiveRecord
 
         def use_database(database = nil)
           return if sqlserver_azure?
-          database ||= @connection_options[:database]
-          do_execute "USE #{quote_database_name(database)}" unless database.blank?
+          name = SQLServer::Utils.extract_identifiers(database || @connection_options[:database]).quoted
+          do_execute "USE #{name}" unless name.blank?
         end
 
         def user_options
@@ -135,7 +135,6 @@ module ActiveRecord
           end
         end
 
-        # TODO: Rails 4 now supports isolation levels
         def user_options_dateformat
           if sqlserver_azure?
             select_value 'SELECT [dateformat] FROM [sys].[syslanguages] WHERE [langid] = @@LANGID', 'SCHEMA'
@@ -190,51 +189,6 @@ module ActiveRecord
           select_value 'SELECT NEWSEQUENTIALID()'
         end
 
-        def activity_stats
-          select_all %|
-            SELECT
-               [session_id]    = s.session_id,
-               [user_process]  = CONVERT(CHAR(1), s.is_user_process),
-               [login]         = s.login_name,
-               [database]      = ISNULL(db_name(r.database_id), N''),
-               [task_state]    = ISNULL(t.task_state, N''),
-               [command]       = ISNULL(r.command, N''),
-               [application]   = ISNULL(s.program_name, N''),
-               [wait_time_ms]  = ISNULL(w.wait_duration_ms, 0),
-               [wait_type]     = ISNULL(w.wait_type, N''),
-               [wait_resource] = ISNULL(w.resource_description, N''),
-               [blocked_by]    = ISNULL(CONVERT (varchar, w.blocking_session_id), ''),
-               [head_blocker]  =
-                    CASE
-                        -- session has an active request, is blocked, but is blocking others
-                        WHEN r2.session_id IS NOT NULL AND r.blocking_session_id = 0 THEN '1'
-                        -- session is idle but has an open tran and is blocking others
-                        WHEN r.session_id IS NULL THEN '1'
-                        ELSE ''
-                    END,
-               [total_cpu_ms]   = s.cpu_time,
-               [total_physical_io_mb]   = (s.reads + s.writes) * 8 / 1024,
-               [memory_use_kb]  = s.memory_usage * 8192 / 1024,
-               [open_transactions] = ISNULL(r.open_transaction_count,0),
-               [login_time]     = s.login_time,
-               [last_request_start_time] = s.last_request_start_time,
-               [host_name]      = ISNULL(s.host_name, N''),
-               [net_address]    = ISNULL(c.client_net_address, N''),
-               [execution_context_id] = ISNULL(t.exec_context_id, 0),
-               [request_id]     = ISNULL(r.request_id, 0),
-               [workload_group] = N''
-            FROM sys.dm_exec_sessions s LEFT OUTER JOIN sys.dm_exec_connections c ON (s.session_id = c.session_id)
-            LEFT OUTER JOIN sys.dm_exec_requests r ON (s.session_id = r.session_id)
-            LEFT OUTER JOIN sys.dm_os_tasks t ON (r.session_id = t.session_id AND r.request_id = t.request_id)
-            LEFT OUTER JOIN
-            (SELECT *, ROW_NUMBER() OVER (PARTITION BY waiting_task_address ORDER BY wait_duration_ms DESC) AS row_num
-                FROM sys.dm_os_waiting_tasks
-            ) w ON (t.task_address = w.waiting_task_address) AND w.row_num = 1
-            LEFT OUTER JOIN sys.dm_exec_requests r2 ON (r.session_id = r2.blocking_session_id)
-            WHERE db_name(r.database_id) = '#{current_database}'
-            ORDER BY s.session_id|
-        end
-
         # === SQLServer Specific (Rake/Test Helpers) ==================== #
 
         def recreate_database
@@ -244,21 +198,25 @@ module ActiveRecord
         end
 
         def recreate_database!(database = nil)
-          current_db = current_database
-          database ||= current_db
-          this_db = database.to_s == current_db
-          do_execute 'USE master' if this_db
+          database ||= current_database
           drop_database(database)
           create_database(database)
         ensure
-          use_database(current_db) if this_db
+          use_database(database)
         end
 
         def drop_database(database)
           retry_count = 0
           max_retries = 1
+          name = SQLServer::Utils.extract_identifiers(database)
           begin
-            do_execute "DROP DATABASE #{quote_database_name(database)}"
+            do_execute "
+              USE master
+              IF EXISTS (
+                SELECT * FROM [sys].[databases]
+                WHERE name = #{quote(name.object)}
+              ) DROP DATABASE #{name}
+            ".squish
           rescue ActiveRecord::StatementInvalid => err
             if err.message =~ /because it is currently in use/i
               raise if retry_count >= max_retries
@@ -273,12 +231,19 @@ module ActiveRecord
           end
         end
 
-        def create_database(database, collation = @connection_options[:collation])
-          if collation
-            do_execute "CREATE DATABASE #{quote_database_name(database)} COLLATE #{collation}"
-          else
-            do_execute "CREATE DATABASE #{quote_database_name(database)}"
+        def create_database(database, options = {})
+          name = SQLServer::Utils.extract_identifiers(database)
+          options = {collation: @connection_options[:collation]}.merge!(options.symbolize_keys)
+          options = options.select { |_, v| v.present? }
+          option_string = options.inject("") do |memo, (key, value)|
+            memo += case key
+            when :collation
+              " COLLATE #{value}"
+            else
+              ""
+            end
           end
+          do_execute "CREATE DATABASE #{name}#{option_string}"
         end
 
         def current_database
@@ -288,6 +253,7 @@ module ActiveRecord
         def charset
           select_value "SELECT SERVERPROPERTY('SqlCharSetName')"
         end
+
 
         protected
 
@@ -325,7 +291,6 @@ module ActiveRecord
           if options[:fetch] != :rows
             options[:ar_result] = true
           end
-
           explaining = name == 'EXPLAIN'
           names_and_types = []
           params = []
@@ -450,6 +415,7 @@ module ActiveRecord
           end
           handle
         end
+
       end
     end
   end

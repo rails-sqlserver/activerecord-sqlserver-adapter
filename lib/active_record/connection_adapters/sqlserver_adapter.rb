@@ -1,15 +1,13 @@
 require 'base64'
-require 'arel/arel_sqlserver'
-require 'arel/visitors/bind_visitor'
 require 'active_record'
-require 'active_record/base'
-require 'active_support/concern'
-require 'active_support/core_ext/string'
+require 'arel_sqlserver'
 require 'active_record/connection_adapters/abstract_adapter'
 require 'active_record/connection_adapters/sqlserver/core_ext/active_record'
 require 'active_record/connection_adapters/sqlserver/core_ext/explain'
 require 'active_record/connection_adapters/sqlserver/core_ext/explain_subscriber'
 require 'active_record/connection_adapters/sqlserver/core_ext/relation'
+require 'active_record/connection_adapters/sqlserver/version'
+require 'active_record/connection_adapters/sqlserver/type'
 require 'active_record/connection_adapters/sqlserver/database_limits'
 require 'active_record/connection_adapters/sqlserver/database_statements'
 require 'active_record/connection_adapters/sqlserver/errors'
@@ -20,70 +18,55 @@ require 'active_record/connection_adapters/sqlserver/showplan'
 require 'active_record/connection_adapters/sqlserver/table_definition'
 require 'active_record/connection_adapters/sqlserver/quoting'
 require 'active_record/connection_adapters/sqlserver/utils'
-
 require 'active_record/sqlserver_base'
 require 'active_record/connection_adapters/sqlserver_column'
 
 module ActiveRecord
   module ConnectionAdapters
     class SQLServerAdapter < AbstractAdapter
-      include Sqlserver::Quoting
-      include Sqlserver::DatabaseStatements
-      include Sqlserver::Showplan
-      include Sqlserver::SchemaStatements
-      include Sqlserver::DatabaseLimits
-      include Sqlserver::Errors
 
-      VERSION                     = File.read(File.expand_path('../../../../VERSION', __FILE__)).strip
-      ADAPTER_NAME                = 'SQLServer'.freeze
-      DATABASE_VERSION_REGEXP     = /Microsoft SQL Server\s+"?(\d{4}|\w+)"?/
-      SUPPORTED_VERSIONS          = [2005, 2008, 2010, 2011, 2012, 2014]
+      include SQLServer::Version,
+              SQLServer::Quoting,
+              SQLServer::DatabaseStatements,
+              SQLServer::Showplan,
+              SQLServer::SchemaStatements,
+              SQLServer::DatabaseLimits,
+              SQLServer::Errors
 
-      attr_reader :database_version, :database_year, :spid, :product_level, :product_version, :edition
+      ADAPTER_NAME = 'SQLServer'.freeze
 
-      cattr_accessor :native_text_database_type, :native_binary_database_type, :native_string_database_type,
-                     :enable_default_unicode_types, :auto_connect, :cs_equality_operator,
-                     :lowercase_schema_reflection, :auto_connect_duration, :showplan_option
+      attr_reader :spid
 
-      self.enable_default_unicode_types = true
+      cattr_accessor :auto_connect, :auto_connect_duration, instance_accessor: false
+      cattr_accessor :cs_equality_operator, instance_accessor: false
+      cattr_accessor :lowercase_schema_reflection, :showplan_option
 
-      class BindSubstitution < Arel::Visitors::SQLServer # :nodoc:
-        include Arel::Visitors::BindVisitor
-      end
+      self.cs_equality_operator = 'COLLATE Latin1_General_CS_AS_WS'
 
       def initialize(connection, logger, pool, config)
         super(connection, logger, pool)
         # AbstractAdapter Responsibility
-        @schema_cache = Sqlserver::SchemaCache.new self
+        @schema_cache = SQLServer::SchemaCache.new self
         @visitor = Arel::Visitors::SQLServer.new self
+        @prepared_statements = true
         # Our Responsibility
         @config = config
         @connection_options = config
         connect
-        @database_version = select_value 'SELECT @@version', 'SCHEMA'
-        @database_year = begin
-                           if @database_version =~ /Azure/i
-                             @sqlserver_azure = true
-                             @database_version.match(/\s-\s([0-9.]+)/)[1]
-                             year = 2012
-                           else
-                             year = DATABASE_VERSION_REGEXP.match(@database_version)[1]
-                             year == 'Denali' ? 2011 : year.to_i
-                           end
-                         rescue
-                           0
-                         end
-        @product_level    = select_value "SELECT CAST(SERVERPROPERTY('productlevel') AS VARCHAR(128))", 'SCHEMA'
-        @product_version  = select_value "SELECT CAST(SERVERPROPERTY('productversion') AS VARCHAR(128))", 'SCHEMA'
-        @edition          = select_value "SELECT CAST(SERVERPROPERTY('edition') AS VARCHAR(128))", 'SCHEMA'
+        @sqlserver_azure = !!(select_value('SELECT @@version', 'SCHEMA') =~ /Azure/i)
         initialize_dateformatter
         use_database
-        unless @sqlserver_azure == true || SUPPORTED_VERSIONS.include?(@database_year)
-          raise NotImplementedError, "Currently, only #{SUPPORTED_VERSIONS.to_sentence} are supported. We got back #{@database_version}."
-        end
       end
 
       # === Abstract Adapter ========================================== #
+
+      def valid_type?(type)
+        !native_database_types[type].nil?
+      end
+
+      def schema_creation
+        SQLServer::SchemaCreation.new self
+      end
 
       def adapter_name
         ADAPTER_NAME
@@ -109,16 +92,12 @@ module ActiveRecord
         false
       end
 
-      def supports_savepoints?
-        true
-      end
-
       def supports_index_sort_order?
         true
       end
 
       def supports_partial_index?
-        @database_year >= 2008
+        true
       end
 
       def supports_explain?
@@ -135,6 +114,7 @@ module ActiveRecord
       # === Abstract Adapter (Connection Management) ================== #
 
       def active?
+        return false unless @connection
         case @connection_options[:mode]
         when :dblib
           return @connection.active?
@@ -146,14 +126,13 @@ module ActiveRecord
       end
 
       def reconnect!
-        reset_transaction
+        super
         disconnect!
         connect
-        active?
       end
 
       def disconnect!
-        reset_transaction
+        super
         @spid = nil
         case @connection_options[:mode]
         when :dblib
@@ -161,6 +140,7 @@ module ActiveRecord
         when :odbc
           @connection.disconnect rescue nil
         end
+        @connection = nil
       end
 
       def reset!
@@ -178,34 +158,10 @@ module ActiveRecord
         identity_column(table_name).try(:name) || schema_cache.columns(table_name).find(&:is_primary?).try(:name)
       end
 
-      def schema_creation
-        Sqlserver::SchemaCreation.new self
-      end
-
       # === SQLServer Specific (DB Reflection) ======================== #
 
       def sqlserver?
         true
-      end
-
-      def sqlserver_2005?
-        @database_year == 2005
-      end
-
-      def sqlserver_2008?
-        @database_year == 2008
-      end
-
-      def sqlserver_2011?
-        @database_year == 2011
-      end
-
-      def sqlserver_2012?
-        @database_year == 2012
-      end
-
-      def sqlserver_2014?
-        @database_year == 2014
       end
 
       def sqlserver_azure?
@@ -217,44 +173,73 @@ module ActiveRecord
       end
 
       def inspect
-        "#<#{self.class} version: #{version}, year: #{@database_year}, product_level: #{@product_level.inspect}, product_version: #{@product_version.inspect}, edition: #{@edition.inspect}, connection_options: #{@connection_options.inspect}>"
+        "#<#{self.class} version: #{version}, mode: #{@connection_options[:mode]}, azure: #{sqlserver_azure?.inspect}>"
       end
 
       def auto_connect
-        @@auto_connect.is_a?(FalseClass) ? false : true
+        self.class.auto_connect.is_a?(FalseClass) ? false : true
       end
 
       def auto_connect_duration
-        @@auto_connect_duration ||= 10
+        self.class.auto_connect_duration ||= 10
       end
 
-      def native_string_database_type
-        @@native_string_database_type || (enable_default_unicode_types ? 'nvarchar' : 'varchar')
-      end
-
-      def native_text_database_type
-        @@native_text_database_type || enable_default_unicode_types ? 'nvarchar(max)' : 'varchar(max)'
-      end
-
-      def native_time_database_type
-        sqlserver_2005? ? 'datetime' : 'time'
-      end
-
-      def native_date_database_type
-        sqlserver_2005? ? 'datetime' : 'date'
-      end
-
-      def native_binary_database_type
-        @@native_binary_database_type || 'varbinary(max)'
-      end
-
-      def cs_equality_operator
-        @@cs_equality_operator || 'COLLATE Latin1_General_CS_AS_WS'
-      end
 
       protected
 
       # === Abstract Adapter (Misc Support) =========================== #
+
+      def initialize_type_map(m)
+        m.register_type              %r{.*},            SQLServer::Type::UnicodeString.new
+        # Exact Numerics
+        register_class_with_limit m, 'bigint(8)',         SQLServer::Type::BigInteger
+        m.alias_type                 'bigint',            'bigint(8)'
+        register_class_with_limit m, 'int(4)',            SQLServer::Type::Integer
+        m.alias_type                 'integer',           'int(4)'
+        m.alias_type                 'int',               'int(4)'
+        register_class_with_limit m, 'smallint(2)',       SQLServer::Type::SmallInteger
+        m.alias_type                 'smallint',          'smallint(2)'
+        register_class_with_limit m, 'tinyint(1)',        SQLServer::Type::TinyInteger
+        m.alias_type                 'tinyint',           'tinyint(1)'
+        m.register_type              'bit',               SQLServer::Type::Boolean.new
+        m.register_type              %r{\Adecimal}i do |sql_type|
+          scale = extract_scale(sql_type)
+          precision = extract_precision(sql_type)
+          SQLServer::Type::Decimal.new precision: precision, scale: scale
+        end
+        m.alias_type                 %r{\Anumeric}i,      'decimal'
+        m.register_type              'money',             SQLServer::Type::Money.new
+        m.register_type              'smallmoney',        SQLServer::Type::SmallMoney.new
+        # Approximate Numerics
+        m.register_type              'float',             SQLServer::Type::Float.new
+        m.register_type              'real',              SQLServer::Type::Real.new
+        # Date and Time
+        m.register_type              'date',              SQLServer::Type::Date.new
+        m.register_type              'datetime',          SQLServer::Type::DateTime.new
+        m.register_type              'smalldatetime',     SQLServer::Type::SmallDateTime.new
+        m.register_type              %r{\Atime}i do |sql_type|
+          scale = extract_scale(sql_type)
+          precision = extract_precision(sql_type)
+          SQLServer::Type::Time.new precision: precision
+        end
+        # Character Strings
+        register_class_with_limit m, %r{\Achar}i,         SQLServer::Type::Char
+        register_class_with_limit m, %r{\Avarchar}i,      SQLServer::Type::Varchar
+        m.register_type              'varchar(max)',      SQLServer::Type::VarcharMax.new
+        m.register_type              'text',              SQLServer::Type::Text.new
+        # Unicode Character Strings
+        register_class_with_limit m, %r{\Anchar}i,        SQLServer::Type::UnicodeChar
+        register_class_with_limit m, %r{\Anvarchar}i,     SQLServer::Type::UnicodeVarchar
+        m.alias_type                 'string',            'nvarchar(4000)'
+        m.register_type              'nvarchar(max)',     SQLServer::Type::UnicodeVarcharMax.new
+        m.register_type              'ntext',             SQLServer::Type::UnicodeText.new
+        # Binary Strings
+        register_class_with_limit m, %r{\Abinary}i,       SQLServer::Type::Binary
+        register_class_with_limit m, %r{\Avarbinary}i,    SQLServer::Type::Varbinary
+        m.register_type              'varbinary(max)',    SQLServer::Type::VarbinaryMax.new
+        # Other Data Types
+        m.register_type              'uniqueidentifier',  SQLServer::Type::Uuid.new
+      end
 
       def translate_exception(e, message)
         case message
@@ -289,19 +274,19 @@ module ActiveRecord
 
       def dblib_connect(config)
         TinyTds::Client.new(
-                              dataserver: config[:dataserver],
-                              host: config[:host],
-                              port: config[:port],
-                              username: config[:username],
-                              password: config[:password],
-                              database: config[:database],
-                              tds_version: config[:tds_version],
-                              appname: appname(config),
-                              login_timeout: login_timeout(config),
-                              timeout: timeout(config),
-                              encoding:  encoding(config),
-                              azure: config[:azure]
-                            ).tap do |client|
+          dataserver: config[:dataserver],
+          host: config[:host],
+          port: config[:port],
+          username: config[:username],
+          password: config[:password],
+          database: config[:database],
+          tds_version: config[:tds_version],
+          appname: config_appname(config),
+          login_timeout: config_login_timeout(config),
+          timeout: config_timeout(config),
+          encoding:  config_encoding(config),
+          azure: config[:azure]
+        ).tap do |client|
           if config[:azure]
             client.execute('SET ANSI_NULLS ON').do
             client.execute('SET CURSOR_CLOSE_ON_COMMIT OFF').do
@@ -318,22 +303,6 @@ module ActiveRecord
           client.execute('SET TEXTSIZE 2147483647').do
           client.execute('SET CONCAT_NULL_YIELDS_NULL ON').do
         end
-      end
-
-      def appname(config)
-        config[:appname] || configure_application_name || Rails.application.class.name.split('::').first rescue nil
-      end
-
-      def login_timeout(config)
-        config[:login_timeout].present? ? config[:login_timeout].to_i : nil
-      end
-
-      def timeout(config)
-        config[:timeout].present? ? config[:timeout].to_i / 1000 : nil
-      end
-
-      def encoding(config)
-        config[:encoding].present? ? config[:encoding] : nil
       end
 
       def odbc_connect(config)
@@ -355,18 +324,25 @@ module ActiveRecord
         end
       end
 
-      # Override this method so every connection can be configured to your needs.
-      # For example:
-      #    raw_connection_do "SET TEXTSIZE #{64.megabytes}"
-      #    raw_connection_do "SET CONCAT_NULL_YIELDS_NULL ON"
-      def configure_connection
+      def config_appname(config)
+        config[:appname] || configure_application_name || Rails.application.class.name.split('::').first rescue nil
       end
 
-      # Override this method so every connection can have a unique name. Max 30 characters. Used by TinyTDS only.
-      # For example:
-      #    "myapp_#{$$}_#{Thread.current.object_id}".to(29)
-      def configure_application_name
+      def config_login_timeout(config)
+        config[:login_timeout].present? ? config[:login_timeout].to_i : nil
       end
+
+      def config_timeout(config)
+        config[:timeout].present? ? config[:timeout].to_i / 1000 : nil
+      end
+
+      def config_encoding(config)
+        config[:encoding].present? ? config[:encoding] : nil
+      end
+
+      def configure_connection ; end
+
+      def configure_application_name ; end
 
       def initialize_dateformatter
         @database_dateformat = user_options_dateformat
@@ -378,12 +354,12 @@ module ActiveRecord
       end
 
       def remove_database_connections_and_rollback(database = nil)
-        database ||= current_database
-        do_execute "ALTER DATABASE #{quote_database_name(database)} SET SINGLE_USER WITH ROLLBACK IMMEDIATE"
+        name = SQLServer::Utils.extract_identifiers(database || current_database)
+        do_execute "ALTER DATABASE #{name} SET SINGLE_USER WITH ROLLBACK IMMEDIATE"
         begin
           yield
         ensure
-          do_execute "ALTER DATABASE #{quote_database_name(database)} SET MULTI_USER"
+          do_execute "ALTER DATABASE #{name} SET MULTI_USER"
         end if block_given?
       end
 
@@ -408,9 +384,10 @@ module ActiveRecord
         @auto_connecting = true
         count = 0
         while count <= (auto_connect_duration / 2)
-          result = reconnect!
+          disconnect!
+          reconnect!
           ActiveRecord::Base.did_retry_sqlserver_connection(self, count)
-          return true if result
+          return true if active?
           sleep 2**count
           count += 1
         end
@@ -419,6 +396,7 @@ module ActiveRecord
       ensure
         @auto_connecting = false
       end
-    end # class SQLServerAdapter < AbstractAdapter
-  end # module ConnectionAdapters
-end # module ActiveRecord
+
+    end
+  end
+end

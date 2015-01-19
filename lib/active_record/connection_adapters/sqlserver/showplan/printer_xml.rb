@@ -1,6 +1,6 @@
 module ActiveRecord
   module ConnectionAdapters
-    module Sqlserver
+    module SQLServer
       module Showplan
         class PrinterXml
           def initialize(result)

@@ -1,6 +1,6 @@
 module ActiveRecord
   module ConnectionAdapters
-    module Sqlserver
+    module SQLServer
       module CoreExt
         module ODBC
           module Statement
@@ -24,5 +24,5 @@ module ActiveRecord
   end
 end
 
-ODBC::Statement.send :include, ActiveRecord::ConnectionAdapters::Sqlserver::CoreExt::ODBC::Statement
-ODBC::Database.send :include, ActiveRecord::ConnectionAdapters::Sqlserver::CoreExt::ODBC::Database
+ODBC::Statement.send :include, ActiveRecord::ConnectionAdapters::SQLServer::CoreExt::ODBC::Statement
+ODBC::Database.send :include, ActiveRecord::ConnectionAdapters::SQLServer::CoreExt::ODBC::Database
