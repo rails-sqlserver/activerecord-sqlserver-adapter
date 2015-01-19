@@ -28,7 +28,7 @@ class DatabaseStatementsTestSQLServer < ActiveRecord::TestCase
     connection.drop_database '[activerecord.unittest]'
   end
 
-  context 'with collation' do
+  describe 'with collation' do
 
     after { connection.drop_database 'activerecord_unittest3' }
 
