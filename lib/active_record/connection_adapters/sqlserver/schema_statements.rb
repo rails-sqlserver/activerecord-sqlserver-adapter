@@ -131,6 +131,15 @@ module ActiveRecord
           end
         end
 
+        def columns_for_distinct(columns, orders)
+          order_columns = orders.reject(&:blank?).map{ |s|
+              s = s.to_sql unless s.is_a?(String)
+              s.gsub(/\s+(?:ASC|DESC)\b/i, '')
+               .gsub(/\s+NULLS\s+(?:FIRST|LAST)\b/i, '')
+            }.reject(&:blank?).map.with_index { |column, i| "#{column} AS alias_#{i}" }
+          [super, *order_columns].join(', ')
+        end
+
         def change_column_null(table_name, column_name, allow_null, default = nil)
           column = detect_column_for! table_name, column_name
           if !allow_null.nil? && allow_null == false && !default.nil?
