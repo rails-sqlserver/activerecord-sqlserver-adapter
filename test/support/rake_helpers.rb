@@ -1,5 +1,5 @@
 
-TEST_HELPER = 'test/cases/helper_sqlserver.rb'
+SQLSERVER_TEST_HELPER = 'test/cases/helper_sqlserver.rb'
 
 def env_ar_test_files
   return unless ENV['AR_TEST_FILES'] && !ENV['AR_TEST_FILES'].empty?
@@ -7,7 +7,7 @@ def env_ar_test_files
     files = ENV['AR_TEST_FILES'].split(',').map do |file|
       File.join ARTest::SQLServer.root_activerecord, file.strip
     end
-    files.unshift(TEST_HELPER)
+    files.sort.unshift(SQLSERVER_TEST_HELPER)
   end
 end
 
@@ -17,14 +17,14 @@ def env_test_files
 end
 
 def sqlserver_cases
-  @sqlserver_cases ||= Dir.glob('test/cases/**/*_test_sqlserver.rb') - [TEST_HELPER]
+  @sqlserver_cases ||= Dir.glob('test/cases/**/*_test_sqlserver.rb') - [SQLSERVER_TEST_HELPER]
 end
 
 def ar_cases
   @ar_cases ||= begin
     all_cases = Dir.glob("#{ARTest::SQLServer.root_activerecord}/test/cases/**/*_test.rb")
     adapters_cases = Dir.glob("#{ARTest::SQLServer.root_activerecord}/test/cases/adapters/**/*_test.rb")
-    [TEST_HELPER] + all_cases - adapters_cases
+    (all_cases - adapters_cases).sort.unshift(SQLSERVER_TEST_HELPER)
   end
 end
 
