@@ -20,6 +20,7 @@ guard :minitest, {
     end
   else
     watch(%r{^test/cases/\w+_test_sqlserver.rb$})
+    watch(%r{^test/cases/coerced/\w+_test.rb$})
     watch(%r{^lib/active_record/connection_adapters/sqlserver/([^/]+)\.rb$})  { |m| "test/cases/#{m[1]}_test_sqlserver.rb" }
     watch(%r{^test/cases/helper_sqlserver\.rb$}) { 'test' }
   end
