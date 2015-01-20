@@ -3,6 +3,7 @@ module ActiveRecord
     module SQLServer
       module CoreExt
         module Explain
+
           SQLSERVER_STATEMENT_PREFIX = 'EXEC sp_executesql '
           SQLSERVER_PARAM_MATCHER = /@\d+ =/
 
@@ -28,6 +29,7 @@ module ActiveRecord
               sql
             end
           end
+
         end
       end
     end

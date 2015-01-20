@@ -1,4 +1,5 @@
 module ActiveRecord
+
   class LostConnection < WrappedDatabaseException
   end
 
@@ -8,6 +9,7 @@ module ActiveRecord
   module ConnectionAdapters
     module SQLServer
       module Errors
+
         LOST_CONNECTION_EXCEPTIONS  = {
           dblib: ['TinyTds::Error'],
           odbc: ['ODBC::Error']
@@ -26,7 +28,9 @@ module ActiveRecord
         def lost_connection_messages
           LOST_CONNECTION_MESSAGES[@connection_options[:mode]]
         end
+
       end
     end
   end
+
 end

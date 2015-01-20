@@ -5,6 +5,7 @@ module ActiveRecord
   module ConnectionAdapters
     module SQLServer
       module Showplan
+
         OPTION_ALL  = 'SHOWPLAN_ALL'
         OPTION_TEXT = 'SHOWPLAN_TEXT'
         OPTION_XML  = 'SHOWPLAN_XML'
@@ -58,6 +59,7 @@ module ActiveRecord
           else PrinterTable
           end
         end
+
       end
     end
   end
