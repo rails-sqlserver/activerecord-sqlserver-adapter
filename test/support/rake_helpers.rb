@@ -2,9 +2,9 @@
 SQLSERVER_TEST_HELPER = 'test/cases/helper_sqlserver.rb'
 
 def env_ar_test_files
-  return unless ENV['AR_TEST_FILES'] && !ENV['AR_TEST_FILES'].empty?
+  return unless ENV['TEST_FILES_AR'] && !ENV['TEST_FILES_AR'].empty?
   @env_ar_test_files ||= begin
-    files = ENV['AR_TEST_FILES'].split(',').map do |file|
+    files = ENV['TEST_FILES_AR'].split(',').map do |file|
       File.join ARTest::SQLServer.root_activerecord, file.strip
     end
     files.sort.unshift(SQLSERVER_TEST_HELPER)
@@ -31,9 +31,9 @@ end
 def test_files
   return env_ar_test_files if env_ar_test_files
   return env_test_files if env_test_files
-  if ENV['SQLSERVER_ONLY']
+  if ENV['ONLY_SQLSERVER']
     sqlserver_cases
-  elsif ENV['ACTIVERECORD_ONLY']
+  elsif ENV['ONLY_ACTIVERECORD']
     ar_cases
   else
     sqlserver_cases + ar_cases
