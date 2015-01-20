@@ -18,8 +18,11 @@ module Arel
 
       def visit_Arel_Nodes_Bin o, collector
         visit o.expr, collector
-        collector << ActiveRecord::ConnectionAdapters::SQLServerAdapter.cs_equality_operator
-        collector << SPACE
+        if o.expr.val.is_a? Numeric
+          collector
+        else
+          collector << " #{ActiveRecord::ConnectionAdapters::SQLServerAdapter.cs_equality_operator} "
+        end
       end
 
       def visit_Arel_Nodes_Lock o, collector
