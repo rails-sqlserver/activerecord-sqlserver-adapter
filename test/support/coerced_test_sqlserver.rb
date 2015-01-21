@@ -2,36 +2,39 @@ module ARTest
   module SQLServer
     module CoercedTest
 
-      def self.included(base)
-        base.extend ClassMethods
+      extend ActiveSupport::Concern
+
+      included do
+        cattr_accessor :coerced_tests, instance_accessor: false
+        self.coerced_tests = []
       end
 
       module ClassMethods
 
-        def self.extended(base)
-          base.class_eval do
-            Array(coerced_tests).each do |method_name|
-              undefine_and_puts(method_name)
-            end
+        def coerce_tests(*names)
+          names.each do |n|
+            self.coerced_tests.push(n)
+            coerce_test!(n)
           end
         end
 
-        def coerced_tests
-          self.const_get(:COERCED_TESTS) rescue nil
+        def coerce_test!(method)
+          coerced_test_warning(method)
         end
 
         def method_added(method)
-          if coerced_tests && coerced_tests.include?(method)
-            undefine_and_puts(method)
-          end
+          coerced_test_warning(method) if coerced_tests.include?(method.to_sym)
         end
 
-        def undefine_and_puts(method)
+        private
+
+        def coerced_test_warning(method)
           result = undef_method(method) rescue nil
           STDOUT.puts("Info: Undefined coerced test: #{self.name}##{method}") unless result.blank?
         end
 
       end
+
     end
   end
 end

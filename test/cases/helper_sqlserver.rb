@@ -10,6 +10,8 @@ require 'mocha/mini_test'
 module ActiveRecord
   class TestCase < ActiveSupport::TestCase
 
+    include ARTest::SQLServer::CoercedTest
+
     let(:logger) { ActiveRecord::Base.logger }
     let(:connection) { ActiveRecord::Base.connection }
 
