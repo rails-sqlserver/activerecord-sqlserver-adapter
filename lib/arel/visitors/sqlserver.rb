@@ -115,6 +115,13 @@ module Arel
       end
 
       def visit_Make_Fetch_Happen o, collector
+        if o.limit
+          value = case o.limit.expr
+                  when Numeric then o.limit.expr
+                  when Arel::Nodes::Unary then o.limit.expr.expr
+                  end
+          o.limit = nil if value == 0
+        end
         o.offset = Nodes::Offset.new(0) if o.limit && !o.offset
         collector = visit o.offset, collector if o.offset
         collector = visit o.limit, collector if o.limit
