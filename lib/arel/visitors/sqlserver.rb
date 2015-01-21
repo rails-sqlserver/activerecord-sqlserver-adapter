@@ -25,6 +25,13 @@ module Arel
         end
       end
 
+      def visit_Arel_Nodes_UpdateStatement(o, a)
+        if o.orders.any? && o.limit.nil?
+          o.limit = Nodes::Limit.new(9_223_372_036_854_775_807)
+        end
+        super
+      end
+
       def visit_Arel_Nodes_Lock o, collector
         o.expr = Arel.sql('WITH (UPDLOCK)') if o.expr.to_s =~ /FOR UPDATE/
         collector << SPACE
