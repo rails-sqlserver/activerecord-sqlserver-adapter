@@ -14,8 +14,8 @@ guard :minitest, {
   test_file_patterns: ["*_test.rb", "*_test_sqlserver.rb", "*_tests.rb"]
 } do
   # Our project watchers.
-  if ENV['FOCUS_TEST']
-    ENV['FOCUS_TEST'].split(',').map(&:strip).each do |file|
+  if ENV['TEST_FILES']
+    ENV['TEST_FILES'].split(',').map(&:strip).each do |file|
       watch(%r{.*}) { file }
     end
   else
