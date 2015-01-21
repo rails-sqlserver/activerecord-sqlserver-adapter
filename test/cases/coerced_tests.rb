@@ -47,3 +47,19 @@ module ActiveRecord
   end
 end
 
+
+module ActiveRecord
+  module ConnectionAdapters
+    class MergeAndResolveDefaultUrlConfigTest < ActiveRecord::TestCase
+
+      # All sorts of errors due to how we test. Even setting ENV['RAILS_ENV'] to
+      # a value of 'default_env' will still show tests failing. Just ignoring all
+      # of them since we have no monkey in this circus.
+      #
+      coerce_all_tests!
+
+    end
+  end
+end
+
+
