@@ -35,3 +35,15 @@ class YamlSerializationTest < ActiveRecord::TestCase
   end
 
 end
+
+
+module ActiveRecord
+  module ConnectionAdapters
+    class TypeLookupTest < ActiveRecord::TestCase
+
+      coerce_all_tests! # Just like PostgreSQLAdapter does.
+
+    end
+  end
+end
+

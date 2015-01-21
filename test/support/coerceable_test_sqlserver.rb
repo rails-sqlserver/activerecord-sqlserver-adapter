@@ -1,6 +1,6 @@
 module ARTest
   module SQLServer
-    module CoercedTest
+    module CoerceableTest
 
       extend ActiveSupport::Concern
 
@@ -20,6 +20,10 @@ module ARTest
 
         def coerce_test!(method)
           coerced_test_warning(method)
+        end
+
+        def coerce_all_tests!
+          instance_methods(false).each { |method| coerce_test!(method) if method.to_s =~ /\Atest/ }
         end
 
         def method_added(method)

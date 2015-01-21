@@ -3,14 +3,14 @@ require 'support/paths_sqlserver'
 require 'support/minitest_sqlserver'
 require 'cases/helper'
 require 'support/load_schema_sqlserver'
-require 'support/coerced_test_sqlserver'
+require 'support/coerceable_test_sqlserver'
 require 'support/sql_counter_sqlserver'
 require 'mocha/mini_test'
 
 module ActiveRecord
   class TestCase < ActiveSupport::TestCase
 
-    include ARTest::SQLServer::CoercedTest
+    include ARTest::SQLServer::CoerceableTest
 
     let(:logger) { ActiveRecord::Base.logger }
     let(:connection) { ActiveRecord::Base.connection }
