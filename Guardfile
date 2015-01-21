@@ -1,6 +1,8 @@
+
 require_relative 'test/support/paths_sqlserver'
 
-notification :terminal_notifier if Guard::Notifier::TerminalNotifier.available?
+clearing :on
+notification :terminal_notifier if defined?(TerminalNotifier)
 ignore %r{debug\.log}
 
 ar_lib  = File.join ARTest::SQLServer.root_activerecord, 'lib'
