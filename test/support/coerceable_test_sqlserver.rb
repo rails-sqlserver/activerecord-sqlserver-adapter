@@ -11,15 +11,11 @@ module ARTest
 
       module ClassMethods
 
-        def coerce_tests(*methods)
+        def coerce_tests!(*methods)
           methods.each do |method|
             self.coerced_tests.push(method)
             coerced_test_warning(method)
           end
-        end
-
-        def coerce_test!(method)
-          coerced_test_warning(method)
         end
 
         def coerce_all_tests!
@@ -32,14 +28,11 @@ module ARTest
           STDOUT.puts "Info: Undefined all tests: #{self.name}"
         end
 
-        def method_added(method)
-          coerced_test_warning(method) if coerced_tests.include?(method.to_sym)
-        end
-
         private
 
         def coerced_test_warning(method)
-          result = undef_method(method) rescue nil
+          method = instance_methods(false).detect { |m| m =~ method } if method.is_a?(Regexp)
+          result = undef_method(method) if method && method_defined?(method)
           STDOUT.puts "Info: Undefined coerced test: #{self.name}##{method}" unless result.blank?
         end
 
