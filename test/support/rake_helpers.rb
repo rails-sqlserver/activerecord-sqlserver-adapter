@@ -22,16 +22,16 @@ end
 
 def ar_cases
   @ar_cases ||= begin
-    all_cases = Dir.glob("#{ARTest::SQLServer.root_activerecord}/test/cases/**/*_test.rb")
-    adapters_cases = Dir.glob("#{ARTest::SQLServer.root_activerecord}/test/cases/adapters/**/*_test.rb")
-    (all_cases - adapters_cases).sort
+    Dir.glob("#{ARTest::SQLServer.root_activerecord}/test/cases/**/*_test.rb").reject{ |x| x =~ /\/adapters\// }.sort
   end
 end
 
 def test_files
-  return env_ar_test_files.unshift(SQLSERVER_HELPER) if env_ar_test_files
-  return env_test_files if env_test_files
-  if ENV['ONLY_SQLSERVER']
+  if env_ar_test_files
+    [SQLSERVER_HELPER] + env_ar_test_files
+  elsif env_test_files
+    env_test_files
+  elsif ENV['ONLY_SQLSERVER']
     sqlserver_cases
   elsif ENV['ONLY_ACTIVERECORD']
     [SQLSERVER_HELPER] + (ar_cases + [SQLSERVER_COERCED])
