@@ -23,8 +23,6 @@ end
 require 'models/author'
 class YamlSerializationTest < ActiveRecord::TestCase
 
-  fixtures :authors
-
   coerce_tests! :test_types_of_virtual_columns_are_not_changed_on_round_trip
   def test_types_of_virtual_columns_are_not_changed_on_round_trip_coerced
     author = Author.select('authors.*, 5 as posts_count').first
@@ -72,8 +70,6 @@ end
 require 'models/company'
 class InheritanceTest < ActiveRecord::TestCase
 
-  fixtures :companies, :projects, :subscribers, :accounts, :vegetables
-
   coerce_tests! :test_eager_load_belongs_to_primary_key_quoting
   def test_eager_load_belongs_to_primary_key_quoting_coerced
     con = Account.connection
@@ -89,8 +85,6 @@ end
 require 'models/developer'
 require 'models/computer'
 class NestedRelationScopingTest < ActiveRecord::TestCase
-
-  fixtures :authors, :developers, :projects, :comments, :posts
 
   coerce_tests! :test_merge_options
   def test_merge_options_coerced
@@ -111,8 +105,6 @@ end
 require 'models/post'
 require 'models/subscriber'
 class EachTest < ActiveRecord::TestCase
-
-  fixtures :posts, :subscribers
 
   coerce_tests! :test_find_in_batches_should_quote_batch_order
   def test_find_in_batches_should_quote_batch_order_coerced

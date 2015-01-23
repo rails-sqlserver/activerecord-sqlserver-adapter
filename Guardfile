@@ -13,7 +13,7 @@ guard :minitest, {
   autorun: false,
   include: ['lib', 'test', ar_lib, ar_test],
   test_folders: ['test'],
-  test_file_patterns: ["*_test.rb", "*_test_sqlserver.rb", "*_tests.rb"]
+  test_file_patterns: ["*_test.rb", "*_test_sqlserver.rb"]
 } do
   # Our project watchers.
   if ENV['TEST_FILES']

@@ -32,7 +32,7 @@ def test_files
   return env_ar_test_files.unshift(SQLSERVER_HELPER) if env_ar_test_files
   return env_test_files if env_test_files
   if ENV['ONLY_SQLSERVER']
-    sqlserver_cases + [SQLSERVER_COERCED]
+    sqlserver_cases
   elsif ENV['ONLY_ACTIVERECORD']
     [SQLSERVER_HELPER] + (ar_cases + [SQLSERVER_COERCED])
   else
