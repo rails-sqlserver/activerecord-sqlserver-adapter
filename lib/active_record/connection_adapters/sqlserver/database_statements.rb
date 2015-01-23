@@ -258,12 +258,12 @@ module ActiveRecord
         end
 
         def sql_for_insert(sql, pk, id_value, sequence_name, binds)
-          sql =
-            if pk
-              sql.insert(sql.index(/ (DEFAULT )?VALUES/), " OUTPUT inserted.#{pk}")
-            else
-              "#{sql}; SELECT CAST(SCOPE_IDENTITY() AS bigint) AS Ident"
-            end
+          sql = if pk
+            quoted_pk = SQLServer::Utils.extract_identifiers(pk).quoted
+            sql.insert sql.index(/ (DEFAULT )?VALUES/), " OUTPUT INSERTED.#{quoted_pk}"
+          else
+            "#{sql}; SELECT CAST(SCOPE_IDENTITY() AS bigint) AS Ident"
+          end
           super
         end
 
