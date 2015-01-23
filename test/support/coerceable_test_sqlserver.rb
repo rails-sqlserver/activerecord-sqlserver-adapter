@@ -31,9 +31,11 @@ module ARTest
         private
 
         def coerced_test_warning(method)
-          method = instance_methods(false).detect { |m| m =~ method } if method.is_a?(Regexp)
-          result = undef_method(method) if method && method_defined?(method)
-          STDOUT.puts "Info: Undefined coerced test: #{self.name}##{method}" unless result.blank?
+          method = instance_methods(false).select { |m| m =~ method } if method.is_a?(Regexp)
+          Array(method).each do |m|
+            result = undef_method(m) if m && method_defined?(m)
+            STDOUT.puts "Info: Undefined coerced test: #{self.name}##{m}" unless result.blank?
+          end
         end
 
       end

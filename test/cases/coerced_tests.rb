@@ -43,7 +43,7 @@ class BasicsTest < ActiveRecord::TestCase
     classname = conn.class.name[/[^:]*$/]
     badchar   = "'"
     quoted = conn.quote_column_name "foo#{badchar}bar"
-    assert_equal("#{badchar}foo#{badchar * 2}bar#{badchar}", quoted)
+    assert_equal "[foo'bar]", quoted
   end
 
   # This test has a few problems. First, it would require that we use
@@ -96,7 +96,7 @@ class CalculationsTest < ActiveRecord::TestCase
   coerce_tests! :test_should_return_decimal_average_of_integer_field
   def test_should_return_decimal_average_of_integer_field_coerced
     value = Account.average(:id)
-    assert_equal BigDecimal('3.5').to_s, BigDecimal(value).to_s
+    assert_equal BigDecimal('3.0').to_s, BigDecimal(value).to_s
   end
 
   coerce_tests! :test_limit_is_kept
@@ -112,6 +112,18 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal 1, queries.length
     queries.first.must_match %r{ORDER BY \[accounts\]\.\[id\] ASC OFFSET 1 ROWS FETCH NEXT 1 ROWS ONLY}
   end
+
+end
+
+
+
+
+class CoreTest < ActiveRecord::TestCase
+
+  # I think fixtures are useing the wrong time zone and the `:first`
+  # `topics`.`bonus_time` attribute of 2005-01-30t15:28:00.00+01:00 is
+  # getting local EST time for me and set to "09:28:00.0000000".
+  coerce_tests! :test_pretty_print_persisted
 
 end
 
