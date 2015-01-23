@@ -46,6 +46,15 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal("#{badchar}foo#{badchar * 2}bar#{badchar}", quoted)
   end
 
+  # This test has a few problems. First, it would require that we use
+  # the `Type::SQLServer::BigInteger.new(limit: 8)` for the `world_population`
+  # attribute. Second, since we allow the DB to win at casting for TinyTDS,
+  # it always comes back as a BigDecimal.
+  coerce_tests! :test_numeric_fields
+
+  # Just like PostgreSQLAdapter does.
+  coerce_tests! :test_respect_internal_encoding
+
 end
 
 
@@ -61,6 +70,47 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     sql = Client.joins(:firm_with_primary_key).to_sql
     assert_no_match(/\[firm_with_primary_keys_companies\]\.\[id\]/, sql)
     assert_match(/\[firm_with_primary_keys_companies\]\.\[name\]/, sql)
+  end
+
+end
+
+
+
+
+module ActiveRecord
+  class BindParameterTest < ActiveRecord::TestCase
+
+    # Never finds `sql` since we use `EXEC sp_executesql` wrappers.
+    coerce_tests! :test_binds_are_logged,
+                  :test_binds_are_logged_after_type_cast
+
+  end
+end
+
+
+
+
+class CalculationsTest < ActiveRecord::TestCase
+
+  # Are decimal, not integer.
+  coerce_tests! :test_should_return_decimal_average_of_integer_field
+  def test_should_return_decimal_average_of_integer_field_coerced
+    value = Account.average(:id)
+    assert_equal BigDecimal('3.5').to_s, BigDecimal(value).to_s
+  end
+
+  coerce_tests! :test_limit_is_kept
+  def test_limit_is_kept_coerced
+    queries = assert_sql { Account.limit(1).count }
+    assert_equal 1, queries.length
+    queries.first.must_match %r{ORDER BY \[accounts\]\.\[id\] ASC OFFSET 0 ROWS FETCH NEXT 1 ROWS ONLY}
+  end
+
+  coerce_tests! :test_limit_with_offset_is_kept
+  def test_limit_with_offset_is_kept_coerced
+    queries = assert_sql { Account.limit(1).offset(1).count }
+    assert_equal 1, queries.length
+    queries.first.must_match %r{ORDER BY \[accounts\]\.\[id\] ASC OFFSET 1 ROWS FETCH NEXT 1 ROWS ONLY}
   end
 
 end
