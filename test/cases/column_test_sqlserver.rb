@@ -3,6 +3,11 @@ require 'cases/helper_sqlserver'
 
 class ColumnTestSQLServer < ActiveRecord::TestCase
 
+  it '#table_name' do
+    assert SSTestDatatype.columns.all? { |c| c.table_name == 'sst_datatypes' }
+    assert SSTestCustomersView.columns.all? { |c| c.table_name == 'customers' }
+  end
+
   describe 'ActiveRecord::ConnectionAdapters::SQLServer::Type' do
 
     let(:obj) { SSTestDatatype.new }

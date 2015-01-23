@@ -16,6 +16,10 @@ module ActiveRecord
         end
       end
 
+      def table_name
+        @sqlserver_options[:table_name]
+      end
+
       def is_identity?
         @sqlserver_options[:is_identity]
       end

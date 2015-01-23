@@ -45,7 +45,7 @@ module ActiveRecord
         def columns(table_name, _name = nil)
           return [] if table_name.blank?
           column_definitions(table_name).map do |ci|
-            sqlserver_options = ci.slice :ordinal_position, :is_primary, :is_identity, :default_function
+            sqlserver_options = ci.slice :ordinal_position, :is_primary, :is_identity, :default_function, :table_name
             cast_type = lookup_cast_type(ci[:type])
             new_column ci[:name], ci[:default_value], cast_type, ci[:type], ci[:null], sqlserver_options
           end
@@ -192,8 +192,10 @@ module ActiveRecord
         end
 
         def column_definitions(table_name)
-          identifier = SQLServer::Utils.extract_identifiers(table_name)
-          database   = "#{identifier.database_quoted}." if identifier.database_quoted
+          identifier  = SQLServer::Utils.extract_identifiers(table_name)
+          database    = "#{identifier.database_quoted}." if identifier.database_quoted
+          view_exists = schema_cache.view_exists?(table_name)
+          view_tblnm  = table_name_or_views_table_name(table_name) if view_exists
           sql = %{
             SELECT DISTINCT
             #{lowercase_schema_reflection_sql('columns.TABLE_NAME')} AS table_name,
@@ -247,6 +249,7 @@ module ActiveRecord
           results.map do |ci|
             ci = ci.symbolize_keys
             ci[:_type] = ci[:type]
+            ci[:table_name] = view_tblnm || table_name
             ci[:type] = case ci[:type]
                         when /^bit|image|text|ntext|datetime$/
                           ci[:type]
@@ -264,11 +267,11 @@ module ActiveRecord
             ci[:default_value],
             ci[:default_function] = begin
               default = ci[:default_value]
-              if default.nil? && schema_cache.view_exists?(table_name)
+              if default.nil? && view_exists
                 default = select_value "
                   SELECT c.COLUMN_DEFAULT
                   FROM #{database}INFORMATION_SCHEMA.COLUMNS c
-                  WHERE c.TABLE_NAME = '#{table_name_or_views_table_name(table_name)}'
+                  WHERE c.TABLE_NAME = '#{view_tblnm}'
                   AND c.COLUMN_NAME = '#{views_real_column_name(table_name, ci[:name])}'".squish, 'SCHEMA'
               end
               case default
