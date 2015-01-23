@@ -70,10 +70,6 @@ module ActiveRecord
         def release_savepoint(name = current_savepoint_name)
         end
 
-        def empty_insert_statement_value
-          'DEFAULT VALUES'
-        end
-
         def case_sensitive_modifier(node, table_attribute)
           node = Arel::Nodes.build_quoted node, table_attribute
           Arel::Nodes::Bin.new(node)
