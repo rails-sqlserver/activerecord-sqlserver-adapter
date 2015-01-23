@@ -4,6 +4,7 @@
 #### Added
 
 * New `ActiveRecord::Type` objects. See `active_record/connection_adapters/sqlserver/type` dir.
+* Aliased `ActiveRecord::Type::SQLServer` to `ActiveRecord::ConnectionAdapters::SQLServer::Type`
 * New `SQLServer::Utils::Name` object for decomposing and quoting SQL Server names/identifiers.
 * Support for most all SQL Server types in schema statements and dumping.
 
