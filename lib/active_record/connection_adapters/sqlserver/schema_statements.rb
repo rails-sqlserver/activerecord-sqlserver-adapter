@@ -156,6 +156,7 @@ module ActiveRecord
           tables('VIEW')
         end
 
+
         protected
 
         # === SQLServer Specific ======================================== #
@@ -419,21 +420,6 @@ module ActiveRecord
 
         def update_sql?(sql)
           !(sql =~ /^\s*(UPDATE|EXEC sp_executesql N'UPDATE)/i).nil?
-        end
-
-        def with_identity_insert_enabled(table_name)
-          table_name = quote_table_name(table_name_or_views_table_name(table_name))
-          set_identity_insert(table_name, true)
-          yield
-        ensure
-          set_identity_insert(table_name, false)
-        end
-
-        def set_identity_insert(table_name, enable = true)
-          sql = "SET IDENTITY_INSERT #{table_name} #{enable ? 'ON' : 'OFF'}"
-          do_execute sql, 'SCHEMA'
-        rescue Exception
-          raise ActiveRecordError, "IDENTITY_INSERT could not be turned #{enable ? 'ON' : 'OFF'} for table #{table_name}"
         end
 
         def identity_column(table_name)

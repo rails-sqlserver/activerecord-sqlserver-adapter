@@ -446,14 +446,10 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
 
     # Doing identity inserts
 
-    let(:view_insert_sql) { "INSERT INTO [sst_customers_view] ([id],[name],[balance]) VALUES (420,'Microsoft',0)" }
-
-    it 'respond true/tablename to #query_requires_identity_insert?' do
-      assert_equal '[sst_customers_view]', connection.send(:query_requires_identity_insert?, view_insert_sql)
-    end
-
     it 'be able to do an identity insert' do
-      assert_nothing_raised { connection.execute( view_insert_sql) }
+      customer = SSTestCustomersView.new
+      customer.id = 420
+      customer.save!
       assert SSTestCustomersView.find(420)
     end
 

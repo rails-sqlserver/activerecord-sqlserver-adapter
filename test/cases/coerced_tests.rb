@@ -70,6 +70,14 @@ end
 require 'models/company'
 class InheritanceTest < ActiveRecord::TestCase
 
+  coerce_tests! :test_a_bad_type_column
+  def test_a_bad_type_column_coerced
+    Company.connection.with_identity_insert_enabled('companies') do
+      Company.connection.insert "INSERT INTO companies (id, #{QUOTED_TYPE}, name) VALUES(100, 'bad_class!', 'Not happening')"
+    end
+    assert_raise(ActiveRecord::SubclassNotFound) { Company.find(100) }
+  end
+
   coerce_tests! :test_eager_load_belongs_to_primary_key_quoting
   def test_eager_load_belongs_to_primary_key_quoting_coerced
     con = Account.connection

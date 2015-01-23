@@ -17,6 +17,7 @@
   * Simple 2012 schmea addition and extensive column/type_cast object tests.
 * Follow Rails convention and remove varying character default limits.
 * The `cs_equality_operator` is now s class configuration property only.
+* The `with_identity_insert_enabled(table_name)` is now public.
 
 #### Deprecated
 
@@ -38,6 +39,7 @@
   * edition
 * Removed tests for old issue #164. Handled by core types now.
 * The `activity_stats` method. Please put this in a gem if needed.
+* We no longger use regular expressions to fix identity inserts. Use ActiveRecord or public ID insert helper.
 
 #### Fixed
 

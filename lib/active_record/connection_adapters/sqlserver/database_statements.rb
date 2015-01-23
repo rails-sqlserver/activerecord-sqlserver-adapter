@@ -16,9 +16,7 @@ module ActiveRecord
         end
 
         def exec_query(sql, name = 'SQL', binds = [], sqlserver_options = {})
-          if id_insert_table_name = sqlserver_options[:insert] ? query_requires_identity_insert?(sql) : nil
-            with_identity_insert_enabled(id_insert_table_name) { do_exec_query(sql, name, binds) }
-          elsif update_sql?(sql)
+          if update_sql?(sql)
             sql = strip_ident_from_update(sql)
             do_exec_query(sql, name, binds)
           else
@@ -26,9 +24,14 @@ module ActiveRecord
           end
         end
 
-        # The abstract adapter ignores the last two parameters also
         def exec_insert(sql, name, binds, _pk = nil, _sequence_name = nil)
-          exec_query sql, name, binds, insert: true
+          id_insert = binds_have_identity_column?(binds)
+          id_table  = table_name_from_binds(binds) if id_insert
+          if id_insert && id_table
+            with_identity_insert_enabled(id_table) { exec_query(sql, name, binds) }
+          else
+            exec_query(sql, name, binds)
+          end
         end
 
         def exec_delete(sql, name, binds)
@@ -108,6 +111,14 @@ module ActiveRecord
               results.many? ? results : results.first
             end
           end
+        end
+
+        def with_identity_insert_enabled(table_name)
+          table_name = quote_table_name(table_name_or_views_table_name(table_name))
+          set_identity_insert(table_name, true)
+          yield
+        ensure
+          set_identity_insert(table_name, false)
         end
 
         def use_database(database = nil)
@@ -268,6 +279,26 @@ module ActiveRecord
         end
 
         # === SQLServer Specific ======================================== #
+
+        def binds_have_identity_column?(binds)
+          binds.any? do |column_value|
+            column, value = column_value
+            SQLServerColumn === column && column.is_identity?
+          end
+        end
+
+        def table_name_from_binds(binds)
+          binds.detect { |column_value|
+            column, value = column_value
+            SQLServerColumn === column
+          }.try(:first).try(:table_name)
+        end
+
+        def set_identity_insert(table_name, enable = true)
+          do_execute "SET IDENTITY_INSERT #{table_name} #{enable ? 'ON' : 'OFF'}"
+        rescue Exception
+          raise ActiveRecordError, "IDENTITY_INSERT could not be turned #{enable ? 'ON' : 'OFF'} for table #{table_name}"
+        end
 
         def valid_isolation_levels
           ['READ COMMITTED', 'READ UNCOMMITTED', 'REPEATABLE READ', 'SERIALIZABLE', 'SNAPSHOT']
