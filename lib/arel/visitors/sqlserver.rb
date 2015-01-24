@@ -5,6 +5,7 @@ module Arel
       OFFSET = " OFFSET "
       ROWS = " ROWS"
       FETCH = " FETCH NEXT "
+      FETCH0 = " FETCH FIRST (SELECT 0) "
       ROWS_ONLY = " ROWS ONLY"
 
 
@@ -45,9 +46,14 @@ module Arel
       end
 
       def visit_Arel_Nodes_Limit o, collector
-        collector << FETCH
-        visit o.expr, collector
-        collector << ROWS_ONLY
+        if node_value(o) == 0
+          collector << FETCH0
+          collector << ROWS_ONLY
+        else
+          collector << FETCH
+          visit o.expr, collector
+          collector << ROWS_ONLY
+        end
       end
 
       def visit_Arel_Nodes_SelectStatement o, collector
@@ -115,13 +121,6 @@ module Arel
       end
 
       def visit_Make_Fetch_Happen o, collector
-        if o.limit
-          value = case o.limit.expr
-                  when Numeric then o.limit.expr
-                  when Arel::Nodes::Unary then o.limit.expr.expr
-                  end
-          o.limit = nil if value == 0
-        end
         o.offset = Nodes::Offset.new(0) if o.limit && !o.offset
         collector = visit o.offset, collector if o.offset
         collector = visit o.limit, collector if o.limit
@@ -129,6 +128,14 @@ module Arel
       end
 
       # SQLServer Helpers
+
+      def node_value(node)
+        case node.expr
+        when NilClass then nil
+        when Numeric then node.expr
+        when Arel::Nodes::Unary then node.expr.expr
+        end
+      end
 
       def select_statement_lock?
         @select_statement && @select_statement.lock
