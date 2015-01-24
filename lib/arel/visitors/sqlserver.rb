@@ -103,11 +103,7 @@ module Arel
       end
 
       def visit_Orders_And_Let_Fetch_Happen o, collector
-        if (o.limit || o.offset) && o.orders.empty?
-          table = table_From_Statement o
-          column = primary_Key_From_Table(table)
-          o.orders = [column.asc]
-        end
+        make_Fetch_Possible_And_Deterministic o
         unless o.orders.empty?
           collector << SPACE
           collector << ORDER_BY
@@ -141,6 +137,17 @@ module Arel
         @select_statement && @select_statement.lock
       end
 
+      def make_Fetch_Possible_And_Deterministic o
+        return if o.limit.nil? && o.offset.nil?
+        t = table_From_Statement o
+        pk = primary_Key_From_Table t
+        return unless pk
+        if o.orders.empty?
+          # Prefer deterministic vs a simple `(SELECT NULL)` expr.
+          o.orders = [pk.asc]
+        end
+      end
+
       def table_From_Statement o
         core = o.cores.first
         if Arel::Table === core.from
@@ -153,6 +160,7 @@ module Arel
       end
 
       def primary_Key_From_Table t
+        return unless t
         return t.primary_key if t.primary_key
         if engine_pk = t.engine.primary_key
           pk = t.engine.arel_table[engine_pk]
