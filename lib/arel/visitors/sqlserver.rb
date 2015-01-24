@@ -34,7 +34,7 @@ module Arel
       end
 
       def visit_Arel_Nodes_Lock o, collector
-        o.expr = Arel.sql('WITH (UPDLOCK)') if o.expr.to_s =~ /FOR UPDATE/
+        o.expr = Arel.sql('WITH(UPDLOCK)') if o.expr.to_s =~ /FOR UPDATE/
         collector << SPACE
         visit o.expr, collector
       end

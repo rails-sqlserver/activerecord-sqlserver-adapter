@@ -12,7 +12,7 @@ class PessimisticLockingTestSQLServer < ActiveRecord::TestCase
   end
 
   it 'uses with updlock by default' do
-    assert_sql %r|SELECT \[people\]\.\* FROM \[people\] WITH \(UPDLOCK\)| do
+    assert_sql %r|SELECT \[people\]\.\* FROM \[people\] WITH\(UPDLOCK\)| do
       Person.lock(true).to_a.must_equal Person.all.to_a
     end
   end
@@ -73,8 +73,8 @@ class PessimisticLockingTestSQLServer < ActiveRecord::TestCase
     end
 
     it 'copes with eager loading un-locked paginated' do
-      eager_ids_sql = /SELECT\s+DISTINCT \[people\].\[id\] FROM \[people\] WITH \(UPDLOCK\) LEFT OUTER JOIN \[readers\] WITH \(UPDLOCK\)\s+ON \[readers\].\[person_id\] = \[people\].\[id\]\s+ORDER BY \[people\].\[id\] ASC OFFSET 10 ROWS FETCH NEXT 5 ROWS ONLY/
-      loader_sql = /SELECT.*FROM \[people\] WITH \(UPDLOCK\).*WHERE \[people\]\.\[id\] IN/
+      eager_ids_sql = /SELECT\s+DISTINCT \[people\].\[id\] FROM \[people\] WITH\(UPDLOCK\) LEFT OUTER JOIN \[readers\] WITH\(UPDLOCK\)\s+ON \[readers\].\[person_id\] = \[people\].\[id\]\s+ORDER BY \[people\].\[id\] ASC OFFSET 10 ROWS FETCH NEXT 5 ROWS ONLY/
+      loader_sql = /SELECT.*FROM \[people\] WITH\(UPDLOCK\).*WHERE \[people\]\.\[id\] IN/
       assert_sql(eager_ids_sql, loader_sql) do
         people = Person.lock(true).limit(5).offset(10).includes(:readers).references(:readers).to_a
         people[0].first_name.must_equal 'Thing_10'

@@ -45,7 +45,7 @@
 
 #### Fixed
 
-* Default lock is now "WITH (UPDLOCK)". Fixes #368
+* Default lock is now "WITH(UPDLOCK)". Fixes #368
 
 #### Security
 
