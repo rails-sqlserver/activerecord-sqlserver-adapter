@@ -19,6 +19,7 @@
 * Follow Rails convention and remove varying character default limits.
 * The `cs_equality_operator` is now s class configuration property only.
 * The `with_identity_insert_enabled(table_name)` is now public.
+* Use ActiveRecord tranasaction interface vs our own `run_with_isolation_level`.
 
 #### Deprecated
 

@@ -254,56 +254,6 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
       assert_equal 'read committed', user_options[:isolation_level]
     end
 
-    describe '#run_with_isolation_level' do
-
-      let(:task1) { tasks(:first_task) }
-      let(:task2) { tasks(:another_task) }
-
-      before do
-        assert task1, 'Tasks :first_task should be in AR fixtures'
-        assert task2, 'Tasks :another_task should be in AR fixtures'
-        good_isolation_level = connection.user_options_isolation_level.blank? || connection.user_options_isolation_level =~ /read committed/i
-        assert good_isolation_level, "User isolation level is not at a happy starting place: #{connection.user_options_isolation_level.inspect}"
-      end
-
-      it "barf if the requested isolation level is not valid" do
-        assert_raise(ArgumentError) do
-          connection.run_with_isolation_level 'INVALID ISOLATION LEVEL' do; end
-        end
-      end
-
-      it 'allow #run_with_isolation_level to not take a block to set it' do
-        begin
-          connection.run_with_isolation_level 'READ UNCOMMITTED'
-          assert_match %r|read uncommitted|i, connection.user_options_isolation_level
-        ensure
-          connection.run_with_isolation_level 'READ COMMITTED'
-        end
-      end
-
-      it 'return block value using #run_with_isolation_level' do
-        assert_equal Task.all.sort, connection.run_with_isolation_level('READ UNCOMMITTED') { Task.all.sort }
-      end
-
-      it 'pass a read uncommitted isolation level test' do
-        assert_nil task2.starting, 'Fixture should have this empty.'
-        begin
-          Task.transaction do
-            task2.starting = Time.now
-            task2.save
-            @dirty_t2 = connection.run_with_isolation_level('READ UNCOMMITTED') { Task.find(task2.id) }
-            raise ActiveRecord::ActiveRecordError
-          end
-        rescue
-          'Do Nothing'
-        end
-        assert @dirty_t2, 'Should have a Task record from within block above.'
-        assert @dirty_t2.starting, 'Should have a dirty date.'
-        assert_nil Task.find(task2.id).starting, 'Should be nil again from botched transaction above.'
-      end
-
-    end
-
   end
 
   describe 'schema statements' do

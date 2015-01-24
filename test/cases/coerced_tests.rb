@@ -331,6 +331,29 @@ end
 
 
 
+
+class TransactionIsolationTest < ActiveRecord::TestCase
+
+  # SQL Server will lock the table for counts even when both
+  # connections are `READ COMMITTED`. So we bypass with `READPAST`.
+  coerce_tests! %r{read committed}
+  test "read committed coerced" do
+    Tag.transaction(isolation: :read_committed) do
+      assert_equal 0, Tag.count
+      Tag2.transaction do
+        Tag2.create
+        assert_equal 0, Tag.lock('WITH(READPAST)').count
+      end
+    end
+    assert_equal 1, Tag.count
+  end
+
+  # I really need some help understanding this one.
+  coerce_tests! %r{repeatable read}
+
+end
+
+
 require 'models/post'
 module ActiveRecord
   class WhereChainTest < ActiveRecord::TestCase

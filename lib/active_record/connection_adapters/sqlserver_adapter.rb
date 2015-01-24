@@ -10,6 +10,7 @@ require 'active_record/connection_adapters/sqlserver/version'
 require 'active_record/connection_adapters/sqlserver/type'
 require 'active_record/connection_adapters/sqlserver/database_limits'
 require 'active_record/connection_adapters/sqlserver/database_statements'
+require 'active_record/connection_adapters/sqlserver/transaction'
 require 'active_record/connection_adapters/sqlserver/errors'
 require 'active_record/connection_adapters/sqlserver/schema_cache'
 require 'active_record/connection_adapters/sqlserver/schema_creation'
@@ -99,6 +100,10 @@ module ActiveRecord
       end
 
       def supports_explain?
+        true
+      end
+
+      def supports_transaction_isolation?
         true
       end
 

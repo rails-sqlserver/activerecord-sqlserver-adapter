@@ -52,6 +52,20 @@ module ActiveRecord
           do_execute 'BEGIN TRANSACTION'
         end
 
+        def transaction_isolation_levels
+          super.merge snapshot: "SNAPSHOT"
+        end
+
+        def begin_isolated_db_transaction(isolation)
+          set_transaction_isolation_level transaction_isolation_levels.fetch(isolation)
+          begin_db_transaction
+        end
+
+        def set_transaction_isolation_level(isolation_level)
+          do_execute "SET TRANSACTION ISOLATION LEVEL #{isolation_level}"
+          begin_db_transaction
+        end
+
         def commit_db_transaction
           do_execute 'COMMIT TRANSACTION'
         end
@@ -175,19 +189,6 @@ module ActiveRecord
           end
         end
 
-        def run_with_isolation_level(isolation_level)
-          unless valid_isolation_levels.include?(isolation_level.upcase)
-            raise ArgumentError, "Invalid isolation level, #{isolation_level}. Supported levels include #{valid_isolation_levels.to_sentence}."
-          end
-          initial_isolation_level = user_options_isolation_level || 'READ COMMITTED'
-          do_execute "SET TRANSACTION ISOLATION LEVEL #{isolation_level}"
-          begin
-            yield
-          ensure
-            do_execute "SET TRANSACTION ISOLATION LEVEL #{initial_isolation_level}"
-          end if block_given?
-        end
-
         def newid_function
           select_value 'SELECT NEWID()'
         end
@@ -298,10 +299,6 @@ module ActiveRecord
           do_execute "SET IDENTITY_INSERT #{table_name} #{enable ? 'ON' : 'OFF'}"
         rescue Exception
           raise ActiveRecordError, "IDENTITY_INSERT could not be turned #{enable ? 'ON' : 'OFF'} for table #{table_name}"
-        end
-
-        def valid_isolation_levels
-          ['READ COMMITTED', 'READ UNCOMMITTED', 'REPEATABLE READ', 'SERIALIZABLE', 'SNAPSHOT']
         end
 
         # === SQLServer Specific (Executing) ============================ #
