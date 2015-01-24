@@ -109,53 +109,6 @@ class ConnectionTestSQLServer < ActiveRecord::TestCase
       assert connection.active?
     end
 
-    it 'auto reconnect when setting is on' do
-      with_auto_connect(true) do
-        disconnect_raw_connection!
-        assert_nothing_raised() { Topic.count }
-        assert connection.active?
-      end
-    end
-
-    it 'not auto reconnect when setting is off' do
-      with_auto_connect(false) do
-        disconnect_raw_connection!
-        assert_raise(ActiveRecord::LostConnection) { Topic.count }
-      end
-    end
-
-    it 'not auto reconnect on commit transaction' do
-      disconnect_raw_connection!
-      assert_raise(ActiveRecord::LostConnection) { connection.commit_db_transaction }
-    end
-
-    it 'gracefully ignore lost connections on rollback transaction' do
-      disconnect_raw_connection!
-      assert_nothing_raised { connection.rollback_db_transaction }
-    end
-
-    describe 'testing #disable_auto_reconnect' do
-
-      it 'when auto reconnect setting is on' do
-        with_auto_connect(true) do
-          connection.send(:disable_auto_reconnect) do
-            assert !connection.class.auto_connect
-          end
-          assert connection.class.auto_connect
-        end
-      end
-
-      it 'when auto reconnect setting is off' do
-        with_auto_connect(false) do
-          connection.send(:disable_auto_reconnect) do
-            assert !connection.class.auto_connect
-          end
-          assert !connection.class.auto_connect
-        end
-      end
-
-    end
-
     describe 'with a deadlock victim exception 1205' do
 
       describe 'outside a transaction' do

@@ -53,21 +53,21 @@ module ActiveRecord
         end
 
         def commit_db_transaction
-          disable_auto_reconnect { do_execute 'COMMIT TRANSACTION' }
+          do_execute 'COMMIT TRANSACTION'
         end
 
         def rollback_db_transaction
-          do_execute 'IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION'
+          do_execute 'ROLLBACK TRANSACTION'
         end
 
         include Savepoints
 
         def create_savepoint(name = current_savepoint_name)
-          disable_auto_reconnect { do_execute "SAVE TRANSACTION #{name}" }
+          do_execute "SAVE TRANSACTION #{name}"
         end
 
         def rollback_to_savepoint(name = current_savepoint_name)
-          disable_auto_reconnect { do_execute "ROLLBACK TRANSACTION #{name}" }
+          do_execute "ROLLBACK TRANSACTION #{name}"
         end
 
         def release_savepoint(name = current_savepoint_name)
@@ -307,9 +307,7 @@ module ActiveRecord
         # === SQLServer Specific (Executing) ============================ #
 
         def do_execute(sql, name = 'SQL')
-          log(sql, name) do
-            with_sqlserver_error_handling { raw_connection_do(sql) }
-          end
+          log(sql, name) { raw_connection_do(sql) }
         end
 
         def do_exec_query(sql, name, binds, options = {})
@@ -375,13 +373,11 @@ module ActiveRecord
         end
 
         def raw_connection_run(sql)
-          with_sqlserver_error_handling do
-            case @connection_options[:mode]
-            when :dblib
-              @connection.execute(sql)
-            when :odbc
-              block_given? ? @connection.run_block(sql) { |handle| yield(handle) } : @connection.run(sql)
-            end
+          case @connection_options[:mode]
+          when :dblib
+            @connection.execute(sql)
+          when :odbc
+            block_given? ? @connection.run_block(sql) { |handle| yield(handle) } : @connection.run(sql)
           end
         end
 

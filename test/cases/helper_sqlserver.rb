@@ -28,14 +28,6 @@ module ActiveRecord
     def connection_mode_odbc? ; self.class.connection_mode_odbc? ; end
     def sqlserver_azure? ; self.class.sqlserver_azure? ; end
 
-    def with_auto_connect(boolean)
-      existing = connection.auto_connect
-      connection.class.auto_connect = boolean
-      yield
-    ensure
-      connection.class.auto_connect = existing
-    end
-
   end
 end
 

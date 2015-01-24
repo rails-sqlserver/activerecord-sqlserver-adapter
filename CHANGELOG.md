@@ -41,6 +41,7 @@
 * Removed tests for old issue #164. Handled by core types now.
 * The `activity_stats` method. Please put this in a gem if needed.
 * We no longger use regular expressions to fix identity inserts. Use ActiveRecord or public ID insert helper.
+* All auto reconnect and SQL retry logic. Got too complicated and stood in the way of AR's pool. Speed boost too.
 
 #### Fixed
 

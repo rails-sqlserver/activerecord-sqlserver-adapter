@@ -30,14 +30,12 @@ module ActiveRecord
               SQLServer::DatabaseStatements,
               SQLServer::Showplan,
               SQLServer::SchemaStatements,
-              SQLServer::DatabaseLimits,
-              SQLServer::Errors
+              SQLServer::DatabaseLimits
 
       ADAPTER_NAME = 'SQLServer'.freeze
 
       attr_reader :spid
 
-      cattr_accessor :auto_connect, :auto_connect_duration, instance_accessor: false
       cattr_accessor :cs_equality_operator, instance_accessor: false
       cattr_accessor :lowercase_schema_reflection, :showplan_option
 
@@ -115,13 +113,9 @@ module ActiveRecord
 
       def active?
         return false unless @connection
-        case @connection_options[:mode]
-        when :dblib
-          return @connection.active?
-        end
-        raw_connection_do('SELECT 1')
+        raw_connection_do 'SELECT 1'
         true
-      rescue *lost_connection_exceptions
+      rescue TinyTds::Error, ODBC::Error
         false
       end
 
@@ -144,7 +138,8 @@ module ActiveRecord
       end
 
       def reset!
-        remove_database_connections_and_rollback {}
+        reset_transaction
+        do_execute 'IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION'
       end
 
       # === Abstract Adapter (Misc Support) =========================== #
@@ -174,14 +169,6 @@ module ActiveRecord
 
       def inspect
         "#<#{self.class} version: #{version}, mode: #{@connection_options[:mode]}, azure: #{sqlserver_azure?.inspect}>"
-      end
-
-      def auto_connect
-        self.class.auto_connect.is_a?(FalseClass) ? false : true
-      end
-
-      def auto_connect_duration
-        self.class.auto_connect_duration ||= 10
       end
 
 
@@ -249,8 +236,6 @@ module ActiveRecord
           InvalidForeignKey.new(message, e)
         when /has been chosen as the deadlock victim/i
           DeadlockVictim.new(message, e)
-        when *lost_connection_messages
-          LostConnection.new(message, e)
         else
           super
         end
@@ -268,8 +253,6 @@ module ActiveRecord
                       end
         @spid = _raw_select('SELECT @@SPID', fetch: :rows).first.first
         configure_connection
-      rescue
-        raise unless @auto_connecting
       end
 
       def dblib_connect(config)
@@ -361,40 +344,6 @@ module ActiveRecord
         ensure
           do_execute "ALTER DATABASE #{name} SET MULTI_USER"
         end if block_given?
-      end
-
-      def with_sqlserver_error_handling
-        yield
-      rescue Exception => e
-        case translate_exception(e, e.message)
-        when LostConnection then retry if auto_reconnected?
-        end
-        raise
-      end
-
-      def disable_auto_reconnect
-        old_auto_connect, self.class.auto_connect = self.class.auto_connect, false
-        yield
-      ensure
-        self.class.auto_connect = old_auto_connect
-      end
-
-      def auto_reconnected?
-        return false unless auto_connect
-        @auto_connecting = true
-        count = 0
-        while count <= (auto_connect_duration / 2)
-          disconnect!
-          reconnect!
-          ActiveRecord::Base.did_retry_sqlserver_connection(self, count)
-          return true if active?
-          sleep 2**count
-          count += 1
-        end
-        ActiveRecord::Base.did_lose_sqlserver_connection(self)
-        false
-      ensure
-        @auto_connecting = false
       end
 
     end
