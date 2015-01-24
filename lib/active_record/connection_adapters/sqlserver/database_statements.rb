@@ -91,7 +91,7 @@ module ActiveRecord
           log(sql, name) do
             case @connection_options[:mode]
             when :dblib
-              result = @connection.execute(sql)
+              result = raw_connection_run(sql)
               result.each(as: :hash, cache_rows: true) do |row|
                 r = row.with_indifferent_access
                 yield(r) if block_given?

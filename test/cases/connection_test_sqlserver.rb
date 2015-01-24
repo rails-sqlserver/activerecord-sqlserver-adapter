@@ -124,6 +124,31 @@ class ConnectionTestSQLServer < ActiveRecord::TestCase
       end
     end
 
+    should 'auto reconnect when setting is on for stored procedure' do
+      with_auto_connect(true) do
+        @connection.disconnect!
+        assert_nothing_raised() { @connection.execute_procedure(:sp_server_info) }
+        assert @connection.active?
+      end
+    end
+
+    should 'not auto reconnect when setting is off for stored procedure' do
+      with_auto_connect(false) do
+        @connection.disconnect!
+        assert_raise(ActiveRecord::LostConnection) { @connection.execute_procedure(:sp_server_info) }
+      end
+    end
+
+    should 'not auto reconnect on commit transaction' do
+      @connection.disconnect!
+      assert_raise(ActiveRecord::LostConnection) { @connection.commit_db_transaction }
+    end
+
+    should 'gracefully ignore lost connections on rollback transaction' do
+      @connection.disconnect!
+      assert_nothing_raised { @connection.rollback_db_transaction }
+    end
+
     it 'not auto reconnect on commit transaction' do
       disconnect_raw_connection!
       assert_raise(ActiveRecord::LostConnection) { connection.commit_db_transaction }
