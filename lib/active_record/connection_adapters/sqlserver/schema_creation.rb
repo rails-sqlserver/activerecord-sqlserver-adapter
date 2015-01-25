@@ -16,14 +16,9 @@ module ActiveRecord
 
         def visit_TableDefinition(o)
           if o.as
-            visitor = o.as.connection.visitor
-            table_name = o.temporary ? "##{o.name}" : o.name
-            select_into = "SELECT "
-            select_into << "(#{visitor.accept(o.as.arel.projections, Arel::Collectors::PlainString.new).value}) "
-            select_into << "INTO "
-            select_into << "#{quote_table_name(table_name)} "
-            select_into << "FROM "
-            select_into << "#{visitor.accept(o.as.arel.froms[0], Arel::Collectors::PlainString.new).value}"
+            table_name = quote_table_name(o.temporary ? "##{o.name}" : o.name)
+            projections, source = @conn.to_sql(o.as).match(%r{SELECT\s+(.*)?\s+FROM\s+(.*)?}).captures
+            select_into = "SELECT #{projections} INTO #{table_name} FROM #{source}"
           else
             o.instance_variable_set :@as, nil
             super

@@ -291,6 +291,16 @@ end
 
 
 
+class HasOneAssociationsTest < ActiveRecord::TestCase
+
+  # We use OFFSET/FETCH vs TOP. So we always have an order.
+  coerce_tests! :test_has_one_does_not_use_order_by
+
+end
+
+
+
+
 require 'models/company'
 class InheritanceTest < ActiveRecord::TestCase
 
