@@ -42,9 +42,10 @@
   * edition
 * Removed tests for old issue #164. Handled by core types now.
 * The `activity_stats` method. Please put this in a gem if needed.
-* We no longger use regular expressions to fix identity inserts. Use ActiveRecord or public ID insert helper.
+* We no longer use regular expressions to fix identity inserts. Use ActiveRecord or public ID insert helper.
 * All auto reconnect and SQL retry logic. Got too complicated and stood in the way of AR's pool. Speed boost too.
 * The adapter will no longer try to remove duplicate order by clauses. Use relation `reorder`, `unscope`, etc.
+* We no longer use regular expressions to remove identity columns from updates. Now with `attributes_for_update` AR hook.
 
 #### Fixed
 

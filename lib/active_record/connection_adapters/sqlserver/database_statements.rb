@@ -16,12 +16,7 @@ module ActiveRecord
         end
 
         def exec_query(sql, name = 'SQL', binds = [], sqlserver_options = {})
-          if update_sql?(sql)
-            sql = strip_ident_from_update(sql)
-            sp_executesql(sql, name, binds)
-          else
-            sp_executesql(sql, name, binds)
-          end
+          sp_executesql(sql, name, binds)
         end
 
         def exec_insert(sql, name, binds, _pk = nil, _sequence_name = nil)
