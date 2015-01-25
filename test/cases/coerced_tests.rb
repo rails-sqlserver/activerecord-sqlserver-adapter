@@ -120,6 +120,21 @@ end
 
 module ActiveRecord
   class Migration
+    class ChangeSchemaTest < ActiveRecord::TestCase
+
+       # We test these.
+      coerce_tests! :test_create_table_with_bigint,
+                    :test_create_table_with_defaults
+
+    end
+  end
+end
+
+
+
+
+module ActiveRecord
+  class Migration
     class ColumnAttributesTest < ActiveRecord::TestCase
 
       # We have a default 4000 varying character limit.
@@ -295,21 +310,6 @@ class InheritanceTest < ActiveRecord::TestCase
     end
   end
 
-end
-
-
-
-
-module ActiveRecord
-  class Migration
-    class ChangeSchemaTest < ActiveRecord::TestCase
-
-       # We test these.
-      coerce_tests! :test_create_table_with_bigint,
-                    :test_create_table_with_defaults
-
-    end
-  end
 end
 
 
