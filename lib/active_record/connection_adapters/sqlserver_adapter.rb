@@ -107,6 +107,10 @@ module ActiveRecord
         true
       end
 
+      def supports_views?
+        true
+      end
+
       def disable_referential_integrity
         do_execute "EXEC sp_MSforeachtable 'ALTER TABLE ? NOCHECK CONSTRAINT ALL'"
         yield

@@ -617,6 +617,16 @@ end
 
 
 
+class ViewWithPrimaryKeyTest < ActiveRecord::TestCase
+
+  # We do better than ActiveRecord and find the views PK.
+  coerce_tests! :test_does_not_assume_id_column_as_primary_key
+
+end
+
+
+
+
 require 'models/author'
 class YamlSerializationTest < ActiveRecord::TestCase
 
