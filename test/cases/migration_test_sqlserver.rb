@@ -45,12 +45,12 @@ class MigrationTestSQLServer < ActiveRecord::TestCase
 
     it 'not drop the default contraint if just renaming' do
       find_default = lambda do
-        connection.execute_procedure(:sp_helpconstraint, 'defaults', 'nomsg').select do |row|
-          row['constraint_type'] == "DEFAULT on column decimal_number"
+        connection.execute_procedure(:sp_helpconstraint, 'sst_string_defaults', 'nomsg').select do |row|
+          row['constraint_type'] == "DEFAULT on column string_with_pretend_paren_three"
         end.last
       end
       default_before = find_default.call
-      connection.change_column :defaults, :decimal_number, :decimal, precision: 4
+      connection.change_column :sst_string_defaults, :string_with_pretend_paren_three, :string, limit: 255
       default_after = find_default.call
       assert default_after
       assert_equal default_before['constraint_keys'], default_after['constraint_keys']
