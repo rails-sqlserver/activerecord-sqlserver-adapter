@@ -14,7 +14,6 @@ Default testing uses DBLIB with TinyTDS.
   - http://twitpic.com/9bsj7z/full
   - http://twitpic.com/9bsjdx/full
   - http://twitpic.com/9bsjl7/full
-* $ git clone git://github.com/rails-sqlserver/activerecord-sqlserver-adapter.git
 * $ bundle install
 * $ bundle exec rake test ACTIVERECORD_UNITTEST_HOST='my.db.net'
 
@@ -28,18 +27,16 @@ The connection files make certain assumptions. For instance, the ODBC connection
 
 ## Cloning The Repos
 
-Clone adapter git://github.com/rails-sqlserver/activerecord-sqlserver-adapter.git. The master branch is the one under development for Rails 3, track the repos 2-3-stable branch for 2.x development.
-
-The tests of this adapter depend on the existence of the Rails which under the 3.1 version and above is automatically cloned for you with bundler. However you can clone Rails from git://github.com/rails/rails.git and set the `RAILS_SOURCE` environment variable so bundler will use another local path instead.
+The tests of this adapter depend on the existence of the Rails which are automatically cloned for you with bundler. However you can clone Rails from git://github.com/rails/rails.git and set the `RAILS_SOURCE` environment variable so bundler will use another local path instead.
 
 ```
 $ git clone git://github.com/rails-sqlserver/activerecord-sqlserver-adapter.git
 ```
 
-Optionally, you an just let bundler do all the work and assuming there is a git tag for the Rails version, you can set `RAILS_VERSION` before bundling.
+Suggest just letting bundler do all the work and assuming there is a git tag for the Rails version, you can set `RAILS_VERSION` before bundling.
 
 ```
-$ export RAILS_VERSION='3.2.13'
+$ export RAILS_VERSION='4.2.0'
 $ bundle install
 ```
 
@@ -96,4 +93,3 @@ By default, Bundler will download the Rails git repo and use the git tag that ma
 ## Current Expected Failures
 
 * Misc Date/Time erros when using ODBC mode.
-* Misc Date/Time erros when testing SQL Server 2005.
