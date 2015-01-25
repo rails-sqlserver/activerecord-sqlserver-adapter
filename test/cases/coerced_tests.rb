@@ -147,6 +147,16 @@ end
 
 
 
+class DefaultScopingTest < ActiveRecord::TestCase
+
+  # We are not doing order duplicate removal anymore.
+  coerce_tests! :test_order_in_default_scope_should_not_prevail
+
+end
+
+
+
+
 require 'models/post'
 require 'models/subscriber'
 class EachTest < ActiveRecord::TestCase
@@ -304,7 +314,11 @@ end
 
 class RelationTest < ActiveRecord::TestCase
 
-  coerce_tests! %r{doesn't have implicit ordering} # We have implicit ordering, via FETCH.
+  # We have implicit ordering, via FETCH.
+  coerce_tests! %r{doesn't have implicit ordering}
+
+  # We are not doing order duplicate removal anymore.
+  coerce_tests! :test_order_using_scoping
 
 end
 
@@ -331,7 +345,41 @@ end
 
 
 
+class SchemaDumperTest < ActiveRecord::TestCase
 
+  # We have precision to 38.
+  coerce_tests! :test_schema_dump_keeps_large_precision_integer_columns_as_decimal
+  def test_schema_dump_keeps_large_precision_integer_columns_as_decimal_coerced
+    output = standard_dump
+    assert_match %r{t.integer\s+"atoms_in_universe",\s+precision: 38}, output
+  end
+
+  # This accidently returns the wrong number because of our tables too.
+  coerce_tests! :test_types_line_up
+
+end
+
+
+
+require 'models/topic'
+class TransactionTest < ActiveRecord::TestCase
+
+  coerce_tests! :test_releasing_named_savepoints
+  def test_releasing_named_savepoints_coerced
+    Topic.transaction do
+      Topic.connection.create_savepoint("another")
+      Topic.connection.release_savepoint("another")
+      # We do not have a notion of releasing, so this does nothing vs raise an error.
+      Topic.connection.release_savepoint("another")
+    end
+  end
+
+end
+
+
+
+
+require 'models/tag'
 class TransactionIsolationTest < ActiveRecord::TestCase
 
   # SQL Server will lock the table for counts even when both

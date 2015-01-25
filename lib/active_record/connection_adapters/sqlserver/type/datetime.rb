@@ -6,6 +6,10 @@ module ActiveRecord
 
           include Castable
 
+          def type_cast_for_schema(value)
+            value.acts_like?(:string) ? "'#{value}'" : super
+          end
+
 
           private
 

@@ -414,7 +414,7 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       type.type.must_equal              :time
       type.wont_be                      :number?
       type.limit.must_equal             nil
-      type.precision.must_equal         7
+      type.precision.must_equal         nil, 'so it is clean in schema dumper'
       type.scale.must_equal             nil
       # Time's #usec precision (low)
       obj.time_7 = Time.utc(2000, 01, 01, 15, 45, 00, 300)

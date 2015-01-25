@@ -28,7 +28,7 @@ class SchemaDumperTestSQLServer < ActiveRecord::TestCase
     assert_line :datetime,          type: 'datetime',     limit: nil,           precision: nil,   scale: nil,  default: "'1753-01-01 00:00:00'"
     assert_line :smalldatetime,     type: 'datetime',     limit: nil,           precision: nil,   scale: nil,  default: "'1901-01-01 15:45:00'"
     assert_line :time_2,            type: 'time',         limit: nil,           precision: '2',   scale: nil,  default: nil
-    assert_line :time_7,            type: 'time',         limit: nil,           precision: '7',   scale: nil,  default: nil
+    assert_line :time_7,            type: 'time',         limit: nil,           precision: nil,   scale: nil,  default: nil
     # Character Strings
     assert_line :char_10,           type: 'char',         limit: '10',          precision: nil,   scale: nil,  default: "\"1234567890\""
     assert_line :varchar_50,        type: 'varchar',      limit: '50',          precision: nil,   scale: nil,  default: "\"test varchar_50\""
@@ -72,7 +72,7 @@ class SchemaDumperTestSQLServer < ActiveRecord::TestCase
     assert_line :text_col,      type: 'text',     limit: '2147483647', precision: nil,  scale: nil, default: nil
     assert_line :datetime_col,  type: 'datetime', limit: nil,          precision: nil,  scale: nil, default: nil
     assert_line :timestamp_col, type: 'datetime', limit: nil,          precision: nil,  scale: nil, default: nil
-    assert_line :time_col,      type: 'time',     limit: nil,          precision: '7',  scale: nil, default: nil
+    assert_line :time_col,      type: 'time',     limit: nil,          precision: nil,  scale: nil, default: nil
     assert_line :date_col,      type: 'date',     limit: nil,          precision: nil,  scale: nil, default: nil
     assert_line :binary_col,    type: 'binary',   limit: '2147483647', precision: nil,  scale: nil, default: nil
     # Our type methods.

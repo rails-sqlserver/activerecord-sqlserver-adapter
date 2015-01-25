@@ -6,6 +6,11 @@ module ActiveRecord
       module Type
         class Time < ActiveRecord::Type::Time
 
+          def initialize(options = {})
+            super
+            @precision = nil if @precision == 7
+          end
+
           # When FreeTDS/TinyTDS casts this data type natively.
           # include Castable
 
@@ -14,7 +19,13 @@ module ActiveRecord
             Quoter.new super, self
           end
 
+          def type_cast_for_schema(value)
+            value.acts_like?(:string) ? "'#{value}'" : super
+          end
+
           def quote_ss(value)
+            return unless value
+            value = cast_value(value) if value.acts_like?(:string)
             date = value.to_s(:_sqlserver_time)
             frac = quote_usec(value)
             "'#{date}.#{frac}'"
@@ -34,7 +45,7 @@ module ActiveRecord
           end
 
           def usec_to_seconds_frction(value)
-            (value.usec.to_f / 1_000_000.0).round(precision)
+            (value.usec.to_f / 1_000_000.0).round(precision || 7)
           end
 
           def quote_usec(value)
