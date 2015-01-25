@@ -295,6 +295,16 @@ end
 
 
 require 'models/topic'
+class PersistenceTest < ActiveRecord::TestCase
+
+  # We can not UPDATE identity columns.
+  coerce_tests! :test_update_columns_changing_id
+
+end
+
+
+
+require 'models/topic'
 module ActiveRecord
   class PredicateBuilderTest < ActiveRecord::TestCase
 
@@ -312,6 +322,22 @@ end
 
 
 
+require 'models/task'
+class QueryCacheTest < ActiveRecord::TestCase
+
+  coerce_tests! :test_cache_does_not_wrap_string_results_in_arrays
+  def test_cache_does_not_wrap_string_results_in_arrays_coerced
+    Task.cache do
+      assert_kind_of Numeric, Task.connection.select_value("SELECT count(*) AS count_all FROM tasks")
+    end
+  end
+
+end
+
+
+
+
+require 'models/post'
 class RelationTest < ActiveRecord::TestCase
 
   # We have implicit ordering, via FETCH.
@@ -328,6 +354,9 @@ class RelationTest < ActiveRecord::TestCase
     actual = "EXEC sp_executesql N'#{ActiveRecord::ConnectionAdapters::SQLServer::Utils.quote_string(actual)}'"
     assert_equal expected, actual
   end
+
+  # We are not doing order duplicate removal anymore.
+  coerce_tests! :test_default_scope_order_with_scope_order
 
 end
 
