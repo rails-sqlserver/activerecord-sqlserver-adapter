@@ -118,6 +118,48 @@ end
 
 
 
+module ActiveRecord
+  class Migration
+    class ColumnAttributesTest < ActiveRecord::TestCase
+
+      # We have a default 4000 varying character limit.
+      coerce_tests! :test_add_column_without_limit
+      def test_add_column_without_limit_coerced
+        add_column :test_models, :description, :string, limit: nil
+        TestModel.reset_column_information
+        TestModel.columns_hash["description"].limit.must_equal 4000
+      end
+
+    end
+  end
+end
+
+
+
+
+module ActiveRecord
+  class Migration
+    class ColumnsTest
+
+      # Our defaults are reall 70000 integers vs '70000' strings.
+      coerce_tests! :test_rename_column_preserves_default_value_not_null
+      def test_rename_column_preserves_default_value_not_null_coerced
+        add_column 'test_models', 'salary', :integer, :default => 70000
+        default_before = connection.columns("test_models").find { |c| c.name == "salary" }.default
+        assert_equal 70000, default_before
+        rename_column "test_models", "salary", "annual_salary"
+        assert TestModel.column_names.include?("annual_salary")
+        default_after = connection.columns("test_models").find { |c| c.name == "annual_salary" }.default
+        assert_equal 70000, default_after
+      end
+
+    end
+  end
+end
+
+
+
+
 class CoreTest < ActiveRecord::TestCase
 
   # I think fixtures are useing the wrong time zone and the `:first`
@@ -396,6 +438,17 @@ class SchemaDumperTest < ActiveRecord::TestCase
   coerce_tests! :test_types_line_up
 
 end
+
+
+
+
+class TestAdapterWithInvalidConnection < ActiveRecord::TestCase
+
+  # We trust Rails on this since we do not want to install mysql.
+  coerce_tests! %r{inspect on Model class does not raise}
+
+end
+
 
 
 
