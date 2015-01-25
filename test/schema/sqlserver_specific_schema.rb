@@ -30,6 +30,7 @@ ActiveRecord::Schema.define do
     t.binary_basic  :binary_basic_col
     t.varbinary     :varbinary_col
     t.uuid          :uuid_col
+    t.ss_timestamp  :sstimestamp_col
   end
 
   # Edge Cases

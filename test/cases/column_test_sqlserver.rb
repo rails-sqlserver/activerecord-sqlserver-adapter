@@ -675,6 +675,29 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       obj.uniqueidentifier.must_equal   "6F9619FF-8B86-D011-B42D-00C04FC964FF"
     end
 
+    it 'timestamp' do
+      col = column('timestamp')
+      col.sql_type.must_equal           'timestamp'
+      col.null.must_equal               true
+      col.default.must_equal            nil
+      col.default_function.must_equal   nil
+      type = col.cast_type
+      type.must_be_instance_of          Type::Timestamp
+      type.type.must_equal              :ss_timestamp
+      type.wont_be                      :number?
+      type.limit.must_equal             nil
+      type.precision.must_equal         nil
+      type.scale.must_equal             nil
+      # Basic read.
+      obj.timestamp.must_equal   nil
+      obj.save! ; obj.reload
+      obj.timestamp.must_match   %r|\000|
+      obj.timestamp
+      # Can set another attribute
+      obj.uniqueidentifier = "6F9619FF-8B86-D011-B42D-00C04FC964FF"
+      obj.save!
+    end
+
   end
 
 end

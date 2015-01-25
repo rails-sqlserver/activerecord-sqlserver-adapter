@@ -23,11 +23,6 @@ module ActiveRecord
           end
         end
 
-        def substitute_at(column, _unused = 0)
-          return nil if column.respond_to?(:sql_type) && column.sql_type == 'timestamp'
-          super
-        end
-
         def quoted_true
           QUOTED_TRUE
         end

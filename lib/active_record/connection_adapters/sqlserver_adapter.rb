@@ -231,6 +231,7 @@ module ActiveRecord
         m.register_type              'varbinary(max)',    SQLServer::Type::VarbinaryMax.new
         # Other Data Types
         m.register_type              'uniqueidentifier',  SQLServer::Type::Uuid.new
+        m.register_type              'timestamp',         SQLServer::Type::Timestamp.new
       end
 
       def translate_exception(e, message)

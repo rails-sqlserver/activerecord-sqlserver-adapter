@@ -45,36 +45,37 @@ class SchemaDumperTestSQLServer < ActiveRecord::TestCase
     assert_line :varbinary_max,     type: 'binary',       limit: '2147483647',  precision: nil,   scale: nil,  default: nil
     # Other Data Types
     assert_line :uniqueidentifier,  type: 'uuid',         limit: nil,           precision: nil,   scale: nil,  default: nil
+    assert_line :timestamp,         type: 'ss_timestamp', limit: nil,           precision: nil,   scale: nil,  default: nil
   end
 
   it 'sst_datatypes_migration' do
     columns = SSTestDatatypeMigration.columns_hash
     generate_schema_for_table 'sst_datatypes_migration'
     # Simple Rails conventions
-    columns['integer_col'].sql_type.must_equal    'int(4)'
-    columns['bigint_col'].sql_type.must_equal     'bigint(8)'
-    columns['boolean_col'].sql_type.must_equal    'bit'
-    columns['decimal_col'].sql_type.must_equal    'decimal(18,0)'
-    columns['float_col'].sql_type.must_equal      'float'
-    columns['string_col'].sql_type.must_equal     'nvarchar(4000)'
-    columns['text_col'].sql_type.must_equal       'nvarchar(max)'
-    columns['datetime_col'].sql_type.must_equal   'datetime'
-    columns['timestamp_col'].sql_type.must_equal  'datetime'
-    columns['time_col'].sql_type.must_equal       'time(7)'
-    columns['date_col'].sql_type.must_equal       'date'
-    columns['binary_col'].sql_type.must_equal     'varbinary(max)'
-    assert_line :integer_col,   type: 'integer',  limit: '4',          precision: nil,  scale: nil, default: nil
-    assert_line :bigint_col,    type: 'bigint',   limit: '8',          precision: nil,  scale: nil, default: nil
-    assert_line :boolean_col,   type: 'boolean',  limit: nil,          precision: nil,  scale: nil, default: nil
-    assert_line :decimal_col,   type: 'decimal',  limit: nil,          precision: '18', scale: '0', default: nil
-    assert_line :float_col,     type: 'float',    limit: nil,          precision: nil,  scale: nil, default: nil
-    assert_line :string_col,    type: 'string',   limit: '4000',       precision: nil,  scale: nil, default: nil
-    assert_line :text_col,      type: 'text',     limit: '2147483647', precision: nil,  scale: nil, default: nil
-    assert_line :datetime_col,  type: 'datetime', limit: nil,          precision: nil,  scale: nil, default: nil
-    assert_line :timestamp_col, type: 'datetime', limit: nil,          precision: nil,  scale: nil, default: nil
-    assert_line :time_col,      type: 'time',     limit: nil,          precision: nil,  scale: nil, default: nil
-    assert_line :date_col,      type: 'date',     limit: nil,          precision: nil,  scale: nil, default: nil
-    assert_line :binary_col,    type: 'binary',   limit: '2147483647', precision: nil,  scale: nil, default: nil
+    columns['integer_col'].sql_type.must_equal      'int(4)'
+    columns['bigint_col'].sql_type.must_equal       'bigint(8)'
+    columns['boolean_col'].sql_type.must_equal      'bit'
+    columns['decimal_col'].sql_type.must_equal      'decimal(18,0)'
+    columns['float_col'].sql_type.must_equal        'float'
+    columns['string_col'].sql_type.must_equal       'nvarchar(4000)'
+    columns['text_col'].sql_type.must_equal         'nvarchar(max)'
+    columns['datetime_col'].sql_type.must_equal     'datetime'
+    columns['timestamp_col'].sql_type.must_equal    'datetime'
+    columns['time_col'].sql_type.must_equal         'time(7)'
+    columns['date_col'].sql_type.must_equal         'date'
+    columns['binary_col'].sql_type.must_equal       'varbinary(max)'
+    assert_line :integer_col,     type: 'integer',      limit: '4',          precision: nil,  scale: nil, default: nil
+    assert_line :bigint_col,      type: 'bigint',       limit: '8',          precision: nil,  scale: nil, default: nil
+    assert_line :boolean_col,     type: 'boolean',      limit: nil,          precision: nil,  scale: nil, default: nil
+    assert_line :decimal_col,     type: 'decimal',      limit: nil,          precision: '18', scale: '0', default: nil
+    assert_line :float_col,       type: 'float',        limit: nil,          precision: nil,  scale: nil, default: nil
+    assert_line :string_col,      type: 'string',       limit: '4000',       precision: nil,  scale: nil, default: nil
+    assert_line :text_col,        type: 'text',         limit: '2147483647', precision: nil,  scale: nil, default: nil
+    assert_line :datetime_col,    type: 'datetime',     limit: nil,          precision: nil,  scale: nil, default: nil
+    assert_line :timestamp_col,   type: 'datetime',     limit: nil,          precision: nil,  scale: nil, default: nil
+    assert_line :time_col,        type: 'time',         limit: nil,          precision: nil,  scale: nil, default: nil
+    assert_line :date_col,        type: 'date',         limit: nil,          precision: nil,  scale: nil, default: nil
+    assert_line :binary_col,      type: 'binary',       limit: '2147483647', precision: nil,  scale: nil, default: nil
     # Our type methods.
     columns['real_col'].sql_type.must_equal         'real'
     columns['money_col'].sql_type.must_equal        'money'
@@ -87,6 +88,7 @@ class SchemaDumperTestSQLServer < ActiveRecord::TestCase
     columns['binary_basic_col'].sql_type.must_equal 'binary(1)'
     columns['varbinary_col'].sql_type.must_equal    'varbinary(8000)'
     columns['uuid_col'].sql_type.must_equal         'uniqueidentifier'
+    columns['sstimestamp_col'].sql_type.must_equal  'timestamp'
     assert_line :real_col,          type: 'real',         limit: nil,           precision: nil,   scale: nil,  default: nil
     assert_line :money_col,         type: 'money',        limit: nil,           precision: '19',  scale: '4',  default: nil
     assert_line :smallmoney_col,    type: 'smallmoney',   limit: nil,           precision: '10',  scale: '4',  default: nil
@@ -98,6 +100,7 @@ class SchemaDumperTestSQLServer < ActiveRecord::TestCase
     assert_line :binary_basic_col,  type: 'binary_basic', limit: '1',           precision: nil,   scale: nil,  default: nil
     assert_line :varbinary_col,     type: 'varbinary',    limit: '8000',        precision: nil,   scale: nil,  default: nil
     assert_line :uuid_col,          type: 'uuid',         limit: nil,           precision: nil,   scale: nil,  default: nil
+    assert_line :sstimestamp_col, type: 'ss_timestamp', limit: nil,          precision: nil,  scale: nil, default: nil
   end
 
   # Special Cases

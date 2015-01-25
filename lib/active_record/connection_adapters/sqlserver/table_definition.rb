@@ -58,6 +58,10 @@ module ActiveRecord
           column(name, :uniqueidentifier, options)
         end
 
+        def ss_timestamp(name, options = {})
+          column(name, :ss_timestamp, options)
+        end
+
       end
     end
   end
