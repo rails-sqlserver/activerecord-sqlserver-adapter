@@ -72,7 +72,6 @@ module ActiveRecord
           sql_commands = []
           indexes = []
           column_object = schema_cache.columns(table_name).find { |c| c.name.to_s == column_name.to_s }
-
           if options_include_default?(options) || (column_object && column_object.type != type.to_sym)
             remove_default_constraint(table_name, column_name)
             indexes = indexes(table_name).select { |index| index.columns.include?(column_name.to_s) }
@@ -84,7 +83,6 @@ module ActiveRecord
           if options_include_default?(options)
             sql_commands << "ALTER TABLE #{quote_table_name(table_name)} ADD CONSTRAINT #{default_constraint_name(table_name, column_name)} DEFAULT #{quote_default_value(options[:default], column_object)} FOR #{quote_column_name(column_name)}"
           end
-
           # Add any removed indexes back
           indexes.each do |index|
             sql_commands << "CREATE INDEX #{quote_table_name(index.name)} ON #{quote_table_name(table_name)} (#{index.columns.map { |c| quote_column_name(c) }.join(', ')})"
@@ -102,13 +100,16 @@ module ActiveRecord
         def rename_column(table_name, column_name, new_column_name)
           schema_cache.clear_table_cache!(table_name)
           detect_column_for! table_name, column_name
-          do_execute "EXEC sp_rename '#{table_name}.#{column_name}', '#{new_column_name}', 'COLUMN'"
+          identifier = SQLServer::Utils.extract_identifiers("#{table_name}.#{column_name}")
+          execute_procedure :sp_rename, identifier.quoted, new_column_name, 'COLUMN'
           rename_column_indexes(table_name, column_name, new_column_name)
           schema_cache.clear_table_cache!(table_name)
         end
 
         def rename_index(table_name, old_name, new_name)
-          execute "EXEC sp_rename N'#{table_name}.#{old_name}', N'#{new_name}', N'INDEX'"
+          raise ArgumentError, "Index name '#{new_name}' on table '#{table_name}' is too long; the limit is #{allowed_index_name_length} characters" if new_name.length > allowed_index_name_length
+          identifier = SQLServer::Utils.extract_identifiers("#{table_name}.#{old_name}")
+          execute_procedure :sp_rename, identifier.quoted, new_name, 'INDEX'
         end
 
         def remove_index!(table_name, index_name)

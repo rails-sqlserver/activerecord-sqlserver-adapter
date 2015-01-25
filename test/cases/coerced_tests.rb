@@ -352,7 +352,22 @@ class PersistenceTest < ActiveRecord::TestCase
   # We can not UPDATE identity columns.
   coerce_tests! :test_update_columns_changing_id
 
+  # Previous test required updating a identity column.
+  coerce_tests! :test_update_all_doesnt_ignore_order
+  def test_update_all_doesnt_ignore_order_coerced
+    david, mary = authors(:david), authors(:mary)
+    david.id.must_equal 1
+    mary.id.must_equal 2
+    david.name.wont_equal mary.name
+    assert_sql(/UPDATE.*\(SELECT \[authors\].\[id\] FROM \[authors\].*ORDER BY \[authors\].\[id\]/i) do
+      Author.where('[id] > 1').order(:id).update_all(name: 'Test')
+    end
+    david.reload.name.must_equal 'David'
+    mary.reload.name.must_equal 'Test'
+  end
+
 end
+
 
 
 
