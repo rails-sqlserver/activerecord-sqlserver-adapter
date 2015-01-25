@@ -244,9 +244,9 @@ module ActiveRecord
               AND columns.TABLE_SCHEMA = #{identifier.schema.blank? ? 'schema_name()' : '@1'}
             ORDER BY columns.ordinal_position
           }.gsub(/[ \t\r\n]+/, ' ')
-          binds = [['table_name', identifier.object]]
-          binds << ['table_schema', identifier.schema] unless identifier.schema.blank?
-          results = do_exec_query(sql, 'SCHEMA', binds)
+          binds = [[info_schema_table_name_column, identifier.object]]
+          binds << [info_schema_table_schema_column, identifier.schema] unless identifier.schema.blank?
+          results = sp_executesql(sql, 'SCHEMA', binds)
           results.map do |ci|
             ci = ci.symbolize_keys
             ci[:_type] = ci[:type]
@@ -300,6 +300,14 @@ module ActiveRecord
             ci[:is_identity] = ci[:is_identity].to_i == 1 unless [TrueClass, FalseClass].include?(ci[:is_identity].class)
             ci
           end
+        end
+
+        def info_schema_table_name_column
+          @info_schema_table_name_column ||= new_column 'table_name', nil, lookup_cast_type('nvarchar(128)'), 'nvarchar(128)', true
+        end
+
+        def info_schema_table_schema_column
+          @info_schema_table_schema_column ||= new_column 'table_schema', nil, lookup_cast_type('nvarchar(128)'), 'nvarchar(128)', true
         end
 
         def remove_check_constraints(table_name, column_name)

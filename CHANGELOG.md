@@ -49,6 +49,7 @@
 #### Fixed
 
 * Default lock is now "WITH(UPDLOCK)". Fixes #368
+* Better bind types & params for `sp_executesql`. Fixes #239.
 
 #### Security
 

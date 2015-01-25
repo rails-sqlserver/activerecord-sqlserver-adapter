@@ -4,7 +4,7 @@ module ActiveRecord
       module DatabaseStatements
 
         def select_rows(sql, name = nil, binds = [])
-          do_exec_query sql, name, binds, fetch: :rows
+          sp_executesql sql, name, binds, fetch: :rows
         end
 
         def execute(sql, name = nil)
@@ -18,9 +18,9 @@ module ActiveRecord
         def exec_query(sql, name = 'SQL', binds = [], sqlserver_options = {})
           if update_sql?(sql)
             sql = strip_ident_from_update(sql)
-            do_exec_query(sql, name, binds)
+            sp_executesql(sql, name, binds)
           else
-            do_exec_query(sql, name, binds)
+            sp_executesql(sql, name, binds)
           end
         end
 
@@ -307,42 +307,45 @@ module ActiveRecord
           log(sql, name) { raw_connection_do(sql) }
         end
 
-        def do_exec_query(sql, name, binds, options = {})
-          # This allows non-AR code to utilize the binds
-          # handling code, e.g. select_rows()
-          if options[:fetch] != :rows
-            options[:ar_result] = true
-          end
-          explaining = name == 'EXPLAIN'
-          names_and_types = []
-          params = []
+        def sp_executesql(sql, name, binds, options = {})
+          options[:ar_result] = true if options[:fetch] != :rows
+          types, params = sp_executesql_types_and_parameters(binds)
+          sql = sp_executesql_sql(sql, types, params, name)
+          raw_select sql, name, binds, options
+        end
+
+        def sp_executesql_types_and_parameters(binds)
+          types, params = [], []
           binds.each_with_index do |(column, value), index|
-            ar_column = column.is_a?(ActiveRecord::ConnectionAdapters::Column)
-            next if ar_column && column.sql_type == 'timestamp'
-            v = value
-            names_and_types << if ar_column
-                                 "@#{index} #{column.sql_type_for_statement}"
-                               elsif column.acts_like?(:string)
-                                 "@#{index} nvarchar(max)"
-                               elsif column.is_a?(Fixnum)
-                                 v = value.to_i
-                                 "@#{index} int"
-                               else
-                                 raise 'Unknown bind columns. We can account for this.'
-                               end
-            quoted_value = ar_column ? quote(v, column) : quote(v, nil)
-            params << (explaining ? quoted_value : "@#{index} = #{quoted_value}")
+            types << "@#{index} #{sp_executesql_sql_type(column, value)}"
+            params << quote(value, column)
           end
-          if explaining
-            params.each_with_index do |param, index|
+          [types, params]
+        end
+
+        def sp_executesql_sql_type(column, value)
+          return column.sql_type_for_statement if SQLServerColumn === column
+          if value.is_a?(Numeric)
+            'int'
+          # We can do more here later.
+          else
+            'nvarchar(max)'
+          end
+        end
+
+        def sp_executesql_sql(sql, types, params, name)
+          if name == 'EXPLAIN'
+            params.each.with_index do |param, index|
               substitute_at_finder = /(@#{index})(?=(?:[^']|'[^']*')*$)/ # Finds unquoted @n values.
               sql.sub! substitute_at_finder, param
             end
           else
+            types = quote(types.join(', '))
+            params = params.map.with_index{ |p, i| "@#{i} = #{p}" }.join(', ') # Only p is needed, but with @i helps explain regexp.
             sql = "EXEC sp_executesql #{quote(sql)}"
-            sql << ", #{quote(names_and_types.join(', '))}, #{params.join(', ')}" unless binds.empty?
+            sql << ", #{types}, #{params}" unless params.empty?
           end
-          raw_select sql, name, binds, options
+          sql
         end
 
         def raw_connection_do(sql)

@@ -13,7 +13,7 @@ module ActiveRecord
 
         def explain(arel, binds = [])
           sql = to_sql(arel)
-          result = with_showplan_on { do_exec_query(sql, 'EXPLAIN', binds) }
+          result = with_showplan_on { sp_executesql(sql, 'EXPLAIN', binds) }
           printer = showplan_printer.new(result)
           printer.pp
         end

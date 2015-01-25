@@ -16,7 +16,7 @@ module ActiveRecord
 
           # This is somewhat hacky, but it should reliably reformat our prepared sql statment
           # which uses sp_executesql to just the first argument, then unquote it. Likewise our
-          # do_exec_query method should substitude the @n args withe the quoted values.
+          # `sp_executesql` method should substitude the @n args withe the quoted values.
           def unprepare_sqlserver_statement(sql)
             if sql.starts_with?(SQLSERVER_STATEMENT_PREFIX)
               executesql = sql.from(SQLSERVER_STATEMENT_PREFIX.length)
