@@ -168,6 +168,17 @@ module ActiveRecord
         assert_equal 70000, default_after
       end
 
+      # Dropping the column removes the single index.
+      coerce_tests! :test_remove_column_with_multi_column_index
+      def test_remove_column_with_multi_column_index_coerced
+        add_column "test_models", :hat_size, :integer
+        add_column "test_models", :hat_style, :string, :limit => 100
+        add_index "test_models", ["hat_style", "hat_size"], :unique => true
+        assert_equal 1, connection.indexes('test_models').size
+        remove_column("test_models", "hat_size")
+        assert_equal [], connection.indexes('test_models').map(&:name)
+      end
+
     end
   end
 end
