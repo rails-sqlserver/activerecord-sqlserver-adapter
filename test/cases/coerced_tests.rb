@@ -320,6 +320,15 @@ class RelationTest < ActiveRecord::TestCase
   # We are not doing order duplicate removal anymore.
   coerce_tests! :test_order_using_scoping
 
+  # Account for our `EXEC sp_executesql...` statements.
+  coerce_tests! :test_to_sql_on_eager_join
+  def test_to_sql_on_eager_join_coerced
+    expected = assert_sql { Post.eager_load(:last_comment).order('comments.id DESC').to_a }.first
+    actual = Post.eager_load(:last_comment).order('comments.id DESC').to_sql
+    actual = "EXEC sp_executesql N'#{ActiveRecord::ConnectionAdapters::SQLServer::Utils.quote_string(actual)}'"
+    assert_equal expected, actual
+  end
+
 end
 
 
@@ -351,7 +360,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
   coerce_tests! :test_schema_dump_keeps_large_precision_integer_columns_as_decimal
   def test_schema_dump_keeps_large_precision_integer_columns_as_decimal_coerced
     output = standard_dump
-    assert_match %r{t.integer\s+"atoms_in_universe",\s+precision: 38}, output
+    assert_match %r{t.decimal\s+"atoms_in_universe",\s+precision: 38}, output
   end
 
   # This accidently returns the wrong number because of our tables too.

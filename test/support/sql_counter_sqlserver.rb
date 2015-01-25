@@ -10,7 +10,8 @@ module ARTest
         /INFORMATION_SCHEMA\.(TABLES|VIEWS|COLUMNS)/,
         /SELECT @@version/,
         /SELECT @@TRANCOUNT/,
-        /(BEGIN|COMMIT|ROLLBACK|SAVE) TRANSACTION/ ]
+        /(BEGIN|COMMIT|ROLLBACK|SAVE) TRANSACTION/,
+        /SELECT CAST\(.* AS .*\) AS value/ ]
     end
 
     def sql_counter_listenters
