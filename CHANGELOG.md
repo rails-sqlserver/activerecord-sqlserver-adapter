@@ -7,6 +7,7 @@
 * Aliased `ActiveRecord::Type::SQLServer` to `ActiveRecord::ConnectionAdapters::SQLServer::Type`
 * New `SQLServer::Utils::Name` object for decomposing and quoting SQL Server names/identifiers.
 * Support for most all SQL Server types in schema statements and dumping.
+* Support create table with query from relation.
 
 #### Changed
 
@@ -43,6 +44,7 @@
 * The `activity_stats` method. Please put this in a gem if needed.
 * We no longger use regular expressions to fix identity inserts. Use ActiveRecord or public ID insert helper.
 * All auto reconnect and SQL retry logic. Got too complicated and stood in the way of AR's pool. Speed boost too.
+* The adapter will no longer try to remove duplicate order by clauses. Use relation `reorder`, `unscope`, etc.
 
 #### Fixed
 
