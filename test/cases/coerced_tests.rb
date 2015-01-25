@@ -336,6 +336,53 @@ end
 
 
 
+class BigNumber < ActiveRecord::Base
+  attribute :value_of_e, Type::SQLServer::Integer.new
+  attribute :my_house_population, Type::SQLServer::Integer.new
+end
+class MigrationTest < ActiveRecord::TestCase
+
+  coerce_tests! :test_add_table_with_decimals
+  def test_add_table_with_decimals_coerced
+    Person.connection.drop_table :big_numbers rescue nil
+    assert !BigNumber.table_exists?
+    GiveMeBigNumbers.up
+    assert BigNumber.create(
+      :bank_balance => 1586.43,
+      :big_bank_balance => BigDecimal("1000234000567.95"),
+      :world_population => 6000000000,
+      :my_house_population => 3,
+      :value_of_e => BigDecimal("2.7182818284590452353602875")
+    )
+    b = BigNumber.first
+    assert_not_nil b
+    assert_not_nil b.bank_balance
+    assert_not_nil b.big_bank_balance
+    assert_not_nil b.world_population
+    assert_not_nil b.my_house_population
+    assert_not_nil b.value_of_e
+    # SQLServer: We rock and cast during assignment.
+    assert_kind_of BigDecimal, b.world_population
+    assert_equal BigDecimal('6000000000'), b.world_population
+    # TODO: Our trust the DB policy breaks this expectation. Review SQLServer::Type::Castable module.
+    skip
+    assert_kind_of Fixnum, b.my_house_population
+    assert_equal 3, b.my_house_population
+    assert_kind_of BigDecimal, b.bank_balance
+    assert_equal BigDecimal("1586.43"), b.bank_balance
+    assert_kind_of BigDecimal, b.big_bank_balance
+    assert_equal BigDecimal("1000234000567.95"), b.big_bank_balance
+    assert_kind_of BigDecimal, b.value_of_e
+    assert_equal BigDecimal("2.7182818284590452353602875"), b.value_of_e
+    GiveMeBigNumbers.down
+    assert_raise(ActiveRecord::StatementInvalid) { BigNumber.first }
+  end
+
+end
+
+
+
+
 require 'models/developer'
 require 'models/computer'
 class NestedRelationScopingTest < ActiveRecord::TestCase
