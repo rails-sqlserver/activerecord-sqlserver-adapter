@@ -4,15 +4,11 @@
 [![Gem Version](http://img.shields.io/gem/v/activerecord-sqlserver-adapter.svg?style=flat)](https://rubygems.org/gems/activerecord-sqlserver-adapter)
 [![Gitter chat](https://img.shields.io/badge/%E2%8A%AA%20GITTER%20-JOIN%20CHAT%20%E2%86%92-brightgreen.svg?style=flat)](https://gitter.im/rails-sqlserver/activerecord-sqlserver-adapter)
 
-**This project is looking for a new maintainers. Join the [discusion here](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/issues/364)**
+![kantishna-wide](https://cloud.githubusercontent.com/assets/2381/5895051/aa6a57e0-a4e1-11e4-95b9-23627af5876a.jpg)
 
-The SQL Server adapter for ActiveRecord. If you need the adapter for SQL Server 2000, you are still in the right spot. Just install the latest 2.3.x version of the adapter. Note, we follow a rational versioning policy that tracks ActiveRecord. That means that our 2.3.x version of the adapter is only for the latest 2.3 version of Rails. We also have stable branches for each major/minor release of ActiveRecord.
+## Code Name Kantishna
 
-
-## What's New
-
-* Rails 4.0 and 4.1 support
-* Ruby 2.0 and 2.1 support
+The SQL Server adapter for ActiveRecord. If you need the adapter for SQL Server 2008 or 2005, you are still in the right spot. Just install the latest 3.2.x to 4.1.x version of the adapter. We follow a rational versioning policy that tracks ActiveRecord. That means that our 4.2.x version of the adapter is only for the latest 4.2 version of Rails. We also have stable branches for each major/minor release of ActiveRecord.
 
 
 #### Testing Rake Tasks Support
@@ -32,31 +28,38 @@ Account.execute_procedure :update_totals, 'admin', nil, true
 Account.execute_procedure :update_totals, named: 'params'
 ```
 
+
 #### Native Data Type Support
 
-Currently the following custom data types have been tested for schema definitions.
-
-* char
-* nchar
-* nvarchar
-* ntext
-* varchar(max)
-* nvarchar(max)
-
-For example:
+We support every data type supported by FreeTDS and then a few more. All simplified Rails types in migrations will coorespond to a matching SQL Server national data type. Here is a basic chart. Always check the `initialize_native_database_types` method for an updated list.
 
 ```ruby
-create_table :sql_server_custom_types, force: true do |t|
-  t.column :ten_code,       :char,      limit: 10
-  t.column :ten_code_utf8,  :nchar,     limit: 10
-  t.column :title_utf8,     :nvarchar
-  t.column :body,           :varchar_max    # Creates varchar(max)
-  t.column :body_utf8,      :ntext
-  t.column :body2_utf8,     :nvarchar_max   # Creates nvarchar(max)
-end
+integer:      { name: 'int', limit: 4 }
+bigint:       { name: 'bigint' }
+boolean:      { name: 'bit' }
+decimal:      { name: 'decimal' }
+money:        { name: 'money' }
+smallmoney:   { name: 'smallmoney' }
+float:        { name: 'float' }
+real:         { name: 'real' }
+date:         { name: 'date' }
+datetime:     { name: 'datetime' }
+timestamp:    { name: 'datetime' }
+time:         { name: 'time' }
+char:         { name: 'char' }
+varchar:      { name: 'varchar', limit: 8000 }
+varchar_max:  { name: 'varchar(max)' }
+text_basic:   { name: 'text' }
+nchar:        { name: 'nchar' }
+string:       { name: 'nvarchar', limit: 4000 }
+text:         { name: 'nvarchar(max)' }
+ntext:        { name: 'ntext' }
+binary_basic: { name: 'binary' }
+varbinary:    { name: 'varbinary', limit: 8000 }
+binary:       { name: 'varbinary(max)' }
+uuid:         { name: 'uniqueidentifier' }
+ss_timestamp: { name: 'timestamp' }
 ```
-
-Manually creating a `varchar(max)` is not necessary since this is the default type created when specifying a `:text` field. As time goes on we will be testing other SQL Server specific data types are handled correctly when created in a migration.
 
 
 #### Force Schema To Lowercase
@@ -130,6 +133,7 @@ ActiveRecord::ConnectionAdapters::SQLServerAdapter.showplan_option = 'SHOWPLAN_X
 ```
 **NOTE:** The method we utilize to make SHOWPLANs work is very brittle to complex SQL. There is no getting around this as we have to deconstruct an already prepared statement for the sp_executesql method. If you find that explain breaks your app, simple disable it. Do not open a github issue unless you have a patch.  Please [consult the Rails guides](http://guides.rubyonrails.org/active_record_querying.html#running-explain) for more info.
 
+
 ## Versions
 
 The adapter follows a rational versioning policy that also tracks ActiveRecord's major and minor version. That means the latest 3.1.x version of the adapter will always work for the latest 3.1.x version of ActiveRecord.
@@ -141,22 +145,20 @@ The adapter has no strict gem dependencies outside of ActiveRecord. You will hav
 
 ```ruby
 gem 'tiny_tds'
-gem 'activerecord-sqlserver-adapter', '~> 4.0.0'
+gem 'activerecord-sqlserver-adapter', '~> 4.2.0'
 ```
 
-If you want to use ruby ODBC, please use at least version 0.99992 since that contains fixes for both native types as well as fixes for proper encoding support under 1.9. If you have any troubles installing the lower level libraries for the adapter, please consult the wiki pages for various platform installation guides. Tons of good info can be found and we ask that you contribute too!
+If you want to use ruby ODBC, please use the latest least. If you have any troubles installing the lower level libraries for the adapter, please consult the wiki pages for various platform installation guides. Tons of good info can be found and we ask that you contribute too!
 
 http://wiki.github.com/rails-sqlserver/activerecord-sqlserver-adapter/platform-installation
 
 
-
 ## Contributing
 
-If you would like to contribute a feature or bugfix, thanks! To make sure your fix/feature has a high chance of being added, please read the following guidelines. First, ask on the Google list, IRC, or post a ticket on github issues. Second, make sure there are tests! We will not accept any patch that is not tested. Please read the `RUNNING_UNIT_TESTS` file for the details of how to run the unit tests.
+If you would like to contribute a feature or bugfix, thanks! To make sure your fix/feature has a high chance of being added, please read the following guidelines. First, ask on the Gitter, or post a ticket on github issues. Second, make sure there are tests! We will not accept any patch that is not tested. Please read the `RUNNING_UNIT_TESTS` file for the details of how to run the unit tests.
 
 * Github: http://github.com/rails-sqlserver/activerecord-sqlserver-adapter
-* Google Group: http://groups.google.com/group/rails-sqlserver-adapter
-* IRC Room: #rails-sqlserver on irc.freenode.net
+* Gitter: https://gitter.im/rails-sqlserver/activerecord-sqlserver-adapter
 
 
 ## Credits & Contributions
@@ -169,6 +171,7 @@ Up-to-date list of contributors: http://github.com/rails-sqlserver/activerecord-
 
 * metaskills (Ken Collins)
 * Annaswims (Annaswims)
+* wbond (Will Bond)
 * Thirdshift (Garrett Hart)
 * h-lame (Murray Steele)
 * vegantech
