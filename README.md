@@ -2,7 +2,7 @@
 # ActiveRecord SQL Server Adapter. For SQL Server 2012 And Higher.
 
 [![Gem Version](http://img.shields.io/gem/v/activerecord-sqlserver-adapter.svg?style=flat)](https://rubygems.org/gems/activerecord-sqlserver-adapter)
-[![Gitter chat](https://img.shields.io/badge/gitter-rails-sqlserver/activerecord-sqlserver-adapter-ae3dd2.svg?style=flat)](https://gitter.im/rails-sqlserver/activerecord-sqlserver-adapter)
+[![Gitter chat](https://img.shields.io/badge/%E2%8A%AA%20GITTER%20-JOIN%20CHAT%20%E2%86%92-brightgreen.svg?style=flat)](https://gitter.im/rails-sqlserver/activerecord-sqlserver-adapter)
 
 **This project is looking for a new maintainers. Join the [discusion here](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/issues/364)**
 
