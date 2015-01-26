@@ -1,3 +1,4 @@
+require 'bundler/gem_tasks'
 require 'rake/testtask'
 require_relative 'test/support/paths_sqlserver'
 require_relative 'test/support/rake_helpers'
