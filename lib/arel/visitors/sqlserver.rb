@@ -58,6 +58,7 @@ module Arel
 
       def visit_Arel_Nodes_SelectStatement o, collector
         @select_statement = o
+        distinct_One_As_One_Is_So_Not_Fetch o
         if o.with
           collector = visit o.with, collector
           collector << SPACE
@@ -126,6 +127,7 @@ module Arel
       # SQLServer Helpers
 
       def node_value(node)
+        return nil unless node
         case node.expr
         when NilClass then nil
         when Numeric then node.expr
@@ -145,6 +147,17 @@ module Arel
         if o.orders.empty?
           # Prefer deterministic vs a simple `(SELECT NULL)` expr.
           o.orders = [pk.asc]
+        end
+      end
+
+      def distinct_One_As_One_Is_So_Not_Fetch o
+        core = o.cores.first
+        distinct = Nodes::Distinct === core.set_quantifier
+        oneasone = core.projections.all? { |x| x == ActiveRecord::FinderMethods::ONE_AS_ONE }
+        limitone = node_value(o.limit) == 1
+        if distinct && oneasone && limitone && !o.offset
+          core.projections = [Arel.sql("TOP(1) 1 AS [one]")]
+          o.limit = nil
         end
       end
 
