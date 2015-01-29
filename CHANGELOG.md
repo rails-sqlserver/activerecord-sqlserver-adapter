@@ -1,4 +1,11 @@
 
+## v4.2.1
+
+#### Fixed
+
+* Guard against empty view definitions when `sb_helptext` fails silently. Fixes #337.
+
+
 ## v4.2.0
 
 #### Added
