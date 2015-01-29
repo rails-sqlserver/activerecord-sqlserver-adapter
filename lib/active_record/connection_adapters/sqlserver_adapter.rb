@@ -88,7 +88,7 @@ module ActiveRecord
       end
 
       def supports_bulk_alter?
-        true
+        false
       end
 
       def supports_index_sort_order?
