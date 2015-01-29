@@ -166,11 +166,13 @@ module ActiveRecord
         end
 
         def change_column_null(table_name, column_name, allow_null, default = nil)
+          table_id = SQLServer::Utils.extract_identifiers(table_name)
+          column_id = SQLServer::Utils.extract_identifiers(column_name)
           column = detect_column_for! table_name, column_name
           if !allow_null.nil? && allow_null == false && !default.nil?
-            do_execute("UPDATE #{quote_table_name(table_name)} SET #{quote_column_name(column_name)}=#{quote(default)} WHERE #{quote_column_name(column_name)} IS NULL")
+            do_execute("UPDATE #{table_id} SET #{column_id}=#{quote(default)} WHERE #{column_id} IS NULL")
           end
-          sql = "ALTER TABLE #{table_name} ALTER COLUMN #{quote_column_name(column_name)} #{type_to_sql column.type, column.limit, column.precision, column.scale}"
+          sql = "ALTER TABLE #{table_id} ALTER COLUMN #{column_id} #{type_to_sql column.type, column.limit, column.precision, column.scale}"
           sql << ' NOT NULL' if !allow_null.nil? && allow_null == false
           do_execute sql
         end

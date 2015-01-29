@@ -4,6 +4,7 @@
 #### Fixed
 
 * Guard against empty view definitions when `sb_helptext` fails silently. Fixes #337.
+* Proper table/column escaping in the `change_column_null` method. Fixes #355.
 
 
 ## v4.2.0
