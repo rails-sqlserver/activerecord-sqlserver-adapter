@@ -17,6 +17,16 @@ Default testing uses DBLIB with TinyTDS.
 * $ bundle install
 * $ bundle exec rake test ACTIVERECORD_UNITTEST_HOST='my.db.net'
 
+Focusing tests. Use the `ONLY_` env vars to run either ours or the ActiveRecord cases. Use the `TEST_FILES` env variants to focus on specific test(s), use commas for multiple cases. Note, you have to use different env vars to focus only on ours or a core ActiveRecord case. There may be failures when focusing on an ActiveRecord case since our coereced test files is not loaded in this scenerio.
+
+```
+$ bundle exec rake test ONLY_SQLSERVER=1
+$ bundle exec rake test ONLY_ACTIVERECORD=1
+
+$ bundle exec rake test TEST_FILES="test/cases/adapter_test_sqlserver.rb"
+$ bundle exec rake test TEST_FILES_AR="test/cases/finder_test.rb"
+```
+
 
 ## Creating the test databases
 
