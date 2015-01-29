@@ -19,7 +19,7 @@ module ActiveRecord
 
     end
 
-    Transaction.include SQLServerTransaction
+    Transaction.send :include, SQLServerTransaction
 
     module SQLServerRealTransaction
 
@@ -46,7 +46,7 @@ module ActiveRecord
 
     end
 
-    RealTransaction.include SQLServerRealTransaction
+    RealTransaction.send :include, SQLServerRealTransaction
 
   end
 end

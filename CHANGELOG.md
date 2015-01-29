@@ -5,6 +5,7 @@
 
 * Guard against empty view definitions when `sb_helptext` fails silently. Fixes #337.
 * Proper table/column escaping in the `change_column_null` method. Fixes #355.
+* Use `send :include` for modules for 1.9 compatibility. Fixes #383.
 
 
 ## v4.2.0
