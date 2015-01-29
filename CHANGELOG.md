@@ -8,6 +8,7 @@
 * New `SQLServer::Utils::Name` object for decomposing and quoting SQL Server names/identifiers.
 * Support for most all SQL Server types in schema statements and dumping.
 * Support create table with query from relation or select statement.
+* Foreign Key Support Fixes #375.
 
 #### Changed
 

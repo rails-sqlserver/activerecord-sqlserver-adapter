@@ -34,6 +34,18 @@ module ActiveRecord
           end
         end
 
+        def action_sql(action, dependency)
+          case dependency
+          when :restrict
+            raise ArgumentError, <<-MSG.strip_heredoc
+              '#{dependency}' is not supported for :on_update or :on_delete.
+              Supported values are: :nullify, :cascade
+            MSG
+          else
+            super
+          end
+        end
+
       end
     end
   end

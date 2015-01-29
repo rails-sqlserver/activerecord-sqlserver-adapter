@@ -126,6 +126,13 @@ module ActiveRecord
       coerce_tests! :test_create_table_with_bigint,
                     :test_create_table_with_defaults
 
+
+    end
+    class ChangeSchemaWithDependentObjectsTest < ActiveRecord::TestCase
+
+      # In SQL Server you have to delete the tables yourself in the right order.
+      coerce_tests! :test_create_table_with_force_cascade_drops_dependent_objects
+
     end
   end
 end
@@ -297,6 +304,28 @@ class FinderTest < ActiveRecord::TestCase
     assert_sql(/OFFSET 0 ROWS FETCH NEXT 5 ROWS ONLY/) { Topic.last(5).entries }
   end
 
+end
+
+
+
+
+module ActiveRecord
+  class Migration
+    class ForeignKeyTest < ActiveRecord::TestCase
+
+      # We do not support :restrict.
+      coerce_tests! :test_add_on_delete_restrict_foreign_key
+      def test_add_on_delete_restrict_foreign_key_coerced
+        assert_raises ArgumentError do
+          @connection.add_foreign_key :astronauts, :rockets, column: "rocket_id", on_delete: :restrict
+        end
+        assert_raises ArgumentError do
+          @connection.add_foreign_key :astronauts, :rockets, column: "rocket_id", on_update: :restrict
+        end
+      end
+
+    end
+  end
 end
 
 

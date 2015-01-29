@@ -116,6 +116,30 @@ module ActiveRecord
           do_execute "DROP INDEX #{quote_column_name(index_name)} ON #{quote_table_name(table_name)}"
         end
 
+        def foreign_keys(table_name)
+          identifier = SQLServer::Utils.extract_identifiers(table_name)
+          fk_info = execute_procedure :sp_fkeys, nil, identifier.schema, nil, identifier.object, identifier.schema
+          fk_info.map do |row|
+            from_table = identifier.object
+            to_table = row['PKTABLE_NAME']
+            options = {
+              name: row['FK_NAME'],
+              column: row['FKCOLUMN_NAME'],
+              primary_key: row['PKCOLUMN_NAME'],
+              on_update: extract_foreign_key_action('update', row['FK_NAME']),
+              on_delete: extract_foreign_key_action('delete', row['FK_NAME'])
+            }
+            ForeignKeyDefinition.new from_table, to_table, options
+          end
+        end
+
+        def extract_foreign_key_action(action, fk_name)
+          case select_value("SELECT #{action}_referential_action_desc FROM sys.foreign_keys WHERE name = '#{fk_name}'")
+          when 'CASCADE' then :cascade
+          when 'SET_NULL' then :nullify
+          end
+        end
+
         def type_to_sql(type, limit = nil, precision = nil, scale = nil)
           type_limitable = %w(string integer float char nchar varchar nvarchar).include?(type.to_s)
           limit = nil unless type_limitable
