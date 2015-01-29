@@ -10,12 +10,6 @@
 
 The SQL Server adapter for ActiveRecord. If you need the adapter for SQL Server 2008 or 2005, you are still in the right spot. Just install the latest 3.2.x to 4.1.x version of the adapter. We follow a rational versioning policy that tracks ActiveRecord. That means that our 4.2.x version of the adapter is only for the latest 4.2 version of Rails. We also have stable branches for each major/minor release of ActiveRecord.
 
-The 4.2 gem is in pre-release till we get a few more [bugs](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/milestones) worked out. Bundle to the pre version or this repos master directory.
-
-```ruby
-gem 'activerecord-sqlserver-adapter', '~> 4.2.0.pre'
-```
-
 
 #### Testing Rake Tasks Support
 
