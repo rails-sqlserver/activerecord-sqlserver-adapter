@@ -412,6 +412,25 @@ end
 
 
 
+class NamedScopingTest < ActiveRecord::TestCase
+
+  # This works now because we add an `order(:id)` sort to break the order tie for deterministic results.
+  coerce_tests! :test_scopes_honor_current_scopes_from_when_defined
+  def test_scopes_honor_current_scopes_from_when_defined_coerced
+    assert !Post.ranked_by_comments.order(:id).limit_by(5).empty?
+    assert !authors(:david).posts.ranked_by_comments.order(:id).limit_by(5).empty?
+    assert_not_equal Post.ranked_by_comments.order(:id).limit_by(5), authors(:david).posts.ranked_by_comments.order(:id).limit_by(5)
+    assert_not_equal Post.order(:id).top(5), authors(:david).posts.order(:id).top(5)
+    # Oracle sometimes sorts differently if WHERE condition is changed
+    assert_equal authors(:david).posts.ranked_by_comments.limit_by(5).to_a.sort_by(&:id), authors(:david).posts.top(5).to_a.sort_by(&:id)
+    assert_equal Post.ranked_by_comments.limit_by(5), Post.top(5)
+  end
+
+end
+
+
+
+
 require 'models/developer'
 require 'models/computer'
 class NestedRelationScopingTest < ActiveRecord::TestCase
