@@ -3,7 +3,7 @@ module ActiveRecord
     module SQLServer
       module Version
 
-        VERSION = '4.2.0'
+        VERSION = '4.2.1'
 
       end
     end
