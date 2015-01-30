@@ -254,7 +254,11 @@ module ActiveRecord
         end
 
         def charset
-          select_value "SELECT SERVERPROPERTY('SqlCharSetName')"
+          select_value "SELECT DATABASEPROPERTYEX('#{current_database}', 'SqlCharSetName')"
+        end
+
+        def collation
+          select_value "SELECT DATABASEPROPERTYEX('#{current_database}', 'Collation')"
         end
 
 
