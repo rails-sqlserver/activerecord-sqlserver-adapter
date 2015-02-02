@@ -10,6 +10,7 @@ require 'active_record/connection_adapters/sqlserver/version'
 require 'active_record/connection_adapters/sqlserver/type'
 require 'active_record/connection_adapters/sqlserver/database_limits'
 require 'active_record/connection_adapters/sqlserver/database_statements'
+require 'active_record/connection_adapters/sqlserver/database_tasks'
 require 'active_record/connection_adapters/sqlserver/transaction'
 require 'active_record/connection_adapters/sqlserver/errors'
 require 'active_record/connection_adapters/sqlserver/schema_cache'
@@ -21,6 +22,7 @@ require 'active_record/connection_adapters/sqlserver/quoting'
 require 'active_record/connection_adapters/sqlserver/utils'
 require 'active_record/sqlserver_base'
 require 'active_record/connection_adapters/sqlserver_column'
+require 'active_record/tasks/sqlserver_database_tasks'
 
 module ActiveRecord
   module ConnectionAdapters
@@ -31,7 +33,8 @@ module ActiveRecord
               SQLServer::DatabaseStatements,
               SQLServer::Showplan,
               SQLServer::SchemaStatements,
-              SQLServer::DatabaseLimits
+              SQLServer::DatabaseLimits,
+              SQLServer::DatabaseTasks
 
       ADAPTER_NAME = 'SQLServer'.freeze
 
@@ -250,6 +253,8 @@ module ActiveRecord
           InvalidForeignKey.new(message, e)
         when /has been chosen as the deadlock victim/i
           DeadlockVictim.new(message, e)
+        when /database .* does not exist/i
+          NoDatabaseError.new(message, e)
         else
           super
         end
@@ -348,16 +353,6 @@ module ActiveRecord
         dateformat = "%#{a}-%#{b}-%#{c}"
         ::Date::DATE_FORMATS[:_sqlserver_dateformat] = dateformat
         ::Time::DATE_FORMATS[:_sqlserver_dateformat] = dateformat
-      end
-
-      def remove_database_connections_and_rollback(database = nil)
-        name = SQLServer::Utils.extract_identifiers(database || current_database)
-        do_execute "ALTER DATABASE #{name} SET SINGLE_USER WITH ROLLBACK IMMEDIATE"
-        begin
-          yield
-        ensure
-          do_execute "ALTER DATABASE #{name} SET MULTI_USER"
-        end if block_given?
       end
 
     end

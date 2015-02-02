@@ -222,6 +222,20 @@ end
 
 
 
+module ActiveRecord
+  class DatabaseTasksCreateAllTest < ActiveRecord::TestCase
+    # We extend `local_database?` so that common VM IPs can be used.
+    coerce_tests! :test_ignores_remote_databases, :test_warning_for_remote_databases
+  end
+  class DatabaseTasksDropAllTest < ActiveRecord::TestCase
+    # We extend `local_database?` so that common VM IPs can be used.
+    coerce_tests! :test_ignores_remote_databases, :test_warning_for_remote_databases
+  end
+end
+
+
+
+
 class DefaultScopingTest < ActiveRecord::TestCase
 
   # We are not doing order duplicate removal anymore.

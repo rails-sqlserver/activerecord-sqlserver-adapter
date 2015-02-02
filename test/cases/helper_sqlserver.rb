@@ -15,7 +15,6 @@ module ActiveRecord
     include ARTest::SQLServer::CoerceableTest
 
     let(:logger) { ActiveRecord::Base.logger }
-    let(:connection) { ActiveRecord::Base.connection }
 
     class << self
       def connection_mode_dblib? ; ActiveRecord::Base.connection.instance_variable_get(:@connection_options)[:mode] == :dblib ; end
@@ -29,6 +28,10 @@ module ActiveRecord
     def connection_mode_dblib? ; self.class.connection_mode_dblib? ; end
     def connection_mode_odbc? ; self.class.connection_mode_odbc? ; end
     def sqlserver_azure? ; self.class.sqlserver_azure? ; end
+
+    def connection
+      ActiveRecord::Base.connection
+    end
 
   end
 end

@@ -8,14 +8,7 @@
 
 ## Code Name Kantishna
 
-The SQL Server adapter for ActiveRecord. If you need the adapter for SQL Server 2008 or 2005, you are still in the right spot. Just install the latest 3.2.x to 4.1.x version of the adapter. We follow a rational versioning policy that tracks ActiveRecord. That means that our 4.2.x version of the adapter is only for the latest 4.2 version of Rails. We also have stable branches for each major/minor release of ActiveRecord.
-
-
-#### Testing Rake Tasks Support
-
-This is a long story, but if you are not working with a legacy database and you can trust your schema.rb to setup your local development or test database, then we have adapter level support for rails :db rake tasks. Please read this wiki page for full details.
-
-http://wiki.github.com/rails-sqlserver/activerecord-sqlserver-adapter/rails-db-rake-tasks
+The SQL Server adapter for ActiveRecord v4.2 using SQL Server 2012 or higher. If you need the adapter for SQL Server 2008 or 2005, you are still in the right spot. Just install the latest 3.2.x to 4.1.x version of the adapter. We follow a rational versioning policy that tracks ActiveRecord. That means that our 4.2.x version of the adapter is only for the latest 4.2 version of Rails. We also have stable branches for each major/minor release of ActiveRecord.
 
 
 #### Executing Stored Procedures

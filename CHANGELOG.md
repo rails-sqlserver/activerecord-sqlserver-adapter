@@ -1,4 +1,11 @@
 
+## v4.2.2
+
+#### Added
+
+* DatabaseTasks support for all tasks! Uses FreeTDS `defncopy` for structure dump.
+
+
 ## v4.2.1
 
 #### Fixed
