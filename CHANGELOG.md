@@ -4,6 +4,7 @@
 #### Added
 
 * DatabaseTasks support for all tasks! Uses FreeTDS `defncopy` for structure dump. Fixes #380.
+* Provide class config for `use_output_inserted` (default true) for insert SQL. Fixed #381.
 
 
 ## v4.2.1

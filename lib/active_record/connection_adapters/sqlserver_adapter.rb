@@ -41,9 +41,11 @@ module ActiveRecord
       attr_reader :spid
 
       cattr_accessor :cs_equality_operator, instance_accessor: false
+      cattr_accessor :use_output_inserted, instance_accessor: false
       cattr_accessor :lowercase_schema_reflection, :showplan_option
 
       self.cs_equality_operator = 'COLLATE Latin1_General_CS_AS_WS'
+      self.use_output_inserted = true
 
       def initialize(connection, logger, pool, config)
         super(connection, logger, pool)

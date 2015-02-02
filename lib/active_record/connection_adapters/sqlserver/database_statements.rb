@@ -200,7 +200,7 @@ module ActiveRecord
         end
 
         def sql_for_insert(sql, pk, id_value, sequence_name, binds)
-          sql = if pk
+          sql = if pk && self.class.use_output_inserted
             quoted_pk = SQLServer::Utils.extract_identifiers(pk).quoted
             sql.insert sql.index(/ (DEFAULT )?VALUES/), " OUTPUT INSERTED.#{quoted_pk}"
           else
