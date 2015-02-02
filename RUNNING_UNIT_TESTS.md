@@ -100,6 +100,13 @@ $ bundle exec rake test:odbc
 By default, Bundler will download the Rails git repo and use the git tag that matches the dependency version in our gemspec. If you want to test another version of Rails, you can either temporarily change the :tag for Rails in the Gemfile. Likewise, you can clone the Rails repo your self to another directory and use the `RAILS_SOURCE` environment variable.
 
 
+## Troubleshooting
+
+* Make sure your firewall is off or allows SQL Server traffic both ways, typically on port 1433.
+* Ensure that you are running on a local admin login to create the Rails user.
+* Possibly change the SQL Server TCP/IP properties in "SQL Server Configuration Manager -> SQL Server Network Configuration -> Protocols for MSSQLSERVER", and ensure that TCP/IP is enabled and the appropriate entries on the "IP Addresses" tab are enabled.
+
+
 ## Current Expected Failures
 
 * Misc Date/Time erros when using ODBC mode.
