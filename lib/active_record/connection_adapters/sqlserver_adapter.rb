@@ -297,7 +297,7 @@ module ActiveRecord
             client.execute('SET ANSI_NULL_DFLT_ON ON').do
             client.execute('SET IMPLICIT_TRANSACTIONS OFF').do
             client.execute('SET ANSI_PADDING ON').do
-            client.execute('SET QUOTED_IDENTIFIER ON')
+            client.execute('SET QUOTED_IDENTIFIER ON').do
             client.execute('SET ANSI_WARNINGS ON').do
           else
             client.execute('SET ANSI_DEFAULTS ON').do

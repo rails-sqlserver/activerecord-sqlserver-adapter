@@ -1,6 +1,6 @@
 ## v4.2.3
 
-* n/a
+* Fix SET defaults when using Azure.
 
 
 ## v4.2.2
