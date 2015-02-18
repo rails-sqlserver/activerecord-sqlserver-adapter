@@ -1,4 +1,9 @@
 
+* 3.2.13 *
+
+* Allow 2014 to be used.
+
+
 * 3.2.12 *
 
 * Revert string_to_binary changes in 457af60e. Fixes #273.
