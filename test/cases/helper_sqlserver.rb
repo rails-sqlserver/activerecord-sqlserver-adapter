@@ -33,6 +33,13 @@ module ActiveRecord
       ActiveRecord::Base.connection
     end
 
+    def with_use_output_inserted_disabled
+      ActiveRecord::ConnectionAdapters::SQLServerAdapter.use_output_inserted = false
+      yield
+    ensure
+      ActiveRecord::ConnectionAdapters::SQLServerAdapter.use_output_inserted = true
+    end
+
   end
 end
 

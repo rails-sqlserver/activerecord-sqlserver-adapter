@@ -1,6 +1,8 @@
 ## v4.2.3
 
 * Fix SET defaults when using Azure.
+* Test insert 4-byte unicode chars.
+* Make rollback transaction transcount aware for implicit error rollbacks. Fixes #390
 
 
 ## v4.2.2

@@ -1,3 +1,4 @@
+# encoding: UTF-8
 require 'cases/helper_sqlserver'
 
 class SQLServerUuidTest < ActiveRecord::TestCase
@@ -10,6 +11,7 @@ class SQLServerUuidTest < ActiveRecord::TestCase
   end
 
   it 'can create with a new pk' do
+    # Type::Uuid::ACCEPTABLE_UUID
     obj = SSTestUuid.create!
     obj.id.must_be :present?
     obj.id.must_match acceptable_uuid
@@ -36,6 +38,11 @@ class SQLServerUuidTest < ActiveRecord::TestCase
     SSTestUuid.reset_column_information
     column = SSTestUuid.columns_hash['thingy']
     column.default_function.must_equal "newid()"
+  end
+
+  it 'can insert even when use_output_inserted to false ' do
+    obj = with_use_output_inserted_disabled { SSTestUuid.create!(name: "😢") }
+    obj.id.must_be :nil?
   end
 
 end

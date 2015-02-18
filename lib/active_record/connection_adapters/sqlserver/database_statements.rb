@@ -66,7 +66,7 @@ module ActiveRecord
         end
 
         def rollback_db_transaction
-          do_execute 'ROLLBACK TRANSACTION'
+          do_execute 'IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION'
         end
 
         include Savepoints
