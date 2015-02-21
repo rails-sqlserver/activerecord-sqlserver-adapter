@@ -17,6 +17,7 @@ Gem::Specification.new do |spec|
   spec.require_paths = ['lib']
   spec.add_dependency 'activerecord', '~> 4.2.0'
   spec.add_development_dependency 'bundler'
+  spec.add_development_dependency 'guard'
   spec.add_development_dependency 'guard-minitest'
   spec.add_development_dependency 'minitest', '< 5.3.4' # PENDING: [Rails5.x] Remove test order constraint.
   spec.add_development_dependency 'minitest-focus'
