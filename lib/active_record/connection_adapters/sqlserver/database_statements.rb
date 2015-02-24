@@ -65,7 +65,7 @@ module ActiveRecord
           do_execute 'COMMIT TRANSACTION'
         end
 
-        def rollback_db_transaction
+        def exec_rollback_db_transaction
           do_execute 'IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION'
         end
 
@@ -75,7 +75,7 @@ module ActiveRecord
           do_execute "SAVE TRANSACTION #{name}"
         end
 
-        def rollback_to_savepoint(name = current_savepoint_name)
+        def exec_rollback_to_savepoint(name = current_savepoint_name)
           do_execute "ROLLBACK TRANSACTION #{name}"
         end
 

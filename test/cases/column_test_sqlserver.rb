@@ -46,9 +46,7 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       type.must_be                      :number?
       type.limit.must_equal             8
       assert_obj_set_and_save :bigint, -9_223_372_036_854_775_808
-      assert_raises(RangeError) { new_obj.bigint = -9_223_372_036_854_775_809 }
       assert_obj_set_and_save :bigint, 9_223_372_036_854_775_807
-      assert_raises(RangeError) { new_obj.bigint = 9_223_372_036_854_775_808 }
     end
 
     it 'int(4)' do
@@ -64,9 +62,7 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       type.must_be                      :number?
       type.limit.must_equal             4
       assert_obj_set_and_save :int, -2_147_483_648
-      assert_raises(RangeError) { new_obj.int = -2_147_483_649 }
       assert_obj_set_and_save :int, 2_147_483_647
-      assert_raises(RangeError) { new_obj.int = 2_147_483_648 }
     end
 
     it 'smallint(2)' do
@@ -82,9 +78,7 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       type.must_be                      :number?
       type.limit.must_equal             2
       assert_obj_set_and_save :smallint, -32_768
-      assert_raises(RangeError) { new_obj.smallint = -32_769 }
       assert_obj_set_and_save :smallint, 32_767
-      assert_raises(RangeError) { new_obj.smallint = 32_768 }
     end
 
     it 'tinyint(1)' do
@@ -100,9 +94,7 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       type.must_be                      :number?
       type.limit.must_equal             1
       assert_obj_set_and_save :tinyint, 0
-      assert_raises(RangeError) { new_obj.tinyint = -1 }
       assert_obj_set_and_save :tinyint, 255
-      assert_raises(RangeError) { new_obj.tinyint = 256 }
     end
 
     it 'bit' do

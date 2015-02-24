@@ -1,3 +1,9 @@
+
+## v4.2.4
+
+* Compatible with Rails 4.2.1.
+
+
 ## v4.2.3
 
 * Fix SET defaults when using Azure.
