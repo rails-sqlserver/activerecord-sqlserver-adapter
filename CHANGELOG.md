@@ -2,6 +2,7 @@
 ## v4.2.4
 
 * Compatible with Rails 4.2.1.
+* Fix schema limit reflection for char/varchar. Fixes #394.
 
 
 ## v4.2.3

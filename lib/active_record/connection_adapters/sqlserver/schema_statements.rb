@@ -235,7 +235,7 @@ module ActiveRecord
             columns.DATETIME_PRECISION AS datetime_precision,
             columns.ordinal_position,
             CASE
-              WHEN columns.DATA_TYPE IN ('nchar','nvarchar') THEN columns.CHARACTER_MAXIMUM_LENGTH
+              WHEN columns.DATA_TYPE IN ('nchar','nvarchar','char','varchar') THEN columns.CHARACTER_MAXIMUM_LENGTH
               ELSE COL_LENGTH('#{database}'+columns.TABLE_SCHEMA+'.'+columns.TABLE_NAME, columns.COLUMN_NAME)
             END AS [length],
             CASE
