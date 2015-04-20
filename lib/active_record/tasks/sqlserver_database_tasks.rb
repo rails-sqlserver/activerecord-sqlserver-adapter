@@ -59,8 +59,6 @@ module ActiveRecord
         ]
         table_args = connection.tables.map { |t| Shellwords.escape(t) }
         command.concat(table_args)
-        view_args = connection.views.map { |v| Shellwords.escape(v) }
-        command.concat(view_args)
         raise 'Error dumping database' unless Kernel.system(command.join(' '))
         dump = File.read(filename)
         dump.gsub!(/^USE .*$\nGO\n/, '')                      # Strip db USE statements
@@ -69,10 +67,24 @@ module ActiveRecord
         dump.gsub!(/nvarchar\(-1\)/, 'nvarchar(max)')         # Fix nvarchar(-1) column defs
         dump.gsub!(/text\(\d+\)/, 'text')                     # Fix text(16) column defs
         File.open(filename, "w") { |file| file.puts dump }
+
+        # defncopy appears to truncate definition output in some circumstances
+        # Also create view needs to be the first operation in the batch.
+        File.open(filename, 'a') { |file|
+          connection.select_all("select definition, o.type from sys.objects as o join sys.sql_modules as m on m.object_id = o.object_id where o.type = 'V'").each do |row|
+            file.puts "\r\nGO\r\n#{row['definition']}"
+          end
+          file.puts "\r\nGO\r\n"
+        }
       end
 
       def structure_load(filename)
-        connection.execute File.read(filename)
+        structure = File.read(filename)
+        # Split by GO so that operations that must be in separate batches are in
+        # separate batches
+        structure.split(/^GO/).each { |s|
+          connection.execute s
+        }
       end
 
 
