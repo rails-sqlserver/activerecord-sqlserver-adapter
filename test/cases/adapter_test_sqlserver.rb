@@ -416,5 +416,24 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
 
   end
 
+
+  describe 'routines' do
+
+    it 'return an array' do
+      assert_instance_of Array, connection.send(:routines)
+    end
+
+    it 'sst_routines_1 routine must exist' do
+      connection.send(:routines).must_include 'sst_routine_1'
+    end
+
+    it 'allow the connection#routine_information method to return data on the routine' do
+      routine_info = connection.send(:routine_information,'sst_routine_2')
+      assert_equal('sst_routine_2', routine_info['ROUTINE_NAME'])
+      assert_match(/CREATE FUNCTION sst_routine_2/, routine_info['ROUTINE_DEFINITION'])
+    end
+
+  end
+
 end
 

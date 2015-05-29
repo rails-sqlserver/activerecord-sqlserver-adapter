@@ -144,6 +144,24 @@ ActiveRecord::Schema.define do
       FROM sst_string_defaults
   STRINGDEFAULTSBIGVIEW
 
+  # Routines
+
+  execute "IF EXISTS (SELECT ROUTINE_NAME FROM INFORMATION_SCHEMA.ROUTINES WHERE ROUTINE_NAME = 'sst_routine_1') DROP PROCEDURE sst_routine_1"
+  execute <<-PROCEDUREDEF
+    CREATE PROCEDURE sst_routine_1 AS
+      SELECT 1
+  PROCEDUREDEF
+
+  execute "IF EXISTS (SELECT ROUTINE_NAME FROM INFORMATION_SCHEMA.ROUTINES WHERE ROUTINE_NAME = 'sst_routine_2') DROP FUNCTION sst_routine_2"
+  execute <<-FUNCDEF
+    CREATE FUNCTION sst_routine_2 ()
+    RETURNS int
+    AS
+    BEGIN
+      RETURN 1
+    END
+  FUNCDEF
+
   # Another schema.
 
   create_table :sst_schema_columns, force: true do |t|

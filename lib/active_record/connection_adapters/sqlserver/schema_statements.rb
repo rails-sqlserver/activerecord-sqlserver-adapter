@@ -442,6 +442,26 @@ module ActiveRecord
           schema_cache.columns(table_name).find(&:is_identity?)
         end
 
+        # === SQLServer Specific (Stored Rrocedure Reflection) ====================== #
+        
+        def routines(routine_type = nil)
+          select_values "SELECT #{lowercase_schema_reflection_sql('ROUTINE_NAME')} FROM INFORMATION_SCHEMA.ROUTINES #{"WHERE ROUTINE_TYPE = '#{routine_type}'" if routine_type} ORDER BY ROUTINE_NAME", 'SCHEMA'
+        end
+
+        def routine_information(routine_name)
+          identifier = SQLServer::Utils.extract_identifiers(routine_name)
+          routine_info = select_one "SELECT * FROM information_schema.routines WHERE ROUTINE_NAME = '#{identifier.object}'", 'SCHEMA'
+
+          if routine_info
+            routine_info = routine_info.with_indifferent_access
+            if routine_info[:ROUTINE_DEFINITION].blank?
+              warn "No routing definition found, possible permissions problem.\nPlease run GRANT VIEW DEFINITION TO your_user;"
+              nil
+            else
+              routine_info
+            end
+          end
+        end
 
         private
 

@@ -71,8 +71,17 @@ module ActiveRecord
         # defncopy appears to truncate definition output in some circumstances
         # Also create view needs to be the first operation in the batch.
         File.open(filename, 'a') { |file|
-          connection.select_all("select definition, o.type from sys.objects as o join sys.sql_modules as m on m.object_id = o.object_id where o.type = 'V'").each do |row|
-            file.puts "\r\nGO\r\n#{row['definition']}"
+          connection.send(:views).each do |v|
+            view_info = connection.send(:view_information, v)
+            file.puts "\r\nGO\r\n#{view_info[:VIEW_DEFINITION]}"
+          end
+        }
+
+        # Export any routines (stored procedures, functions, etc.)
+        File.open(filename, 'a') { |file|
+          connection.send(:routines).each do |r|
+            routine_info = connection.send(:routine_information, r)
+            file.puts "\r\nGO\r\n#{routine_info[:ROUTINE_DEFINITION]}"
           end
           file.puts "\r\nGO\r\n"
         }
