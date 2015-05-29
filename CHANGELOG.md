@@ -1,11 +1,22 @@
 
+## v4.2.5
+
+#### Fixed
+
+* DB rollback when reversable add_column has several options. Fixes #359
+
+
 ## v4.2.4
+
+#### Fixed
 
 * Compatible with Rails 4.2.1.
 * Fix schema limit reflection for char/varchar. Fixes #394.
 
 
 ## v4.2.3
+
+#### Fixed
 
 * Fix SET defaults when using Azure.
 * Test insert 4-byte unicode chars.
