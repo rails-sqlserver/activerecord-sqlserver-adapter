@@ -2,6 +2,7 @@ source 'https://rubygems.org'
 gemspec
 
 gem 'bcrypt'
+gem 'nokogiri'
 
 if RbConfig::CONFIG["host_os"] =~ /darwin/
   gem 'terminal-notifier-guard'
