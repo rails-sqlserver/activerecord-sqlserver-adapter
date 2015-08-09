@@ -2,7 +2,6 @@ source 'https://rubygems.org'
 gemspec
 
 gem 'bcrypt'
-gem 'tzinfo'
 gem 'tzinfo-data', platforms: [:mingw, :mswin, :x64_mingw, :jruby]
 
 if RbConfig::CONFIG["host_os"] =~ /darwin/

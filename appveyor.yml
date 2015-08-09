@@ -1,6 +1,5 @@
 version: 4.2.5.{build}
 init:
-  - C:\Windows\System32\tzutil /s "Eastern Standard Time"
   - SET PATH=C:\Ruby%ruby_version%\bin;%PATH%
   - SET PATH=C:\MinGW\msys\1.0\bin;%PATH%
   - SET RAKEOPT=-rdevkit
