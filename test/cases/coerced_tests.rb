@@ -1,6 +1,23 @@
 require 'cases/helper_sqlserver'
 
 
+# Windows/Appveyor
+if RbConfig::CONFIG['host_os'] =~ /mswin|mingw/
+  # All of these are due to Time.local(2000).zone. See http://git.io/v3t0o
+  class BelongsToAssociationsTest < ActiveRecord::TestCase
+    coerce_tests! :test_belongs_to_with_touch_option_on_touch_without_updated_at_attributes
+  end
+  class BasicsTest < ActiveRecord::TestCase
+    coerce_tests! :test_preserving_time_objects_with_local_time_conversion_to_default_timezone_utc
+    coerce_tests! :test_preserving_time_objects_with_time_with_zone_conversion_to_default_timezone_local
+    coerce_tests! :test_preserving_time_objects_with_utc_time_conversion_to_default_timezone_local
+  end
+  class DirtyTest < ActiveRecord::TestCase
+    coerce_tests! :test_save_always_should_update_timestamps_when_serialized_attributes_are_present
+  end
+end
+
+
 module ActiveRecord
   class AdapterTest < ActiveRecord::TestCase
 
