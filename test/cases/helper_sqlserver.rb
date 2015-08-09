@@ -23,9 +23,6 @@ module ActiveRecord
       def host_windows? ; RbConfig::CONFIG['host_os'] =~ /mswin|mingw/ ; end
     end
 
-
-    private
-
     def connection_mode_dblib? ; self.class.connection_mode_dblib? ; end
     def connection_mode_odbc? ; self.class.connection_mode_odbc? ; end
     def sqlserver_azure? ; self.class.sqlserver_azure? ; end
