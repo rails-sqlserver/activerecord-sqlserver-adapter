@@ -3,7 +3,6 @@ init:
   - SET PATH=C:\Ruby%ruby_version%\bin;%PATH%
   - SET PATH=C:\MinGW\msys\1.0\bin;%PATH%
   - SET RAKEOPT=-rdevkit
-  - SET TZ='America/New_York'
 clone_depth: 5
 skip_tags: true
 matrix:
