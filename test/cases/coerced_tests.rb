@@ -14,6 +14,7 @@ if RbConfig::CONFIG['host_os'] =~ /mswin|mingw/
   end
   class DirtyTest < ActiveRecord::TestCase
     coerce_tests! :test_save_always_should_update_timestamps_when_serialized_attributes_are_present
+    coerce_tests! :test_previous_changes # Coupled to above test.
   end
 end
 
