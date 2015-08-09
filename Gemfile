@@ -34,8 +34,7 @@ group :tinytds do
   if ENV['TINYTDS_SOURCE']
     gem 'tiny_tds', path: ENV['TINYTDS_SOURCE']
   else
-    # TODO: [Rails4] Change back... segfault caused by tiny_tds 0.6.1
-    gem 'tiny_tds', git:"https://github.com/rails-sqlserver/tiny_tds.git"
+    gem 'tiny_tds'
   end
 end
 
