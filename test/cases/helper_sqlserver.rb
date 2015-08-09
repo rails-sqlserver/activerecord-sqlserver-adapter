@@ -20,6 +20,7 @@ module ActiveRecord
       def connection_mode_dblib? ; ActiveRecord::Base.connection.instance_variable_get(:@connection_options)[:mode] == :dblib ; end
       def connection_mode_odbc? ; ActiveRecord::Base.connection.instance_variable_get(:@connection_options)[:mode] == :odbc ; end
       def sqlserver_azure? ; ActiveRecord::Base.connection.sqlserver_azure? ; end
+      def host_windows? ; RbConfig::CONFIG['host_os'] =~ /mswin|mingw/ ; end
     end
 
 
@@ -28,6 +29,7 @@ module ActiveRecord
     def connection_mode_dblib? ; self.class.connection_mode_dblib? ; end
     def connection_mode_odbc? ; self.class.connection_mode_odbc? ; end
     def sqlserver_azure? ; self.class.sqlserver_azure? ; end
+    def host_windows? ; self.host_windows? ; end
 
     def connection
       ActiveRecord::Base.connection

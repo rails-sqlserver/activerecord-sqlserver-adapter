@@ -120,6 +120,8 @@ class SQLServerRakeStructureDumpLoadTest < SQLServerRakeTest
   end
 
   it 'dumps structure and accounts for defncopy oddities' do
+    # CHANGED: [TinyTDS] When utilities are available http://git.io/v3tBk
+    skip if host_windows?
     db_tasks.structure_dump configuration, filename
     filedata.wont_match %r{\AUSE.*\z}
     filedata.wont_match %r{\AGO.*\z}
@@ -129,6 +131,8 @@ class SQLServerRakeStructureDumpLoadTest < SQLServerRakeTest
   end
 
   it 'can load dumped structure' do
+    # CHANGED: [TinyTDS] When utilities are available http://git.io/v3tBk
+    skip if host_windows?
     db_tasks.structure_dump configuration, filename
     filedata.must_match %r{CREATE TABLE dbo\.users}
     db_tasks.purge(configuration)
