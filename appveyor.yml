@@ -1,0 +1,32 @@
+version: 4.2.5.{build}
+init:
+  - SET PATH=C:\Ruby%ruby_version%\bin;%PATH%
+  - SET PATH=C:\MinGW\msys\1.0\bin;%PATH%
+  - SET RAKEOPT=-rdevkit
+clone_depth: 5
+skip_tags: true
+matrix:
+  fast_finish: true
+install:
+  - ruby --version
+  - gem --version
+  - bundle install --without odbc
+build: off
+test_script:
+  - powershell -File "%APPVEYOR_BUILD_FOLDER%\test\appveyor\dbsetup.ps1"
+  - timeout /t 4 /nobreak > NUL
+  - ps: Start-Service 'MSSQL$SQL2014'
+  - timeout /t 4 /nobreak > NUL
+  - sqlcmd -S ".\SQL2014" -U sa -P Password12! -i %APPVEYOR_BUILD_FOLDER%\test\appveyor\dbsetup.sql
+  - bundle exec rake test ACTIVERECORD_UNITTEST_DATASERVER="localhost\SQL2014"
+  - ps: Stop-Service 'MSSQL$SQL2014'
+  - ps: Start-Service 'MSSQL$SQL2012SP1'
+  - timeout /t 4 /nobreak > NUL
+  - sqlcmd -S ".\SQL2012SP1" -U sa -P Password12! -i %APPVEYOR_BUILD_FOLDER%\test\appveyor\dbsetup.sql
+  - bundle exec rake test ACTIVERECORD_UNITTEST_DATASERVER="localhost\SQL2012SP1"
+environment:
+  matrix:
+    # - ruby_version: "193"
+    # - ruby_version: "200-x64"
+    # - ruby_version: "21-x64"
+    - ruby_version: "22-x64"
