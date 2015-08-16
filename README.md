@@ -7,7 +7,9 @@
 
 ## Code Name Kantishna
 
-The SQL Server adapter for ActiveRecord v4.2 using SQL Server 2012 or higher. If you need the adapter for SQL Server 2008 or 2005, you are still in the right spot. Just install the latest 3.2.x to 4.1.x version of the adapter. We follow a rational versioning policy that tracks ActiveRecord. That means that our 4.2.x version of the adapter is only for the latest 4.2 version of Rails. We also have stable branches for each major/minor release of ActiveRecord.
+The SQL Server adapter for ActiveRecord v4.2 using SQL Server 2012 or higher.
+
+Interested in older versions? We follow a rational versioning policy that tracks Rails. That means that our 4.2.x version of the adapter is only for the latest 4.2 version of Rails. If you need the adapter for SQL Server 2008 or 2005, you are still in the right spot. Just install the latest 3.2.x to 4.1.x version of the adapter that matches your Rails version. We also have stable branches for each major/minor release of ActiveRecord.
 
 
 #### Executing Stored Procedures
