@@ -9,27 +9,9 @@ This process is much easier than it has been before!
 Default testing uses DBLIB with TinyTDS.
 
 * Setup two databases in SQL Server, [activerecord_unittest] and [activerecord_unittest2]
-* Create a [rails] user with an empty password and give it a [db_owner] role to both DBs. Some tests require a server role of [sysadmin] too. See the following screenshots or the SQL snippet below.
-  - http://twitpic.com/9bsiyp/full
-  - http://twitpic.com/9bsj7z/full
-  - http://twitpic.com/9bsjdx/full
-  - http://twitpic.com/9bsjl7/full
+* Create a [rails] user with an empty password and give it a [db_owner] role to both DBs. Some tests require a server role of [sysadmin] too. More details below with DDL SQL examples.
 * $ bundle install
 * $ bundle exec rake test ACTIVERECORD_UNITTEST_HOST='my.db.net'
-
-```sql
-CREATE DATABASE [activerecord_unittest];
-CREATE DATABASE [activerecord_unittest2];
-GO
-CREATE LOGIN [rails] WITH PASSWORD = '', CHECK_POLICY = OFF, DEFAULT_DATABASE = [activerecord_unittest];
-GO
-USE [activerecord_unittest];
-CREATE USER [rails] FOR LOGIN [rails];
-GO
-EXEC sp_addrolemember N'db_owner', N'rails';
-EXEC master..sp_addsrvrolemember @loginame = N'rails', @rolename = N'sysadmin'
-GO
-```
 
 Focusing tests. Use the `ONLY_` env vars to run either ours or the ActiveRecord cases. Use the `TEST_FILES` env variants to focus on specific test(s), use commas for multiple cases. Note, you have to use different env vars to focus only on ours or a core ActiveRecord case. There may be failures when focusing on an ActiveRecord case since our coereced test files is not loaded in this scenerio.
 
@@ -48,6 +30,19 @@ The default names for the test databases are `activerecord_unittest` and `active
 
 The connection files make certain assumptions. For instance, the ODBC connection assumes you have a DSN setup that matches the name of the default database names. Remember too you have to set an environment variable for the DSN of the adapter, see the connection.rb file that matches your connection mode for details.
 
+```sql
+CREATE DATABASE [activerecord_unittest];
+CREATE DATABASE [activerecord_unittest2];
+GO
+CREATE LOGIN [rails] WITH PASSWORD = '', CHECK_POLICY = OFF, DEFAULT_DATABASE = [activerecord_unittest];
+GO
+USE [activerecord_unittest];
+CREATE USER [rails] FOR LOGIN [rails];
+GO
+EXEC sp_addrolemember N'db_owner', N'rails';
+EXEC master..sp_addsrvrolemember @loginame = N'rails', @rolename = N'sysadmin'
+GO
+```
 
 ## Cloning The Repos
 
