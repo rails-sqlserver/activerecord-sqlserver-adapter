@@ -1,5 +1,6 @@
 require 'rake'
 require 'rake/testtask'
+require 'bundler/gem_tasks'
 
 AR_PATH   = Gem.loaded_specs['activerecord'].full_gem_path
 AREL_PATH = Gem.loaded_specs['arel'].full_gem_path
