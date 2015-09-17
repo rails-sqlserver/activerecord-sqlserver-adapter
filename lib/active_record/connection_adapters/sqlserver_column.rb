@@ -40,6 +40,14 @@ module ActiveRecord
         @sql_type =~ /real/i
       end
 
+      def collation
+        @sqlserver_options[:collation]
+      end
+
+      def case_sensitive?
+        collation && !collation.match(/_CI/)
+      end
+
     end
   end
 end

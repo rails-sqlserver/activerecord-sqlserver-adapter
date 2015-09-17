@@ -45,7 +45,7 @@ module ActiveRecord
         def columns(table_name, _name = nil)
           return [] if table_name.blank?
           column_definitions(table_name).map do |ci|
-            sqlserver_options = ci.slice :ordinal_position, :is_primary, :is_identity, :default_function, :table_name
+            sqlserver_options = ci.slice :ordinal_position, :is_primary, :is_identity, :default_function, :table_name, :collation
             cast_type = lookup_cast_type(ci[:type])
             new_column ci[:name], ci[:default_value], cast_type, ci[:type], ci[:null], sqlserver_options
           end
@@ -233,6 +233,7 @@ module ActiveRecord
             columns.NUMERIC_SCALE AS numeric_scale,
             columns.NUMERIC_PRECISION AS numeric_precision,
             columns.DATETIME_PRECISION AS datetime_precision,
+            columns.COLLATION_NAME AS collation,
             columns.ordinal_position,
             CASE
               WHEN columns.DATA_TYPE IN ('nchar','nvarchar','char','varchar') THEN columns.CHARACTER_MAXIMUM_LENGTH
