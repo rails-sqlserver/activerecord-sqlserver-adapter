@@ -18,7 +18,7 @@ else
     spec = eval(File.read('activerecord-sqlserver-adapter.gemspec'))
     version = spec.dependencies.detect{ |d|d.name == 'activerecord' }.requirement.requirements.first.last.version
     major, minor, tiny = version.split('.')
-    uri = URI.parse "http://rubygems.org/api/v1/versions/activerecord.yaml"
+    uri = URI.parse "https://rubygems.org/api/v1/versions/activerecord.yaml"
     YAML.load(Net::HTTP.get(uri)).select do |data|
       a, b, c = data['number'].split('.')
       !data['prerelease'] && major == a && (minor.nil? || minor == b)
