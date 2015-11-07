@@ -3,6 +3,7 @@
 
 #### Fixed
 
+* Improve case comparision performace per column. Fixes #414
 * DB rollback when reversable add_column has several options. Fixes #359
 
 
