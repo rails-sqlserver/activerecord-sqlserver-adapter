@@ -8,21 +8,25 @@ default_connection_info: &default_connection_info
   database: activerecord_unittest
   username: <%= ENV['ACTIVERECORD_UNITTEST_USER'] || 'rails' %>
   password: <%= ENV['ACTIVERECORD_UNITTEST_PASS'] || '' %>
-  azure: <%= !ENV['ACTIVERECORD_UNITTEST_AZURE'].nil? %>
   collation: <%= ENV['ACTIVERECORD_UNITTEST_COLLATION'] || nil %>
+  encoding: utf8
 
 connections:
-  
+
   dblib:
     arunit:
       <<: *default_connection_info
       appname: SQLServerAdptrUnit
       dataserver: <%= ENV['ACTIVERECORD_UNITTEST_DATASERVER'] %>
+      tds_version: <%= ENV['ACTIVERECORD_UNITTEST_TDSVERSION'] %>
+      azure: <%= !ENV['ACTIVERECORD_UNITTEST_AZURE'].nil? %>
     arunit2:
       <<: *default_connection_info
       database: activerecord_unittest2
       appname: SQLServerAdptrUnit2
       dataserver: <%= ENV['ACTIVERECORD_UNITTEST_DATASERVER'] %>
+      tds_version: <%= ENV['ACTIVERECORD_UNITTEST_TDSVERSION'] %>
+      azure: <%= !ENV['ACTIVERECORD_UNITTEST_AZURE'].nil? %>
 
   odbc:
     arunit:
@@ -32,4 +36,4 @@ connections:
       <<: *default_connection_info
       database: activerecord_unittest2
       dsn: <%= ENV['ACTIVERECORD_UNITTEST2_DSN'] || 'activerecord_unittest2' %>
-      
+
