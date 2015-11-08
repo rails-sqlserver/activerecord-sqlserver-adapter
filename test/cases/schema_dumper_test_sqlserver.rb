@@ -100,17 +100,23 @@ class SchemaDumperTestSQLServer < ActiveRecord::TestCase
     assert_line :binary_basic_col,  type: 'binary_basic', limit: '1',           precision: nil,   scale: nil,  default: nil
     assert_line :varbinary_col,     type: 'varbinary',    limit: '8000',        precision: nil,   scale: nil,  default: nil
     assert_line :uuid_col,          type: 'uuid',         limit: nil,           precision: nil,   scale: nil,  default: nil
-    assert_line :sstimestamp_col, type: 'ss_timestamp', limit: nil,          precision: nil,  scale: nil, default: nil
+    assert_line :sstimestamp_col,   type: 'ss_timestamp', limit: nil,           precision: nil,   scale: nil,  default: nil
   end
 
   # Special Cases
 
-  it 'primary_key' do
+  it 'honor nonstandard primary keys' do
     generate_schema_for_table('movies') do |output|
       match = output.match(%r{create_table "movies"(.*)do})
       assert_not_nil(match, "nonstandardpk table not found")
       assert_match %r(primary_key: "movieid"), match[1], "non-standard primary key not preserved"
     end
+  end
+
+  it 'no id with model driven primary key' do
+    output = generate_schema_for_table 'sst_no_pk_data'
+    output.must_match %r{create_table "sst_no_pk_data".*id:\sfalse.*do}
+    assert_line :name, type: 'string', limit: '4000'
   end
 
 
