@@ -9,10 +9,7 @@ matrix:
   fast_finish: true
 install:
   - ruby --version
-  - gem update --system
-  - gem install bundler
   - gem --version
-  - bundle --version
   - bundle install --without odbc
 build: off
 test_script:
