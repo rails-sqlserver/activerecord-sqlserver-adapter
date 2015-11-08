@@ -5,6 +5,7 @@
 #### Fixed
 
 * Bundling and test running. Noted current failures.
+* Fix `remove_column` arity. Fixes #359
 
 
 ## v4.1.1

@@ -95,17 +95,14 @@ By default, Bundler will download the Rails git repo and use the git tag that ma
 
 ## Current Expected Failures
 
-* CascadedEagerLoadingTest#test_eager_association_loading_where_first_level_returns_nil
+* MergingDifferentRelationsTest#test_0004_relation merging (using a proc  argument):
 * NonTransactionalHMTAssociationsTest#test_eager_load_polymorphic_nested_associations:
-* OptimisticLockingTest#test_removing_has_and_belongs_to_many_associations_upon_destroy:
-* ActiveRecord::ConnectionAdapters::MergeAndResolveDefaultUrlConfigTest#test_blank_with_database_url_with_rack_env
-* ActiveRecord::ConnectionAdapters::MergeAndResolveDefaultUrlConfigTest#test_blank_with_database_url_with_rails_env
+* ActiveRecord::ConnectionAdapters::MergeAndResolveDefaultUrlConfigTest#test_blank_with_database_url_with_rack_env:
+* ActiveRecord::ConnectionAdapters::MergeAndResolveDefaultUrlConfigTest#test_blank_with_database_url_with_rails_env:
 * ActiveRecord::ConnectionAdapters::MergeAndResolveDefaultUrlConfigTest#test_resolver_with_database_uri_and_and_current_env_string_key_and_rack_env:
 * ActiveRecord::ConnectionAdapters::MergeAndResolveDefaultUrlConfigTest#test_resolver_with_database_uri_and_and_current_env_string_key_and_rails_env:
 * ActiveRecord::ConnectionAdapters::MergeAndResolveDefaultUrlConfigTest#test_resolver_with_database_uri_and_current_env_symbol_key_and_rack_env:
 * ActiveRecord::ConnectionAdapters::MergeAndResolveDefaultUrlConfigTest#test_resolver_with_database_uri_and_current_env_symbol_key_and_rails_env:
 * EagerAssociationTest#test_0013_including association based on sql condition and no database column:
-* CalculationsTest#test_should_group_by_association_with_non_numeric_foreign_key:
-* HasManyAssociationsTest#test_0001_building the association with an array
+* HasManyAssociationsTest#test_0001_building the association with an array:
 * HasManyAssociationsTest#test_0010_does not duplicate associations when used with natural primary keys:
-* HasManyAssociationsTest#test_do_not_call_callbacks_for_delete_all
