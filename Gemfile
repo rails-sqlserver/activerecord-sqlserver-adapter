@@ -19,7 +19,10 @@ else
     version = spec.dependencies.detect{ |d|d.name == 'activerecord' }.requirement.requirements.first.last.version
     major, minor, tiny = version.split('.')
     uri = URI.parse "https://rubygems.org/api/v1/versions/activerecord.yaml"
-    YAML.load(Net::HTTP.get(uri)).select do |data|
+    http = Net::HTTP.new(uri.host, uri.port)
+    http.use_ssl = true
+    http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+    YAML.load(http.request(Net::HTTP::Get.new(uri.request_uri)).body).select do |data|
       a, b, c = data['number'].split('.')
       !data['prerelease'] && major == a && (minor.nil? || minor == b)
     end.first['number']
