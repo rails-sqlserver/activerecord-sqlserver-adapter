@@ -26,6 +26,5 @@ test_script:
   - bundle exec rake test ACTIVERECORD_UNITTEST_DATASERVER="localhost\SQL2012SP1"
 environment:
   matrix:
+    - ruby_version: "200-x64"
     - ruby_version: "21-x64"
-    - ruby_version: "22-x64"
-
