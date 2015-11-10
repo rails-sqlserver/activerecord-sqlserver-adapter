@@ -109,6 +109,14 @@ ActiveRecord::Schema.define do
     )
   TINYITPKTABLE
 
+  execute "DROP DEFAULT [sst_getdateobject];" rescue nil
+  execute "CREATE DEFAULT [sst_getdateobject] AS getdate();" rescue nil
+  create_table 'sst_defaultobjects', force: true do |t|
+    t.string :name
+    t.date   :date
+  end
+  execute "sp_bindefault 'sst_getdateobject', 'sst_defaultobjects.date'"
+
   # Constraints
 
   create_table(:sst_has_fks, force: true) { |t| t.column(:fk_id, :integer, null: false) }

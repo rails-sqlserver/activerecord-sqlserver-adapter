@@ -312,6 +312,8 @@ module ActiveRecord
               when /\A\(N'(.*)'\)\Z/m
                 string_literal = SQLServer::Utils.unquote_string(Regexp.last_match[1])
                 [string_literal, nil]
+              when /CREATE DEFAULT/mi
+                [nil, nil]
               else
                 type = case ci[:type]
                        when /smallint|int|bigint/ then ci[:_type]

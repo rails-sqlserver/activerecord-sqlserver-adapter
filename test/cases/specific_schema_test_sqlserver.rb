@@ -62,6 +62,12 @@ class SpecificSchemaTestSQLServer < ActiveRecord::TestCase
     assert_equal '(NULL)', default.string_with_pretend_null_four
   end
 
+  it 'default objects work' do
+    obj = SSTestObjectDefault.create! name: 'MetaSkills'
+    obj.date.must_be_nil 'since this is set on insert'
+    obj.reload.date.must_be_instance_of Date
+  end
+
   # Natural primary keys.
 
   it 'work with identity inserts' do
