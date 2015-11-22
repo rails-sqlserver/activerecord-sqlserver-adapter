@@ -3,6 +3,7 @@
 
 #### Fixed
 
+* Tests for decimal scale. See Rails commit. http://git.io/vGotB
 * Improve case comparision performace per column. Fixes #414
 * DB rollback when reversable add_column has several options. Fixes #359
 * Better column definitions for default objects. Fixes #412

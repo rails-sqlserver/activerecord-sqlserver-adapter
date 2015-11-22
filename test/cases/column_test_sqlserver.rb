@@ -134,7 +134,7 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       type.precision.must_equal         9
       type.scale.must_equal             2
       obj.decimal_9_2 = '1234567.8901'
-      obj.decimal_9_2.must_equal        BigDecimal('1234567.8901') # Cast from user one day.
+      obj.decimal_9_2.must_equal        BigDecimal('1234567.89')
       obj.save!
       obj.reload.decimal_9_2.must_equal BigDecimal('1234567.89')
     end
@@ -149,7 +149,7 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       type.precision.must_equal         16
       type.scale.must_equal             4
       obj.decimal_16_4 = '1234567.8901001'
-      obj.decimal_16_4.must_equal        BigDecimal('1234567.8901001') # Cast from user one day.
+      obj.decimal_16_4.must_equal        BigDecimal('1234567.8901')
       obj.save!
       obj.reload.decimal_16_4.must_equal BigDecimal('1234567.8901')
     end
@@ -169,7 +169,7 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       type.precision.must_equal         18
       type.scale.must_equal             0
       obj.numeric_18_0 = '192.1'
-      obj.numeric_18_0.must_equal        BigDecimal('192.1') # Cast from user one day.
+      obj.numeric_18_0.must_equal        BigDecimal('192')
       obj.save!
       obj.reload.numeric_18_0.must_equal BigDecimal('192')
     end
@@ -189,7 +189,7 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       type.precision.must_equal         36
       type.scale.must_equal             2
       obj.numeric_36_2 = '192.123'
-      obj.numeric_36_2.must_equal        BigDecimal('192.123') # Cast from user one day.
+      obj.numeric_36_2.must_equal        BigDecimal('192.12')
       obj.save!
       obj.reload.numeric_36_2.must_equal BigDecimal('192.12')
     end
@@ -209,7 +209,7 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       type.precision.must_equal         19
       type.scale.must_equal             4
       obj.money = '922337203685477.58061'
-      obj.money.must_equal              BigDecimal('922337203685477.58061')
+      obj.money.must_equal              BigDecimal('922337203685477.5806')
       obj.save!
       obj.reload.money.must_equal       BigDecimal('922337203685477.5806')
     end
@@ -229,7 +229,7 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       type.precision.must_equal         10
       type.scale.must_equal             4
       obj.smallmoney = '214748.36461'
-      obj.smallmoney.must_equal        BigDecimal('214748.36461')
+      obj.smallmoney.must_equal        BigDecimal('214748.3646')
       obj.save!
       obj.reload.smallmoney.must_equal BigDecimal('214748.3646')
     end
