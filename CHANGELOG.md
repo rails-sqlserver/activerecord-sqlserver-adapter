@@ -1,6 +1,10 @@
 
 ## v4.2.5
 
+#### Removed
+
+* Remove Type::Castable hacks for core type objects to force trust the DB. Allows Rails 5 attributes.
+
 #### Fixed
 
 * Tests for decimal scale. See Rails commit. http://git.io/vGotB

@@ -11,9 +11,6 @@ module ActiveRecord
             @precision = nil if @precision == 7
           end
 
-          # When FreeTDS/TinyTDS casts this data type natively.
-          # include Castable
-
           def type_cast_for_database(value)
             return if value.nil?
             Quoter.new super, self

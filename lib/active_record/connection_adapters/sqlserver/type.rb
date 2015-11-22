@@ -1,6 +1,4 @@
 require 'active_record/type'
-require 'active_record/connection_adapters/sqlserver/type/core_ext/value.rb'
-require 'active_record/connection_adapters/sqlserver/type/castable.rb'
 require 'active_record/connection_adapters/sqlserver/type/quoter.rb'
 # Exact Numerics
 require 'active_record/connection_adapters/sqlserver/type/integer.rb'

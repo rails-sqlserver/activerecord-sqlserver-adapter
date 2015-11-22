@@ -4,7 +4,6 @@ module ActiveRecord
       module Type
         class Integer < ActiveRecord::Type::Integer
 
-          include Castable
 
         end
       end

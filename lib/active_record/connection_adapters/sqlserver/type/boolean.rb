@@ -4,7 +4,6 @@ module ActiveRecord
       module Type
         class Boolean < ActiveRecord::Type::Boolean
 
-          include Castable
 
         end
       end

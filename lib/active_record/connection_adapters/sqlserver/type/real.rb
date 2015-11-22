@@ -4,8 +4,6 @@ module ActiveRecord
       module Type
         class Real < Float
 
-          include Castable
-
           def type
             :real
           end

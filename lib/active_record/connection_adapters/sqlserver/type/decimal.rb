@@ -4,7 +4,6 @@ module ActiveRecord
       module Type
         class Decimal < ActiveRecord::Type::Decimal
 
-          include Castable
 
         end
       end

@@ -4,8 +4,6 @@ module ActiveRecord
       module Type
         class DateTime < ActiveRecord::Type::DateTime
 
-          include Castable
-
           def type_cast_for_schema(value)
             value.acts_like?(:string) ? "'#{value}'" : super
           end

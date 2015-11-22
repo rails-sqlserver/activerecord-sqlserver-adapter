@@ -4,8 +4,6 @@ module ActiveRecord
       module Type
         class Float < ActiveRecord::Type::Float
 
-          include Castable
-
           def type
             :float
           end

@@ -4,8 +4,6 @@ module ActiveRecord
       module Type
         class SmallDateTime < DateTime
 
-          include Castable
-
 
           private
 

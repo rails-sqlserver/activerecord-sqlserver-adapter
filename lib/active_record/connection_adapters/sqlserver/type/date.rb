@@ -4,8 +4,6 @@ module ActiveRecord
       module Type
         class Date < ActiveRecord::Type::Date
 
-          # When FreeTDS/TinyTDS casts this data type natively.
-          # include Castable
 
         end
       end

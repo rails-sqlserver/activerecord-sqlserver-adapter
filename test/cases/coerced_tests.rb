@@ -64,11 +64,11 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal "[foo'bar]", quoted
   end
 
-  # This test has a few problems. First, it would require that we use
-  # the `Type::SQLServer::BigInteger.new(limit: 8)` for the `world_population`
-  # attribute. Second, since we allow the DB to win at casting for TinyTDS,
-  # it always comes back as a BigDecimal.
+  # PENDING: [Rails5.x] Remove coerced tests and use simple symbol types..
+  # This test has a few problems. First, it would require that we use the
+  # `Type::SQLServer::BigInteger.new(limit: 8)` for the `world_population` attribute.
   coerce_tests! :test_numeric_fields
+  coerce_tests! :test_numeric_fields_with_scale
 
   # Just like PostgreSQLAdapter does.
   coerce_tests! :test_respect_internal_encoding
