@@ -39,6 +39,10 @@ module ActiveRecord
             server ? quote(server) : server
           end
 
+          def fully_qualified_database_quoted
+            [server_quoted, database_quoted].compact.join(SEPARATOR)
+          end
+
           def to_s
             quoted
           end

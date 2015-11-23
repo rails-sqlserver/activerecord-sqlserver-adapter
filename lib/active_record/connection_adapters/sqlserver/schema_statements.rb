@@ -221,7 +221,7 @@ module ActiveRecord
 
         def column_definitions(table_name)
           identifier  = SQLServer::Utils.extract_identifiers(table_name)
-          database    = "#{identifier.database_quoted}." if identifier.database_quoted
+          database    = identifier.fully_qualified_database_quoted
           view_exists = schema_cache.view_exists?(table_name)
           view_tblnm  = table_name_or_views_table_name(table_name) if view_exists
           sql = %{
@@ -237,7 +237,7 @@ module ActiveRecord
             columns.ordinal_position,
             CASE
               WHEN columns.DATA_TYPE IN ('nchar','nvarchar','char','varchar') THEN columns.CHARACTER_MAXIMUM_LENGTH
-              ELSE COL_LENGTH('#{database}'+columns.TABLE_SCHEMA+'.'+columns.TABLE_NAME, columns.COLUMN_NAME)
+              ELSE COL_LENGTH('#{database}.'+columns.TABLE_SCHEMA+'.'+columns.TABLE_NAME, columns.COLUMN_NAME)
             END AS [length],
             CASE
               WHEN columns.IS_NULLABLE = 'YES' THEN 1
@@ -248,24 +248,24 @@ module ActiveRecord
               ELSE NULL
             END AS [is_primary],
             c.is_identity AS [is_identity]
-            FROM #{database}INFORMATION_SCHEMA.COLUMNS columns
-            LEFT OUTER JOIN #{database}INFORMATION_SCHEMA.TABLE_CONSTRAINTS AS TC
+            FROM #{database}.INFORMATION_SCHEMA.COLUMNS columns
+            LEFT OUTER JOIN #{database}.INFORMATION_SCHEMA.TABLE_CONSTRAINTS AS TC
               ON TC.TABLE_NAME = columns.TABLE_NAME
               AND TC.CONSTRAINT_TYPE = N'PRIMARY KEY'
-            LEFT OUTER JOIN #{database}INFORMATION_SCHEMA.KEY_COLUMN_USAGE AS KCU
+            LEFT OUTER JOIN #{database}.INFORMATION_SCHEMA.KEY_COLUMN_USAGE AS KCU
               ON KCU.COLUMN_NAME = columns.COLUMN_NAME
               AND KCU.CONSTRAINT_NAME = TC.CONSTRAINT_NAME
               AND KCU.CONSTRAINT_CATALOG = TC.CONSTRAINT_CATALOG
               AND KCU.CONSTRAINT_SCHEMA = TC.CONSTRAINT_SCHEMA
-            INNER JOIN #{identifier.database_quoted}.sys.schemas AS s
+            INNER JOIN #{database}.sys.schemas AS s
               ON s.name = columns.TABLE_SCHEMA
               AND s.schema_id = s.schema_id
-            INNER JOIN #{identifier.database_quoted}.sys.objects AS o
+            INNER JOIN #{database}.sys.objects AS o
               ON s.schema_id = o.schema_id
               AND o.is_ms_shipped = 0
               AND o.type IN ('U', 'V')
               AND o.name = columns.TABLE_NAME
-            INNER JOIN #{identifier.database_quoted}.sys.columns AS c
+            INNER JOIN #{database}.sys.columns AS c
               ON o.object_id = c.object_id
               AND c.name = columns.COLUMN_NAME
             WHERE columns.TABLE_NAME = @0
@@ -299,7 +299,7 @@ module ActiveRecord
               if default.nil? && view_exists
                 default = select_value "
                   SELECT c.COLUMN_DEFAULT
-                  FROM #{database}INFORMATION_SCHEMA.COLUMNS c
+                  FROM #{database}.INFORMATION_SCHEMA.COLUMNS c
                   WHERE c.TABLE_NAME = '#{view_tblnm}'
                   AND c.COLUMN_NAME = '#{views_real_column_name(table_name, ci[:name])}'".squish, 'SCHEMA'
               end
