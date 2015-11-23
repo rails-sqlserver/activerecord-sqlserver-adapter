@@ -89,7 +89,6 @@ class UtilsTestSQLServer < ActiveRecord::TestCase
     it 'can return fully qualified quoted table name' do
       name = SQLServer::Utils.extract_identifiers('[server.name].[database].[schema].[object]')
       name.fully_qualified_database_quoted.must_equal '[server.name].[database]'
-
       name = SQLServer::Utils.extract_identifiers('server.database.schema.object')
       name.fully_qualified_database_quoted.must_equal '[server].[database]'
     end
