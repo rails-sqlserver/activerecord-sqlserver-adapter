@@ -1,4 +1,11 @@
 
+## v4.2.6
+
+#### Fixed
+
+* Allow linked servers for table names. Fixes #426. Thanks @jippeholwerda
+
+
 ## v4.2.5
 
 #### Removed
