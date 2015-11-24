@@ -13,6 +13,14 @@ module Arel
 
       # SQLServer ToSql/Visitor (Overides)
 
+      def visit_Arel_Attributes_Attribute o, collector
+        join_name = o.relation.table_alias ||
+          ActiveRecord::ConnectionAdapters::SQLServer::Utils.extract_identifiers(
+            o.relation.name
+          ).object_quoted
+        collector << "#{quote_table_name join_name}.#{quote_column_name o.name}"
+      end
+
       def visit_Arel_Nodes_BindParam o, collector
         collector.add_bind(o) { |i| "@#{i-1}" }
       end
