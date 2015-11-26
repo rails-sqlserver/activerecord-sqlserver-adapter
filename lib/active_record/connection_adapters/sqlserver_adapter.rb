@@ -181,6 +181,14 @@ module ActiveRecord
         @sqlserver_azure
       end
 
+      def remote_server?
+        !!database_prefix and SQLServer::Utils.extract_identifiers(@connection_options[:database_prefix]).fully_qualified?
+      end
+
+      def database_prefix
+        @connection_options[:database_prefix]
+      end
+
       def version
         self.class::VERSION
       end

@@ -416,5 +416,25 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
 
   end
 
+  describe 'remote_server?' do
+    after do
+      connection.instance_variable_get(:@connection_options).delete(:database_prefix)
+    end
+
+    it 'should return false if database_prefix is not configured' do
+      assert_equal false, connection.remote_server?
+    end
+
+    it 'should return true if database_prefix has been set' do
+      connection.instance_variable_get(:@connection_options)[:database_prefix] = "server.database.schema."
+      assert_equal true, connection.remote_server?
+    end
+
+    it 'should return false if database_prefix has been set incorrectly' do
+      connection.instance_variable_get(:@connection_options)[:database_prefix] = "server.database.schema"
+      assert_equal false, connection.remote_server?
+    end
+  end
+
 end
 

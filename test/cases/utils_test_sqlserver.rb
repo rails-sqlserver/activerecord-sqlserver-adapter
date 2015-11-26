@@ -86,6 +86,25 @@ class UtilsTestSQLServer < ActiveRecord::TestCase
       SQLServer::Utils.extract_identifiers('[obj.name].[foo]').quoted.must_equal '[obj.name].[foo]'
     end
 
+    it 'should indicate if a name is fully qualitified' do
+      SQLServer::Utils.extract_identifiers('object').fully_qualified?.must_equal false
+      SQLServer::Utils.extract_identifiers('schema.object').fully_qualified?.must_equal false
+      SQLServer::Utils.extract_identifiers('database.schema.object').fully_qualified?.must_equal false
+      SQLServer::Utils.extract_identifiers('database.object').fully_qualified?.must_equal false
+      SQLServer::Utils.extract_identifiers('server...object').fully_qualified?.must_equal false
+      SQLServer::Utils.extract_identifiers('server.database..object').fully_qualified?.must_equal false
+      SQLServer::Utils.extract_identifiers('server.database.schema.object').fully_qualified?.must_equal true
+      SQLServer::Utils.extract_identifiers('server.database.schema.').fully_qualified?.must_equal true
+      SQLServer::Utils.extract_identifiers('[obj.name]').fully_qualified?.must_equal false
+      SQLServer::Utils.extract_identifiers('[schema].[obj.name]').fully_qualified?.must_equal false
+      SQLServer::Utils.extract_identifiers('[database].[schema].[obj.name]').fully_qualified?.must_equal false
+      SQLServer::Utils.extract_identifiers('[database].[obj.name]').fully_qualified?.must_equal false
+      SQLServer::Utils.extract_identifiers('[server.name]...[obj.name]').fully_qualified?.must_equal false
+      SQLServer::Utils.extract_identifiers('[server.name].[database]..[obj.name]').fully_qualified?.must_equal false
+      SQLServer::Utils.extract_identifiers('[server.name].[database].[schema].[obj.name]').fully_qualified?.must_equal true
+      SQLServer::Utils.extract_identifiers('[server.name].[database].[schema].').fully_qualified?.must_equal true
+    end
+
     it 'can return fully qualified quoted table name' do
       name = SQLServer::Utils.extract_identifiers('[server.name].[database].[schema].[object]')
       name.fully_qualified_database_quoted.must_equal '[server.name].[database]'

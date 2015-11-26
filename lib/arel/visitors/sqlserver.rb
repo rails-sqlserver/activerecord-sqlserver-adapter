@@ -13,14 +13,6 @@ module Arel
 
       # SQLServer ToSql/Visitor (Overides)
 
-      def visit_Arel_Attributes_Attribute o, collector
-        join_name = o.relation.table_alias ||
-          ActiveRecord::ConnectionAdapters::SQLServer::Utils.extract_identifiers(
-            o.relation.name
-          ).object_quoted
-        collector << "#{quote_table_name join_name}.#{quote_column_name o.name}"
-      end
-
       def visit_Arel_Nodes_BindParam o, collector
         collector.add_bind(o) { |i| "@#{i-1}" }
       end
@@ -79,6 +71,19 @@ module Arel
         collector
       ensure
         @select_statement = nil
+      end
+
+      def visit_Arel_Table o, collector
+        table_name = if o.engine.connection.remote_server?
+          remote_server_table_name(o)
+        else
+          quote_table_name(o.name)
+        end
+        if o.table_alias
+          collector << "#{table_name} #{quote_table_name o.table_alias}"
+        else
+          collector << table_name
+        end
       end
 
       def visit_Arel_Nodes_JoinSource o, collector
@@ -191,6 +196,12 @@ module Arel
         return pk if pk
         column_name = t.engine.columns.first.try(:name)
         column_name ? t[column_name] : nil
+      end
+
+      def remote_server_table_name o
+        ActiveRecord::ConnectionAdapters::SQLServer::Utils.extract_identifiers(
+          "#{o.engine.connection.database_prefix}#{o.name}"
+        ).quoted
       end
 
     end
