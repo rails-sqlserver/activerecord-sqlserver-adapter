@@ -3,7 +3,7 @@ module ActiveRecord
     module SQLServer
       module Version
 
-        VERSION = '4.2.7'
+        VERSION = File.read(File.expand_path("../../../../../VERSION", __FILE__)).chomp
 
       end
     end
