@@ -113,6 +113,16 @@ class SQLServerRakeStructureDumpLoadTest < SQLServerRakeTest
       t.text_basic :background2
       t.timestamps null: false
     end
+
+    connection.execute <<-CUSTOMERSVIEW
+      CREATE VIEW users_view AS
+        SELECT name FROM users
+    CUSTOMERSVIEW
+
+    connection.execute <<-PROCEDUREDEF
+      CREATE PROCEDURE users_procedure AS
+        SELECT 1
+    PROCEDUREDEF
   end
 
   after do
@@ -124,7 +134,6 @@ class SQLServerRakeStructureDumpLoadTest < SQLServerRakeTest
     skip if host_windows?
     db_tasks.structure_dump configuration, filename
     filedata.wont_match %r{\AUSE.*\z}
-    filedata.wont_match %r{\AGO.*\z}
     filedata.must_match %r{email\s+nvarchar\(4000\)}
     filedata.must_match %r{background1\s+nvarchar\(max\)}
     filedata.must_match %r{background2\s+text\s+}
@@ -134,11 +143,21 @@ class SQLServerRakeStructureDumpLoadTest < SQLServerRakeTest
     # CHANGED: [TinyTDS] When utilities are available http://git.io/v3tBk
     skip if host_windows?
     db_tasks.structure_dump configuration, filename
+
     filedata.must_match %r{CREATE TABLE dbo\.users}
+    filedata.must_match %r{CREATE PROCEDURE users_procedure}
+    filedata.must_match %r{CREATE VIEW users_view}
+
     db_tasks.purge(configuration)
     connection.tables.wont_include 'users'
+    connection.send(:routines).wont_include 'users_procedure'
+    connection.send(:views).wont_include 'users_view'
+
     db_tasks.load_schema_for configuration, :sql, filename
+
     connection.tables.must_include 'users'
+    connection.send(:routines).must_include 'users_procedure'
+    connection.send(:views).must_include 'users_view'
   end
 
 end
