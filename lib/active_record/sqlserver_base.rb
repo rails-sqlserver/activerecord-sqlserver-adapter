@@ -1,7 +1,6 @@
 module ActiveRecord
-  class Base
-
-    def self.sqlserver_connection(config) #:nodoc:
+  module ConnectionHandling
+    def sqlserver_connection(config) #:nodoc:
       config = config.symbolize_keys
       config.reverse_merge! mode: :dblib
       mode = config[:mode].to_s.downcase.underscore.to_sym
@@ -17,6 +16,5 @@ module ActiveRecord
       end
       ConnectionAdapters::SQLServerAdapter.new(nil, logger, nil, config.merge(mode: mode))
     end
-
   end
 end
