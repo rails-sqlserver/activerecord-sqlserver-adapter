@@ -37,6 +37,8 @@ end
 group :tinytds do
   if ENV['TINYTDS_SOURCE']
     gem 'tiny_tds', path: ENV['TINYTDS_SOURCE']
+  elsif ENV['TINYTDS_VERSION']
+    gem 'tiny_tds', ENV['TINYTDS_VERSION']
   else
     gem 'tiny_tds'
   end
