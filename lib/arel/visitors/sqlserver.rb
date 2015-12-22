@@ -73,6 +73,19 @@ module Arel
         @select_statement = nil
       end
 
+      def visit_Arel_Table o, collector
+        table_name = if o.engine.connection.remote_server?
+          remote_server_table_name(o)
+        else
+          quote_table_name(o.name)
+        end
+        if o.table_alias
+          collector << "#{table_name} #{quote_table_name o.table_alias}"
+        else
+          collector << table_name
+        end
+      end
+
       def visit_Arel_Nodes_JoinSource o, collector
         if o.left
           collector = visit o.left, collector
@@ -183,6 +196,12 @@ module Arel
         return pk if pk
         column_name = t.engine.columns.first.try(:name)
         column_name ? t[column_name] : nil
+      end
+
+      def remote_server_table_name o
+        ActiveRecord::ConnectionAdapters::SQLServer::Utils.extract_identifiers(
+          "#{o.engine.connection.database_prefix}#{o.name}"
+        ).quoted
       end
 
     end

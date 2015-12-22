@@ -43,6 +43,10 @@ module ActiveRecord
             [server_quoted, database_quoted].compact.join(SEPARATOR)
           end
 
+          def fully_qualified?
+            parts.compact.size == 4
+          end
+
           def to_s
             quoted
           end
