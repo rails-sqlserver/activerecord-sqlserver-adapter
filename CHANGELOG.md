@@ -4,6 +4,7 @@
 #### Changed
 
 * Make linked servers stronger. Fixes #427. Thanks @jippeholwerda
+* Use proper module for the `sqlserver_connection` method. Fixes #431. Thanks @jippeholwerda
 
 
 ## v4.2.6
