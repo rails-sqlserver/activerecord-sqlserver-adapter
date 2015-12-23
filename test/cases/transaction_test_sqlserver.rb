@@ -48,6 +48,16 @@ class TransactionTestSQLServer < ActiveRecord::TestCase
     end
   end
 
+  it 'allow executing sql statements with a given isolation_level' do
+    begin
+      Ship.transaction(isolation: :read_committed) do
+        Ship.with_isolation_level(:read_uncommitted) do
+          connection.user_options_isolation_level.to_s.must_equal 'read uncommitted'
+        end
+      end
+      connection.user_options_isolation_level.to_s.must_equal 'read committed'
+    end
+  end
 
   protected
 
