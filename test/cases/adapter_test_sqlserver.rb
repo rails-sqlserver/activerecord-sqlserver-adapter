@@ -418,8 +418,6 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
 
   describe 'database_prefix_remote_server?' do
 
-    let(:connection_options) { connection.instance_variable_get(:@connection_options) }
-
     after do
       connection_options.delete(:database_prefix)
     end

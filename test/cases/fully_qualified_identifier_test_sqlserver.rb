@@ -2,8 +2,6 @@ require 'cases/helper_sqlserver'
 
 class FullyQualifiedIdentifierTestSQLServer < ActiveRecord::TestCase
 
-  let(:connection_options) { connection.instance_variable_get(:@connection_options) }
-
   describe 'local server' do
 
     it 'should use table name in select projections' do

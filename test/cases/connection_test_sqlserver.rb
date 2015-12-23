@@ -29,7 +29,7 @@ class ConnectionTestSQLServer < ActiveRecord::TestCase
       connection.use_database
       assert_equal 'activerecord_unittest', connection.current_database, 'Would default back to connection options'
     end
-  end unless sqlserver_azure?
+  end unless connection_sqlserver_azure?
 
   describe 'ODBC connection management' do
 
@@ -83,7 +83,7 @@ class ConnectionTestSQLServer < ActiveRecord::TestCase
       end
     end
 
-  end if connection_mode_odbc?
+  end if connection_odbc?
 
 
   describe 'Connection management' do
@@ -115,7 +115,7 @@ class ConnectionTestSQLServer < ActiveRecord::TestCase
   private
 
   def disconnect_raw_connection!
-    case connection.instance_variable_get(:@connection_options)[:mode]
+    case connection_options[:mode]
     when :dblib
       connection.raw_connection.close rescue nil
     when :odbc
