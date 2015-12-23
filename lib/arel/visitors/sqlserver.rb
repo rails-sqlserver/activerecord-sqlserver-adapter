@@ -74,7 +74,7 @@ module Arel
       end
 
       def visit_Arel_Table o, collector
-        table_name = if o.engine.connection.remote_server?
+        table_name = if o.engine.connection.database_prefix_remote_server?
           remote_server_table_name(o)
         else
           quote_table_name(o.name)

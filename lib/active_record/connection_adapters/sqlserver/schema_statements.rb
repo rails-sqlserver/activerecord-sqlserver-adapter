@@ -220,10 +220,10 @@ module ActiveRecord
         end
 
         def column_definitions(table_name)
-          if remote_server?
-            identifier  = SQLServer::Utils.extract_identifiers("#{database_prefix}#{table_name}")
+          identifier = if database_prefix_remote_server?
+            SQLServer::Utils.extract_identifiers("#{database_prefix}#{table_name}")
           else
-            identifier  = SQLServer::Utils.extract_identifiers(table_name)
+            SQLServer::Utils.extract_identifiers(table_name)
           end
           database    = identifier.fully_qualified_database_quoted
           view_exists = schema_cache.view_exists?(table_name)

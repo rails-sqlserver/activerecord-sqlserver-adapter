@@ -54,7 +54,6 @@ module ActiveRecord
         @visitor = Arel::Visitors::SQLServer.new self
         @prepared_statements = true
         # Our Responsibility
-        @config = config
         @connection_options = config
         connect
         @sqlserver_azure = !!(select_value('SELECT @@version', 'SCHEMA') =~ /Azure/i)
@@ -181,8 +180,10 @@ module ActiveRecord
         @sqlserver_azure
       end
 
-      def remote_server?
-        !!database_prefix and SQLServer::Utils.extract_identifiers(@connection_options[:database_prefix]).fully_qualified?
+      def database_prefix_remote_server?
+        return false if database_prefix.blank?
+        name = SQLServer::Utils.extract_identifiers(database_prefix)
+        name.fully_qualified? && name.object.blank?
       end
 
       def database_prefix

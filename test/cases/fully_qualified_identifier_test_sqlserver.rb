@@ -1,21 +1,27 @@
 require 'cases/helper_sqlserver'
 
 class FullyQualifiedIdentifierTestSQLServer < ActiveRecord::TestCase
+
+  let(:connection_options) { connection.instance_variable_get(:@connection_options) }
+
   describe 'local server' do
+
     it 'should use table name in select projections' do
       table = Arel::Table.new(:table)
       expected_sql = "SELECT [table].[name] FROM [table]"
       assert_equal expected_sql, table.project(table[:name]).to_sql
     end
+
   end
 
   describe 'remote server' do
+
     before do
-      connection.instance_variable_get(:@connection_options)[:database_prefix] = "[my.server].db.schema."
+      connection_options[:database_prefix] = "[my.server].db.schema."
     end
 
     after do
-      connection.instance_variable_get(:@connection_options).delete(:database_prefix)
+      connection_options.delete :database_prefix
     end
 
     it 'should use fully qualified table name in select from clause' do
@@ -66,5 +72,7 @@ class FullyQualifiedIdentifierTestSQLServer < ActiveRecord::TestCase
       expected_sql = "DELETE FROM [my.server].[db].[schema].[table] WHERE [table].[id] = 42"
       assert_equal expected_sql, manager.to_sql
     end
+
   end
+
 end
