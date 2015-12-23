@@ -1,9 +1,16 @@
 
+## v4.2.7
+
+#### Changed
+
+* Make linked servers stronger. Fixes #427. Thanks @jippeholwerda
+
+
 ## v4.2.6
 
 #### Fixed
 
-* Allow linked servers for table names. Fixes #426. Fixes #427. Thanks @jippeholwerda
+* Allow linked servers for table names. Fixes #426. Thanks @jippeholwerda
 
 
 ## v4.2.5
