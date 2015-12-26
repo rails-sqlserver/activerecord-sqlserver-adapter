@@ -58,9 +58,4 @@ class MigrationTestSQLServer < ActiveRecord::TestCase
 
   end
 
-
-  def quietly
-    silence_stream(STDOUT) { silence_stream(STDERR) { yield } }
-  end
-
 end
