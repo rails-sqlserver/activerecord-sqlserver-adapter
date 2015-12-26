@@ -122,7 +122,7 @@ class SQLServerRakeStructureDumpLoadTest < SQLServerRakeTest
   it 'dumps structure and accounts for defncopy oddities' do
     # CHANGED: [TinyTDS] When utilities are available http://git.io/v3tBk
     skip if host_windows?
-    db_tasks.structure_dump configuration, filename
+    structure_dump configuration, filename
     filedata.wont_match %r{\AUSE.*\z}
     filedata.wont_match %r{\AGO.*\z}
     filedata.must_match %r{email\s+nvarchar\(4000\)}
@@ -133,12 +133,22 @@ class SQLServerRakeStructureDumpLoadTest < SQLServerRakeTest
   it 'can load dumped structure' do
     # CHANGED: [TinyTDS] When utilities are available http://git.io/v3tBk
     skip if host_windows?
-    db_tasks.structure_dump configuration, filename
+    structure_dump configuration, filename
     filedata.must_match %r{CREATE TABLE dbo\.users}
     db_tasks.purge(configuration)
     connection.tables.wont_include 'users'
     db_tasks.load_schema_for configuration, :sql, filename
     connection.tables.must_include 'users'
+  end
+
+  private
+
+  def structure_dump(configuration, filename)
+    original_stdout = $stdout
+    $stdout = StringIO.new
+    db_tasks.structure_dump(configuration, filename)
+  ensure
+    $stdout = original_stdout
   end
 
 end
