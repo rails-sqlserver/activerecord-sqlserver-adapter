@@ -3,6 +3,7 @@
 
 #### Changed
 
+* Test now use latest v0.9.5 of TinyTDS.
 * Make linked servers stronger. Fixes #427. Thanks @jippeholwerda
 * Use proper module for the `sqlserver_connection` method. Fixes #431. Thanks @jippeholwerda
 
