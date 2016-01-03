@@ -122,18 +122,6 @@ module ActiveRecord
           SQLServer::Utils::Name.new(name)
         end
 
-        def with_sqlserver_db_date_formats
-          old_db_format_date = Date::DATE_FORMATS[:db]
-          old_db_format_time = Time::DATE_FORMATS[:db]
-          date_format = Date::DATE_FORMATS[:_sqlserver_dateformat]
-          Date::DATE_FORMATS[:db] = "#{date_format}"
-          Time::DATE_FORMATS[:db] = "#{date_format} %H:%M:%S"
-          yield
-        ensure
-          Date::DATE_FORMATS[:db] = old_db_format_date
-          Time::DATE_FORMATS[:db] = old_db_format_time
-        end
-
       end
     end
   end

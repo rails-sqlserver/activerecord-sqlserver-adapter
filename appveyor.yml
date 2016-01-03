@@ -2,7 +2,7 @@ init:
   - SET PATH=C:\Ruby%ruby_version%\bin;%PATH%
   - SET PATH=C:\MinGW\msys\1.0\bin;%PATH%
   - SET RAKEOPT=-rdevkit
-  - SET TINYTDS_VERSION=0.9.5.beta.4
+  - SET TINYTDS_VERSION=0.9.5.beta.7
 clone_depth: 5
 skip_tags: true
 matrix:
@@ -20,11 +20,13 @@ test_script:
   - timeout /t 4 /nobreak > NUL
   - sqlcmd -S ".\SQL2014" -U sa -P Password12! -i %APPVEYOR_BUILD_FOLDER%\test\appveyor\dbsetup.sql
   - bundle exec rake test ACTIVERECORD_UNITTEST_DATASERVER="localhost\SQL2014"
+  - bundle exec rake test ACTIVERECORD_UNITTEST_DATASERVER="localhost\SQL2014" ACTIVERECORD_UNITTEST_TDSVERSION="7.3"
   - ps: Stop-Service 'MSSQL$SQL2014'
   - ps: Start-Service 'MSSQL$SQL2012SP1'
   - timeout /t 4 /nobreak > NUL
   - sqlcmd -S ".\SQL2012SP1" -U sa -P Password12! -i %APPVEYOR_BUILD_FOLDER%\test\appveyor\dbsetup.sql
   - bundle exec rake test ACTIVERECORD_UNITTEST_DATASERVER="localhost\SQL2012SP1"
+  - bundle exec rake test ACTIVERECORD_UNITTEST_DATASERVER="localhost\SQL2012SP1" ACTIVERECORD_UNITTEST_TDSVERSION="7.3"
 environment:
   matrix:
     - ruby_version: "200-x64"

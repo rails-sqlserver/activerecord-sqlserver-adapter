@@ -201,6 +201,9 @@ module ActiveRecord
             real: { name: 'real' },
             date: { name: 'date' },
             datetime: { name: 'datetime' },
+            datetime2: { name: 'datetime2' },
+            datetimeoffset: { name: 'datetimeoffset' },
+            smalldatetime: { name: 'smalldatetime' },
             timestamp: { name: 'datetime' },
             time: { name: 'time' },
             char: { name: 'char' },
@@ -286,6 +289,8 @@ module ActiveRecord
             ci[:type] = case ci[:type]
                         when /^bit|image|text|ntext|datetime$/
                           ci[:type]
+                        when /^datetime2|datetimeoffset$/i
+                          "#{ci[:type]}(#{ci[:datetime_precision]})"
                         when /^time$/i
                           "#{ci[:type]}(#{ci[:datetime_precision]})"
                         when /^numeric|decimal$/i

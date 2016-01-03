@@ -4,28 +4,34 @@ module ActiveRecord
       module Type
         class DateTime < ActiveRecord::Type::DateTime
 
+          include TimeValueFractional
+
+          def type_cast_for_database(value)
+            return super unless value.acts_like?(:time)
+            value = zone_conversion(value)
+            datetime = value.to_s(:_sqlserver_datetime)
+            "#{datetime}".tap do |v|
+              fraction = quote_fractional(value)
+              v << ".#{fraction}" unless fraction.to_i.zero?
+            end
+          end
+
           def type_cast_for_schema(value)
-            value.acts_like?(:string) ? "'#{value}'" : super
+            type_cast_for_database(value).inspect
           end
 
 
           private
 
           def cast_value(value)
-            value = value.respond_to?(:usec) ? value : super
+            value = value.acts_like?(:time) ? value : super
             return unless value
-            value.change usec: cast_usec(value)
+            cast_fractional(value)
           end
 
-          def cast_usec(value)
-            return 0 if !value.respond_to?(:usec) || value.usec.zero?
-            seconds = value.usec.to_f / 1_000_000.0
-            ss_seconds = ((seconds * (1 / second_precision)).round / (1 / second_precision)).round(3)
-            (ss_seconds * 1_000_000).to_i
-          end
-
-          def second_precision
-            0.00333
+          def zone_conversion(value)
+            method = ActiveRecord::Base.default_timezone == :utc ? :getutc : :getlocal
+            value.respond_to?(method) ? value.send(method) : value
           end
 
         end

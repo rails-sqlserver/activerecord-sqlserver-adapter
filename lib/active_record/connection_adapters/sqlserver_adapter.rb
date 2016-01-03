@@ -230,6 +230,14 @@ module ActiveRecord
         # Date and Time
         m.register_type              'date',              SQLServer::Type::Date.new
         m.register_type              'datetime',          SQLServer::Type::DateTime.new
+        m.register_type              %r{\Adatetime2}i do |sql_type|
+          precision = extract_precision(sql_type)
+          SQLServer::Type::DateTime2.new precision: precision
+        end
+        m.register_type              %r{\Adatetimeoffset}i do |sql_type|
+          precision = extract_precision(sql_type)
+          SQLServer::Type::DateTimeOffset.new precision: precision
+        end
         m.register_type              'smalldatetime',     SQLServer::Type::SmallDateTime.new
         m.register_type              %r{\Atime}i do |sql_type|
           scale = extract_scale(sql_type)
@@ -362,8 +370,13 @@ module ActiveRecord
         a, b, c = @database_dateformat.each_char.to_a
         [a, b, c].each { |f| f.upcase! if f == 'y' }
         dateformat = "%#{a}-%#{b}-%#{c}"
-        ::Date::DATE_FORMATS[:_sqlserver_dateformat] = dateformat
-        ::Time::DATE_FORMATS[:_sqlserver_dateformat] = dateformat
+        ::Date::DATE_FORMATS[:_sqlserver_dateformat]     = dateformat
+        ::Time::DATE_FORMATS[:_sqlserver_dateformat]     = dateformat
+        ::Time::DATE_FORMATS[:_sqlserver_time]           = '%H:%M:%S'
+        ::Time::DATE_FORMATS[:_sqlserver_datetime]       = "#{dateformat} %H:%M:%S"
+        ::Time::DATE_FORMATS[:_sqlserver_datetimeoffset] = lambda { |time|
+          time.strftime "#{dateformat} %H:%M:%S.%9N #{time.formatted_offset}"
+        }
       end
 
     end

@@ -1,11 +1,26 @@
 
 ## v4.2.7
 
+#### Added
+
+* Support 2008 Datatypes Using TDSVER=7.3. Fixes #433
+
 #### Changed
 
 * Test now use latest v0.9.5 of TinyTDS.
 * Make linked servers stronger. Fixes #427. Thanks @jippeholwerda
 * Use proper module for the `sqlserver_connection` method. Fixes #431. Thanks @jippeholwerda
+* All datetime casting using the `Time::DATE_FORMATS[:_sqlserver_*]` formats set after connection.
+
+#### Removed
+
+* The `SQLServer::Utils.with_sqlserver_db_date_formats` helper and `quoted_date` hacks.
+* The `Quoter` value type which allowed column => type special case quoting.
+
+#### Fixed
+
+* Every time datatype has perfect micro/nano second handling.
+* All supported datatypes dump defaults properly to schema.rb
 
 
 ## v4.2.6

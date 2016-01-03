@@ -4,15 +4,15 @@ module ActiveRecord
       module Type
         class SmallDateTime < DateTime
 
+          def type
+            :smalldatetime
+          end
+
 
           private
 
-          def cast_usec(value)
-            0
-          end
-
-          def cast_usec_for_database(value)
-            '.000'
+          def cast_fractional(value)
+            value.change usec: 0
           end
 
         end

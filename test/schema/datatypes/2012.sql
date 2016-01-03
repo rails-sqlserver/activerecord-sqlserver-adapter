@@ -24,10 +24,16 @@ CREATE TABLE [sst_datatypes] (
   [real] [real] NULL DEFAULT 123.45,
   -- Date and Time
   [date] [date] NULL DEFAULT '0001-01-01',
-  [datetime] [datetime] NULL DEFAULT '1753-01-01T00:00:00.000',
+  [datetime] [datetime] NULL DEFAULT '1753-01-01T00:00:00.123',
+  [datetime2_7] [datetime2](7) NULL DEFAULT '9999-12-31 23:59:59.9999999',
+  [datetime2_3] [datetime2](3) NULL,
+  [datetime2_1] [datetime2](1) NULL,
+  [datetimeoffset_7] [datetimeoffset](7) NULL DEFAULT '1984-01-24 04:20:00.1234567 -08:00',
+  [datetimeoffset_3] [datetimeoffset](3) NULL,
+  [datetimeoffset_1] [datetimeoffset](1) NULL,
   [smalldatetime] [smalldatetime] NULL DEFAULT '1901-01-01T15:45:00.000Z',
+  [time_7] [time](7) NULL DEFAULT '04:20:00.2883215',
   [time_2] [time](2) NULL,
-  [time_7] [time](7) NULL,
   -- Character Strings
   [char_10] [char](10) NULL DEFAULT '1234567890',
   [varchar_50] [varchar](50) NULL DEFAULT 'test varchar_50',
@@ -46,19 +52,3 @@ CREATE TABLE [sst_datatypes] (
   [uniqueidentifier] [uniqueidentifier] NULL DEFAULT NEWID(),
   [timestamp] [timestamp] NULL,
 ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
-
--- Date and Time (TODO)
--- --------------------
--- [datetime2_7] [datetime2](7) NULL,
--- [datetimeoffset_2] [datetimeoffset](2) NULL,
--- [datetimeoffset_7] [datetimeoffset](7) NULL,
---
--- INSERT INTO [sst_datatypes] ([id], [datetime2_7])       VALUES ( 71, '0001-01-01T00:00:00.0000000Z' )
--- INSERT INTO [sst_datatypes] ([id], [datetime2_7])       VALUES ( 72, '1984-01-24T04:20:00.0000000-08:00' )
--- INSERT INTO [sst_datatypes] ([id], [datetime2_7])       VALUES ( 73, '9999-12-31T23:59:59.9999999Z' )
--- INSERT INTO [sst_datatypes] ([id], [datetimeoffset_2])  VALUES ( 81, '1984-01-24T04:20:00.0000000-08:00' ) -- 1984-01-24 04:20:00.00 -08:00
--- INSERT INTO [sst_datatypes] ([id], [datetimeoffset_2])  VALUES ( 82, '1984-01-24T04:20:00.0000000Z' )      -- 1984-01-24 04:20:00.00 +00:00
--- INSERT INTO [sst_datatypes] ([id], [datetimeoffset_2])  VALUES ( 83, '9999-12-31T23:59:59.9999999Z' )      -- 9999-12-31 23:59:59.99 +00:00
--- INSERT INTO [sst_datatypes] ([id], [datetimeoffset_7])  VALUES ( 84, '1984-01-24T04:20:00.0000000-08:00' ) -- 1984-01-24 04:20:00.0000000 -08:00
--- INSERT INTO [sst_datatypes] ([id], [datetimeoffset_7])  VALUES ( 85, '1984-01-24T04:20:00.0000000Z' )      -- 1984-01-24 04:20:00.0000000 +00:00
--- INSERT INTO [sst_datatypes] ([id], [datetimeoffset_7])  VALUES ( 86, '9999-12-31T23:59:59.9999999Z' )      -- 9999-12-31 23:59:59.9999999 +00:00

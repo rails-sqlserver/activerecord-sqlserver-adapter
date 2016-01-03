@@ -24,11 +24,18 @@ class SchemaDumperTestSQLServer < ActiveRecord::TestCase
     assert_line :float,             type: 'float',        limit: nil,          precision: nil,   scale: nil,  default: '123.00000001'
     assert_line :real,              type: 'real',         limit: nil,          precision: nil,   scale: nil,  default: %r{123.4[45]}
     # Date and Time
-    assert_line :date,              type: 'date',         limit: nil,           precision: nil,   scale: nil,  default: "'0001-01-01'"
-    assert_line :datetime,          type: 'datetime',     limit: nil,           precision: nil,   scale: nil,  default: "'1753-01-01 00:00:00'"
-    assert_line :smalldatetime,     type: 'datetime',     limit: nil,           precision: nil,   scale: nil,  default: "'1901-01-01 15:45:00'"
+    assert_line :date,              type: 'date',         limit: nil,           precision: nil,   scale: nil,  default: "\"01-01-0001\""
+    assert_line :datetime,          type: 'datetime',     limit: nil,           precision: nil,   scale: nil,  default: "\"01-01-1753 00:00:00.123\""
+    if connection_dblib_73?
+    assert_line :datetime2_7,       type: 'datetime2',    limit: nil,           precision: '7',   scale: nil,  default: "\"12-31-9999 23:59:59.9999999\""
+    assert_line :datetime2_3,       type: 'datetime2',    limit: nil,           precision: '3',   scale: nil,  default: nil
+    assert_line :datetime2_1,       type: 'datetime2',    limit: nil,           precision: '1',   scale: nil,  default: nil
+    end
+    assert_line :smalldatetime,     type: 'smalldatetime',limit: nil,           precision: nil,   scale: nil,  default: "\"01-01-1901 15:45:00\""
+    if connection_dblib_73?
+    assert_line :time_7,            type: 'time',         limit: nil,           precision: '7',   scale: nil,  default: "\"04:20:00.2883215\""
     assert_line :time_2,            type: 'time',         limit: nil,           precision: '2',   scale: nil,  default: nil
-    assert_line :time_7,            type: 'time',         limit: nil,           precision: nil,   scale: nil,  default: nil
+    end
     # Character Strings
     assert_line :char_10,           type: 'char',         limit: '10',          precision: nil,   scale: nil,  default: "\"1234567890\""
     assert_line :varchar_50,        type: 'varchar',      limit: '50',          precision: nil,   scale: nil,  default: "\"test varchar_50\""
@@ -73,12 +80,14 @@ class SchemaDumperTestSQLServer < ActiveRecord::TestCase
     assert_line :text_col,        type: 'text',         limit: '2147483647', precision: nil,  scale: nil, default: nil
     assert_line :datetime_col,    type: 'datetime',     limit: nil,          precision: nil,  scale: nil, default: nil
     assert_line :timestamp_col,   type: 'datetime',     limit: nil,          precision: nil,  scale: nil, default: nil
-    assert_line :time_col,        type: 'time',         limit: nil,          precision: nil,  scale: nil, default: nil
+    assert_line :time_col,        type: 'time',         limit: nil,          precision: '7',  scale: nil, default: nil
     assert_line :date_col,        type: 'date',         limit: nil,          precision: nil,  scale: nil, default: nil
     assert_line :binary_col,      type: 'binary',       limit: '2147483647', precision: nil,  scale: nil, default: nil
     # Our type methods.
     columns['real_col'].sql_type.must_equal         'real'
     columns['money_col'].sql_type.must_equal        'money'
+    columns['datetime2_col'].sql_type.must_equal    'datetime2(7)'
+    columns['datetimeoffset'].sql_type.must_equal   'datetimeoffset(7)'
     columns['smallmoney_col'].sql_type.must_equal   'smallmoney'
     columns['char_col'].sql_type.must_equal         'char(1)'
     columns['varchar_col'].sql_type.must_equal      'varchar(8000)'
@@ -91,6 +100,7 @@ class SchemaDumperTestSQLServer < ActiveRecord::TestCase
     columns['sstimestamp_col'].sql_type.must_equal  'timestamp'
     assert_line :real_col,          type: 'real',         limit: nil,           precision: nil,   scale: nil,  default: nil
     assert_line :money_col,         type: 'money',        limit: nil,           precision: '19',  scale: '4',  default: nil
+    assert_line :datetime2_col,     type: 'datetime2',    limit: nil,           precision: '7',   scale: nil,  default: nil
     assert_line :smallmoney_col,    type: 'smallmoney',   limit: nil,           precision: '10',  scale: '4',  default: nil
     assert_line :char_col,          type: 'char',         limit: '1',           precision: nil,   scale: nil,  default: nil
     assert_line :varchar_col,       type: 'varchar',      limit: '8000',        precision: nil,   scale: nil,  default: nil
@@ -145,12 +155,19 @@ class SchemaDumperTestSQLServer < ActiveRecord::TestCase
   def assert_line(column_name, options={})
     line = line(column_name)
     assert line, "Count not find line with column name: #{column_name.inspect} in schema:\n#{schema}"
-    line.type_method.must_equal  options[:type],      "Type of #{options[:type].inspect} not found in:\n #{line}"            if options.key?(:type)
-    line.limit.must_equal        options[:limit],     "Limit of #{options[:limit].inspect} not found in:\n #{line}"          if options.key?(:limit)
-    line.precision.must_equal    options[:precision], "Precision of #{options[:precision].inspect} not found in:\n #{line}"  if options.key?(:precision)
-    line.scale.must_equal        options[:scale],     "Scale of #{options[:scale].inspect} not found in:\n #{line}"          if options.key?(:scale)
-    line.default.must_equal      options[:default],   "Default of #{options[:default].inspect} not found in:\n #{line}"      if options.key?(:default) && options[:default].is_a?(String)
-    line.default.must_match      options[:default],   "Default of #{options[:default].inspect} not found in:\n #{line}"      if options.key?(:default) && options[:default].is_a?(Regexp)
+    [:type, :limit, :precision, :scale, :default].each do |key|
+      next unless options.key?(key)
+      actual   = key == :type ? line.send(:type_method) : line.send(key)
+      expected = options[key]
+      message  = "#{key.to_s.titleize} of #{expected.inspect} not found in:\n#{line}"
+      if expected.nil?
+        actual.must_be_nil message
+      elsif expected.is_a?(Regexp)
+        actual.must_match expected, message
+      else
+        actual.must_equal expected, message
+      end
+    end
   end
 
   class SchemaLine

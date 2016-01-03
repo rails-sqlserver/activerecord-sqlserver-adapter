@@ -19,18 +19,20 @@ ActiveRecord::Schema.define do
     t.date      :date_col
     t.binary    :binary_col
     # Our type methods.
-    t.real          :real_col
-    t.money         :money_col
-    t.smallmoney    :smallmoney_col
-    t.char          :char_col
-    t.varchar       :varchar_col
-    t.text_basic    :text_basic_col
-    t.nchar         :nchar_col
-    t.ntext         :ntext_col
-    t.binary_basic  :binary_basic_col
-    t.varbinary     :varbinary_col
-    t.uuid          :uuid_col
-    t.ss_timestamp  :sstimestamp_col
+    t.real           :real_col
+    t.money          :money_col
+    t.datetime2      :datetime2_col
+    t.datetimeoffset :datetimeoffset
+    t.smallmoney     :smallmoney_col
+    t.char           :char_col
+    t.varchar        :varchar_col
+    t.text_basic     :text_basic_col
+    t.nchar          :nchar_col
+    t.ntext          :ntext_col
+    t.binary_basic   :binary_basic_col
+    t.varbinary      :varbinary_col
+    t.uuid           :uuid_col
+    t.ss_timestamp   :sstimestamp_col
   end
 
   # Edge Cases

@@ -284,7 +284,7 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       col = column('date')
       col.sql_type.must_equal           'date'
       col.null.must_equal               true
-      col.default.must_equal            '0001-01-01' # TODO: None type casted default. Really want Date.civil(0001, 1, 1).
+      col.default.must_equal            connection_dblib_73? ? Date.civil(0001, 1, 1) : '0001-01-01'
       obj.date.must_equal               Date.civil(0001, 1, 1)
       col.default_function.must_equal   nil
       type = col.cast_type
@@ -312,8 +312,8 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       col = column('datetime')
       col.sql_type.must_equal           'datetime'
       col.null.must_equal               true
-      col.default.must_equal            Time.utc(1753, 01, 01, 00, 00, 00, 000)
-      obj.datetime.must_equal           Time.utc(1753, 01, 01, 00, 00, 00, 000)
+      col.default.must_equal            Time.utc(1753, 01, 01, 00, 00, 00, 123000), "Microseconds were <#{col.default.usec}> vs <123000>"
+      obj.datetime.must_equal           Time.utc(1753, 01, 01, 00, 00, 00, 123000), "Microseconds were <#{obj.datetime.usec}> vs <123000>"
       col.default_function.must_equal   nil
       type = col.cast_type
       type.must_be_instance_of          Type::DateTime
@@ -322,7 +322,7 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       type.limit.must_equal             nil
       type.precision.must_equal         nil
       type.scale.must_equal             nil
-      # Can save .003 seconds and return again.
+      # Can save to proper accuracy and return again.
       obj.datetime = Time.utc(2010, 01, 01, 12, 34, 56, 3000)
       obj.datetime.must_equal           Time.utc(2010, 01, 01, 12, 34, 56, 3000), "Microseconds were <#{obj.datetime.usec}> vs <3000>"
       obj.save!
@@ -334,6 +334,80 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       obj.reload.datetime.must_equal    Time.utc(2010, 01, 01, 12, 34, 56, 233000), "Microseconds were <#{obj.reload.datetime.usec}> vs <233000>"
     end
 
+    it 'datetime2' do
+      skip 'datetime2 not supported in this protocal version' unless connection_dblib_73?
+      col = column('datetime2_7')
+      col.sql_type.must_equal           'datetime2(7)'
+      col.null.must_equal               true
+      col.default.must_equal            Time.utc(9999, 12, 31, 23, 59, 59, Rational(999999900, 1000)), "Nanoseconds were <#{col.default.nsec}> vs <999999900>"
+      obj.datetime2_7.must_equal        Time.utc(9999, 12, 31, 23, 59, 59, Rational(999999900, 1000)), "Nanoseconds were <#{obj.datetime2_7.nsec}> vs <999999900>"
+      col.default_function.must_equal   nil
+      type = col.cast_type
+      type.must_be_instance_of          Type::DateTime2
+      type.type.must_equal              :datetime2
+      type.wont_be                      :number?
+      type.limit.must_equal             nil
+      type.precision.must_equal         7
+      type.scale.must_equal             nil
+      # Can save 100 nanosecond precisoins and return again.
+      obj.datetime2_7 = Time.utc(9999, 12, 31, 23, 59, 59, Rational(123456755, 1000))
+      obj.datetime2_7.must_equal           Time.utc(9999, 12, 31, 23, 59, 59, Rational(123456800, 1000)), "Nanoseconds were <#{obj.datetime2_7.nsec}> vs <123456800>"
+      obj.save!
+      obj.reload.datetime2_7.must_equal    Time.utc(9999, 12, 31, 23, 59, 59, Rational(123456800, 1000)), "Nanoseconds were <#{obj.datetime2_7.nsec}> vs <123456800>"
+      # With other precisions.
+      time = Time.utc 9999, 12, 31, 23, 59, 59, Rational(123456789, 1000)
+      col = column('datetime2_3')
+      col.cast_type.precision.must_equal 3
+      obj.datetime2_3 = time
+      obj.datetime2_3.must_equal time.change(nsec: 123000000), "Nanoseconds were <#{obj.datetime2_3.nsec}> vs <123000000>"
+      obj.save! ; obj.reload
+      obj.datetime2_3.must_equal time.change(nsec: 123000000), "Nanoseconds were <#{obj.datetime2_3.nsec}> vs <123000000>"
+      col = column('datetime2_1')
+      col.cast_type.precision.must_equal 1
+      obj.datetime2_1 = time
+      obj.datetime2_1.must_equal time.change(nsec: 100000000), "Nanoseconds were <#{obj.datetime2_1.nsec}> vs <100000000>"
+      obj.save! ; obj.reload
+      obj.datetime2_1.must_equal time.change(nsec: 100000000), "Nanoseconds were <#{obj.datetime2_1.nsec}> vs <100000000>"
+    end
+
+    it 'datetimeoffset' do
+      skip 'datetimeoffset not supported in this protocal version' unless connection_dblib_73?
+      col = column('datetimeoffset_7')
+      col.sql_type.must_equal           'datetimeoffset(7)'
+      col.null.must_equal               true
+      col.default.must_equal            Time.new(1984, 01, 24, 04, 20, 00, -28800).change(nsec: 123456700), "Nanoseconds <#{col.default.nsec}> vs <123456700>"
+      obj.datetimeoffset_7.must_equal   Time.new(1984, 01, 24, 04, 20, 00, -28800).change(nsec: 123456700), "Nanoseconds were <#{obj.datetimeoffset_7.nsec}> vs <999999900>"
+      col.default_function.must_equal   nil
+      type = col.cast_type
+      type.must_be_instance_of          Type::DateTimeOffset
+      type.type.must_equal              :datetimeoffset
+      type.wont_be                      :number?
+      type.limit.must_equal             nil
+      type.precision.must_equal         7
+      type.scale.must_equal             nil
+      # Can save 100 nanosecond precisoins and return again.
+      obj.datetimeoffset_7 = Time.new(2010, 01, 01, 12, 34, 56, +18000).change(nsec: 123456755)
+      obj.datetimeoffset_7.must_equal   Time.new(2010, 01, 01, 12, 34, 56, +18000).change(nsec: 123456800), "Nanoseconds were <#{obj.datetimeoffset_7.nsec}> vs <123456800>"
+      obj.save! ; obj.reload
+      obj.datetimeoffset_7.must_equal   Time.new(2010, 01, 01, 12, 34, 56, +18000).change(nsec: 123456800), "Nanoseconds were <#{obj.datetimeoffset_7.nsec}> vs <123456800>"
+      # With other precisions.
+      time = ActiveSupport::TimeZone['America/Los_Angeles'].local 2010, 12, 31, 23, 59, 59, Rational(123456755, 1000)
+      col = column('datetimeoffset_3')
+      col.cast_type.precision.must_equal 3
+      obj.datetimeoffset_3 = time
+      obj.datetimeoffset_3.must_equal time.change(nsec: 123000000), "Nanoseconds were <#{obj.datetimeoffset_3.nsec}> vs <123000000>"
+      # TODO: FreeTDS date bug fixed: https://github.com/FreeTDS/freetds/issues/44
+      return
+      obj.save! ; obj.reload
+      obj.datetimeoffset_3.must_equal time.change(nsec: 123000000), "Nanoseconds were <#{obj.datetimeoffset_3.nsec}> vs <123000000>"
+      col = column('datetime2_1')
+      col.cast_type.precision.must_equal 1
+      obj.datetime2_1 = time
+      obj.datetime2_1.must_equal time.change(nsec: 100000000), "Nanoseconds were <#{obj.datetime2_1.nsec}> vs <100000000>"
+      obj.save! ; obj.reload
+      obj.datetime2_1.must_equal time.change(nsec: 100000000), "Nanoseconds were <#{obj.datetime2_1.nsec}> vs <100000000>"
+    end
+
     it 'smalldatetime' do
       col = column('smalldatetime')
       col.sql_type.must_equal           'smalldatetime'
@@ -343,7 +417,7 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       col.default_function.must_equal   nil
       type = col.cast_type
       type.must_be_instance_of          Type::SmallDateTime
-      type.type.must_equal              :datetime
+      type.type.must_equal              :smalldatetime
       type.wont_be                      :number?
       type.limit.must_equal             nil
       type.precision.must_equal         nil
@@ -355,7 +429,41 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       obj.reload.smalldatetime.must_equal   Time.utc(2078, 06, 05, 4, 20, 00, 0), "Microseconds were <#{obj.reload.smalldatetime.usec}> vs <0>"
     end
 
+    it 'time(7)' do
+      skip 'time() not supported in this protocal version' unless connection_dblib_73?
+      col = column('time_7')
+      col.sql_type.must_equal           'time(7)'
+      col.null.must_equal               true
+      col.default.must_equal            Time.utc(1900, 01, 01, 04, 20, 00, Rational(288321500, 1000)), "Nanoseconds were <#{col.default.nsec}> vs <288321500>"
+      col.default_function.must_equal   nil
+      type = col.cast_type
+      type.must_be_instance_of          Type::Time
+      type.type.must_equal              :time
+      type.wont_be                      :number?
+      type.limit.must_equal             nil
+      type.precision.must_equal         7
+      type.scale.must_equal             nil
+      # Time's #usec precision (low micro)
+      obj.time_7 = Time.utc(2000, 01, 01, 15, 45, 00, 300)
+      obj.time_7.must_equal             Time.utc(2000, 01, 01, 15, 45, 00, 300), "Microseconds were <#{obj.time_7.usec}> vs <0>"
+      obj.time_7.must_equal             Time.utc(2000, 01, 01, 15, 45, 00, 300), "Nanoseconds were <#{obj.time_7.nsec}> vs <300>"
+      obj.save! ; obj.reload
+      obj.time_7.must_equal             Time.utc(2000, 01, 01, 15, 45, 00, 300), "Microseconds were <#{obj.time_7.usec}> vs <0>"
+      obj.time_7.must_equal             Time.utc(2000, 01, 01, 15, 45, 00, 300), "Nanoseconds were <#{obj.time_7.nsec}> vs <300>"
+      # Time's #usec precision (high micro)
+      obj.time_7 = Time.utc(2000, 01, 01, 15, 45, 00, 234567)
+      obj.time_7.must_equal             Time.utc(2000, 01, 01, 15, 45, 00, 234567), "Microseconds were <#{obj.time_7.usec}> vs <234567>"
+      obj.save! ; obj.reload
+      obj.time_7.must_equal             Time.utc(2000, 01, 01, 15, 45, 00, 234567), "Microseconds were <#{obj.time_7.usec}> vs <234567>"
+      # Time's #usec precision (high nano rounded)
+      obj.time_7 = Time.utc(2000, 01, 01, 15, 45, 00, Rational(288321545, 1000))
+      obj.time_7.must_equal             Time.utc(2000, 01, 01, 15, 45, 00, Rational(288321500, 1000)), "Nanoseconds were <#{obj.time_7.nsec}> vs <288321500>"
+      obj.save! ; obj.reload
+      obj.time_7.must_equal             Time.utc(2000, 01, 01, 15, 45, 00, Rational(288321500, 1000)), "Nanoseconds were <#{obj.time_7.nsec}> vs <288321500>"
+    end
+
     it 'time(2)' do
+      skip 'time() not supported in this protocal version' unless connection_dblib_73?
       col = column('time_2')
       col.sql_type.must_equal           'time(2)'
       col.null.must_equal               true
@@ -368,56 +476,21 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       type.limit.must_equal             nil
       type.precision.must_equal         2
       type.scale.must_equal             nil
-      # Always uses ActiveRecord's 2000-01-01 convention too.
+      # Always uses TinyTDS/Windows 2000-01-01 convention too.
       obj.time_2 = Time.utc(2015, 01, 10, 15, 45, 00, 0)
       obj.time_2.must_equal             Time.utc(2000, 01, 01, 15, 45, 00, 0)
-      obj.save!
-      obj.reload.time_2.must_equal      Time.utc(2000, 01, 01, 15, 45, 00, 0)
-      # Midnight the beggining of the day.
-      obj.time_2 = Time.utc(2000, 01, 01).midnight.change(usec: 0)
-      obj.time_2.must_equal             Time.utc(2000, 01, 01, 00, 00, 00, 0)
-      obj.save!
-      obj.reload.time_2.must_equal      Time.utc(2000, 01, 01, 00, 00, 00, 0)
-      # The end of day.
-      obj.time_2 = Time.utc(2000, 01, 01).end_of_day.change(usec: 0)
-      obj.time_2.must_equal             Time.utc(2000, 01, 01, 23, 59, 59, 0)
-      obj.save!
-      obj.reload.time_2.must_equal      Time.utc(2000, 01, 01, 23, 59, 59, 0)
+      obj.save! ; obj.reload
+      obj.time_2.must_equal             Time.utc(2000, 01, 01, 15, 45, 00, 0)
       # Time's #usec precision (barely in 2 precision equal to 0.03 seconds)
       obj.time_2 = Time.utc(2000, 01, 01, 15, 45, 00, 30000)
       obj.time_2.must_equal             Time.utc(2000, 01, 01, 15, 45, 00, 30000), "Microseconds were <#{obj.time_2.usec}> vs <30000>"
-      obj.save!
-      obj.reload.time_2.must_equal      Time.utc(2000, 01, 01, 15, 45, 00, 30000), "Microseconds were <#{obj.reload.time_2.usec}> vs <30000>"
+      obj.save! ; obj.reload
+      obj.time_2.must_equal             Time.utc(2000, 01, 01, 15, 45, 00, 30000), "Microseconds were <#{obj.time_2.usec}> vs <30000>"
       # Time's #usec precision (below 2 precision)
       obj.time_2 = Time.utc(2000, 01, 01, 15, 45, 00, 4000)
       obj.time_2.must_equal             Time.utc(2000, 01, 01, 15, 45, 00, 0), "Microseconds were <#{obj.time_2.usec}> vs <0>"
-      obj.save!
-      obj.reload.time_2.must_equal      Time.utc(2000, 01, 01, 15, 45, 00, 0), "Microseconds were <#{obj.reload.time_2.usec}> vs <0>"
-    end
-
-    it 'time(7)' do
-      col = column('time_7')
-      col.sql_type.must_equal           'time(7)'
-      col.null.must_equal               true
-      col.default.must_equal            nil
-      col.default_function.must_equal   nil
-      type = col.cast_type
-      type.must_be_instance_of          Type::Time
-      type.type.must_equal              :time
-      type.wont_be                      :number?
-      type.limit.must_equal             nil
-      type.precision.must_equal         nil, 'so it is clean in schema dumper'
-      type.scale.must_equal             nil
-      # Time's #usec precision (low)
-      obj.time_7 = Time.utc(2000, 01, 01, 15, 45, 00, 300)
-      obj.time_7.must_equal             Time.utc(2000, 01, 01, 15, 45, 00, 300), "Microseconds were <#{obj.time_7.usec}> vs <300>"
-      obj.save!
-      obj.reload.time_7.must_equal      Time.utc(2000, 01, 01, 15, 45, 00, 300), "Microseconds were <#{obj.reload.time_7.usec}> vs <300>"
-      # Time's #usec precision (high)
-      obj.time_7 = Time.utc(2000, 01, 01, 15, 45, 00, 234567)
-      obj.time_7.must_equal             Time.utc(2000, 01, 01, 15, 45, 00, 234567), "Microseconds were <#{obj.time_7.usec}> vs <234567>"
-      obj.save!
-      obj.reload.time_7.must_equal      Time.utc(2000, 01, 01, 15, 45, 00, 234567), "Microseconds were <#{obj.reload.time_7.usec}> vs <234567>"
+      obj.save! ; obj.reload
+      obj.time_2.must_equal             Time.utc(2000, 01, 01, 15, 45, 00, 0), "Microseconds were <#{obj.time_2.usec}> vs <0>"
     end
 
     # Character Strings

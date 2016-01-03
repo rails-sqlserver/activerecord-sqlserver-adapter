@@ -25,35 +25,49 @@ Account.execute_procedure :update_totals, named: 'params'
 
 #### Native Data Type Support
 
-We support every data type supported by FreeTDS and then a few more. All simplified Rails types in migrations will coorespond to a matching SQL Server national data type. Here is a basic chart. Always check the `initialize_native_database_types` method for an updated list.
+We support every data type supported by FreeTDS and then a few more. All simplified Rails types in migrations will coorespond to a matching SQL Server national (unicode) data type. Here is a basic chart. Always check the `initialize_native_database_types` method for an updated list.
 
 ```ruby
-integer:      { name: 'int', limit: 4 }
-bigint:       { name: 'bigint' }
-boolean:      { name: 'bit' }
-decimal:      { name: 'decimal' }
-money:        { name: 'money' }
-smallmoney:   { name: 'smallmoney' }
-float:        { name: 'float' }
-real:         { name: 'real' }
-date:         { name: 'date' }
-datetime:     { name: 'datetime' }
-timestamp:    { name: 'datetime' }
-time:         { name: 'time' }
-char:         { name: 'char' }
-varchar:      { name: 'varchar', limit: 8000 }
-varchar_max:  { name: 'varchar(max)' }
-text_basic:   { name: 'text' }
-nchar:        { name: 'nchar' }
-string:       { name: 'nvarchar', limit: 4000 }
-text:         { name: 'nvarchar(max)' }
-ntext:        { name: 'ntext' }
-binary_basic: { name: 'binary' }
-varbinary:    { name: 'varbinary', limit: 8000 }
-binary:       { name: 'varbinary(max)' }
-uuid:         { name: 'uniqueidentifier' }
-ss_timestamp: { name: 'timestamp' }
+integer:        { name: 'int', limit: 4 }
+bigint:         { name: 'bigint' }
+boolean:        { name: 'bit' }
+decimal:        { name: 'decimal' }
+money:          { name: 'money' }
+smallmoney:     { name: 'smallmoney' }
+float:          { name: 'float' }
+real:           { name: 'real' }
+date:           { name: 'date' }
+datetime:       { name: 'datetime' }
+datetime2:      { name: 'datetime2', precision: 7 }
+datetimeoffset: { name: 'datetimeoffset', precision: 7 }
+smalldatetime:  { name: 'smalldatetime' }
+timestamp:      { name: 'datetime' }
+time:           { name: 'time' }
+char:           { name: 'char' }
+varchar:        { name: 'varchar', limit: 8000 }
+varchar_max:    { name: 'varchar(max)' }
+text_basic:     { name: 'text' }
+nchar:          { name: 'nchar' }
+string:         { name: 'nvarchar', limit: 4000 }
+text:           { name: 'nvarchar(max)' }
+ntext:          { name: 'ntext' }
+binary_basic:   { name: 'binary' }
+varbinary:      { name: 'varbinary', limit: 8000 }
+binary:         { name: 'varbinary(max)' }
+uuid:           { name: 'uniqueidentifier' }
+ss_timestamp:   { name: 'timestamp' }
 ```
+
+The following types require TDS version 7.3 with TinyTDS. This requires the latest FreeTDS v0.95 or higher.
+
+* date
+* datetime2
+* datetimeoffset
+* time
+
+Set `tds_version` in your database.yml or the `TDSVER` environment variable to `7.3` to ensure you are using the proper protocol version till 7.3 becomes the default.
+
+**Zone Conversion** - The `[datetimeoffset]` type is the only ActiveRecord time based datatype that does not cast the zone to ActiveRecord's default - typically UTC. As intended, this datatype is meant to maintain the zone you pass to it and/or retreived from the database.
 
 
 #### Force Schema To Lowercase

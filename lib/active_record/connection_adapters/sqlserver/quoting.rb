@@ -40,15 +40,10 @@ module ActiveRecord
         end
 
         def quoted_date(value)
-          SQLServer::Utils.with_sqlserver_db_date_formats do
-            if value.acts_like?(:time) && value.respond_to?(:usec)
-              precision = (BigDecimal(value.usec.to_s) / 1_000_000).round(3).to_s.split('.').last
-              "#{super}.#{precision}"
-            elsif value.acts_like?(:date)
-              value.to_s(:_sqlserver_dateformat)
-            else
-              super
-            end
+          if value.acts_like?(:date)
+            Type::Date.new.type_cast_for_database(value)
+          else value.acts_like?(:time)
+            Type::DateTime.new.type_cast_for_database(value)
           end
         end
 
@@ -59,8 +54,6 @@ module ActiveRecord
           case value
           when Type::Binary::Data
             "0x#{value.hex}"
-          when SQLServer::Type::Quoter
-            value.quote_ss_value
           when String, ActiveSupport::Multibyte::Chars
             if value.is_utf8?
               "#{QUOTED_STRING_PREFIX}#{super}"
@@ -70,11 +63,6 @@ module ActiveRecord
           else
             super
           end
-        end
-
-        def quoted_value_acts_like_time_filter(value)
-          zone_conversion_method = ActiveRecord::Base.default_timezone == :utc ? :getutc : :getlocal
-          value.respond_to?(zone_conversion_method) ? value.send(zone_conversion_method) : value
         end
 
       end

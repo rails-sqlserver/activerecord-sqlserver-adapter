@@ -18,6 +18,14 @@ module ActiveRecord
           column(name, :money, options)
         end
 
+        def datetime2(name, options = {})
+          column(name, :datetime2, options)
+        end
+
+        def datetimeoffset(name, options = {})
+          column(name, :datetimeoffset, options)
+        end
+
         def smallmoney(name, options = {})
           column(name, :smallmoney, options)
         end

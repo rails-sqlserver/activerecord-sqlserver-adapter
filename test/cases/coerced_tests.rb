@@ -603,6 +603,13 @@ class SchemaDumperTest < ActiveRecord::TestCase
 
 end
 
+class SchemaDumperDefaultsTest < ActiveRecord::TestCase
+
+  # These date formats do not match ours. We got these covered in our dumper tests.
+  coerce_tests! :test_schema_dump_defaults_with_universally_supported_types
+
+end
+
 
 
 
