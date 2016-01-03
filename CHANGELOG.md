@@ -7,7 +7,7 @@
 
 #### Changed
 
-* Test now use latest v0.9.5 of TinyTDS.
+* Test now use latest v0.9.5 of TinyTDS. Includes tests for `defncopy` Windows binstub.
 * Make linked servers stronger. Fixes #427. Thanks @jippeholwerda
 * Use proper module for the `sqlserver_connection` method. Fixes #431. Thanks @jippeholwerda
 * All datetime casting using the `Time::DATE_FORMATS[:_sqlserver_*]` formats set after connection.
