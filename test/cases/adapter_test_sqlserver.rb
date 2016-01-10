@@ -438,5 +438,23 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
 
   end
 
+  describe 'temporary table' do
+
+    let(:base_table_name) { SstTempTable.table_name.gsub(/^#/, '') }
+
+    after do
+      begin
+        connection.drop_table(SstTempTable.table_name)
+      rescue ActiveRecord::StatementInvalid
+      end
+    end
+
+    it 'creates a temporary table' do
+      connection.create_table(base_table_name, :temporary => true)
+      assert_equal 0, SstTempTable.count
+    end
+
+  end
+
 end
 
