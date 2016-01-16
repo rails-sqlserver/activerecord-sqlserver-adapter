@@ -44,7 +44,7 @@ module ActiveRecord
     end
 
     def quietly
-      host_windows? ? yield : silence_stream(STDOUT) { silence_stream(STDERR) { yield } }
+      silence_stream(STDOUT) { silence_stream(STDERR) { yield } }
     end
 
   end

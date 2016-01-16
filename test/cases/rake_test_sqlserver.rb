@@ -120,6 +120,7 @@ class SQLServerRakeStructureDumpLoadTest < SQLServerRakeTest
   end
 
   it 'dumps structure and accounts for defncopy oddities' do
+    skip 'debug defncopy on windows later' if host_windows?
     quietly { db_tasks.structure_dump configuration, filename }
     filedata.wont_match %r{\AUSE.*\z}
     filedata.wont_match %r{\AGO.*\z}
@@ -129,6 +130,7 @@ class SQLServerRakeStructureDumpLoadTest < SQLServerRakeTest
   end
 
   it 'can load dumped structure' do
+    skip 'debug defncopy on windows later' if host_windows?
     quietly { db_tasks.structure_dump configuration, filename }
     filedata.must_match %r{CREATE TABLE dbo\.users}
     db_tasks.purge(configuration)
