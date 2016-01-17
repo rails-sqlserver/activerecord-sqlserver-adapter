@@ -21,6 +21,7 @@
 
 * Every time datatype has perfect micro/nano second handling.
 * All supported datatypes dump defaults properly to schema.rb
+* Partial indexes using `:where` in schema dumper. Fixes #153
 
 
 ## v4.2.6
