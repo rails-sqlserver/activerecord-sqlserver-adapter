@@ -75,7 +75,11 @@ end
 
 class SchemaDumperTest < ActiveRecord::TestCase
 
-  COERCED_TESTS = [:test_schema_dump_keeps_large_precision_integer_columns_as_decimal, :test_types_line_up]
+  COERCED_TESTS = [
+    :test_schema_dump_keeps_large_precision_integer_columns_as_decimal,
+    :test_types_line_up,
+    :test_schema_dumps_partial_indices
+  ]
 
   include SqlserverCoercedTest
 
@@ -87,15 +91,18 @@ class SchemaDumperTest < ActiveRecord::TestCase
    def test_coerced_types_line_up
     column_definition_lines.each do |column_set|
       next if column_set.empty?
-
       lengths = column_set.map do |column|
         if match = column.match(/t\.(?:integer|decimal|float|datetime|timestamp|time|date|text|binary|string|boolean|uuid)\s+"/)
           match[0].length
         end
       end
-
       assert_equal 1, lengths.uniq.length
     end
+  end
+
+  def test_coerced_schema_dumps_partial_indices
+    index_definition = standard_dump.split(/\n/).grep(/add_index.*company_partial_index/).first.strip
+    assert_equal 'add_index "companies", ["firm_id", "type"], name: "company_partial_index", where: "([rating]>(10))"', index_definition
   end
 
 end

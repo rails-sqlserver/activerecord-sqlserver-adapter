@@ -1,4 +1,10 @@
 
+## v4.1.3
+
+#### Fixed
+
+* Partial indexes using `:where` in schema dumper. Fixes #153
+
 
 ## v4.1.2
 

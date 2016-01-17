@@ -31,12 +31,13 @@ module ActiveRecord
             else
               name    = index[:index_name]
               unique  = index[:index_description] =~ /unique/
+              where   = select_value("SELECT [filter_definition] FROM sys.indexes WHERE name = #{quote(name)}")
               columns = index[:index_keys].split(',').map do |column|
                 column.strip!
                 column.gsub! '(-)', '' if column.ends_with?('(-)')
                 column
               end
-              indexes << IndexDefinition.new(table_name, name, unique, columns)
+              indexes << IndexDefinition.new(table_name, name, unique, columns, nil, nil, where)
             end
           end
         end
