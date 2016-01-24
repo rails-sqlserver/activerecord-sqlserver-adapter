@@ -120,10 +120,11 @@ module ActiveRecord
       end
 
       def disable_referential_integrity
-        do_execute "EXEC sp_MSforeachtable 'ALTER TABLE ? NOCHECK CONSTRAINT ALL'"
+        tables = tables_with_referential_integrity
+        tables.each { |t| do_execute "ALTER TABLE #{t} NOCHECK CONSTRAINT ALL" }
         yield
       ensure
-        do_execute "EXEC sp_MSforeachtable 'ALTER TABLE ? CHECK CONSTRAINT ALL'"
+        tables.each { |t| do_execute "ALTER TABLE #{t} CHECK CONSTRAINT ALL" }
       end
 
       # === Abstract Adapter (Connection Management) ================== #
@@ -160,6 +161,19 @@ module ActiveRecord
       end
 
       # === Abstract Adapter (Misc Support) =========================== #
+
+      def tables_with_referential_integrity
+        schemas_and_tables = select_rows <<-SQL.strip_heredoc
+          SELECT s.name, o.name
+          FROM sys.foreign_keys i
+          INNER JOIN sys.objects o ON i.parent_object_id = o.OBJECT_ID
+          INNER JOIN sys.schemas s ON o.schema_id = s.schema_id
+        SQL
+        schemas_and_tables.map do |schema_table|
+          schema, table = schema_table
+          "#{SQLServer::Utils.quoted_raw(schema)}.#{SQLServer::Utils.quoted_raw(table)}"
+        end
+      end
 
       def pk_and_sequence_for(table_name)
         pk = primary_key(table_name)

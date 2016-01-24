@@ -55,6 +55,10 @@ module ActiveRecord
             parts.map{ |p| quote(p) if p }.join SEPARATOR
           end
 
+          def quoted_raw
+            quote @raw_name
+          end
+
           def ==(o)
             o.class == self.class && o.parts == parts
           end
@@ -112,6 +116,10 @@ module ActiveRecord
 
         def quote_string(s)
           s.to_s.gsub /\'/, "''"
+        end
+
+        def quoted_raw(name)
+          SQLServer::Utils::Name.new(name).quoted_raw
         end
 
         def unquote_string(s)

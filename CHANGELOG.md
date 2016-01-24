@@ -1,4 +1,11 @@
 
+## v4.2.8
+
+#### Fixed
+
+* Azure-Friendly Disable Referential Integrity. No more `sp_MSforeachtable` usage. Fixes #421
+
+
 ## v4.2.7
 
 #### Added

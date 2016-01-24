@@ -10,6 +10,10 @@ class UtilsTestSQLServer < ActiveRecord::TestCase
     SQLServer::Utils.unquote_string("I''ll store this in C:\\Users").must_equal "I'll store this in C:\\Users"
   end
 
+  it '.quoted_raw' do
+    SQLServer::Utils.quoted_raw("some.Name").must_equal "[some.Name]"
+  end
+
   describe '.extract_identifiers constructor and thus SQLServer::Utils::Name value object' do
 
     let(:valid_names) { valid_names_unquoted + valid_names_quoted }
