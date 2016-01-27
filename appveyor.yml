@@ -27,7 +27,14 @@ test_script:
   - sqlcmd -S ".\SQL2012SP1" -U sa -P Password12! -i %APPVEYOR_BUILD_FOLDER%\test\appveyor\dbsetup.sql
   - bundle exec rake test ACTIVERECORD_UNITTEST_DATASERVER="localhost\SQL2012SP1"
   - bundle exec rake test ACTIVERECORD_UNITTEST_DATASERVER="localhost\SQL2012SP1" ACTIVERECORD_UNITTEST_TDSVERSION="7.3"
+  - timeout /t 4 /nobreak > NUL
+  - bundle exec rake ACTIVERECORD_UNITTEST_AZURE=1 ACTIVERECORD_UNITTEST_HOST=%CI_AZURE_HOST% ACTIVERECORD_UNITTEST_PASS=%CI_AZURE_PASS%
+  - bundle exec rake ACTIVERECORD_UNITTEST_AZURE=1 ACTIVERECORD_UNITTEST_HOST=%CI_AZURE_HOST% ACTIVERECORD_UNITTEST_PASS=%CI_AZURE_PASS% ACTIVERECORD_UNITTEST_TDSVERSION="7.3"
 environment:
+  CI_AZURE_HOST:
+    secure: D7mY9Aj6qBEvGf5MhSyLBHOU2IehhtseaTm1VqlBfmo=
+  CI_AZURE_PASS:
+    secure: cSQp8sk4urJYvq0utpsK+r7J+snJ2wpcdp8RdXJfB+w=
   matrix:
     - ruby_version: "200-x64"
     - ruby_version: "21-x64"
