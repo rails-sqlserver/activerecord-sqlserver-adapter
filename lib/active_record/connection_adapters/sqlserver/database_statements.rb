@@ -179,8 +179,8 @@ module ActiveRecord
           if sqlserver_azure?
             sql = %(SELECT CASE [transaction_isolation_level]
                     WHEN 0 THEN NULL
-                    WHEN 1 THEN 'READ UNCOMITTED'
-                    WHEN 2 THEN 'READ COMITTED'
+                    WHEN 1 THEN 'READ UNCOMMITTED'
+                    WHEN 2 THEN 'READ COMMITTED'
                     WHEN 3 THEN 'REPEATABLE READ'
                     WHEN 4 THEN 'SERIALIZABLE'
                     WHEN 5 THEN 'SNAPSHOT' END AS [isolation_level]

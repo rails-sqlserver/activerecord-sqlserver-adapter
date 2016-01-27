@@ -4,16 +4,25 @@ class SQLServerRakeTest < ActiveRecord::TestCase
 
   self.use_transactional_fixtures = false
 
+  cattr_accessor :azure_skip
+  self.azure_skip = connection_sqlserver_azure?
+
   let(:db_tasks)              { ActiveRecord::Tasks::DatabaseTasks }
   let(:new_database)          { 'activerecord_unittest_tasks' }
   let(:default_configuration) { ARTest.connection_config['arunit'] }
   let(:configuration)         { default_configuration.merge('database' => new_database) }
 
-  before do
+  before { skip 'on azure' if azure_skip }
+  before { disconnect! unless azure_skip }
+  after  { reconnect unless azure_skip }
+
+  private
+
+  def disconnect!
     connection.disconnect!
   end
 
-  after do
+  def reconnect
     ActiveRecord::Base.establish_connection(default_configuration)
     connection.drop_database(new_database) rescue nil
   end

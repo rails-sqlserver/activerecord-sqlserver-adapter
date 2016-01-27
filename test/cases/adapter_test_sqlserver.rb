@@ -240,6 +240,7 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
   describe 'database statements' do
 
     it "run the database consistency checker useroptions command" do
+      skip 'on azure' if connection_sqlserver_azure?
       keys = [:textsize, :language, :isolation_level, :dateformat]
       user_options = connection.user_options
       keys.each do |key|
@@ -249,6 +250,7 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
     end
 
     it "return a underscored key hash with indifferent access of the results" do
+      skip 'on azure' if connection_sqlserver_azure?
       user_options = connection.user_options
       assert_equal 'read committed', user_options['isolation_level']
       assert_equal 'read committed', user_options[:isolation_level]
