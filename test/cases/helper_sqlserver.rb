@@ -1,4 +1,4 @@
-require 'bundler' ; Bundler.require :default, :development, :test
+require 'bundler/setup' ; Bundler.require :default, :development
 require 'support/paths_sqlserver'
 require 'support/minitest_sqlserver'
 require 'cases/helper'
