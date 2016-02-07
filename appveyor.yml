@@ -3,7 +3,7 @@ init:
   - SET PATH=C:\MinGW\msys\1.0\bin;%PATH%
   - SET RAKEOPT=-rdevkit
   - SET TDSDUMP=%APPVEYOR_BUILD_FOLDER%\test\tdsdump.log
-  - SET TINYTDS_VERSION=0.9.5.rc.1
+  - SET TINYTDS_VERSION=0.9.5.rc.2
 clone_depth: 5
 skip_tags: true
 matrix:
