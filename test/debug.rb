@@ -1,13 +1,13 @@
-require 'bundler' ; Bundler.require :default, :development#, :test
+require 'bundler' ; Bundler.require :default#, :development, :test
 require 'guard'
 require 'guard-minitest'
-require 'minitest'
-require 'minitest-focus'
-require 'minitest-spec-rails'
-require 'mocha'
-require 'nokogiri'
-require 'byebug'
-require 'rake'
+# require 'minitest'
+# require 'minitest-focus'
+# require 'minitest-spec-rails'
+# require 'mocha'
+# require 'nokogiri'
+# require 'byebug'
+# require 'rake'
 require 'tiny_tds'
 
 c = TinyTds::Client.new(
