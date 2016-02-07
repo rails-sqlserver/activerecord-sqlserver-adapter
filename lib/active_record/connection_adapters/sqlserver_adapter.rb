@@ -308,7 +308,7 @@ module ActiveRecord
       end
 
       def dblib_connect(config)
-        TinyTds::Client.new(
+        options = {
           dataserver: config[:dataserver],
           host: config[:host],
           port: config[:port],
@@ -321,7 +321,9 @@ module ActiveRecord
           timeout: config_timeout(config),
           encoding:  config_encoding(config),
           azure: config[:azure]
-        ).tap do |client|
+        }
+        puts options.except(:password).inspect
+        TinyTds::Client.new(options).tap do |client|
           if config[:azure]
             client.execute('SET ANSI_NULLS ON').do
             client.execute('SET CURSOR_CLOSE_ON_COMMIT OFF').do
