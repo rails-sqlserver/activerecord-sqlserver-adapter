@@ -1,6 +1,7 @@
 require 'bundler' ; Bundler.require :default, :development, :test
 
 puts "\n\n\nBOOT:"
+require 'tiny_tds'
 c = ::TinyTds::Client.new(
   host: ENV['CI_AZURE_HOST'],
   username: 'rails',
