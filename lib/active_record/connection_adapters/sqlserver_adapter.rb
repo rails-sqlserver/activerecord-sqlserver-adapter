@@ -322,7 +322,17 @@ module ActiveRecord
           # encoding:  config_encoding(config),
           azure: config[:azure]
         }
+        puts "\n\n\ndblib_connect:"
         puts options.except(:password).inspect
+        c = ::TinyTds::Client.new(
+          host: ENV['CI_AZURE_HOST'],
+          username: 'rails',
+          password: ENV['CI_AZURE_PASS'],
+          database: 'activerecord_unittest',
+          azure: true
+        )
+        puts c.execute("SELECT 1 AS [one]").each
+        c.close
         TinyTds::Client.new(options).tap do |client|
           if config[:azure]
             client.execute('SET ANSI_NULLS ON').do
