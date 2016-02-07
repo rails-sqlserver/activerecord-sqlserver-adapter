@@ -3,6 +3,8 @@ require 'rake/testtask'
 require_relative 'test/support/paths_sqlserver'
 require_relative 'test/support/rake_helpers'
 
+puts ENV.inspect
+
 task test: ['test:dblib']
 task default: [:test]
 
