@@ -308,6 +308,7 @@ module ActiveRecord
       end
 
       def dblib_connect(config)
+        puts config.inspect
         TinyTds::Client.new(
           dataserver: config[:dataserver],
           host: config[:host],
