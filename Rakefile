@@ -6,8 +6,6 @@ require_relative 'test/support/rake_helpers'
 task test: ['test:dblib']
 task default: [:test]
 
-puts ENV.inspect
-
 namespace :test do
 
   %w(dblib odbc).each do |mode|
