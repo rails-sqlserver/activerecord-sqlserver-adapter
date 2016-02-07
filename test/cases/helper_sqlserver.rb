@@ -8,6 +8,8 @@ require 'support/sql_counter_sqlserver'
 require 'support/connection_reflection'
 require 'mocha/mini_test'
 
+puts ENV.inspect
+
 module ActiveRecord
   class TestCase < ActiveSupport::TestCase
 
