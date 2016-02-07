@@ -311,7 +311,7 @@ module ActiveRecord
         options = {
           # dataserver: config[:dataserver],
           host: config[:host],
-          port: config[:port],
+          # port: config[:port],
           username: config[:username],
           password: config[:password],
           database: config[:database],
