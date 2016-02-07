@@ -2,6 +2,7 @@ init:
   - SET PATH=C:\Ruby%ruby_version%\bin;%PATH%
   - SET PATH=C:\MinGW\msys\1.0\bin;%PATH%
   - SET RAKEOPT=-rdevkit
+  - SET TDSDUMP=%APPVEYOR_BUILD_FOLDER%\test\tdsdump.log
   - SET TINYTDS_VERSION=0.9.5.rc.1
 clone_depth: 5
 skip_tags: true
@@ -42,3 +43,5 @@ environment:
     # - ruby_version: "200-x64"
     # - ruby_version: "21-x64"
     - ruby_version: "22-x64"
+on_failure:
+  - find -name tdsdump.log | xargs cat
