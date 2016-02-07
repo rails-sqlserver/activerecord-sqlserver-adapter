@@ -25,6 +25,5 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'minitest-spec-rails'
   spec.add_development_dependency 'mocha'
   spec.add_development_dependency 'nokogiri'
-  spec.add_development_dependency 'byebug'
   spec.add_development_dependency 'rake'
 end
