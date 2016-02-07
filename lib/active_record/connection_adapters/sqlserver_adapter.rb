@@ -308,32 +308,20 @@ module ActiveRecord
       end
 
       def dblib_connect(config)
-        options = {
-          # dataserver: config[:dataserver],
+        TinyTds::Client.new(
+          dataserver: config[:dataserver],
           host: config[:host],
-          # port: config[:port],
+          port: config[:port],
           username: config[:username],
           password: config[:password],
           database: config[:database],
-          # tds_version: config[:tds_version],
-          # appname: config_appname(config),
-          # login_timeout: config_login_timeout(config),
-          # timeout: config_timeout(config),
-          # encoding:  config_encoding(config),
+          tds_version: config[:tds_version],
+          appname: config_appname(config),
+          login_timeout: config_login_timeout(config),
+          timeout: config_timeout(config),
+          encoding:  config_encoding(config),
           azure: config[:azure]
-        }
-        puts "\n\n\ndblib_connect:"
-        puts options.except(:password).inspect
-        c = ::TinyTds::Client.new(
-          host: ENV['CI_AZURE_HOST'],
-          username: 'rails',
-          password: ENV['CI_AZURE_PASS'],
-          database: 'activerecord_unittest',
-          azure: true
-        )
-        puts c.execute("SELECT 1 AS [one]").each
-        c.close
-        TinyTds::Client.new(options).tap do |client|
+        ).tap do |client|
           if config[:azure]
             client.execute('SET ANSI_NULLS ON').do
             client.execute('SET CURSOR_CLOSE_ON_COMMIT OFF').do
