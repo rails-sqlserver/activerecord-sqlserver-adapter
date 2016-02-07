@@ -309,7 +309,7 @@ module ActiveRecord
 
       def dblib_connect(config)
         options = {
-          dataserver: config[:dataserver],
+          # dataserver: config[:dataserver],
           host: config[:host],
           port: config[:port],
           username: config[:username],
