@@ -1,6 +1,7 @@
-require 'bundler' ; Bundler.require :default#, :development, :test
-require 'guard'
-require 'guard-minitest'
+require 'bundler/setup'
+Bundler.require :default, :development, :test
+# require 'guard'
+# require 'guard-minitest'
 # require 'minitest'
 # require 'minitest-focus'
 # require 'minitest-spec-rails'
