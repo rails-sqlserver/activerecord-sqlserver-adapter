@@ -1,8 +1,7 @@
+require 'tiny_tds'
+sleep 5
 ENV['BUNDLE_GEMFILE'] ||= File.expand_path('../../Gemfile', __FILE__)
 require 'bundler/setup' ; Bundler.require :default, :development
-
-sleep 5
-require 'tiny_tds'
 
 c = TinyTds::Client.new(
   host: ENV['CI_AZURE_HOST'],
