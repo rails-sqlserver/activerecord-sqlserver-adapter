@@ -1,4 +1,4 @@
-require 'rails/all'
+# require 'rails/all'
 require 'tiny_tds'
 
 c = TinyTds::Client.new(
@@ -7,7 +7,6 @@ c = TinyTds::Client.new(
   password: ENV['CI_AZURE_PASS'],
   database: 'activerecord_unittest',
   azure: true,
-  login_timeout: 20,
   tds_version: '7.3'
 )
 

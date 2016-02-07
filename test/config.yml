@@ -9,7 +9,6 @@ default_connection_info: &default_connection_info
   username: <%= ENV['ACTIVERECORD_UNITTEST_USER'] || 'rails' %>
   password: <%= ENV['ACTIVERECORD_UNITTEST_PASS'] || '' %>
   collation: <%= ENV['ACTIVERECORD_UNITTEST_COLLATION'] || nil %>
-  login_timeout: 20
   encoding: utf8
 
 connections:
