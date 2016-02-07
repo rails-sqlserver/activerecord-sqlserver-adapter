@@ -43,5 +43,5 @@ environment:
     # - ruby_version: "200-x64"
     # - ruby_version: "21-x64"
     - ruby_version: "22-x64"
-on_failure:
+on_finish:
   - find -name tdsdump.log | xargs cat
