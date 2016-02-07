@@ -1,5 +1,5 @@
 require 'bundler/setup'
-Bundler.require :default, :development, :test
+Bundler.require :default, :development
 require 'tiny_tds'
 
 c = TinyTds::Client.new(
