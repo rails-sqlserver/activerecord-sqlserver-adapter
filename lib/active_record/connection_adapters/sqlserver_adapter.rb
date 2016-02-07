@@ -317,9 +317,9 @@ module ActiveRecord
           database: config[:database],
           tds_version: config[:tds_version],
           appname: config_appname(config),
-          login_timeout: config_login_timeout(config),
-          timeout: config_timeout(config),
-          encoding:  config_encoding(config),
+          # login_timeout: config_login_timeout(config),
+          # timeout: config_timeout(config),
+          # encoding:  config_encoding(config),
           azure: config[:azure]
         }
         puts options.except(:password).inspect
