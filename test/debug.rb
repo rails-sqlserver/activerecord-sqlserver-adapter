@@ -1,5 +1,5 @@
-# require 'bundler/setup' ; Bundler.require :default, :development
 require 'tiny_tds'
+require 'bundler/setup' ; Bundler.require :default, :development
 
 c = TinyTds::Client.new(
   host: ENV['CI_AZURE_HOST'],
