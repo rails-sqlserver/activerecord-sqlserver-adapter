@@ -31,7 +31,7 @@ test_script:
   # - bundle exec rake test ACTIVERECORD_UNITTEST_AZURE=1 ACTIVERECORD_UNITTEST_HOST=%CI_AZURE_HOST% ACTIVERECORD_UNITTEST_PASS=%CI_AZURE_PASS% ONLY_SQLSERVER=1
   # - timeout /t 4 /nobreak > NUL
   # - bundle exec rake test ACTIVERECORD_UNITTEST_AZURE=1 ACTIVERECORD_UNITTEST_HOST=%CI_AZURE_HOST% ACTIVERECORD_UNITTEST_PASS=%CI_AZURE_PASS% ACTIVERECORD_UNITTEST_TDSVERSION="7.3"
-  - ruby -e "require 'tiny_tds' ; c = TinyTds::Client.new(host: ENV['CI_AZURE_HOST'], username: 'rails', password: ENV['CI_AZURE_PASS'], database: 'activerecord_unittest', azure: true) ; puts c.execute("SELECT 1 AS [one]").each ; c.close"
+  - ruby %APPVEYOR_BUILD_FOLDER%\test\debug.rb
   - bundle exec rake test ACTIVERECORD_UNITTEST_HOST=%CI_AZURE_HOST% ACTIVERECORD_UNITTEST_PASS=%CI_AZURE_PASS% ACTIVERECORD_UNITTEST_AZURE=1 ONLY_SQLSERVER=1 TDSVER=7.3
 environment:
   CI_AZURE_HOST:
