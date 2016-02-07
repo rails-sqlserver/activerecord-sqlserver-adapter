@@ -14,7 +14,7 @@ install:
   - bundle install --without odbc
 build: off
 test_script:
-  - bundle exec rake test ACTIVERECORD_UNITTEST_AZURE=1 ACTIVERECORD_UNITTEST_HOST=%CI_AZURE_HOST% ACTIVERECORD_UNITTEST_PASS=%CI_AZURE_PASS%
+  - bundle exec rake test ACTIVERECORD_UNITTEST_AZURE=1 ACTIVERECORD_UNITTEST_HOST=%CI_AZURE_HOST% ACTIVERECORD_UNITTEST_PASS=%CI_AZURE_PASS% ONLY_SQLSERVER=1
 environment:
   CI_AZURE_HOST:
     secure: VChrioaIWkf9iuuaSs4cryiA4honrADgZqNC0++begg=
