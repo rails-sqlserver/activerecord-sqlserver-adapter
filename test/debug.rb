@@ -1,4 +1,4 @@
-require 'bundler' ; Bundler.require :default#, :development, :test
+require 'bundler' ; Bundler.require :default, :development#, :test
 require 'guard'
 require 'guard-minitest'
 require 'minitest'
