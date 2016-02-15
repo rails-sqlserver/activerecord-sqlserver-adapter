@@ -20,6 +20,7 @@ connections:
       dataserver: <%= ENV['ACTIVERECORD_UNITTEST_DATASERVER'] %>
       tds_version: <%= ENV['ACTIVERECORD_UNITTEST_TDSVERSION'] %>
       azure: <%= !ENV['ACTIVERECORD_UNITTEST_AZURE'].nil? %>
+      timeout: <%= ENV['ACTIVERECORD_UNITTEST_AZURE'].present? ? 20 : nil %>
     arunit2:
       <<: *default_connection_info
       database: activerecord_unittest2
@@ -27,6 +28,7 @@ connections:
       dataserver: <%= ENV['ACTIVERECORD_UNITTEST_DATASERVER'] %>
       tds_version: <%= ENV['ACTIVERECORD_UNITTEST_TDSVERSION'] %>
       azure: <%= !ENV['ACTIVERECORD_UNITTEST_AZURE'].nil? %>
+      timeout: <%= ENV['ACTIVERECORD_UNITTEST_AZURE'].present? ? 20 : nil %>
 
   odbc:
     arunit:

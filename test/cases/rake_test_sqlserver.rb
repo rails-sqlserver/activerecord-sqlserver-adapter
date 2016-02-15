@@ -23,13 +23,23 @@ class SQLServerRakeTest < ActiveRecord::TestCase
   end
 
   def reconnect
-    ActiveRecord::Base.establish_connection(default_configuration)
-    connection.drop_database(new_database) rescue nil
+    config = default_configuration
+    if connection_sqlserver_azure?
+      ActiveRecord::Base.establish_connection(config.merge('database' => 'master'))
+      connection.drop_database(new_database) rescue nil
+      disconnect!
+      ActiveRecord::Base.establish_connection(config)
+    else
+      ActiveRecord::Base.establish_connection(config)
+      connection.drop_database(new_database) rescue nil
+    end
   end
 
 end
 
 class SQLServerRakeCreateTest < SQLServerRakeTest
+
+  self.azure_skip = false
 
   it 'establishes connection to database after create ' do
     db_tasks.create configuration
@@ -55,6 +65,8 @@ class SQLServerRakeCreateTest < SQLServerRakeTest
 end
 
 class SQLServerRakeDropTest < SQLServerRakeTest
+
+  self.azure_skip = false
 
   it 'drops database and uses master' do
     db_tasks.create configuration

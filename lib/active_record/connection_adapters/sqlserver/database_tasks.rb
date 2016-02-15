@@ -5,17 +5,9 @@ module ActiveRecord
 
         def create_database(database, options = {})
           name = SQLServer::Utils.extract_identifiers(database)
-          options = {collation: @connection_options[:collation]}.merge!(options.symbolize_keys)
-          options = options.select { |_, v| v.present? }
-          option_string = options.inject("") do |memo, (key, value)|
-            memo += case key
-            when :collation
-              " COLLATE #{value}"
-            else
-              ""
-            end
-          end
-          do_execute "CREATE DATABASE #{name}#{option_string}"
+          db_options = create_database_options(options)
+          edition_options = create_database_edition_options(options)
+          do_execute "CREATE DATABASE #{name} #{db_options} #{edition_options}"
         end
 
         def drop_database(database)
@@ -33,6 +25,38 @@ module ActiveRecord
 
         def collation
           select_value "SELECT DATABASEPROPERTYEX(DB_NAME(), 'Collation')"
+        end
+
+
+        private
+
+        def create_database_options(options={})
+          keys  = [:collate]
+          copts = @connection_options
+          options = {
+            collate: copts[:collation]
+          }.merge(options.symbolize_keys).select { |_, v|
+            v.present?
+          }.slice(*keys).map { |k,v|
+            "#{k.to_s.upcase} #{v}"
+          }.join(' ')
+          options
+        end
+
+        def create_database_edition_options(options={})
+          keys  = [:maxsize, :edition, :service_objective]
+          copts = @connection_options
+          edition_options = {
+            maxsize: copts[:azure_maxsize],
+            edition: copts[:azure_edition],
+            service_objective: copts[:azure_service_objective]
+          }.merge(options.symbolize_keys).select { |_, v|
+            v.present?
+          }.slice(*keys).map { |k,v|
+            "#{k.to_s.upcase} = #{v}"
+          }.join(', ')
+          edition_options = "( #{edition_options} )" if edition_options.present?
+          edition_options
         end
 
       end

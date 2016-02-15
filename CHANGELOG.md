@@ -4,6 +4,8 @@
 #### Fixed
 
 * Azure-Friendly Disable Referential Integrity. No more `sp_MSforeachtable` usage. Fixes #421
+* Azure-Friendly DB create/drop. Fixes #442
+  - Create allows edition options like: MAXSIZE, EDITION, and SERVICE_OBJECTIVE.
 
 
 ## v4.2.7
