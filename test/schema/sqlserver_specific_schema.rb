@@ -119,6 +119,12 @@ ActiveRecord::Schema.define do
   end
   execute "sp_bindefault 'sst_getdateobject', 'sst_defaultobjects.date'"
 
+  execute "DROP PROCEDURE my_getutcdate" rescue nil
+  execute <<-SQL
+    CREATE PROCEDURE my_getutcdate AS
+    SELECT GETUTCDATE() utcdate
+  SQL
+
   # Constraints
 
   create_table(:sst_has_fks, force: true) { |t| t.column(:fk_id, :integer, null: false) }

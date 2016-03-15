@@ -35,4 +35,10 @@ class ExecuteProcedureTestSQLServer < ActiveRecord::TestCase
     assert_equal 'VIEW', table_info['TABLE_TYPE'], "Table Info: #{table_info.inspect}"
   end
 
+  it 'uses the proper timezone' do
+    date_proc = connection.execute_procedure('my_getutcdate').first['utcdate']
+    date_base = connection.select_value('select GETUTCDATE()')
+    assert_equal date_base, date_proc
+  end
+
 end

@@ -117,7 +117,8 @@ module ActiveRecord
             case @connection_options[:mode]
             when :dblib
               result = @connection.execute(sql)
-              result.each(as: :hash, cache_rows: true) do |row|
+              options = { as: :hash, cache_rows: true, timezone: ActiveRecord::Base.default_timezone || :utc }
+              result.each(options) do |row|
                 r = row.with_indifferent_access
                 yield(r) if block_given?
               end

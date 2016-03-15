@@ -4,6 +4,7 @@
 
 * Conform to new data_sources interfaces. See: https://git.io/va4Fp
 * The `primary_key` method falls back to Identity columns. Not the other way around. Fixes #454. Thanks @marceloeloelo
+* Ensure that `execute_procedure` returns proper time zones. Fixes #449
 
 #### Changed
 
