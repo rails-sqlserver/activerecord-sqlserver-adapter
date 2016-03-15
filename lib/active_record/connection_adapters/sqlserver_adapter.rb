@@ -181,7 +181,7 @@ module ActiveRecord
       end
 
       def primary_key(table_name)
-        identity_column(table_name).try(:name) || schema_cache.columns(table_name).find(&:is_primary?).try(:name)
+        schema_cache.columns(table_name).find(&:is_primary?).try(:name) || identity_column(table_name).try(:name)
       end
 
       # === SQLServer Specific (DB Reflection) ======================== #
