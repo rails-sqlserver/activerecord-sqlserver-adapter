@@ -14,7 +14,7 @@ namespace :test do
       t.libs = ARTest::SQLServer.test_load_paths
       t.test_files = test_files
       t.warning = !!ENV['WARNING']
-      t.verbose = true
+      t.verbose = false
     end
 
   end

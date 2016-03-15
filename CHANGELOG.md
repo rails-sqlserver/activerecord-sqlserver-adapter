@@ -1,3 +1,11 @@
+## v4.2.9
+
+#### Changed
+
+* Run tests with verbose false.
+
+
+
 
 ## v4.2.8
 
