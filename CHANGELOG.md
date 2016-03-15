@@ -1,10 +1,12 @@
 ## v4.2.9
 
+#### Fixed
+
+* Conform to new data_sources interfaces. See: https://git.io/va4Fp
+
 #### Changed
 
 * Run tests with verbose false.
-
-
 
 
 ## v4.2.8

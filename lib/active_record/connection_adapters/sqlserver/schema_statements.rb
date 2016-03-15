@@ -7,6 +7,10 @@ module ActiveRecord
           @native_database_types ||= initialize_native_database_types.freeze
         end
 
+        def data_sources
+          tables + views
+        end
+
         def tables(table_type = 'BASE TABLE')
           select_values "SELECT #{lowercase_schema_reflection_sql('TABLE_NAME')} FROM INFORMATION_SCHEMA.TABLES #{"WHERE TABLE_TYPE = '#{table_type}'" if table_type} ORDER BY TABLE_NAME", 'SCHEMA'
         end
