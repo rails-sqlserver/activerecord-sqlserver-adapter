@@ -1,3 +1,10 @@
+## v4.2.10
+
+#### Fixed
+
+* Ensure small datetime/datetime2 fractionals are properly quoted. Fixes #457.
+
+
 ## v4.2.9
 
 #### Fixed

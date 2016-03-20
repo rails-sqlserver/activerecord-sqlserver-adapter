@@ -17,7 +17,7 @@ module ActiveRecord
 
           def quote_fractional(value)
             seconds = (value.send(fractional_property).to_f / fractional_operator.to_f).round(fractional_scale)
-            seconds.to_s.split('.').last.to(fractional_scale-1)
+            seconds.to_d.to_s.split('.').last.to(fractional_scale-1)
           end
 
           def fractional_property

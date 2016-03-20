@@ -68,6 +68,15 @@ class SpecificSchemaTestSQLServer < ActiveRecord::TestCase
     obj.reload.date.must_be_instance_of Date
   end
 
+  it 'allows datetime2 as timestamps' do
+    SSTestBooking.columns_hash['created_at'].sql_type.must_equal 'datetime2(7)'
+    SSTestBooking.columns_hash['updated_at'].sql_type.must_equal 'datetime2(7)'
+    obj1 = SSTestBooking.new name: 'test1'
+    obj1.save!
+    obj1.created_at.must_be_instance_of Time
+    obj1.updated_at.must_be_instance_of Time
+  end
+
   # Natural primary keys.
 
   it 'work with identity inserts' do

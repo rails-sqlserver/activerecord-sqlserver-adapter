@@ -354,6 +354,11 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       obj.datetime2_7.must_equal           Time.utc(9999, 12, 31, 23, 59, 59, Rational(123456800, 1000)), "Nanoseconds were <#{obj.datetime2_7.nsec}> vs <123456800>"
       obj.save!
       obj.reload.datetime2_7.must_equal    Time.utc(9999, 12, 31, 23, 59, 59, Rational(123456800, 1000)), "Nanoseconds were <#{obj.datetime2_7.nsec}> vs <123456800>"
+      # Can save small fraction nanosecond precisoins and return again.
+      obj.datetime2_7 = Time.utc(2008, 6, 21, 13, 30, 0, Rational(15020, 1000))
+      obj.datetime2_7.must_equal           Time.utc(2008, 6, 21, 13, 30, 0, Rational(15000, 1000)), "Nanoseconds were <#{obj.datetime2_7.nsec}> vs <15000>"
+      obj.save!
+      obj.reload.datetime2_7.must_equal    Time.utc(2008, 6, 21, 13, 30, 0, Rational(15000, 1000)), "Nanoseconds were <#{obj.datetime2_7.nsec}> vs <15000>"
       # With other precisions.
       time = Time.utc 9999, 12, 31, 23, 59, 59, Rational(123456789, 1000)
       col = column('datetime2_3')
