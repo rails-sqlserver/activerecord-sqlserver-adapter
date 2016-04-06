@@ -197,5 +197,5 @@ Up-to-date list of contributors: http://github.com/rails-sqlserver/activerecord-
 
 ## License
 
-Copyright © 2008-2015. It is free software, and may be redistributed under the terms specified in the MIT-LICENSE file.
+Copyright © 2008-2016. It is free software, and may be redistributed under the terms specified in the MIT-LICENSE file.
 
