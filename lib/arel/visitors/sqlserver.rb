@@ -74,7 +74,10 @@ module Arel
       end
 
       def visit_Arel_Table o, collector
-        table_name = if o.engine.connection.database_prefix_remote_server?
+        # Apparently, o.engine.connection can actually be a different adapter
+        # than sqlserver. Can be removed if fixed in ActiveRecord. See:
+        # github.com/rails-sqlserver/activerecord-sqlserver-adapter/issues/450
+        table_name = if o.engine.connection.respond_to?(:sqlserver?) and o.engine.connection.database_prefix_remote_server?
           remote_server_table_name(o)
         else
           quote_table_name(o.name)
