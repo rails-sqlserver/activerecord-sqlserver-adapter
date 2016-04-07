@@ -47,21 +47,31 @@ module ActiveRecord
           end
         end
 
+        def quote(value, column = nil)
+          # records are quoted as their primary key
+          return value.quoted_id if value.respond_to?(:quoted_id)
+
+          if column
+            value = column.cast_type.type_cast_for_database(value)
+          end
+
+          _quote(value, column)
+        end
 
         private
 
-        def _quote(value)
+        def _quote(value, column = nil)
           case value
           when Type::Binary::Data
             "0x#{value.hex}"
           when String, ActiveSupport::Multibyte::Chars
-            if value.is_utf8?
-              "#{QUOTED_STRING_PREFIX}#{super}"
+            if (column && column.is_utf8?) || (column.nil?  && value.is_utf8?)
+              "#{QUOTED_STRING_PREFIX}#{super(value)}"
             else
-              super
+              super(value)
             end
           else
-            super
+            super(value)
           end
         end
 
