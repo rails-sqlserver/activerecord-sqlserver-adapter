@@ -11,7 +11,7 @@ install:
   - ps: Update-AppveyorBuild -Version "$(Get-Content $env:appveyor_build_folder\VERSION).$env:appveyor_build_number"
   - ruby --version
   - gem --version
-  - bundle install --without odbc
+  - bundle install --without odbc guard
 build: off
 test_script:
   - powershell -File "%APPVEYOR_BUILD_FOLDER%\test\appveyor\dbsetup.ps1"
