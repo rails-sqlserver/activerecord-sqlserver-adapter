@@ -4,6 +4,7 @@
 
 * Undefined method `database_prefix_remote_server?' Fixes #450. Thanks @jippeholwerda
 * Document two methods for avoiding N'' quoting on char/varchar columns.
+* First run failure of `change_column` while dropping constraint. Fixes #420. Thanks @GrumpyRainbow @rkr090
 
 #### Changed
 
