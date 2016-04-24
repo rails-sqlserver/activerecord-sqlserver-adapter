@@ -5,6 +5,11 @@
 * Undefined method `database_prefix_remote_server?' Fixes #450. Thanks @jippeholwerda
 * Document two methods for avoiding N'' quoting on char/varchar columns.
 
+#### Changed
+
+* Supporting escape hatch for N'' quoting. Remove `#is_utf8` string check in `#_quote` method.
+  This duplicated strings and forced encoding which was actually wasteful.
+
 
 ## v4.2.10
 
