@@ -9,9 +9,13 @@ module ActiveRecord
 
           def cast_fractional(value)
             return value if !value.respond_to?(fractional_property) || value.send(fractional_property).zero?
-            seconds = value.send(fractional_property).to_f / fractional_operator.to_f
-            seconds = ((seconds * (1 / fractional_precision)).round / (1 / fractional_precision)).round(fractional_scale)
-            frac_seconds = (seconds * fractional_operator).to_i
+            frac_seconds = if fractional_scale == 0
+                             0
+                           else
+                             seconds = value.send(fractional_property).to_f / fractional_operator.to_f
+                             seconds = ((seconds * (1 / fractional_precision)).round / (1 / fractional_precision)).round(fractional_scale)
+                             (seconds * fractional_operator).to_i
+                           end
             value.change fractional_property => frac_seconds
           end
 

@@ -373,6 +373,13 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       obj.datetime2_1.must_equal time.change(nsec: 100000000), "Nanoseconds were <#{obj.datetime2_1.nsec}> vs <100000000>"
       obj.save! ; obj.reload
       obj.datetime2_1.must_equal time.change(nsec: 100000000), "Nanoseconds were <#{obj.datetime2_1.nsec}> vs <100000000>"
+      col = column('datetime2_0')
+      col.cast_type.precision.must_equal 0
+      time = Time.utc 2016, 4, 19, 16, 45, 40, 771036
+      obj.datetime2_0 = time
+      obj.datetime2_0.must_equal time.change(nsec: 0), "Nanoseconds were <#{obj.datetime2_0.nsec}> vs <0>"
+      obj.save! ; obj.reload
+      obj.datetime2_0.must_equal time.change(nsec: 0), "Nanoseconds were <#{obj.datetime2_0.nsec}> vs <0>"
     end
 
     it 'datetimeoffset' do
