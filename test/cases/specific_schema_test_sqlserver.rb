@@ -120,6 +120,9 @@ class SpecificSchemaTestSQLServer < ActiveRecord::TestCase
     data = ActiveRecord::Type::SQLServer::Char::Data
     assert_sql(/@0 = 'T'/) { SSTestDatatypeMigration.where(char_col: data.new('T')).first }
     assert_sql(/@0 = 'T'/) { SSTestDatatypeMigration.where(varchar_col: data.new('T')).first }
+    # Taking care of everything.
+    assert_sql(/@0 = 'T'/) { SSTestDatatypeMigration.where(char_col: 'T').first }
+    assert_sql(/@0 = 'T'/) { SSTestDatatypeMigration.where(varchar_col: 'T').first }
   end
 
   # With column names that have spaces
