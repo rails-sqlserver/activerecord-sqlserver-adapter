@@ -8,6 +8,18 @@ module ActiveRecord
             :char
           end
 
+          class Data
+
+            def initialize(value)
+              @value = value.to_s
+            end
+
+            def quoted
+              "'#{@value}'"
+            end
+
+          end
+
         end
       end
     end

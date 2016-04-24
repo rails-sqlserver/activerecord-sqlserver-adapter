@@ -3,6 +3,7 @@
 #### Fixed
 
 * Undefined method `database_prefix_remote_server?' Fixes #450. Thanks @jippeholwerda
+* Document two methods for avoiding N'' quoting on char/varchar columns.
 
 
 ## v4.2.10

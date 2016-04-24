@@ -54,12 +54,10 @@ module ActiveRecord
           case value
           when Type::Binary::Data
             "0x#{value.hex}"
+          when ActiveRecord::Type::SQLServer::Char::Data
+            value.quoted
           when String, ActiveSupport::Multibyte::Chars
-            if value.is_utf8?
-              "#{QUOTED_STRING_PREFIX}#{super}"
-            else
-              super
-            end
+            "#{QUOTED_STRING_PREFIX}#{super}"
           else
             super
           end
