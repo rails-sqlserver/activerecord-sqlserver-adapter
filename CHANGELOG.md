@@ -1,3 +1,10 @@
+## v4.2.11
+
+#### Fixed
+
+* Undefined method `database_prefix_remote_server?' Fixes #450. Thanks @jippeholwerda
+
+
 ## v4.2.10
 
 #### Fixed
