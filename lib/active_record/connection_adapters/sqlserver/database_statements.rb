@@ -58,7 +58,6 @@ module ActiveRecord
 
         def set_transaction_isolation_level(isolation_level)
           do_execute "SET TRANSACTION ISOLATION LEVEL #{isolation_level}"
-          begin_db_transaction
         end
 
         def commit_db_transaction

@@ -1,3 +1,10 @@
+## v4.2.12
+
+#### Fixed
+
+* Isolation levels not being reset on error. Fixes #469. Thanks @anthony
+
+
 ## v4.2.11
 
 #### Fixed

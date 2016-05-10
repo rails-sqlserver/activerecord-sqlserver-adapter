@@ -36,6 +36,11 @@ module ActiveRecord
         reset_starting_isolation_level
       end
 
+      def rollback
+        super
+        reset_starting_isolation_level
+      end
+
       private
 
       def reset_starting_isolation_level

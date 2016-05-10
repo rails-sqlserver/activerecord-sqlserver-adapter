@@ -32,20 +32,24 @@ class TransactionTestSQLServer < ActiveRecord::TestCase
   end
 
   it 'can use an isolation level and reverts back to starting isolation level' do
-    begin
-      in_level = nil
-      begin_level = connection.user_options_isolation_level
-      begin_level.must_match %r{read committed}i
-      Ship.transaction(isolation: :serializable) do
-        Ship.create! name: 'Black Pearl'
-        in_level = connection.user_options_isolation_level
-      end
-      after_level = connection.user_options_isolation_level
-      in_level.must_match %r{serializable}i
-      after_level.must_match %r{read committed}i
-    ensure
-      connection.set_transaction_isolation_level 'READ COMMITTED'
+    in_level = nil
+    begin_level = connection.user_options_isolation_level
+    begin_level.must_match %r{read committed}i
+    Ship.transaction(isolation: :serializable) do
+      Ship.create! name: 'Black Pearl'
+      in_level = connection.user_options_isolation_level
     end
+    after_level = connection.user_options_isolation_level
+    in_level.must_match %r{serializable}i
+    after_level.must_match %r{read committed}i
+  end
+
+  it 'can use an isolation level and reverts back to starting isolation level under exceptions' do
+    connection.user_options_isolation_level.must_match %r{read committed}i
+    lambda {
+      Ship.transaction(isolation: :serializable) { Ship.create! }
+    }.must_raise(ActiveRecord::RecordInvalid)
+    connection.user_options_isolation_level.must_match %r{read committed}i
   end
 
 
