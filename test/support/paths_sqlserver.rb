@@ -12,17 +12,19 @@ module ARTest
     end
 
     def root_activerecord
-      Gem.loaded_specs['activerecord'].full_gem_path
+      File.join Gem.loaded_specs['rails'].full_gem_path, 'activerecord'
     end
 
-    def test_root_activerecord
+    def root_activerecord_lib
+      File.join root_activerecord, 'lib'
+    end
+
+    def root_activerecord_test
       File.join root_activerecord, 'test'
     end
 
     def test_load_paths
-      ar_lib = File.join root_activerecord, 'lib'
-      ar_test = File.join root_activerecord, 'test'
-      ['lib', 'test', ar_lib, ar_test]
+      ['lib', 'test', root_activerecord_lib, root_activerecord_test]
     end
 
     def add_to_load_paths!
