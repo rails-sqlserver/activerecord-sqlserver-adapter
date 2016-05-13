@@ -27,6 +27,7 @@ module ActiveRecord
             def to_s
               @value
             end
+            alias_method :to_str, :to_s
 
           end
 

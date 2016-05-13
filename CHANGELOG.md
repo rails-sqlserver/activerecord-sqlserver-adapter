@@ -1,3 +1,10 @@
+## v4.2.13
+
+#### Fixed
+
+* Add to_s method to SQLServer::Type::Char::Data. Thanks @marceloeloelo.
+
+
 ## v4.2.12
 
 #### Fixed
