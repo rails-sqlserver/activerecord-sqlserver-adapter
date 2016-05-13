@@ -24,6 +24,10 @@ module ActiveRecord
               "'#{@value}'"
             end
 
+            def to_s
+              @value
+            end
+
           end
 
         end
