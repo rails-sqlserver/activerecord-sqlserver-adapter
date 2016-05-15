@@ -2,7 +2,7 @@ init:
   - SET PATH=C:\Ruby%ruby_version%\bin;%PATH%
   - SET PATH=C:\MinGW\msys\1.0\bin;%PATH%
   - SET RAKEOPT=-rdevkit
-  - SET TINYTDS_VERSION=1.0.2
+  - SET TINYTDS_VERSION=1.0.3
 clone_depth: 5
 skip_tags: true
 matrix:

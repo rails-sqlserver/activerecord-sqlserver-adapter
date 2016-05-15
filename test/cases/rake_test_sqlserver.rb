@@ -43,7 +43,7 @@ class SQLServerRakeCreateTest < SQLServerRakeTest
 
   it 'establishes connection to database after create ' do
     db_tasks.create configuration
-    connection.current_database.must_equal(connection_sqlserver_azure? ? 'master' : new_database)
+    connection.current_database.must_equal(new_database)
   end
 
   it 'creates database with default collation' do
