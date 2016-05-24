@@ -133,7 +133,7 @@ module ActiveRecord
         return false unless @connection
         raw_connection_do 'SELECT 1'
         true
-      rescue TinyTds::Error, ODBC::Error
+      rescue *connection_errors
         false
       end
 
@@ -305,6 +305,13 @@ module ActiveRecord
                       end
         @spid = _raw_select('SELECT @@SPID', fetch: :rows).first.first
         configure_connection
+      end
+
+      def connection_errors
+        @connection_errors ||= [].tap do |errors|
+          errors << TinyTds::Error if defined?(TinyTds::Error)
+          errors << ODBC::Error if defined?(ODBC::Error)
+        end
       end
 
       def dblib_connect(config)

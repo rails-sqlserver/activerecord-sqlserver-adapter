@@ -1,3 +1,10 @@
+## v4.2.14
+
+#### Fixed
+
+* Fix rescue constants for optional connection gems. Fixes #475.
+
+
 ## v4.2.13
 
 #### Fixed
