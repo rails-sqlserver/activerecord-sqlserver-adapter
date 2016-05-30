@@ -61,7 +61,6 @@ module ActiveRecord
         command.concat(table_args)
         view_args = connection.views.map { |v| Shellwords.escape(v) }
         command.concat(view_args)
-        puts command.inspect
         raise 'Error dumping database' unless Kernel.system(command.join(' '))
         dump = File.read(filename)
         dump.gsub!(/^USE .*$\nGO\n/, '')                      # Strip db USE statements

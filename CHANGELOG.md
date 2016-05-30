@@ -1,3 +1,10 @@
+## v4.2.15
+
+#### Fixed
+
+* Removed errand puts statment from database tasks.
+
+
 ## v4.2.14
 
 #### Fixed
