@@ -125,6 +125,16 @@ class SpecificSchemaTestSQLServer < ActiveRecord::TestCase
     assert_sql(/@0 = 'T'/) { SSTestDatatypeMigration.where(varchar_col: 'T').first }
   end
 
+  it 'can update and hence properly quoted non-national char/varchar columns' do
+    o = SSTestDatatypeMigration.create!
+    o.varchar_col = "O'Reilly"
+    o.save!
+    o.reload.varchar_col.must_equal "O'Reilly"
+    o.varchar_col = nil
+    o.save!
+    o.reload.varchar_col.must_be_nil
+  end
+
   # With column names that have spaces
 
   it 'create record using a custom attribute reader and be able to load it back in' do

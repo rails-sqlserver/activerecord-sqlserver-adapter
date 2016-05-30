@@ -3,6 +3,7 @@
 #### Fixed
 
 * Removed errand puts statment from database tasks.
+* Fix quoting of non-national columns.
 
 
 ## v4.2.14

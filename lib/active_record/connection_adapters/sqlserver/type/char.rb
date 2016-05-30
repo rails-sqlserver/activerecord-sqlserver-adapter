@@ -21,7 +21,7 @@ module ActiveRecord
             end
 
             def quoted
-              "'#{@value}'"
+              "'#{Utils.quote_string(@value)}'"
             end
 
             def to_s
