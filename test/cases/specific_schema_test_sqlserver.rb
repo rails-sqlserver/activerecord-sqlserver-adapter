@@ -164,4 +164,12 @@ class SpecificSchemaTestSQLServer < ActiveRecord::TestCase
     db_uuid.must_match(acceptable_uuid)
   end
 
+  # with similar table definition in two schemas
+
+  it 'returns the correct primary columns' do
+    connection = ActiveRecord::Base.connection
+    assert_equal 'field_1', connection.columns('test.sst_schema_test_mulitple_schema').detect(&:is_primary?).name
+    assert_equal 'field_2', connection.columns('test2.sst_schema_test_mulitple_schema').detect(&:is_primary?).name
+  end
+
 end
