@@ -326,6 +326,7 @@ module ActiveRecord
             FROM #{database}.INFORMATION_SCHEMA.COLUMNS columns
             LEFT OUTER JOIN #{database}.INFORMATION_SCHEMA.TABLE_CONSTRAINTS AS TC
               ON TC.TABLE_NAME = columns.TABLE_NAME
+              AND TC.TABLE_SCHEMA = columns.TABLE_SCHEMA
               AND TC.CONSTRAINT_TYPE = N'PRIMARY KEY'
             LEFT OUTER JOIN #{database}.INFORMATION_SCHEMA.KEY_COLUMN_USAGE AS KCU
               ON KCU.COLUMN_NAME = columns.COLUMN_NAME
