@@ -71,19 +71,11 @@ module ActiveRecord
         SQLServer::SchemaCreation.new self
       end
 
-      def adapter_name
-        ADAPTER_NAME
-      end
-
       def supports_migrations?
         true
       end
 
       def supports_primary_key?
-        true
-      end
-
-      def supports_count_distinct?
         true
       end
 
@@ -95,12 +87,24 @@ module ActiveRecord
         false
       end
 
+      def supports_advisory_locks?
+        false
+      end
+
       def supports_index_sort_order?
         true
       end
 
+      def supports_index_sort_order?
+        false
+      end
+
       def supports_partial_index?
         true
+      end
+
+      def supports_expression_index?
+        false
       end
 
       def supports_explain?
@@ -111,12 +115,32 @@ module ActiveRecord
         true
       end
 
-      def supports_views?
-        true
+      def supports_indexes_in_create?
+        false
       end
 
       def supports_foreign_keys?
         true
+      end
+
+      def supports_views?
+        true
+      end
+
+      def supports_datetime_with_precision?
+        true
+      end
+
+      def supports_json?
+        true
+      end
+
+      def supports_comments?
+        false
+      end
+
+      def supports_comments_in_create?
+        false
       end
 
       def disable_referential_integrity
