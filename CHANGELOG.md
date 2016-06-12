@@ -15,7 +15,7 @@
 
 #### Removed
 
-* ...
+* ODBC connection mode. Not been maintained since Rails 4.0.
 
 #### Fixed
 

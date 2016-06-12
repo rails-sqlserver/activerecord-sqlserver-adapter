@@ -30,12 +30,3 @@ connections:
       azure: <%= !ENV['ACTIVERECORD_UNITTEST_AZURE'].nil? %>
       timeout: <%= ENV['ACTIVERECORD_UNITTEST_AZURE'].present? ? 20 : nil %>
 
-  odbc:
-    arunit:
-      <<: *default_connection_info
-      dsn: <%= ENV['ACTIVERECORD_UNITTEST_DSN'] || 'activerecord_unittest' %>
-    arunit2:
-      <<: *default_connection_info
-      database: activerecord_unittest2
-      dsn: <%= ENV['ACTIVERECORD_UNITTEST2_DSN'] || 'activerecord_unittest2' %>
-

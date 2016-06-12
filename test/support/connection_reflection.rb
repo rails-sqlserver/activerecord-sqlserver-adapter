@@ -24,10 +24,6 @@ module ARTest
         rc.respond_to?(:tds_73?) && rc.tds_73?
       end
 
-      def connection_odbc?
-        connection_options[:mode] == :odbc
-      end
-
       def connection_sqlserver_azure?
         connection.sqlserver_azure?
       end

@@ -122,18 +122,6 @@ module ActiveRecord
                 yield(r) if block_given?
               end
               result.each.map { |row| row.is_a?(Hash) ? row.with_indifferent_access : row }
-            when :odbc
-              results = []
-              raw_connection_run(sql) do |handle|
-                get_rows = lambda do
-                  rows = handle_to_names_and_values handle, fetch: :all
-                  rows.each_with_index { |r, i| rows[i] = r.with_indifferent_access }
-                  results << rows
-                end
-                get_rows.call
-                get_rows.call while handle_more_results?(handle)
-              end
-              results.many? ? results : results.first
             end
           end
         end
@@ -298,8 +286,6 @@ module ActiveRecord
           case @connection_options[:mode]
           when :dblib
             @connection.execute(sql).do
-          when :odbc
-            @connection.do(sql)
           end
         ensure
           @update_sql = false
@@ -322,16 +308,12 @@ module ActiveRecord
           case @connection_options[:mode]
           when :dblib
             @connection.execute(sql)
-          when :odbc
-            block_given? ? @connection.run_block(sql) { |handle| yield(handle) } : @connection.run(sql)
           end
         end
 
         def handle_more_results?(handle)
           case @connection_options[:mode]
           when :dblib
-          when :odbc
-            handle.more_results
           end
         end
 
@@ -339,8 +321,6 @@ module ActiveRecord
           case @connection_options[:mode]
           when :dblib
             handle_to_names_and_values_dblib(handle, options)
-          when :odbc
-            handle_to_names_and_values_odbc(handle, options)
           end
         end
 
@@ -354,28 +334,10 @@ module ActiveRecord
           options[:ar_result] ? ActiveRecord::Result.new(columns, results) : results
         end
 
-        def handle_to_names_and_values_odbc(handle, options = {})
-          @connection.use_utc = ActiveRecord::Base.default_timezone == :utc
-          if options[:ar_result]
-            columns = lowercase_schema_reflection ? handle.columns(true).map { |c| c.name.downcase } : handle.columns(true).map { |c| c.name }
-            rows = handle.fetch_all || []
-            ActiveRecord::Result.new(columns, rows)
-          else
-            case options[:fetch]
-            when :all
-              handle.each_hash || []
-            when :rows
-              handle.fetch_all || []
-            end
-          end
-        end
-
         def finish_statement_handle(handle)
           case @connection_options[:mode]
           when :dblib
             handle.cancel if handle
-          when :odbc
-            handle.drop if handle && handle.respond_to?(:drop) && !handle.finished?
           end
           handle
         end

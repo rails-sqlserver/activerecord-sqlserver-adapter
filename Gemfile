@@ -48,10 +48,6 @@ group :tinytds do
   end
 end
 
-group :odbc do
-  gem 'ruby-odbc'
-end
-
 group :development do
   gem 'mocha'
   gem 'minitest', '< 5.3.4' # PENDING: [Rails5.x] Remove test order constraint.
