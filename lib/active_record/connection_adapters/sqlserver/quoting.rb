@@ -63,6 +63,15 @@ module ActiveRecord
           end
         end
 
+        def _type_cast(value)
+          case value
+          when ActiveRecord::Type::SQLServer::Char::Data
+            value.to_s
+          else
+            super
+          end
+        end
+
       end
     end
   end
