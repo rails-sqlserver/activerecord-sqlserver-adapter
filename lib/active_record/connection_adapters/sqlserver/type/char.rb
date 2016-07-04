@@ -14,7 +14,7 @@ module ActiveRecord
             Data.new(super)
           end
 
-          class Data
+          class Data < ::String
 
             def initialize(value)
               @value = value.to_s
