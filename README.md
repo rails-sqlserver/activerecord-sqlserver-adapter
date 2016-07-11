@@ -3,7 +3,12 @@
 
 [![Build status](https://ci.appveyor.com/api/projects/status/mtgbx8f57vr7k2qa/branch/master?svg=true)](https://ci.appveyor.com/project/rails-sqlserver/activerecord-sqlserver-adapter/branch/master) [![Gem Version](http://img.shields.io/gem/v/activerecord-sqlserver-adapter.svg?style=flat)](https://rubygems.org/gems/activerecord-sqlserver-adapter) [![Gitter chat](https://img.shields.io/badge/%E2%8A%AA%20GITTER%20-JOIN%20CHAT%20%E2%86%92-brightgreen.svg?style=flat)](https://gitter.im/rails-sqlserver/activerecord-sqlserver-adapter)
 
-**RAILS v5 Work Started: 2016-07-03**
+## RAILS v5 COMING!!!
+
+The work for Rails v5 started a on 2016-07-03 and none of the work landed in master yet. The changes for adapters from v4.2 to v5.0 is one of the most dramatic I have seen and Rails 5 compatability will take several more weeks till it is ready.
+
+* **Can I help?** - Thanks so much! But no, not yet. There are some foundational changs coming to master in the next few weeks. Having multiple people involved at this stage is counter productive. Please stay tuned here for when that may change.
+* **Why is it taking so long?** - I spent the last several months tryingn to make TinyTDS/FreeTDS strong vs working on the adapter. If you did not know, the FreeTDS finally hit a v1.0 release which has been in the works for several years. It is a major achievment by that team. I thought it was more important to get the low level connectoin strong before doing the adaper work. We will get there soon.
 
 ![kantishna-wide](https://cloud.githubusercontent.com/assets/2381/5895051/aa6a57e0-a4e1-11e4-95b9-23627af5876a.jpg)
 
