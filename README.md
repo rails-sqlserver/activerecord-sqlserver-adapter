@@ -5,10 +5,10 @@
 
 ## RAILS v5 COMING!!!
 
-The work for Rails v5 started a on 2016-07-03 and none of the work landed in master yet. The changes for adapters from v4.2 to v5.0 is one of the most dramatic I have seen and Rails 5 compatability will take several more weeks till it is ready.
+The work for Rails v5 started a on 2016-07-03 and none of the work landed in master yet. The changes for adapters from v4.2 to v5.0 is one of the most dramatic I have seen and Rails 5 compatibility will take several more weeks till it is ready.
 
-* **Can I help?** - Thanks so much! But no, not yet. There are some foundational changs coming to master in the next few weeks. Having multiple people involved at this stage is counter productive. Please stay tuned here for when that may change.
-* **Why is it taking so long?** - I spent the last several months tryingn to make TinyTDS/FreeTDS strong vs working on the adapter. If you did not know, the FreeTDS finally hit a v1.0 release which has been in the works for several years. It is a major achievment by that team. I thought it was more important to get the low level connectoin strong before doing the adaper work. We will get there soon.
+* **Can I help?** - Thanks so much! But no, not yet. There are some foundational changes coming to master in the next few weeks. Having multiple people involved at this stage is counter productive. Please stay tuned here for when that may change.
+* **Why is it taking so long?** - I spent the last several months trying to make TinyTDS/FreeTDS strong vs working on the adapter. If you did not know, the FreeTDS finally hit a v1.0 release which has been in the works for several years. It is a major achievement by that team. I thought it was more important to get the low level connection strong before doing the adapter work. We will get there soon.
 
 ![kantishna-wide](https://cloud.githubusercontent.com/assets/2381/5895051/aa6a57e0-a4e1-11e4-95b9-23627af5876a.jpg)
 
