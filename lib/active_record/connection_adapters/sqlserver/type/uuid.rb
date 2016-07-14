@@ -4,9 +4,10 @@ module ActiveRecord
       module Type
         class Uuid < String
 
+          SQLSERVER_TYPE = 'uniqueidentifier'.freeze
           ACCEPTABLE_UUID = %r{\A\{?([a-fA-F0-9]{4}-?){8}\}?\z}x
 
-          alias_method :type_cast_for_database, :type_cast_from_database
+          alias_method :serialize, :deserialize
 
           def type
             :uuid

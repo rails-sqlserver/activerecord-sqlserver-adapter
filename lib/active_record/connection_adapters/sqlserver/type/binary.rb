@@ -8,6 +8,12 @@ module ActiveRecord
             :binary_basic
           end
 
+          def sqlserver_type
+            'binary'.tap do |type|
+              type << "(#{limit})" if limit
+            end
+          end
+
         end
       end
     end

@@ -77,7 +77,7 @@ module Arel
         # Apparently, o.engine.connection can actually be a different adapter
         # than sqlserver. Can be removed if fixed in ActiveRecord. See:
         # github.com/rails-sqlserver/activerecord-sqlserver-adapter/issues/450
-        table_name = if o.engine.connection.respond_to?(:sqlserver?) && o.engine.connection.database_prefix_remote_server?
+        table_name = if o.class.engine.connection.respond_to?(:sqlserver?) && o.class.engine.connection.database_prefix_remote_server?
           remote_server_table_name(o)
         else
           quote_table_name(o.name)
@@ -190,14 +190,7 @@ module Arel
 
       def primary_Key_From_Table t
         return unless t
-        return t.primary_key if t.primary_key
-        if engine_pk = t.engine.primary_key
-          pk = t.engine.arel_table[engine_pk]
-          return pk if pk
-        end
-        pk = t.engine.connection.schema_cache.primary_keys(t.engine.table_name)
-        return pk if pk
-        column_name = t.engine.columns.first.try(:name)
+        column_name = schema_cache.primary_keys(t.name) || column_cache(t.name).first.second.try(:name)
         column_name ? t[column_name] : nil
       end
 

@@ -25,7 +25,7 @@ module ActiveRecord
 
       attr_reader :starting_isolation_level
 
-      def initialize(connection, options)
+      def initialize(connection, options, run_commit_callbacks: false)
         @connection = connection
         @starting_isolation_level = current_isolation_level if options[:isolation]
         super

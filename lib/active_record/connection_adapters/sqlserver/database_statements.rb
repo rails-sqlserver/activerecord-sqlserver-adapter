@@ -19,11 +19,10 @@ module ActiveRecord
           sp_executesql(sql, name, binds)
         end
 
-        def exec_insert(sql, name, binds, _pk = nil, _sequence_name = nil)
-          id_insert = binds_have_identity_column?(binds)
-          id_table  = table_name_from_binds(binds) if id_insert
-          if id_insert && id_table
-            with_identity_insert_enabled(id_table) { exec_query(sql, name, binds) }
+        def exec_insert(sql, name, binds, pk = nil, _sequence_name = nil)
+          id_insert_table_name = query_requires_identity_insert?(sql) if pk
+          if id_insert_table_name
+            with_identity_insert_enabled(id_insert_table_name) { exec_query(sql, name, binds) }
           else
             exec_query(sql, name, binds)
           end
@@ -204,30 +203,20 @@ module ActiveRecord
         end
 
         def sql_for_insert(sql, pk, id_value, sequence_name, binds)
-          sql = if pk && self.class.use_output_inserted && !database_prefix_remote_server?
-            quoted_pk = SQLServer::Utils.extract_identifiers(pk).quoted
-            sql.insert sql.index(/ (DEFAULT )?VALUES/), " OUTPUT INSERTED.#{quoted_pk}"
-          else
-            "#{sql}; SELECT CAST(SCOPE_IDENTITY() AS bigint) AS Ident"
+          if pk.nil?
+            table_name = query_requires_identity_insert?(sql)
+            pk = primary_key(table_name)
           end
+          sql = if pk && self.class.use_output_inserted && !database_prefix_remote_server?
+                  quoted_pk = SQLServer::Utils.extract_identifiers(pk).quoted
+                  sql.insert sql.index(/ (DEFAULT )?VALUES/), " OUTPUT INSERTED.#{quoted_pk}"
+                else
+                  "#{sql}; SELECT CAST(SCOPE_IDENTITY() AS bigint) AS Ident"
+                end
           super
         end
 
         # === SQLServer Specific ======================================== #
-
-        def binds_have_identity_column?(binds)
-          binds.any? do |column_value|
-            column, value = column_value
-            SQLServerColumn === column && column.is_identity?
-          end
-        end
-
-        def table_name_from_binds(binds)
-          binds.detect { |column_value|
-            column, value = column_value
-            SQLServerColumn === column
-          }.try(:first).try(:table_name)
-        end
 
         def set_identity_insert(table_name, enable = true)
           do_execute "SET IDENTITY_INSERT #{table_name} #{enable ? 'ON' : 'OFF'}"
@@ -250,20 +239,19 @@ module ActiveRecord
 
         def sp_executesql_types_and_parameters(binds)
           types, params = [], []
-          binds.each_with_index do |(column, value), index|
-            types << "@#{index} #{sp_executesql_sql_type(column, value)}"
-            params << quote(value, column)
+          binds.each_with_index do |attr, index|
+            types << "@#{index} #{sp_executesql_sql_type(attr)}"
+            params << type_cast(attr.value_for_database)
           end
           [types, params]
         end
 
-        def sp_executesql_sql_type(column, value)
-          return column.sql_type_for_statement if SQLServerColumn === column
-          if value.is_a?(Numeric)
-            'int'
-          # We can do more here later.
+        def sp_executesql_sql_type(attr)
+          case value = attr.value_for_database
+          when Numeric
+            SQLServer::Type::Integer::SQLSERVER_TYPE
           else
-            'nvarchar(max)'
+            attr.type.sqlserver_type
           end
         end
 

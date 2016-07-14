@@ -4,6 +4,8 @@ module ActiveRecord
       module Type
         class Money < Decimal
 
+          SQLSERVER_TYPE = 'money'.freeze
+
           def initialize(options = {})
             super
             @precision = 19

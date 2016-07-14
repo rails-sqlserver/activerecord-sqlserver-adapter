@@ -13,6 +13,12 @@ module ActiveRecord
             :varbinary
           end
 
+          def sqlserver_type
+            'varbinary'.tap do |type|
+              type << "(#{limit})" if limit
+            end
+          end
+
         end
       end
     end

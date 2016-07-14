@@ -4,6 +4,8 @@ module ActiveRecord
       module Type
         class Text < VarcharMax
 
+          SQLSERVER_TYPE = 'text'.freeze
+
           def type
             :text_basic
           end

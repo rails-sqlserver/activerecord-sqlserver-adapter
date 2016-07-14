@@ -4,7 +4,7 @@ module ActiveRecord
       module Type
         class SmallInteger < Integer
 
-
+          SQLSERVER_TYPE = 'smallint'.freeze
 
         end
       end

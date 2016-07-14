@@ -16,6 +16,7 @@ require 'active_record/connection_adapters/sqlserver/errors'
 require 'active_record/connection_adapters/sqlserver/schema_cache'
 require 'active_record/connection_adapters/sqlserver/schema_creation'
 require 'active_record/connection_adapters/sqlserver/schema_statements'
+require 'active_record/connection_adapters/sqlserver/sql_type_metadata'
 require 'active_record/connection_adapters/sqlserver/showplan'
 require 'active_record/connection_adapters/sqlserver/table_definition'
 require 'active_record/connection_adapters/sqlserver/quoting'
@@ -47,21 +48,22 @@ module ActiveRecord
       self.cs_equality_operator = 'COLLATE Latin1_General_CS_AS_WS'
       self.use_output_inserted = true
 
-      def initialize(connection, logger, pool, config)
-        super(connection, logger, pool)
+      def initialize(connection, logger = nil, config = {})
+        super(connection, logger, config)
         # AbstractAdapter Responsibility
-        @schema_cache = SQLServer::SchemaCache.new self
-        @visitor = Arel::Visitors::SQLServer.new self
-        @prepared_statements = true
+        @schema_cache = SQLServer::SchemaCache.new(self)
         # Our Responsibility
         @connection_options = config
         connect
-        @sqlserver_azure = !!(select_value('SELECT @@version', 'SCHEMA') =~ /Azure/i)
         initialize_dateformatter
         use_database
       end
 
       # === Abstract Adapter ========================================== #
+
+      def arel_visitor
+        Arel::Visitors::SQLServer.new self
+      end
 
       def valid_type?(type)
         !native_database_types[type].nil?
@@ -128,7 +130,7 @@ module ActiveRecord
       end
 
       def supports_datetime_with_precision?
-        true
+        false
       end
 
       def supports_json?
@@ -202,10 +204,6 @@ module ActiveRecord
         pk ? [pk, nil] : nil
       end
 
-      def primary_key(table_name)
-        schema_cache.columns(table_name).find(&:is_primary?).try(:name) || identity_column(table_name).try(:name)
-      end
-
       # === SQLServer Specific (DB Reflection) ======================== #
 
       def sqlserver?
@@ -213,7 +211,7 @@ module ActiveRecord
       end
 
       def sqlserver_azure?
-        @sqlserver_azure
+        @sqlserver_azure ||= !!(select_value('SELECT @@version', 'SCHEMA') =~ /Azure/i)
       end
 
       def database_prefix_remote_server?

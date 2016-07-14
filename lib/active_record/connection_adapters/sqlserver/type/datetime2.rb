@@ -10,6 +10,10 @@ module ActiveRecord
             :datetime2
           end
 
+          def sqlserver_type
+            "datetime2(#{precision.to_i})"
+          end
+
         end
       end
     end

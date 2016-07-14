@@ -4,6 +4,8 @@ module ActiveRecord
       module Type
         class VarbinaryMax < Varbinary
 
+          SQLSERVER_TYPE = 'varbinary(max)'.freeze
+
           def initialize(options = {})
             super
             @limit = 2_147_483_647

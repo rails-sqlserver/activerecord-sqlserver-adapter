@@ -4,6 +4,8 @@ module ActiveRecord
       module Type
         class UnicodeText < UnicodeVarcharMax
 
+          SQLSERVER_TYPE = 'ntext'.freeze
+
           def type
             :ntext
           end

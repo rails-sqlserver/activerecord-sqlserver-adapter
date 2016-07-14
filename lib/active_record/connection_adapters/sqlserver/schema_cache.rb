@@ -9,35 +9,33 @@ module ActiveRecord
           @view_information = {}
         end
 
-        # Superclass Overrides
+        def initialize_dup(other)
+          super
+          @views = @views.dup
+          @view_information = @view_information.dup
+        end
 
         def primary_keys(table_name)
-          name = key(table_name)
-          @primary_keys[name] ||= table_exists?(table_name) ? connection.primary_key(table_name) : nil
+          super tn_quoted(table_name)
         end
 
-        def table_exists?(table_name)
-          name = key(table_name)
-          prepare_tables_and_views
-          return @tables[name] if @tables.key? name
-          table_exists = @tables[name] = connection.table_exists?(table_name)
-          table_exists || view_exists?(table_name)
+        def data_source_exists?(table_name)
+          super tn_quoted(table_name)
         end
 
-        def tables(name)
-          super(key(name))
+        def add(table_name)
+          super tn_quoted(table_name)
         end
 
-        def columns(table_name)
-          name = key(table_name)
-          @columns[name] ||= connection.columns(table_name)
+        def data_sources(name)
+          super tn_quoted(name)
         end
+
+        # No override for #columns.
+        # Allow `table_name` which could be fully qualified to be used with schema reflection.
 
         def columns_hash(table_name)
-          name = key(table_name)
-          @columns_hash[name] ||= Hash[columns(table_name).map { |col|
-            [col.name, col]
-          }]
+          super tn_quoted(table_name)
         end
 
         def clear!
@@ -50,12 +48,10 @@ module ActiveRecord
           super + [@views, @view_information].map{ |x| x.size }.inject(:+)
         end
 
-        def clear_table_cache!(table_name)
-          name = key(table_name)
-          @columns.delete name
-          @columns_hash.delete name
-          @primary_keys.delete name
-          @tables.delete name
+        def clear_data_source_cache!(table_name)
+          name = tn_quoted(table_name)
+          super(name)
+          @columns.delete table_name # Because...
           @views.delete name
           @view_information.delete name
         end
@@ -72,14 +68,14 @@ module ActiveRecord
         # SQL Server Specific
 
         def view_exists?(table_name)
-          name = key(table_name)
-          prepare_tables_and_views
+          prepare_data_sources if @views.empty?
+          name = tn_quoted(table_name)
           return @views[name] if @views.key? name
-          @views[name] = connection.views.include?(table_name)
+          @views[name] = connection.views.include?(tn_object(table_name))
         end
 
         def view_information(table_name)
-          name = key(table_name)
+          name = tn_quoted(table_name)
           return @view_information[name] if @view_information.key? name
           @view_information[name] = connection.send(:view_information, table_name)
         end
@@ -91,21 +87,17 @@ module ActiveRecord
           SQLServer::Utils.extract_identifiers(table_name)
         end
 
-        def key(table_name)
+        def tn_quoted(table_name)
           identifier(table_name).quoted
         end
 
-        def prepare_tables_and_views
-          prepare_views if @views.empty?
-          prepare_tables if @tables.empty?
+        def tn_object(table_name)
+          identifier(table_name).object
         end
 
-        def prepare_tables
-          connection.tables.each { |table| @tables[key(table)] = true }
-        end
-
-        def prepare_views
-          connection.views.each { |view| @views[key(view)] = true }
+        def prepare_data_sources
+          connection.data_sources.each { |source| @data_sources[tn_quoted(source)] = true }
+          connection.views.each { |source| @views[tn_quoted(source)] = true }
         end
 
       end

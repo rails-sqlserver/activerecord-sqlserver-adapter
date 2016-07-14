@@ -4,10 +4,11 @@ module ActiveRecord
       module Type
         class SmallDateTime < DateTime
 
+          SQLSERVER_TYPE = 'smalldatetime'.freeze
+
           def type
             :smalldatetime
           end
-
 
           private
 

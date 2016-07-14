@@ -4,6 +4,8 @@ module ActiveRecord
       module Type
         class Timestamp < Binary
 
+          SQLSERVER_TYPE = 'timestamp'.freeze
+
           def type
             :ss_timestamp
           end

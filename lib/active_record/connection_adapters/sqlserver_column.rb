@@ -2,22 +2,9 @@ module ActiveRecord
   module ConnectionAdapters
     class SQLServerColumn < Column
 
-      def initialize(name, default, cast_type, sql_type = nil, null = true, sqlserver_options = {})
-        super(name, default, cast_type, sql_type, null)
-        @sqlserver_options = sqlserver_options.symbolize_keys
-        @default_function = @sqlserver_options[:default_function]
-      end
-
-      def sql_type_for_statement
-        if is_integer? || is_real?
-          sql_type.sub(/\((\d+)?\)/, '')
-        else
-          sql_type
-        end
-      end
-
-      def table_name
-        @sqlserver_options[:table_name]
+      def initialize(name, default, sql_type_metadata = nil, null = true, table_name = nil, default_function = nil, collation = nil, comment = nil, sqlserver_options = {})
+        @sqlserver_options = sqlserver_options || {}
+        super(name, default, sql_type_metadata, null, table_name, default_function, collation, comment: comment)
       end
 
       def is_identity?
@@ -29,19 +16,7 @@ module ActiveRecord
       end
 
       def is_utf8?
-        @sql_type =~ /nvarchar|ntext|nchar/i
-      end
-
-      def is_integer?
-        @sql_type =~ /int/i
-      end
-
-      def is_real?
-        @sql_type =~ /real/i
-      end
-
-      def collation
-        @sqlserver_options[:collation]
+        sql_type =~ /nvarchar|ntext|nchar/i
       end
 
       def case_sensitive?

@@ -13,8 +13,8 @@ class SchemaTestSQLServer < ActiveRecord::TestCase
   describe 'When table is in non-dbo schema' do
 
     it 'work with table exists' do
-      assert connection.table_exists?('test.sst_schema_natural_id')
-      assert connection.table_exists?('[test].[sst_schema_natural_id]')
+      assert connection.data_source_exists?('test.sst_schema_natural_id')
+      assert connection.data_source_exists?('[test].[sst_schema_natural_id]')
     end
 
     it 'find primary key for tables with odd schema' do
