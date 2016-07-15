@@ -160,6 +160,10 @@ module ActiveRecord
         do_execute 'IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION'
       end
 
+      def requires_reloading?
+        true
+      end
+
       # === Abstract Adapter (Misc Support) =========================== #
 
       def tables_with_referential_integrity
