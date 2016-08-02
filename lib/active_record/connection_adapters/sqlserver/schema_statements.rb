@@ -80,7 +80,8 @@ module ActiveRecord
         end
 
         def primary_keys(table_name)
-          columns(table_name).select(&:is_primary?).map(&:name) || identity_columns(table_name).map(&:name)
+          primaries = columns(table_name).select(&:is_primary?).map(&:name)
+          primaries.present? ? primaries : identity_columns(table_name).map(&:name)
         end
 
         def rename_table(table_name, new_name)
