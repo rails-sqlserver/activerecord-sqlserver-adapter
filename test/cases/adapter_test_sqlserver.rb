@@ -96,7 +96,7 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
       connection.send :initialize_dateformatter
       assert_nothing_raised do
         starting = Time.utc(2000, 1, 31, 5, 42, 0)
-        ending = Date.new(2006, 12, 31)
+        ending = Time.new(2006, 12, 31)
         Task.create! starting: starting, ending: ending
       end
     end
