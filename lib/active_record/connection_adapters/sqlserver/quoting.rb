@@ -76,6 +76,16 @@ module ActiveRecord
           end
         end
 
+        def _type_cast(value)
+          case value
+          when Symbol
+            _quote(value.to_s)
+          when String, ActiveSupport::Multibyte::Chars
+            _quote(value)
+          else super
+          end
+        end
+
       end
     end
   end
