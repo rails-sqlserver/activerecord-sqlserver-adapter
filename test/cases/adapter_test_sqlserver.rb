@@ -365,7 +365,7 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
     end
 
     it 'respond true to data_source_exists?' do
-      assert SSTestCustomersView.connection.data_source_exists?
+      assert SSTestCustomersView.connection.data_source_exists?(SSTestCustomersView.table_name)
     end
 
     # With aliased column names
@@ -393,7 +393,7 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
     end
 
     it 'respond true to data_source_exists?' do
-      assert SSTestStringDefaultsView.connection.data_source_exists?
+      assert SSTestStringDefaultsView.connection.data_source_exists?(SSTestStringDefaultsView.table_name)
     end
 
     # Doing identity inserts
