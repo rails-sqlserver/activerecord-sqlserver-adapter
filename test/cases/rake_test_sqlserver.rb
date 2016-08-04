@@ -2,7 +2,7 @@ require 'cases/helper_sqlserver'
 
 class SQLServerRakeTest < ActiveRecord::TestCase
 
-  self.use_transactional_fixtures = false
+  self.use_transactional_tests = false
 
   cattr_accessor :azure_skip
   self.azure_skip = connection_sqlserver_azure?

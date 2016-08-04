@@ -4,7 +4,7 @@ require 'models/topic'
 
 class ConnectionTestSQLServer < ActiveRecord::TestCase
 
-  self.use_transactional_fixtures = false
+  self.use_transactional_tests = false
 
   fixtures :topics, :accounts
 

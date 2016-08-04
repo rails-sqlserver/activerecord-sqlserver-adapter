@@ -301,13 +301,13 @@ module ActiveRecord
       def translate_exception(e, message)
         case message
         when /(cannot insert duplicate key .* with unique index) | (violation of unique key constraint)/i
-          RecordNotUnique.new(message, e)
+          RecordNotUnique.new(message)
         when /conflicted with the foreign key constraint/i
-          InvalidForeignKey.new(message, e)
+          InvalidForeignKey.new(message)
         when /has been chosen as the deadlock victim/i
-          DeadlockVictim.new(message, e)
+          DeadlockVictim.new(message)
         when /database .* does not exist/i
-          NoDatabaseError.new(message, e)
+          NoDatabaseError.new(message)
         else
           super
         end
