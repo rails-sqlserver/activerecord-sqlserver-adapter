@@ -15,7 +15,8 @@ module ActiveRecord
     SQLServer = ActiveRecord::ConnectionAdapters::SQLServer
 
     include ARTest::SQLServer::CoerceableTest,
-            ARTest::SQLServer::ConnectionReflection
+            ARTest::SQLServer::ConnectionReflection,
+            ActiveSupport::Testing::Stream
 
     let(:logger) { ActiveRecord::Base.logger }
 
@@ -32,20 +33,6 @@ module ActiveRecord
       yield
     ensure
       klass.use_output_inserted = true
-    end
-
-    def silence_stream(stream)
-      old_stream = stream.dup
-      stream.reopen(RbConfig::CONFIG['host_os'] =~ /mswin|mingw/ ? 'NUL:' : '/dev/null')
-      stream.sync = true
-      yield
-    ensure
-      stream.reopen(old_stream)
-      old_stream.close
-    end
-
-    def quietly
-      silence_stream(STDOUT) { silence_stream(STDERR) { yield } }
     end
 
   end
