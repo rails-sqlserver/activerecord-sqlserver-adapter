@@ -10,6 +10,10 @@ module ActiveRecord
             :ntext
           end
 
+          def sqlserver_type
+            SQLSERVER_TYPE
+          end
+
         end
       end
     end
