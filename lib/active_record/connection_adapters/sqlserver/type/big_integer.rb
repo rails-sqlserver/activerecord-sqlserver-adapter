@@ -4,10 +4,12 @@ module ActiveRecord
       module Type
         class BigInteger < Integer
 
-          SQLSERVER_TYPE = 'bigint'.freeze
-
           def type
             :bigint
+          end
+
+          def sqlserver_type
+            'bigint'.freeze
           end
 
         end

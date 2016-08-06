@@ -4,8 +4,6 @@ module ActiveRecord
       module Type
         class UnicodeVarcharMax < UnicodeVarchar
 
-          SQLSERVER_TYPE = 'nvarchar(max)'.freeze
-
           def initialize(options = {})
             super
             @limit = 2_147_483_647
@@ -16,7 +14,7 @@ module ActiveRecord
           end
 
           def sqlserver_type
-            SQLSERVER_TYPE
+            'nvarchar(max)'.freeze
           end
 
         end

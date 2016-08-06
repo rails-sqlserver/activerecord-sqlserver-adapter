@@ -80,8 +80,10 @@ module ActiveRecord
           case value
           when Symbol
             _quote(value.to_s)
-          when String, ActiveSupport::Multibyte::Chars
+          when String, ActiveSupport::Multibyte::Chars, Type::Binary::Data
             _quote(value)
+          when ActiveRecord::Type::SQLServer::Char::Data
+            value.quoted
           else super
           end
         end

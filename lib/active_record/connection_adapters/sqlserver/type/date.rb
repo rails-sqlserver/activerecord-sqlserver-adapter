@@ -4,7 +4,9 @@ module ActiveRecord
       module Type
         class Date < ActiveRecord::Type::Date
 
-          SQLSERVER_TYPE = 'date'.freeze
+          def sqlserver_type
+            'date'.freeze
+          end
 
           def serialize(value)
             return unless value.present?

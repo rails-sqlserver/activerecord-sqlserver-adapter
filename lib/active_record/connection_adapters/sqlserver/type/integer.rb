@@ -4,7 +4,9 @@ module ActiveRecord
       module Type
         class Integer < ActiveRecord::Type::Integer
 
-          SQLSERVER_TYPE = 'int'.freeze
+          def sqlserver_type
+            'int'.freeze
+          end
 
         end
       end

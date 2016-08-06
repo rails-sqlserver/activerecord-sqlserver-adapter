@@ -4,8 +4,6 @@ module ActiveRecord
       module Type
         class VarcharMax < Varchar
 
-          SQLSERVER_TYPE = 'varchar(max)'.freeze
-
           def initialize(options = {})
             super
             @limit = 2_147_483_647
@@ -13,6 +11,10 @@ module ActiveRecord
 
           def type
             :varchar_max
+          end
+
+          def sqlserver_type
+            'varchar(max)'.freeze
           end
 
         end

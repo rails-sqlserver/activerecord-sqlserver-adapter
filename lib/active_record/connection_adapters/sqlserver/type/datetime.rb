@@ -4,9 +4,11 @@ module ActiveRecord
       module Type
         class DateTime < ActiveRecord::Type::DateTime
 
-          SQLSERVER_TYPE = 'datetime'.freeze
-
           include TimeValueFractional
+
+          def sqlserver_type
+            'datetime'.freeze
+          end
 
           def serialize(value)
             return super unless value.acts_like?(:time)

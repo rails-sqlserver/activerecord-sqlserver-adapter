@@ -4,8 +4,6 @@ module ActiveRecord
       module Type
         class SmallMoney < Money
 
-          SQLSERVER_TYPE = 'smallmoney'.freeze
-
           def initialize(options = {})
             super
             @precision = 10
@@ -14,6 +12,10 @@ module ActiveRecord
 
           def type
             :smallmoney
+          end
+
+          def sqlserver_type
+            'smallmoney'.freeze
           end
 
         end

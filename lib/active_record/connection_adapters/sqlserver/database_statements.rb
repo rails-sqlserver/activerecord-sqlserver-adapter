@@ -247,11 +247,13 @@ module ActiveRecord
         end
 
         def sp_executesql_sql_type(attr)
+          return attr.type.sqlserver_type if attr.type.respond_to?(:sqlserver_type)
           case value = attr.value_for_database
           when Numeric
-            SQLServer::Type::Integer::SQLSERVER_TYPE
+            'int'.freeze
           else
-            attr.type.sqlserver_type
+            raise TypeError, "sp_executesql_sql_type can not find sql type for attr #{attr.inspect}"
+            quote(value)
           end
         end
 

@@ -1,6 +1,5 @@
 require 'active_record/type'
 # Behaviors
-require 'active_record/connection_adapters/sqlserver/type/sql.rb'
 require 'active_record/connection_adapters/sqlserver/type/time_value_fractional.rb'
 # Exact Numerics
 require 'active_record/connection_adapters/sqlserver/type/integer.rb'

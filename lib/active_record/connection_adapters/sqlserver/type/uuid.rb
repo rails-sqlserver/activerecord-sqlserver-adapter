@@ -4,7 +4,6 @@ module ActiveRecord
       module Type
         class Uuid < String
 
-          SQLSERVER_TYPE = 'uniqueidentifier'.freeze
           ACCEPTABLE_UUID = %r{\A\{?([a-fA-F0-9]{4}-?){8}\}?\z}x
 
           alias_method :serialize, :deserialize
@@ -13,7 +12,11 @@ module ActiveRecord
             :uuid
           end
 
-          def type_cast(value)
+          def sqlserver_type
+            'uniqueidentifier'.freeze
+          end
+
+          def cast(value)
             value.to_s[ACCEPTABLE_UUID, 0]
           end
 

@@ -4,10 +4,12 @@ module ActiveRecord
       module Type
         class Real < Float
 
-          SQLSERVER_TYPE = 'real'.freeze
-
           def type
             :real
+          end
+
+          def sqlserver_type
+            'real'.freeze
           end
 
         end

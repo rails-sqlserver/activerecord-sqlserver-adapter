@@ -4,14 +4,12 @@ module ActiveRecord
       module Type
         class UnicodeText < UnicodeVarcharMax
 
-          SQLSERVER_TYPE = 'ntext'.freeze
-
           def type
             :ntext
           end
 
           def sqlserver_type
-            SQLSERVER_TYPE
+            'ntext'.freeze
           end
 
         end
