@@ -10,6 +10,10 @@ module ActiveRecord
             end
           end
 
+          def type_cast_for_schema(value)
+            value.is_a?(BigDecimal) ? value.to_s : value.inspect
+          end
+
         end
       end
     end
