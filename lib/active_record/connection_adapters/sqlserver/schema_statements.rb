@@ -253,7 +253,7 @@ module ActiveRecord
             SQLServer::Utils.extract_identifiers(table_name)
           end
           database    = identifier.fully_qualified_database_quoted
-          view_exists = schema_cache.view_exists?(table_name)
+          view_exists = view_exists?(table_name)
           view_tblnm  = table_name_or_views_table_name(table_name) if view_exists
           sql = %{
             SELECT DISTINCT
@@ -419,8 +419,13 @@ module ActiveRecord
 
         # === SQLServer Specific (View Reflection) ====================== #
 
+        def view_exists?(table_name)
+          identifier = SQLServer::Utils.extract_identifiers(table_name)
+          views.include? identifier.object
+        end
+
         def view_table_name(table_name)
-          view_info = schema_cache.view_information(table_name)
+          view_info = view_information(table_name)
           view_info ? get_table_name(view_info['VIEW_DEFINITION']) : table_name
         end
 
@@ -442,11 +447,11 @@ module ActiveRecord
         end
 
         def table_name_or_views_table_name(table_name)
-          schema_cache.view_exists?(table_name) ? view_table_name(table_name) : table_name
+          view_exists?(table_name) ? view_table_name(table_name) : table_name
         end
 
         def views_real_column_name(table_name, column_name)
-          view_definition = schema_cache.view_information(table_name)[:VIEW_DEFINITION]
+          view_definition = view_information(table_name)[:VIEW_DEFINITION]
           return column_name unless view_definition
           match_data = view_definition.match(/([\w-]*)\s+as\s+#{column_name}/im)
           match_data ? match_data[1] : column_name

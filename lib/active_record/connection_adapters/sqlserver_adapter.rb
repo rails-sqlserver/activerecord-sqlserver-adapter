@@ -13,7 +13,6 @@ require 'active_record/connection_adapters/sqlserver/database_statements'
 require 'active_record/connection_adapters/sqlserver/database_tasks'
 require 'active_record/connection_adapters/sqlserver/transaction'
 require 'active_record/connection_adapters/sqlserver/errors'
-require 'active_record/connection_adapters/sqlserver/schema_cache'
 require 'active_record/connection_adapters/sqlserver/schema_creation'
 require 'active_record/connection_adapters/sqlserver/schema_statements'
 require 'active_record/connection_adapters/sqlserver/sql_type_metadata'
@@ -50,8 +49,6 @@ module ActiveRecord
 
       def initialize(connection, logger = nil, config = {})
         super(connection, logger, config)
-        # AbstractAdapter Responsibility
-        @schema_cache = SQLServer::SchemaCache.new(self)
         # Our Responsibility
         @connection_options = config
         connect
