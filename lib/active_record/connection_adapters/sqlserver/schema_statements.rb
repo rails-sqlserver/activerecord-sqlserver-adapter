@@ -23,7 +23,7 @@ module ActiveRecord
 
         def create_table(table_name, comment: nil, **options)
           res = super
-          schema_cache.clear_data_source_cache!(table_name)
+          clear_cache!
           res
         end
 
@@ -106,11 +106,11 @@ module ActiveRecord
             indexes = indexes(table_name).select { |index| index.columns.include?(column_name.to_s) }
             remove_indexes(table_name, column_name)
           end
-          sql_commands << "UPDATE #{quote_table_name(table_name)} SET #{quote_column_name(column_name)}=#{quote_default_value(options[:default], column_object)} WHERE #{quote_column_name(column_name)} IS NULL" if !options[:null].nil? && options[:null] == false && !options[:default].nil?
+          sql_commands << "UPDATE #{quote_table_name(table_name)} SET #{quote_column_name(column_name)}=#{quote_default_expression(options[:default], column_object)} WHERE #{quote_column_name(column_name)} IS NULL" if !options[:null].nil? && options[:null] == false && !options[:default].nil?
           sql_commands << "ALTER TABLE #{quote_table_name(table_name)} ALTER COLUMN #{quote_column_name(column_name)} #{type_to_sql(type, options[:limit], options[:precision], options[:scale])}"
           sql_commands[-1] << ' NOT NULL' if !options[:null].nil? && options[:null] == false
           if options_include_default?(options)
-            sql_commands << "ALTER TABLE #{quote_table_name(table_name)} ADD CONSTRAINT #{default_constraint_name(table_name, column_name)} DEFAULT #{quote_default_value(options[:default], column_object)} FOR #{quote_column_name(column_name)}"
+            sql_commands << "ALTER TABLE #{quote_table_name(table_name)} ADD CONSTRAINT #{default_constraint_name(table_name, column_name)} DEFAULT #{quote_default_expression(options[:default], column_object)} FOR #{quote_column_name(column_name)}"
           end
           # Add any removed indexes back
           indexes.each do |index|
@@ -120,20 +120,20 @@ module ActiveRecord
         end
 
         def change_column_default(table_name, column_name, default)
-          schema_cache.clear_data_source_cache!(table_name)
+          clear_cache!
           remove_default_constraint(table_name, column_name)
           column_object = schema_cache.columns(table_name).find { |c| c.name.to_s == column_name.to_s }
-          do_execute "ALTER TABLE #{quote_table_name(table_name)} ADD CONSTRAINT #{default_constraint_name(table_name, column_name)} DEFAULT #{quote_default_value(default, column_object)} FOR #{quote_column_name(column_name)}"
-          schema_cache.clear_data_source_cache!(table_name)
+          do_execute "ALTER TABLE #{quote_table_name(table_name)} ADD CONSTRAINT #{default_constraint_name(table_name, column_name)} DEFAULT #{quote_default_expression(default, column_object)} FOR #{quote_column_name(column_name)}"
+          clear_cache!
         end
 
         def rename_column(table_name, column_name, new_column_name)
-          schema_cache.clear_data_source_cache!(table_name)
+          clear_cache!
           detect_column_for! table_name, column_name
           identifier = SQLServer::Utils.extract_identifiers("#{table_name}.#{column_name}")
           execute_procedure :sp_rename, identifier.quoted, new_column_name, 'COLUMN'
           rename_column_indexes(table_name, column_name, new_column_name)
-          schema_cache.clear_data_source_cache!(table_name)
+          clear_cache!
         end
 
         def rename_index(table_name, old_name, new_name)
