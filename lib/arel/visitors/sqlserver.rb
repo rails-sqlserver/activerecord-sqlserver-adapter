@@ -196,7 +196,7 @@ module Arel
 
       def remote_server_table_name o
         ActiveRecord::ConnectionAdapters::SQLServer::Utils.extract_identifiers(
-          "#{o.engine.connection.database_prefix}#{o.name}"
+          "#{o.class.engine.connection.database_prefix}#{o.name}"
         ).quoted
       end
 
