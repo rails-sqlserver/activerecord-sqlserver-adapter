@@ -229,6 +229,13 @@ module ActiveRecord
         "#<#{self.class} version: #{version}, mode: #{@connection_options[:mode]}, azure: #{sqlserver_azure?.inspect}>"
       end
 
+      def combine_bind_parameters(from_clause: [], join_clause: [], where_clause: [], having_clause: [], limit: nil, offset: nil)
+        result = from_clause + join_clause + where_clause + having_clause
+        result << offset if offset
+        result << limit if limit
+        result
+      end
+
 
       protected
 
