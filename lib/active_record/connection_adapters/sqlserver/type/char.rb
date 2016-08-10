@@ -23,11 +23,12 @@ module ActiveRecord
           class Data
 
             def initialize(value)
-              @value = value.to_s
+              @quoted_id = value.respond_to?(:quoted_id)
+              @value = @quoted_id ? value.quoted_id : value.to_s
             end
 
             def quoted
-              "'#{Utils.quote_string(@value)}'"
+              @quoted_id ? @value : "'#{Utils.quote_string(@value)}'"
             end
 
             def to_s

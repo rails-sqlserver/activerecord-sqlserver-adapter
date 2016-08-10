@@ -78,6 +78,8 @@ module ActiveRecord
 
         def _type_cast(value)
           case value
+          when nil
+            "NULL"
           when Symbol
             _quote(value.to_s)
           when String, ActiveSupport::Multibyte::Chars, Type::Binary::Data
