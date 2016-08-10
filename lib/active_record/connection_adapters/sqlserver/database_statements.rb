@@ -261,7 +261,7 @@ module ActiveRecord
           if name == 'EXPLAIN'
             params.each.with_index do |param, index|
               substitute_at_finder = /(@#{index})(?=(?:[^']|'[^']*')*$)/ # Finds unquoted @n values.
-              sql.sub! substitute_at_finder, param
+              sql.sub! substitute_at_finder, param.to_s
             end
           else
             types = quote(types.join(', '))
