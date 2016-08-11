@@ -34,7 +34,11 @@ module ARTest
           method = instance_methods(false).select { |m| m =~ method } if method.is_a?(Regexp)
           Array(method).each do |m|
             result = undef_method(m) if m && method_defined?(m)
-            STDOUT.puts "Info: Undefined coerced test: #{self.name}##{m}" unless result.blank?
+            if result.blank?
+              STDOUT.puts "Warning: Unfound coerced test: #{self.name}##{m}"
+            else
+              STDOUT.puts "Info: Undefined coerced test: #{self.name}##{m}"
+            end
           end
         end
 
