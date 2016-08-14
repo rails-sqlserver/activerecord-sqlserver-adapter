@@ -20,8 +20,7 @@ module ActiveRecord
         end
 
         def exec_insert(sql, name, binds, pk = nil, _sequence_name = nil)
-          id_insert_table_name = query_requires_identity_insert?(sql) if pk
-          if id_insert_table_name
+          if pk && id_insert_table_name = query_requires_identity_insert?(sql)
             with_identity_insert_enabled(id_insert_table_name) { exec_query(sql, name, binds) }
           else
             exec_query(sql, name, binds)

@@ -5,12 +5,11 @@ module ActiveRecord
         module Explain
 
           SQLSERVER_STATEMENT_PREFIX = 'EXEC sp_executesql '.freeze
-          SQLSERVER_PARAM_MATCHER = /@\d+ = (.*)/.freeze
-          SQLSERVER_NATIONAL_STRING_MATCHER = /N'(.*)'/m.freeze
+          SQLSERVER_PARAM_MATCHER = /@\d+ = (.*)/
+          SQLSERVER_NATIONAL_STRING_MATCHER = /N'(.*)'/m
 
           def exec_explain(queries)
-            unprepared_queries = queries.map do |sql_binds|
-              sql, binds = sql_binds
+            unprepared_queries = queries.map do |(sql, binds)|
               [unprepare_sqlserver_statement(sql), binds]
             end
             super(unprepared_queries)

@@ -176,7 +176,7 @@ class SchemaDumperTestSQLServer < ActiveRecord::TestCase
 
   class SchemaLine
 
-    LINE_PARSER = %r{t\.(\w+)\s+"(.*?)"[,\s+](.*)}.freeze
+    LINE_PARSER = %r{t\.(\w+)\s+"(.*?)"[,\s+](.*)}
 
     attr_reader :line,
                 :type_method,
