@@ -49,9 +49,9 @@ group :tinytds do
 end
 
 group :development do
+  gem 'byebug'
   gem 'mocha'
   gem 'minitest-spec-rails'
-  gem 'pry'
 end
 
 group :guard do
