@@ -14,6 +14,10 @@ module ActiveRecord
             :money
           end
 
+          def sqlserver_type
+            'money'.freeze
+          end
+
         end
       end
     end

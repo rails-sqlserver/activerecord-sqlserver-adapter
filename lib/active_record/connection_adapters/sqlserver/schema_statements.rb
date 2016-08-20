@@ -7,23 +7,23 @@ module ActiveRecord
           @native_database_types ||= initialize_native_database_types.freeze
         end
 
-        def data_sources
-          tables + views
-        end
-
         def tables(table_type = 'BASE TABLE')
           select_values "SELECT #{lowercase_schema_reflection_sql('TABLE_NAME')} FROM INFORMATION_SCHEMA.TABLES #{"WHERE TABLE_TYPE = '#{table_type}'" if table_type} ORDER BY TABLE_NAME", 'SCHEMA'
         end
 
-        def table_exists?(table_name)
+        def data_source_exists?(table_name)
           return false if table_name.blank?
           unquoted_table_name = SQLServer::Utils.extract_identifiers(table_name).object
-          super || tables.include?(unquoted_table_name) || views.include?(unquoted_table_name)
+          super(unquoted_table_name)
         end
 
-        def create_table(table_name, options = {})
+        def views
+          tables('VIEW')
+        end
+
+        def create_table(table_name, comment: nil, **options)
           res = super
-          schema_cache.clear_table_cache!(table_name)
+          clear_cache!
           res
         end
 
@@ -47,17 +47,41 @@ module ActiveRecord
           end
         end
 
-        def columns(table_name, _name = nil)
+        def columns(table_name)
           return [] if table_name.blank?
           column_definitions(table_name).map do |ci|
-            sqlserver_options = ci.slice :ordinal_position, :is_primary, :is_identity, :default_function, :table_name, :collation
-            cast_type = lookup_cast_type(ci[:type])
-            new_column ci[:name], ci[:default_value], cast_type, ci[:type], ci[:null], sqlserver_options
+            sqlserver_options = ci.slice :ordinal_position, :is_primary, :is_identity
+            sql_type_metadata = fetch_type_metadata ci[:type], sqlserver_options
+            new_column(
+              ci[:name],
+              ci[:default_value],
+              sql_type_metadata,
+              ci[:null],
+              ci[:table_name],
+              ci[:default_function],
+              ci[:collation],
+              nil,
+              sqlserver_options
+            )
           end
         end
 
-        def new_column(name, default, cast_type, sql_type = nil, null = true, sqlserver_options={})
-          SQLServerColumn.new name, default, cast_type, sql_type, null, sqlserver_options
+        def new_column(name, default, sql_type_metadata, null, table_name, default_function = nil, collation = nil, comment = nil, sqlserver_options = {})
+          SQLServerColumn.new(
+            name,
+            default,
+            sql_type_metadata,
+            null, table_name,
+            default_function,
+            collation,
+            comment,
+            sqlserver_options
+          )
+        end
+
+        def primary_keys(table_name)
+          primaries = columns(table_name).select(&:is_primary?).map(&:name)
+          primaries.present? ? primaries : identity_columns(table_name).map(&:name)
         end
 
         def rename_table(table_name, new_name)
@@ -82,11 +106,11 @@ module ActiveRecord
             indexes = indexes(table_name).select { |index| index.columns.include?(column_name.to_s) }
             remove_indexes(table_name, column_name)
           end
-          sql_commands << "UPDATE #{quote_table_name(table_name)} SET #{quote_column_name(column_name)}=#{quote_default_value(options[:default], column_object)} WHERE #{quote_column_name(column_name)} IS NULL" if !options[:null].nil? && options[:null] == false && !options[:default].nil?
+          sql_commands << "UPDATE #{quote_table_name(table_name)} SET #{quote_column_name(column_name)}=#{quote_default_expression(options[:default], column_object)} WHERE #{quote_column_name(column_name)} IS NULL" if !options[:null].nil? && options[:null] == false && !options[:default].nil?
           sql_commands << "ALTER TABLE #{quote_table_name(table_name)} ALTER COLUMN #{quote_column_name(column_name)} #{type_to_sql(type, options[:limit], options[:precision], options[:scale])}"
           sql_commands[-1] << ' NOT NULL' if !options[:null].nil? && options[:null] == false
           if options_include_default?(options)
-            sql_commands << "ALTER TABLE #{quote_table_name(table_name)} ADD CONSTRAINT #{default_constraint_name(table_name, column_name)} DEFAULT #{quote_default_value(options[:default], column_object)} FOR #{quote_column_name(column_name)}"
+            sql_commands << "ALTER TABLE #{quote_table_name(table_name)} ADD CONSTRAINT #{default_constraint_name(table_name, column_name)} DEFAULT #{quote_default_expression(options[:default], column_object)} FOR #{quote_column_name(column_name)}"
           end
           # Add any removed indexes back
           indexes.each do |index|
@@ -96,20 +120,20 @@ module ActiveRecord
         end
 
         def change_column_default(table_name, column_name, default)
-          schema_cache.clear_table_cache!(table_name)
+          clear_cache!
           remove_default_constraint(table_name, column_name)
           column_object = schema_cache.columns(table_name).find { |c| c.name.to_s == column_name.to_s }
-          do_execute "ALTER TABLE #{quote_table_name(table_name)} ADD CONSTRAINT #{default_constraint_name(table_name, column_name)} DEFAULT #{quote_default_value(default, column_object)} FOR #{quote_column_name(column_name)}"
-          schema_cache.clear_table_cache!(table_name)
+          do_execute "ALTER TABLE #{quote_table_name(table_name)} ADD CONSTRAINT #{default_constraint_name(table_name, column_name)} DEFAULT #{quote_default_expression(default, column_object)} FOR #{quote_column_name(column_name)}"
+          clear_cache!
         end
 
         def rename_column(table_name, column_name, new_column_name)
-          schema_cache.clear_table_cache!(table_name)
+          clear_cache!
           detect_column_for! table_name, column_name
           identifier = SQLServer::Utils.extract_identifiers("#{table_name}.#{column_name}")
           execute_procedure :sp_rename, identifier.quoted, new_column_name, 'COLUMN'
           rename_column_indexes(table_name, column_name, new_column_name)
-          schema_cache.clear_table_cache!(table_name)
+          clear_cache!
         end
 
         def rename_index(table_name, old_name, new_name)
@@ -183,12 +207,6 @@ module ActiveRecord
           do_execute sql
         end
 
-        # === SQLServer Specific ======================================== #
-
-        def views
-          tables('VIEW')
-        end
-
 
         protected
 
@@ -235,7 +253,7 @@ module ActiveRecord
             SQLServer::Utils.extract_identifiers(table_name)
           end
           database    = identifier.fully_qualified_database_quoted
-          view_exists = schema_cache.view_exists?(table_name)
+          view_exists = view_exists?(table_name)
           view_tblnm  = table_name_or_views_table_name(table_name) if view_exists
           sql = %{
             SELECT DISTINCT
@@ -284,9 +302,11 @@ module ActiveRecord
             WHERE columns.TABLE_NAME = @0
               AND columns.TABLE_SCHEMA = #{identifier.schema.blank? ? 'schema_name()' : '@1'}
             ORDER BY columns.ordinal_position
-          }.gsub(/[ \t\r\n]+/, ' ')
-          binds = [[info_schema_table_name_column, identifier.object]]
-          binds << [info_schema_table_schema_column, identifier.schema] unless identifier.schema.blank?
+          }.gsub(/[ \t\r\n]+/, ' ').strip
+          binds = []
+          nv128 = SQLServer::Type::UnicodeVarchar.new limit: 128
+          binds << Relation::QueryAttribute.new('TABLE_NAME', identifier.object, nv128)
+          binds << Relation::QueryAttribute.new('TABLE_SCHEMA', identifier.schema, nv128) unless identifier.schema.blank?
           results = sp_executesql(sql, 'SCHEMA', binds)
           results.map do |ci|
             ci = ci.symbolize_keys
@@ -347,14 +367,6 @@ module ActiveRecord
           end
         end
 
-        def info_schema_table_name_column
-          @info_schema_table_name_column ||= new_column 'table_name', nil, lookup_cast_type('nvarchar(128)'), 'nvarchar(128)', true
-        end
-
-        def info_schema_table_schema_column
-          @info_schema_table_schema_column ||= new_column 'table_schema', nil, lookup_cast_type('nvarchar(128)'), 'nvarchar(128)', true
-        end
-
         def remove_check_constraints(table_name, column_name)
           constraints = select_values "SELECT CONSTRAINT_NAME FROM INFORMATION_SCHEMA.CONSTRAINT_COLUMN_USAGE where TABLE_NAME = '#{quote_string(table_name)}' and COLUMN_NAME = '#{quote_string(column_name)}'", 'SCHEMA'
           constraints.each do |constraint|
@@ -407,8 +419,13 @@ module ActiveRecord
 
         # === SQLServer Specific (View Reflection) ====================== #
 
+        def view_exists?(table_name)
+          identifier = SQLServer::Utils.extract_identifiers(table_name)
+          views.include? identifier.object
+        end
+
         def view_table_name(table_name)
-          view_info = schema_cache.view_information(table_name)
+          view_info = view_information(table_name)
           view_info ? get_table_name(view_info['VIEW_DEFINITION']) : table_name
         end
 
@@ -430,11 +447,11 @@ module ActiveRecord
         end
 
         def table_name_or_views_table_name(table_name)
-          schema_cache.view_exists?(table_name) ? view_table_name(table_name) : table_name
+          view_exists?(table_name) ? view_table_name(table_name) : table_name
         end
 
         def views_real_column_name(table_name, column_name)
-          view_definition = schema_cache.view_information(table_name)[:VIEW_DEFINITION]
+          view_definition = view_information(table_name)[:VIEW_DEFINITION]
           return column_name unless view_definition
           match_data = view_definition.match(/([\w-]*)\s+as\s+#{column_name}/im)
           match_data ? match_data[1] : column_name
@@ -445,7 +462,7 @@ module ActiveRecord
         def query_requires_identity_insert?(sql)
           if insert_sql?(sql)
             table_name = get_table_name(sql)
-            id_column = identity_column(table_name)
+            id_column = identity_columns(table_name).first
             id_column && sql =~ /^\s*(INSERT|EXEC sp_executesql N'INSERT)[^(]+\([^)]*\b(#{id_column.name})\b,?[^)]*\)/i ? quote_table_name(table_name) : false
           else
             false
@@ -456,15 +473,15 @@ module ActiveRecord
           !(sql =~ /^\s*(INSERT|EXEC sp_executesql N'INSERT)/i).nil?
         end
 
-        def identity_column(table_name)
-          schema_cache.columns(table_name).find(&:is_identity?)
+        def identity_columns(table_name)
+          columns(table_name).select(&:is_identity?)
         end
 
 
         private
 
-        def create_table_definition(name, temporary, options, as = nil)
-          SQLServer::TableDefinition.new native_database_types, name, temporary, options, as
+        def create_table_definition(*args)
+          SQLServer::TableDefinition.new(*args)
         end
 
       end

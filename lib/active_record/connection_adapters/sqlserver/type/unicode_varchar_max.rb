@@ -13,6 +13,10 @@ module ActiveRecord
             :text
           end
 
+          def sqlserver_type
+            'nvarchar(max)'.freeze
+          end
+
         end
       end
     end

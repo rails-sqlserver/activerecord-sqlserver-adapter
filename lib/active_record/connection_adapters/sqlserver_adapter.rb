@@ -13,9 +13,9 @@ require 'active_record/connection_adapters/sqlserver/database_statements'
 require 'active_record/connection_adapters/sqlserver/database_tasks'
 require 'active_record/connection_adapters/sqlserver/transaction'
 require 'active_record/connection_adapters/sqlserver/errors'
-require 'active_record/connection_adapters/sqlserver/schema_cache'
 require 'active_record/connection_adapters/sqlserver/schema_creation'
 require 'active_record/connection_adapters/sqlserver/schema_statements'
+require 'active_record/connection_adapters/sqlserver/sql_type_metadata'
 require 'active_record/connection_adapters/sqlserver/showplan'
 require 'active_record/connection_adapters/sqlserver/table_definition'
 require 'active_record/connection_adapters/sqlserver/quoting'
@@ -42,26 +42,26 @@ module ActiveRecord
 
       cattr_accessor :cs_equality_operator, instance_accessor: false
       cattr_accessor :use_output_inserted, instance_accessor: false
-      cattr_accessor :lowercase_schema_reflection, :showplan_option
+      cattr_accessor :showplan_option, instance_accessor: false
+      cattr_accessor :lowercase_schema_reflection
 
       self.cs_equality_operator = 'COLLATE Latin1_General_CS_AS_WS'
       self.use_output_inserted = true
 
-      def initialize(connection, logger, pool, config)
-        super(connection, logger, pool)
-        # AbstractAdapter Responsibility
-        @schema_cache = SQLServer::SchemaCache.new self
-        @visitor = Arel::Visitors::SQLServer.new self
-        @prepared_statements = true
+      def initialize(connection, logger = nil, config = {})
+        super(connection, logger, config)
         # Our Responsibility
         @connection_options = config
         connect
-        @sqlserver_azure = !!(select_value('SELECT @@version', 'SCHEMA') =~ /Azure/i)
         initialize_dateformatter
         use_database
       end
 
       # === Abstract Adapter ========================================== #
+
+      def arel_visitor
+        Arel::Visitors::SQLServer.new self
+      end
 
       def valid_type?(type)
         !native_database_types[type].nil?
@@ -71,19 +71,11 @@ module ActiveRecord
         SQLServer::SchemaCreation.new self
       end
 
-      def adapter_name
-        ADAPTER_NAME
-      end
-
       def supports_migrations?
         true
       end
 
       def supports_primary_key?
-        true
-      end
-
-      def supports_count_distinct?
         true
       end
 
@@ -95,12 +87,24 @@ module ActiveRecord
         false
       end
 
+      def supports_advisory_locks?
+        false
+      end
+
       def supports_index_sort_order?
         true
       end
 
+      def supports_index_sort_order?
+        false
+      end
+
       def supports_partial_index?
         true
+      end
+
+      def supports_expression_index?
+        false
       end
 
       def supports_explain?
@@ -111,12 +115,32 @@ module ActiveRecord
         true
       end
 
-      def supports_views?
-        true
+      def supports_indexes_in_create?
+        false
       end
 
       def supports_foreign_keys?
         true
+      end
+
+      def supports_views?
+        true
+      end
+
+      def supports_datetime_with_precision?
+        false
+      end
+
+      def supports_json?
+        true
+      end
+
+      def supports_comments?
+        false
+      end
+
+      def supports_comments_in_create?
+        false
       end
 
       def disable_referential_integrity
@@ -149,8 +173,6 @@ module ActiveRecord
         case @connection_options[:mode]
         when :dblib
           @connection.close rescue nil
-        when :odbc
-          @connection.disconnect rescue nil
         end
         @connection = nil
       end
@@ -180,10 +202,6 @@ module ActiveRecord
         pk ? [pk, nil] : nil
       end
 
-      def primary_key(table_name)
-        schema_cache.columns(table_name).find(&:is_primary?).try(:name) || identity_column(table_name).try(:name)
-      end
-
       # === SQLServer Specific (DB Reflection) ======================== #
 
       def sqlserver?
@@ -191,7 +209,7 @@ module ActiveRecord
       end
 
       def sqlserver_azure?
-        @sqlserver_azure
+        @sqlserver_azure ||= !!(select_value('SELECT @@version', 'SCHEMA') =~ /Azure/i)
       end
 
       def database_prefix_remote_server?
@@ -210,6 +228,13 @@ module ActiveRecord
 
       def inspect
         "#<#{self.class} version: #{version}, mode: #{@connection_options[:mode]}, azure: #{sqlserver_azure?.inspect}>"
+      end
+
+      def combine_bind_parameters(from_clause: [], join_clause: [], where_clause: [], having_clause: [], limit: nil, offset: nil)
+        result = from_clause + join_clause + where_clause + having_clause
+        result << offset if offset
+        result << limit if limit
+        result
       end
 
 
@@ -281,13 +306,13 @@ module ActiveRecord
       def translate_exception(e, message)
         case message
         when /(cannot insert duplicate key .* with unique index) | (violation of unique key constraint)/i
-          RecordNotUnique.new(message, e)
+          RecordNotUnique.new(message)
         when /conflicted with the foreign key constraint/i
-          InvalidForeignKey.new(message, e)
+          InvalidForeignKey.new(message)
         when /has been chosen as the deadlock victim/i
-          DeadlockVictim.new(message, e)
+          DeadlockVictim.new(message)
         when /database .* does not exist/i
-          NoDatabaseError.new(message, e)
+          NoDatabaseError.new(message)
         else
           super
         end
@@ -300,8 +325,6 @@ module ActiveRecord
         @connection = case config[:mode]
                       when :dblib
                         dblib_connect(config)
-                      when :odbc
-                        odbc_connect(config)
                       end
         @spid = _raw_select('SELECT @@SPID', fetch: :rows).first.first
         configure_connection
@@ -310,7 +333,6 @@ module ActiveRecord
       def connection_errors
         @connection_errors ||= [].tap do |errors|
           errors << TinyTds::Error if defined?(TinyTds::Error)
-          errors << ODBC::Error if defined?(ODBC::Error)
         end
       end
 
@@ -344,25 +366,6 @@ module ActiveRecord
           end
           client.execute('SET TEXTSIZE 2147483647').do
           client.execute('SET CONCAT_NULL_YIELDS_NULL ON').do
-        end
-      end
-
-      def odbc_connect(config)
-        if config[:dsn].include?(';')
-          driver = ODBC::Driver.new.tap do |d|
-            d.name = config[:dsn_name] || 'Driver1'
-            d.attrs = config[:dsn].split(';').map { |atr| atr.split('=') }.reject { |kv| kv.size != 2 }.reduce({}) { |a, e| k, v = e ; a[k] = v ; a }
-          end
-          ODBC::Database.new.drvconnect(driver)
-        else
-          ODBC.connect config[:dsn], config[:username], config[:password]
-        end.tap do |c|
-          begin
-            c.use_time = true
-            c.use_utc = ActiveRecord::Base.default_timezone == :utc
-          rescue Exception
-            warn 'Ruby ODBC v0.99992 or higher is required.'
-          end
         end
       end
 

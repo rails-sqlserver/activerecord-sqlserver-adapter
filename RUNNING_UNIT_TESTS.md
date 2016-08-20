@@ -28,8 +28,6 @@ $ bundle exec rake test TEST_FILES_AR="test/cases/finder_test.rb"
 
 The default names for the test databases are `activerecord_unittest` and `activerecord_unittest2`. If you want to use another database name then be sure to update the connection file that matches your connection method in test/connections/native_sqlserver_#{connection_method}/connection.rb. Define a user named 'rails' in SQL Server with all privileges granted for the test databases. Use an empty password for said user.
 
-The connection files make certain assumptions. For instance, the ODBC connection assumes you have a DSN setup that matches the name of the default database names. Remember too you have to set an environment variable for the DSN of the adapter, see the connection.rb file that matches your connection mode for details.
-
 ```sql
 CREATE DATABASE [activerecord_unittest];
 CREATE DATABASE [activerecord_unittest2];
@@ -93,18 +91,6 @@ $ bundle exec rake test
 
 ## Testing Options
 
-The Gemfile contains groups for `:tinytds` and `:odbc`. By default it will install both gems  which allows you to run the full test suite in either connection mode. If for some reason any one of these is problematic or of no concern, you could always opt out of bundling either gem with something like this.
-
-```
-$ bundle install --without odbc
-```
-
-You can run different connection modes using the following rake commands. Again, the DBLIB connection mode using TinyTDS is the default test task.
-
-```
-$ bundle exec rake test:dblib
-$ bundle exec rake test:odbc
-```
 
 By default, Bundler will download the Rails git repo and use the git tag that matches the dependency version in our gemspec. If you want to test another version of Rails, you can either temporarily change the :tag for Rails in the Gemfile. Likewise, you can clone the Rails repo your self to another directory and use the `RAILS_SOURCE` environment variable.
 
@@ -116,6 +102,3 @@ By default, Bundler will download the Rails git repo and use the git tag that ma
 * Possibly change the SQL Server TCP/IP properties in "SQL Server Configuration Manager -> SQL Server Network Configuration -> Protocols for MSSQLSERVER", and ensure that TCP/IP is enabled and the appropriate entries on the "IP Addresses" tab are enabled.
 
 
-## Current Expected Failures
-
-* Misc Date/Time erros when using ODBC mode.

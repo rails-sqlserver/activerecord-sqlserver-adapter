@@ -3,7 +3,7 @@ module ActiveRecord
     module SQLServer
       class TableDefinition < ActiveRecord::ConnectionAdapters::TableDefinition
 
-        def primary_key(name, type = :primary_key, options = {})
+        def primary_key(name, type = :primary_key, **options)
           return super unless type == :uuid
           options[:default] = options.fetch(:default, 'NEWID()')
           options[:primary_key] = true

@@ -8,6 +8,10 @@ module ActiveRecord
             :text_basic
           end
 
+          def sqlserver_type
+            'text'.freeze
+          end
+
         end
       end
     end

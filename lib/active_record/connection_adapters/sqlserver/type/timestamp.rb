@@ -8,6 +8,10 @@ module ActiveRecord
             :ss_timestamp
           end
 
+          def sqlserver_type
+            'timestamp'.freeze
+          end
+
         end
       end
     end

@@ -103,8 +103,7 @@ module ActiveRecord
   class BindParameterTest < ActiveRecord::TestCase
 
     # Never finds `sql` since we use `EXEC sp_executesql` wrappers.
-    coerce_tests! :test_binds_are_logged,
-                  :test_binds_are_logged_after_type_cast
+    coerce_tests! :test_binds_are_logged
 
   end
 end
@@ -404,19 +403,6 @@ end
 
 
 
-class BigNumber < ActiveRecord::Base
-  attribute :value_of_e, Type::SQLServer::Integer.new
-  attribute :my_house_population, Type::SQLServer::Integer.new
-end
-class MigrationTest < ActiveRecord::TestCase
-
-  # PENDING: [Rails5.x] Remove coerced tests and use simple symbol types.
-  coerce_tests! :test_add_table_with_decimals
-
-end
-
-
-
 
 class NamedScopingTest < ActiveRecord::TestCase
 
@@ -669,22 +655,6 @@ class TransactionIsolationTest < ActiveRecord::TestCase
   coerce_tests! %r{repeatable read}
 
 end
-
-
-require 'models/post'
-module ActiveRecord
-  class WhereChainTest < ActiveRecord::TestCase
-
-    coerce_tests! :test_not_eq_with_array_parameter
-    def test_not_eq_with_array_parameter_coerced
-      expected = Arel::Nodes::Not.new("title = N'hello'")
-      relation = Post.where.not(['title = ?', 'hello'])
-      assert_equal([expected], relation.where_values)
-    end
-
-  end
-end
-
 
 
 

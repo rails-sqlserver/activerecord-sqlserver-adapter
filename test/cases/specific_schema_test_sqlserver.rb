@@ -94,7 +94,7 @@ class SpecificSchemaTestSQLServer < ActiveRecord::TestCase
   end
 
   it 'use primary key for row table order in pagination sql' do
-    sql = /ORDER BY \[sst_natural_pk_data\]\.\[legacy_id\] ASC OFFSET 5 ROWS FETCH NEXT 5 ROWS ONLY/
+    sql = /ORDER BY \[sst_natural_pk_data\]\.\[legacy_id\] ASC OFFSET @0 ROWS FETCH NEXT @1 ROWS ONLY/
     assert_sql(sql) { SSTestNaturalPkData.limit(5).offset(5).load }
   end
 

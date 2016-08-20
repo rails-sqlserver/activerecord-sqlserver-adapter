@@ -8,6 +8,9 @@ module ActiveRecord
             :smalldatetime
           end
 
+          def sqlserver_type
+            'smalldatetime'.freeze
+          end
 
           private
 

@@ -4,6 +4,9 @@ module ActiveRecord
       module Type
         class TinyInteger < Integer
 
+          def sqlserver_type
+            'tinyint'.freeze
+          end
 
           private
 

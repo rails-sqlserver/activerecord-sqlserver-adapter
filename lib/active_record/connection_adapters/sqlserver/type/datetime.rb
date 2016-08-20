@@ -6,7 +6,11 @@ module ActiveRecord
 
           include TimeValueFractional
 
-          def type_cast_for_database(value)
+          def sqlserver_type
+            'datetime'.freeze
+          end
+
+          def serialize(value)
             return super unless value.acts_like?(:time)
             value = zone_conversion(value)
             datetime = value.to_s(:_sqlserver_datetime)
@@ -17,9 +21,8 @@ module ActiveRecord
           end
 
           def type_cast_for_schema(value)
-            type_cast_for_database(value).inspect
+            serialize(value).inspect
           end
-
 
           private
 

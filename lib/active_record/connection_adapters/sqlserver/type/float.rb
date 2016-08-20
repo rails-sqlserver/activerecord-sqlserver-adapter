@@ -8,6 +8,10 @@ module ActiveRecord
             :float
           end
 
+          def sqlserver_type
+            'float'.freeze
+          end
+
         end
       end
     end

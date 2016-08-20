@@ -8,6 +8,10 @@ module ActiveRecord
             :real
           end
 
+          def sqlserver_type
+            'real'.freeze
+          end
+
         end
       end
     end

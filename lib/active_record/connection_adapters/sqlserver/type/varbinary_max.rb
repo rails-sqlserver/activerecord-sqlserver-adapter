@@ -13,6 +13,10 @@ module ActiveRecord
             :binary
           end
 
+          def sqlserver_type
+            'varbinary(max)'.freeze
+          end
+
         end
       end
     end

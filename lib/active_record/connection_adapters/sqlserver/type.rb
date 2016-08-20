@@ -1,4 +1,6 @@
 require 'active_record/type'
+# Behaviors
+require 'active_record/connection_adapters/sqlserver/type/time_value_fractional.rb'
 # Exact Numerics
 require 'active_record/connection_adapters/sqlserver/type/integer.rb'
 require 'active_record/connection_adapters/sqlserver/type/big_integer.rb'
@@ -12,7 +14,6 @@ require 'active_record/connection_adapters/sqlserver/type/small_money.rb'
 require 'active_record/connection_adapters/sqlserver/type/float.rb'
 require 'active_record/connection_adapters/sqlserver/type/real.rb'
 # Date and Time
-require 'active_record/connection_adapters/sqlserver/type/time_value_fractional.rb'
 require 'active_record/connection_adapters/sqlserver/type/date.rb'
 require 'active_record/connection_adapters/sqlserver/type/datetime.rb'
 require 'active_record/connection_adapters/sqlserver/type/datetime2.rb'

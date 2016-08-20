@@ -8,20 +8,27 @@ module ActiveRecord
             :char
           end
 
-          def type_cast_for_database(value)
+          def serialize(value)
             return if value.nil?
             return value if value.is_a?(Data)
             Data.new(super)
           end
 
+          def sqlserver_type
+            'char'.tap do |type|
+              type << "(#{limit})" if limit
+            end
+          end
+
           class Data
 
             def initialize(value)
-              @value = value.to_s
+              @quoted_id = value.respond_to?(:quoted_id)
+              @value = @quoted_id ? value.quoted_id : value.to_s
             end
 
             def quoted
-              "'#{Utils.quote_string(@value)}'"
+              @quoted_id ? @value : "'#{Utils.quote_string(@value)}'"
             end
 
             def to_s

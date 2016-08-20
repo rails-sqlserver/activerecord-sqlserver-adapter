@@ -19,11 +19,9 @@ module ActiveRecord
           sp_executesql(sql, name, binds)
         end
 
-        def exec_insert(sql, name, binds, _pk = nil, _sequence_name = nil)
-          id_insert = binds_have_identity_column?(binds)
-          id_table  = table_name_from_binds(binds) if id_insert
-          if id_insert && id_table
-            with_identity_insert_enabled(id_table) { exec_query(sql, name, binds) }
+        def exec_insert(sql, name, binds, pk = nil, _sequence_name = nil)
+          if pk && id_insert_table_name = query_requires_identity_insert?(sql)
+            with_identity_insert_enabled(id_insert_table_name) { exec_query(sql, name, binds) }
           else
             exec_query(sql, name, binds)
           end
@@ -122,18 +120,6 @@ module ActiveRecord
                 yield(r) if block_given?
               end
               result.each.map { |row| row.is_a?(Hash) ? row.with_indifferent_access : row }
-            when :odbc
-              results = []
-              raw_connection_run(sql) do |handle|
-                get_rows = lambda do
-                  rows = handle_to_names_and_values handle, fetch: :all
-                  rows.each_with_index { |r, i| rows[i] = r.with_indifferent_access }
-                  results << rows
-                end
-                get_rows.call
-                get_rows.call while handle_more_results?(handle)
-              end
-              results.many? ? results : results.first
             end
           end
         end
@@ -216,30 +202,20 @@ module ActiveRecord
         end
 
         def sql_for_insert(sql, pk, id_value, sequence_name, binds)
-          sql = if pk && self.class.use_output_inserted && !database_prefix_remote_server?
-            quoted_pk = SQLServer::Utils.extract_identifiers(pk).quoted
-            sql.insert sql.index(/ (DEFAULT )?VALUES/), " OUTPUT INSERTED.#{quoted_pk}"
-          else
-            "#{sql}; SELECT CAST(SCOPE_IDENTITY() AS bigint) AS Ident"
+          if pk.nil?
+            table_name = query_requires_identity_insert?(sql)
+            pk = primary_key(table_name)
           end
+          sql = if pk && self.class.use_output_inserted && !database_prefix_remote_server?
+                  quoted_pk = SQLServer::Utils.extract_identifiers(pk).quoted
+                  sql.insert sql.index(/ (DEFAULT )?VALUES/), " OUTPUT INSERTED.#{quoted_pk}"
+                else
+                  "#{sql}; SELECT CAST(SCOPE_IDENTITY() AS bigint) AS Ident"
+                end
           super
         end
 
         # === SQLServer Specific ======================================== #
-
-        def binds_have_identity_column?(binds)
-          binds.any? do |column_value|
-            column, value = column_value
-            SQLServerColumn === column && column.is_identity?
-          end
-        end
-
-        def table_name_from_binds(binds)
-          binds.detect { |column_value|
-            column, value = column_value
-            SQLServerColumn === column
-          }.try(:first).try(:table_name)
-        end
 
         def set_identity_insert(table_name, enable = true)
           do_execute "SET IDENTITY_INSERT #{table_name} #{enable ? 'ON' : 'OFF'}"
@@ -262,20 +238,21 @@ module ActiveRecord
 
         def sp_executesql_types_and_parameters(binds)
           types, params = [], []
-          binds.each_with_index do |(column, value), index|
-            types << "@#{index} #{sp_executesql_sql_type(column, value)}"
-            params << quote(value, column)
+          binds.each_with_index do |attr, index|
+            types << "@#{index} #{sp_executesql_sql_type(attr)}"
+            params << type_cast(attr.value_for_database)
           end
           [types, params]
         end
 
-        def sp_executesql_sql_type(column, value)
-          return column.sql_type_for_statement if SQLServerColumn === column
-          if value.is_a?(Numeric)
-            'int'
-          # We can do more here later.
+        def sp_executesql_sql_type(attr)
+          return attr.type.sqlserver_type if attr.type.respond_to?(:sqlserver_type)
+          case value = attr.value_for_database
+          when Numeric
+            'int'.freeze
           else
-            'nvarchar(max)'
+            raise TypeError, "sp_executesql_sql_type can not find sql type for attr #{attr.inspect}"
+            quote(value)
           end
         end
 
@@ -283,7 +260,7 @@ module ActiveRecord
           if name == 'EXPLAIN'
             params.each.with_index do |param, index|
               substitute_at_finder = /(@#{index})(?=(?:[^']|'[^']*')*$)/ # Finds unquoted @n values.
-              sql.sub! substitute_at_finder, param
+              sql.sub! substitute_at_finder, param.to_s
             end
           else
             types = quote(types.join(', '))
@@ -298,8 +275,6 @@ module ActiveRecord
           case @connection_options[:mode]
           when :dblib
             @connection.execute(sql).do
-          when :odbc
-            @connection.do(sql)
           end
         ensure
           @update_sql = false
@@ -322,16 +297,12 @@ module ActiveRecord
           case @connection_options[:mode]
           when :dblib
             @connection.execute(sql)
-          when :odbc
-            block_given? ? @connection.run_block(sql) { |handle| yield(handle) } : @connection.run(sql)
           end
         end
 
         def handle_more_results?(handle)
           case @connection_options[:mode]
           when :dblib
-          when :odbc
-            handle.more_results
           end
         end
 
@@ -339,8 +310,6 @@ module ActiveRecord
           case @connection_options[:mode]
           when :dblib
             handle_to_names_and_values_dblib(handle, options)
-          when :odbc
-            handle_to_names_and_values_odbc(handle, options)
           end
         end
 
@@ -354,28 +323,10 @@ module ActiveRecord
           options[:ar_result] ? ActiveRecord::Result.new(columns, results) : results
         end
 
-        def handle_to_names_and_values_odbc(handle, options = {})
-          @connection.use_utc = ActiveRecord::Base.default_timezone == :utc
-          if options[:ar_result]
-            columns = lowercase_schema_reflection ? handle.columns(true).map { |c| c.name.downcase } : handle.columns(true).map { |c| c.name }
-            rows = handle.fetch_all || []
-            ActiveRecord::Result.new(columns, rows)
-          else
-            case options[:fetch]
-            when :all
-              handle.each_hash || []
-            when :rows
-              handle.fetch_all || []
-            end
-          end
-        end
-
         def finish_statement_handle(handle)
           case @connection_options[:mode]
           when :dblib
             handle.cancel if handle
-          when :odbc
-            handle.drop if handle && handle.respond_to?(:drop) && !handle.finished?
           end
           handle
         end

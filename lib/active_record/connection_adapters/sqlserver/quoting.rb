@@ -7,6 +7,18 @@ module ActiveRecord
         QUOTED_FALSE = '0'
         QUOTED_STRING_PREFIX = 'N'
 
+        def fetch_type_metadata(sql_type, sqlserver_options = {})
+          cast_type = lookup_cast_type(sql_type)
+          SQLServer::SqlTypeMetadata.new(
+            sql_type: sql_type,
+            type: cast_type.type,
+            limit: cast_type.limit,
+            precision: cast_type.precision,
+            scale: cast_type.scale,
+            sqlserver_options: sqlserver_options
+          )
+        end
+
         def quote_string(s)
           SQLServer::Utils.quote_string(s)
         end
@@ -15,11 +27,12 @@ module ActiveRecord
           SQLServer::Utils.extract_identifiers(name).quoted
         end
 
-        def quote_default_value(value, column)
-          if column.type == :uuid && value =~ /\(\)/
+        def quote_default_expression(value, column)
+          cast_type = lookup_cast_type(column.sql_type)
+          if cast_type.type == :uuid && value =~ /\(\)/
             value
           else
-            quote(value, column)
+            super
           end
         end
 
@@ -41,9 +54,9 @@ module ActiveRecord
 
         def quoted_date(value)
           if value.acts_like?(:date)
-            Type::Date.new.type_cast_for_database(value)
+            Type::Date.new.serialize(value)
           else value.acts_like?(:time)
-            Type::DateTime.new.type_cast_for_database(value)
+            Type::DateTime.new.serialize(value)
           end
         end
 
@@ -60,6 +73,20 @@ module ActiveRecord
             "#{QUOTED_STRING_PREFIX}#{super}"
           else
             super
+          end
+        end
+
+        def _type_cast(value)
+          case value
+          when nil
+            "NULL"
+          when Symbol
+            _quote(value.to_s)
+          when String, ActiveSupport::Multibyte::Chars, Type::Binary::Data
+            _quote(value)
+          when ActiveRecord::Type::SQLServer::Char::Data
+            value.quoted
+          else super
           end
         end
 

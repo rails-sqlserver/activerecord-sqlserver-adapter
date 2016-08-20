@@ -166,10 +166,6 @@ gem 'tiny_tds'
 gem 'activerecord-sqlserver-adapter', '~> 4.2.0'
 ```
 
-If you want to use ruby ODBC, please use the latest least. If you have any troubles installing the lower level libraries for the adapter, please consult the wiki pages for various platform installation guides. Tons of good info can be found and we ask that you contribute too!
-
-http://wiki.github.com/rails-sqlserver/activerecord-sqlserver-adapter/platform-installation
-
 
 ## Contributing
 

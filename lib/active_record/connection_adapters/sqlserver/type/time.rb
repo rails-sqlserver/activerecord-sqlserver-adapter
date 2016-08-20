@@ -6,7 +6,7 @@ module ActiveRecord
 
           include TimeValueFractional2
 
-          def type_cast_for_database(value)
+          def serialize(value)
             return super unless value.acts_like?(:time)
             time = value.to_s(:_sqlserver_time)
             "#{time}".tap do |v|
@@ -16,7 +16,11 @@ module ActiveRecord
           end
 
           def type_cast_for_schema(value)
-            type_cast_for_database(value).inspect
+            serialize(value).inspect
+          end
+
+          def sqlserver_type
+            "time(#{precision.to_i})"
           end
 
 

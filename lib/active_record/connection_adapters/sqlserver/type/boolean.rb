@@ -4,6 +4,9 @@ module ActiveRecord
       module Type
         class Boolean < ActiveRecord::Type::Boolean
 
+          def sqlserver_type
+            'bit'.freeze
+          end
 
         end
       end

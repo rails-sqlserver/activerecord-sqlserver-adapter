@@ -4,6 +4,9 @@ module ActiveRecord
       module Type
         class Integer < ActiveRecord::Type::Integer
 
+          def sqlserver_type
+            'int'.freeze
+          end
 
         end
       end

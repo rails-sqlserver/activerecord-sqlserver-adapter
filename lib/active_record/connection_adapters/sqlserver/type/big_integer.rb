@@ -8,6 +8,10 @@ module ActiveRecord
             :bigint
           end
 
+          def sqlserver_type
+            'bigint'.freeze
+          end
+
         end
       end
     end

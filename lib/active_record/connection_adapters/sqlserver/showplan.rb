@@ -28,32 +28,32 @@ module ActiveRecord
         end
 
         def set_showplan_option(enable = true)
-          sql = "SET #{option} #{enable ? 'ON' : 'OFF'}"
+          sql = "SET #{showplan_option} #{enable ? 'ON' : 'OFF'}"
           raw_connection_do(sql)
         rescue Exception
-          raise ActiveRecordError, "#{option} could not be turned #{enable ? 'ON' : 'OFF'}, perhaps you do not have SHOWPLAN permissions?"
+          raise ActiveRecordError, "#{showplan_option} could not be turned #{enable ? 'ON' : 'OFF'}, perhaps you do not have SHOWPLAN permissions?"
         end
 
-        def option
+        def showplan_option
           (SQLServerAdapter.showplan_option || OPTION_ALL).tap do |opt|
             raise(ArgumentError, "Unknown SHOWPLAN option #{opt.inspect} found.") if OPTIONS.exclude?(opt)
           end
         end
 
         def showplan_all?
-          option == OPTION_ALL
+          showplan_option == OPTION_ALL
         end
 
         def showplan_text?
-          option == OPTION_TEXT
+          showplan_option == OPTION_TEXT
         end
 
         def showplan_xml?
-          option == OPTION_XML
+          showplan_option == OPTION_XML
         end
 
         def showplan_printer
-          case option
+          case showplan_option
           when OPTION_XML then PrinterXml
           when OPTION_ALL, OPTION_TEXT then PrinterTable
           else PrinterTable

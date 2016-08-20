@@ -2,7 +2,7 @@ require 'cases/helper_sqlserver'
 
 class SQLServerRakeTest < ActiveRecord::TestCase
 
-  self.use_transactional_fixtures = false
+  self.use_transactional_tests = false
 
   cattr_accessor :azure_skip
   self.azure_skip = connection_sqlserver_azure?
@@ -42,24 +42,24 @@ class SQLServerRakeCreateTest < SQLServerRakeTest
   self.azure_skip = false
 
   it 'establishes connection to database after create ' do
-    db_tasks.create configuration
+    quietly { db_tasks.create configuration }
     connection.current_database.must_equal(new_database)
   end
 
   it 'creates database with default collation' do
-    db_tasks.create configuration
+    quietly { db_tasks.create configuration }
     connection.collation.must_equal 'SQL_Latin1_General_CP1_CI_AS'
   end
 
   it 'creates database with given collation' do
-    db_tasks.create configuration.merge('collation' => 'Latin1_General_CI_AS')
+    quietly { db_tasks.create configuration.merge('collation' => 'Latin1_General_CI_AS') }
     connection.collation.must_equal 'Latin1_General_CI_AS'
   end
 
   it 'prints error message when database exists' do
-    db_tasks.create configuration
+    quietly { db_tasks.create configuration }
     message = capture(:stderr) { db_tasks.create configuration }
-    message.must_match %r{activerecord_unittest_tasks already exists}
+    message.must_match %r{activerecord_unittest_tasks.*already exists}
   end
 
 end
@@ -69,8 +69,10 @@ class SQLServerRakeDropTest < SQLServerRakeTest
   self.azure_skip = false
 
   it 'drops database and uses master' do
-    db_tasks.create configuration
-    db_tasks.drop configuration
+    quietly do
+      db_tasks.create configuration
+      db_tasks.drop configuration
+    end
     connection.current_database.must_equal 'master'
   end
 
@@ -84,7 +86,7 @@ end
 class SQLServerRakePurgeTest < SQLServerRakeTest
 
   before do
-    db_tasks.create(configuration)
+    quietly { db_tasks.create(configuration) }
     connection.create_table :users, force: true do |t|
       t.string :name, :email
       t.timestamps null: false
@@ -94,7 +96,7 @@ class SQLServerRakePurgeTest < SQLServerRakeTest
   it 'clears active connections, drops database, and recreates with established connection' do
     connection.current_database.must_equal(new_database)
     connection.tables.must_include 'users'
-    db_tasks.purge(configuration)
+    quietly { db_tasks.purge(configuration) }
     connection.current_database.must_equal(new_database)
     connection.tables.wont_include 'users'
   end
@@ -103,7 +105,9 @@ end
 
 class SQLServerRakeCharsetTest < SQLServerRakeTest
 
-  before { db_tasks.create(configuration) }
+  before do
+    quietly { db_tasks.create(configuration) }
+  end
 
   it 'retrieves charset' do
     db_tasks.charset(configuration).must_equal 'iso_1'
@@ -113,7 +117,9 @@ end
 
 class SQLServerRakeCollationTest < SQLServerRakeTest
 
-  before { db_tasks.create(configuration) }
+  before do
+    quietly { db_tasks.create(configuration) }
+  end
 
   it 'retrieves collation' do
     db_tasks.collation(configuration).must_equal 'SQL_Latin1_General_CP1_CI_AS'
@@ -127,7 +133,7 @@ class SQLServerRakeStructureDumpLoadTest < SQLServerRakeTest
   let(:filedata) { File.read(filename) }
 
   before do
-    db_tasks.create(configuration)
+    quietly { db_tasks.create(configuration) }
     connection.create_table :users, force: true do |t|
       t.string :name, :email
       t.text :background1
@@ -156,7 +162,7 @@ class SQLServerRakeStructureDumpLoadTest < SQLServerRakeTest
     filedata.must_match %r{CREATE TABLE dbo\.users}
     db_tasks.purge(configuration)
     connection.tables.wont_include 'users'
-    db_tasks.load_schema_for configuration, :sql, filename
+    db_tasks.load_schema configuration, :sql, filename
     connection.tables.must_include 'users'
   end
 

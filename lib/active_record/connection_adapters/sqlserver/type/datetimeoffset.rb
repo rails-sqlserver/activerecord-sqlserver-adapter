@@ -8,15 +8,18 @@ module ActiveRecord
             :datetimeoffset
           end
 
-          def type_cast_for_database(value)
+          def serialize(value)
             return super unless value.acts_like?(:time)
             value.to_s :_sqlserver_datetimeoffset
           end
 
           def type_cast_for_schema(value)
-            type_cast_for_database(value).inspect
+            serialize(value).inspect
           end
 
+          def sqlserver_type
+            "datetimeoffset(#{precision.to_i})"
+          end
 
           private
 

@@ -13,6 +13,10 @@ module ActiveRecord
             :varchar_max
           end
 
+          def sqlserver_type
+            'varchar(max)'.freeze
+          end
+
         end
       end
     end

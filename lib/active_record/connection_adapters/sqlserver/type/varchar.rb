@@ -13,6 +13,12 @@ module ActiveRecord
             :varchar
           end
 
+          def sqlserver_type
+            'varchar'.tap do |type|
+              type << "(#{limit})" if limit
+            end
+          end
+
         end
       end
     end

@@ -17,7 +17,7 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
     string = connection.inspect
     string.must_match %r{ActiveRecord::ConnectionAdapters::SQLServerAdapter}
     string.must_match %r{version\: \d.\d}
-    string.must_match %r{mode: (dblib|odbc)}
+    string.must_match %r{mode: dblib}
     string.must_match %r{azure: (true|false)}
     string.wont_match %r{host}
     string.wont_match %r{password}
@@ -96,7 +96,7 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
       connection.send :initialize_dateformatter
       assert_nothing_raised do
         starting = Time.utc(2000, 1, 31, 5, 42, 0)
-        ending = Date.new(2006, 12, 31)
+        ending = Time.new(2006, 12, 31)
         Task.create! starting: starting, ending: ending
       end
     end
@@ -158,14 +158,14 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
       end
     end
 
-    it 'find identity column using #identity_column' do
+    it 'find identity column using #identity_columns' do
       task_id_column = Task.columns_hash['id']
-      assert_equal task_id_column.name, connection.send(:identity_column, Task.table_name).name
-      assert_equal task_id_column.sql_type, connection.send(:identity_column, Task.table_name).sql_type
+      assert_equal task_id_column.name, connection.send(:identity_columns, Task.table_name).first.name
+      assert_equal task_id_column.sql_type, connection.send(:identity_columns, Task.table_name).first.sql_type
     end
 
-    it 'return nil when calling #identity_column for a table_name with no identity' do
-      assert_nil connection.send(:identity_column, Subscriber.table_name)
+    it 'return an empty array when calling #identity_columns for a table_name with no identity' do
+      connection.send(:identity_columns, Subscriber.table_name).must_equal []
     end
 
   end
@@ -364,8 +364,8 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
       assert_equal 0, SSTestCustomersView.new.balance
     end
 
-    it 'respond true to table_exists?' do
-      assert SSTestCustomersView.table_exists?
+    it 'respond true to data_source_exists?' do
+      assert SSTestCustomersView.connection.data_source_exists?(SSTestCustomersView.table_name)
     end
 
     # With aliased column names
@@ -392,8 +392,8 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
         SSTestStringDefaultsView.columns_hash['pretend_null'].inspect
     end
 
-    it 'respond true to table_exists?' do
-      assert SSTestStringDefaultsView.table_exists?
+    it 'respond true to data_source_exists?' do
+      assert SSTestStringDefaultsView.connection.data_source_exists?(SSTestStringDefaultsView.table_name)
     end
 
     # Doing identity inserts

@@ -19,7 +19,7 @@ class ShowplanTestSQLServer < ActiveRecord::TestCase
       plan.must_include "Clustered Index Seek", 'make sure we do not showplan the sp_executesql'
     end
 
-    it 'from prepared statement ...' do
+    it 'from prepared statement' do
       plan = Car.where(name: ',').limit(1).explain
       plan.must_include " SELECT  [cars].* FROM [cars] WHERE [cars].[name]"
       plan.must_include "TOP EXPRESSION", 'make sure we do not showplan the sp_executesql'
