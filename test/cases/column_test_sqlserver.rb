@@ -285,7 +285,9 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       obj.date = '0001-01-01'
       obj.date.must_equal               Date.civil(0001, 1, 1)
       obj.save!
-      obj.reload.date.must_equal        Date.civil(0001, 1, 1)
+      obj.date.must_equal               Date.civil(0001, 1, 1)
+      obj.reload
+      obj.date.must_equal               Date.civil(0001, 1, 1)
       # Can keep and return assigned date.
       assert_obj_set_and_save :date, Date.civil(1972, 04, 14)
       # Can accept and cast time objects.
@@ -312,7 +314,9 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       obj.datetime = Time.utc(2010, 01, 01, 12, 34, 56, 3000)
       obj.datetime.must_equal           Time.utc(2010, 01, 01, 12, 34, 56, 3000), "Microseconds were <#{obj.datetime.usec}> vs <3000>"
       obj.save!
-      obj.reload.datetime.must_equal    Time.utc(2010, 01, 01, 12, 34, 56, 3000), "Microseconds were <#{obj.reload.datetime.usec}> vs <3000>"
+      obj.datetime.must_equal           Time.utc(2010, 01, 01, 12, 34, 56, 3000), "Microseconds were <#{obj.reload.datetime.usec}> vs <3000>"
+      obj.reload
+      obj.datetime.must_equal           Time.utc(2010, 01, 01, 12, 34, 56, 3000), "Microseconds were <#{obj.reload.datetime.usec}> vs <3000>"
       # Will cast to true DB value on attribute write, save and return again.
       obj.datetime = Time.utc(2010, 01, 01, 12, 34, 56, 234567)
       obj.datetime.must_equal           Time.utc(2010, 01, 01, 12, 34, 56, 233000), "Microseconds were <#{obj.datetime.usec}> vs <233000>"
@@ -338,7 +342,9 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       obj.datetime2_7 = Time.utc(9999, 12, 31, 23, 59, 59, Rational(123456755, 1000))
       obj.datetime2_7.must_equal           Time.utc(9999, 12, 31, 23, 59, 59, Rational(123456800, 1000)), "Nanoseconds were <#{obj.datetime2_7.nsec}> vs <123456800>"
       obj.save!
-      obj.reload.datetime2_7.must_equal    Time.utc(9999, 12, 31, 23, 59, 59, Rational(123456800, 1000)), "Nanoseconds were <#{obj.datetime2_7.nsec}> vs <123456800>"
+      obj.datetime2_7.must_equal           Time.utc(9999, 12, 31, 23, 59, 59, Rational(123456800, 1000)), "Nanoseconds were <#{obj.datetime2_7.nsec}> vs <123456800>"
+      obj.reload
+      obj.datetime2_7.must_equal           Time.utc(9999, 12, 31, 23, 59, 59, Rational(123456800, 1000)), "Nanoseconds were <#{obj.datetime2_7.nsec}> vs <123456800>"
       # Can save small fraction nanosecond precisoins and return again.
       obj.datetime2_7 = Time.utc(2008, 6, 21, 13, 30, 0, Rational(15020, 1000))
       obj.datetime2_7.must_equal           Time.utc(2008, 6, 21, 13, 30, 0, Rational(15000, 1000)), "Nanoseconds were <#{obj.datetime2_7.nsec}> vs <15000>"
@@ -384,7 +390,9 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       # Can save 100 nanosecond precisoins and return again.
       obj.datetimeoffset_7 = Time.new(2010, 01, 01, 12, 34, 56, +18000).change(nsec: 123456755)
       obj.datetimeoffset_7.must_equal   Time.new(2010, 01, 01, 12, 34, 56, +18000).change(nsec: 123456800), "Nanoseconds were <#{obj.datetimeoffset_7.nsec}> vs <123456800>"
-      obj.save! ; obj.reload
+      obj.save!
+      obj.datetimeoffset_7.must_equal   Time.new(2010, 01, 01, 12, 34, 56, +18000).change(nsec: 123456800), "Nanoseconds were <#{obj.datetimeoffset_7.nsec}> vs <123456800>"
+      obj.reload
       obj.datetimeoffset_7.must_equal   Time.new(2010, 01, 01, 12, 34, 56, +18000).change(nsec: 123456800), "Nanoseconds were <#{obj.datetimeoffset_7.nsec}> vs <123456800>"
       # With other precisions.
       time = ActiveSupport::TimeZone['America/Los_Angeles'].local 2010, 12, 31, 23, 59, 59, Rational(123456755, 1000)
@@ -419,9 +427,11 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       type.scale.must_equal             nil
       # Will remove fractional seconds and return again.
       obj.smalldatetime = Time.utc(2078, 06, 05, 4, 20, 00, 3000)
-      obj.smalldatetime.must_equal          Time.utc(2078, 06, 05, 4, 20, 00, 0), "Microseconds were <#{obj.smalldatetime.usec}> vs <0>"
+      obj.smalldatetime.must_equal      Time.utc(2078, 06, 05, 4, 20, 00, 0), "Microseconds were <#{obj.smalldatetime.usec}> vs <0>"
       obj.save!
-      obj.reload.smalldatetime.must_equal   Time.utc(2078, 06, 05, 4, 20, 00, 0), "Microseconds were <#{obj.reload.smalldatetime.usec}> vs <0>"
+      obj.smalldatetime.must_equal      Time.utc(2078, 06, 05, 4, 20, 00, 0), "Microseconds were <#{obj.reload.smalldatetime.usec}> vs <0>"
+      obj.reload
+      obj.smalldatetime.must_equal      Time.utc(2078, 06, 05, 4, 20, 00, 0), "Microseconds were <#{obj.reload.smalldatetime.usec}> vs <0>"
     end
 
     it 'time(7)' do
