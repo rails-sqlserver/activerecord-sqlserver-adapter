@@ -23,6 +23,14 @@ module ActiveRecord
           SQLServer::Utils.quote_string(s)
         end
 
+        def quote_string_single(s)
+          SQLServer::Utils.quote_string_single(s)
+        end
+
+        def quote_string_single_national(s)
+          SQLServer::Utils.quote_string_single_national(s)
+        end
+
         def quote_column_name(name)
           SQLServer::Utils.extract_identifiers(name).quoted
         end
