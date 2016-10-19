@@ -52,6 +52,31 @@ class TransactionTestSQLServer < ActiveRecord::TestCase
     connection.user_options_isolation_level.must_match %r{read committed}i
   end
 
+  describe 'when READ_COMMITTED_SNAPSHOT is set' do
+    before do
+      connection.execute "ALTER DATABASE [#{connection.current_database}] SET ALLOW_SNAPSHOT_ISOLATION ON"
+      connection.execute "ALTER DATABASE [#{connection.current_database}] SET READ_COMMITTED_SNAPSHOT ON WITH ROLLBACK IMMEDIATE"
+    end
+
+    after do
+      connection.execute "ALTER DATABASE [#{connection.current_database}] SET ALLOW_SNAPSHOT_ISOLATION OFF"
+      connection.execute "ALTER DATABASE [#{connection.current_database}] SET READ_COMMITTED_SNAPSHOT OFF WITH ROLLBACK IMMEDIATE"
+    end
+
+    it 'should use READ COMMITTED as an isolation level' do
+      connection.user_options_isolation_level.must_match "read committed snapshot"
+
+      Ship.transaction(isolation: :serializable) do
+        Ship.create! name: 'Black Pearl'
+      end
+
+      # We're actually testing that the isolation level was correctly reset to
+      # "READ COMMITTED", and that no exception was raised (it's reported back
+      # by SQL Server as "read committed snapshot").
+      connection.user_options_isolation_level.must_match "read committed snapshot"
+    end
+  end
+
 
   protected
 

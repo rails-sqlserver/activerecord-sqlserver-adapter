@@ -14,7 +14,15 @@ module ActiveRecord
       def current_isolation_level
         return unless sqlserver?
         level = connection.user_options_isolation_level
-        level.blank? ? 'READ COMMITTED' : level.upcase
+
+        # When READ_COMMITTED_SNAPSHOT is set to ON,
+        # user_options_isolation_level will be equal to 'read committed
+        # snapshot' which is not a valid isolation level
+        if level.blank? || level == 'read committed snapshot'
+          'READ COMMITTED'
+        else
+          level.upcase
+        end
       end
 
     end
