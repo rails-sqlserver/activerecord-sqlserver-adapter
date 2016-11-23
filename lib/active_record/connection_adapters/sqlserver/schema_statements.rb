@@ -8,7 +8,7 @@ module ActiveRecord
         end
 
         def tables(table_type = 'BASE TABLE')
-          select_values "SELECT #{lowercase_schema_reflection_sql('TABLE_NAME')} FROM INFORMATION_SCHEMA.TABLES #{"WHERE TABLE_TYPE = '#{table_type}'" if table_type} ORDER BY TABLE_NAME", 'SCHEMA'
+          select_values "SELECT #{lowercase_schema_reflection_sql('TABLE_NAME')} FROM INFORMATION_SCHEMA.TABLES #{"WHERE TABLE_TYPE = '#{table_type}'" if table_type} #{(table_type ? "AND " : "WHERE ")} TABLE_SCHEMA=SCHEMA_NAME() ORDER BY TABLE_NAME", 'SCHEMA'
         end
 
         def data_source_exists?(table_name)
