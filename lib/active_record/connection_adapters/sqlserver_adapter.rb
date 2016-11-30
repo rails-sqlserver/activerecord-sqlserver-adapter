@@ -289,9 +289,10 @@ module ActiveRecord
           login_timeout: config_login_timeout(config),
           timeout: config_timeout(config),
           encoding:  config_encoding(config),
-          azure: config[:azure]
+          azure: config[:azure],
+          contained: config[:contained]
         ).tap do |client|
-          if config[:azure]
+          if config[:azure] || config[:contained]
             client.execute('SET ANSI_NULLS ON').do
             client.execute('SET CURSOR_CLOSE_ON_COMMIT OFF').do
             client.execute('SET ANSI_NULL_DFLT_ON ON').do
