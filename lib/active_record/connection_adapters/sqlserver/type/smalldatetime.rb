@@ -14,7 +14,7 @@ module ActiveRecord
 
           private
 
-          def cast_fractional(value)
+          def apply_seconds_precision(value)
             value.change usec: 0
           end
 

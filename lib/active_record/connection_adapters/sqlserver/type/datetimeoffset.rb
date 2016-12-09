@@ -23,6 +23,11 @@ module ActiveRecord
 
           private
 
+          def fast_string_to_time(string)
+            dateformat = ::Time::DATE_FORMATS[:_sqlserver_dateformat]
+            ::Time.strptime string, "#{dateformat} %H:%M:%S.%N %:z"
+          end
+
           def zone_conversion(value)
             value
           end
