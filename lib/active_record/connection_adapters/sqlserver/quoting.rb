@@ -77,6 +77,10 @@ module ActiveRecord
             "0x#{value.hex}"
           when ActiveRecord::Type::SQLServer::Char::Data
             value.quoted
+          when ActiveRecord::Type::SQLServer::Date::Data,
+               ActiveRecord::Type::SQLServer::DateTime::Data,
+               ActiveRecord::Type::SQLServer::DateTime2::Data
+            value.quoted
           when String, ActiveSupport::Multibyte::Chars
             "#{QUOTED_STRING_PREFIX}#{super}"
           else
@@ -93,6 +97,10 @@ module ActiveRecord
           when String, ActiveSupport::Multibyte::Chars, Type::Binary::Data
             _quote(value)
           when ActiveRecord::Type::SQLServer::Char::Data
+            value.quoted
+          when ActiveRecord::Type::SQLServer::Date::Data,
+               ActiveRecord::Type::SQLServer::DateTime::Data,
+               ActiveRecord::Type::SQLServer::DateTime2::Data
             value.quoted
           else super
           end

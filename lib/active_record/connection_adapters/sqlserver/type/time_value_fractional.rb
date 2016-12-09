@@ -7,7 +7,7 @@ module ActiveRecord
 
           private
 
-          def cast_fractional(value)
+          def apply_seconds_precision(value)
             return value if !value.respond_to?(fractional_property) || value.send(fractional_property).zero?
             frac_seconds = if fractional_scale == 0
                              0

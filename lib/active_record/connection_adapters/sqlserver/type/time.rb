@@ -30,7 +30,7 @@ module ActiveRecord
             value = value.acts_like?(:time) ? value : super
             return if value.blank?
             value = value.change year: 2000, month: 01, day: 01
-            cast_fractional(value)
+            apply_seconds_precision(value)
           end
 
           def fractional_scale
