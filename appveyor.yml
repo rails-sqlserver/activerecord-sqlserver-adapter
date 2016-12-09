@@ -27,8 +27,6 @@ test_script:
   - timeout /t 4 /nobreak > NUL
   - sqlcmd -S ".\SQL2012SP1" -U sa -P Password12! -i %APPVEYOR_BUILD_FOLDER%\test\appveyor\dbsetup.sql
   - bundle exec rake test ACTIVERECORD_UNITTEST_DATASERVER="localhost\SQL2012SP1"
-  - timeout /t 4 /nobreak > NUL
-  - bundle exec rake test ACTIVERECORD_UNITTEST_HOST=%CI_AZURE_HOST% ACTIVERECORD_UNITTEST_PASS=%CI_AZURE_PASS% ACTIVERECORD_UNITTEST_AZURE=1
 environment:
   CI_AZURE_HOST:
     secure: VChrioaIWkf9iuuaSs4cryiA4honrADgZqNC0++begg=
