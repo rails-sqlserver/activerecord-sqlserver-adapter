@@ -9,7 +9,6 @@ class SchemaDumperTestSQLServer < ActiveRecord::TestCase
 
   it 'sst_datatypes' do
     generate_schema_for_table 'sst_datatypes'
-    # Exact Numerics
     assert_line :bigint,            type: 'bigint',       limit: nil,           precision: nil,   scale: nil,  default: 42
     assert_line :int,               type: 'integer',      limit: nil,           precision: nil,   scale: nil,  default: 42
     assert_line :smallint,          type: 'integer',      limit: 2,             precision: nil,   scale: nil,  default: 42
@@ -210,8 +209,18 @@ class SchemaDumperTestSQLServer < ActiveRecord::TestCase
 
     def parse_line
       _all, type_method, col_name, options = @line.match(LINE_PARSER).to_a
-      options = options.present? ? eval("{#{options}}") : {}
+      options = parse_options(options)
       [type_method, col_name, options]
+    end
+
+    def parse_options(opts)
+      if opts.present?
+        eval "{#{opts}}"
+      else
+        {}
+      end
+    rescue SyntaxError
+      {}
     end
 
   end

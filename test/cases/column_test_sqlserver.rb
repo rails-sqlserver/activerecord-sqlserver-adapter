@@ -282,12 +282,12 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       type.precision.must_equal         nil
       type.scale.must_equal             nil
       # Can cast strings.
-      obj.date = '0001-01-01'
-      obj.date.must_equal               Date.civil(0001, 1, 1)
+      obj.date = '0001-04-01'
+      obj.date.must_equal               Date.civil(0001, 4, 1)
       obj.save!
-      obj.date.must_equal               Date.civil(0001, 1, 1)
+      obj.date.must_equal               Date.civil(0001, 4, 1)
       obj.reload
-      obj.date.must_equal               Date.civil(0001, 1, 1)
+      obj.date.must_equal               Date.civil(0001, 4, 1)
       # Can keep and return assigned date.
       assert_obj_set_and_save :date, Date.civil(1972, 04, 14)
       # Can accept and cast time objects.
@@ -311,17 +311,17 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       type.precision.must_equal         nil
       type.scale.must_equal             nil
       # Can save to proper accuracy and return again.
-      obj.datetime = Time.utc(2010, 01, 01, 12, 34, 56, 3000)
-      obj.datetime.must_equal           Time.utc(2010, 01, 01, 12, 34, 56, 3000), "Microseconds were <#{obj.datetime.usec}> vs <3000>"
+      obj.datetime = Time.utc(2010, 04, 01, 12, 34, 56, 3000)
+      obj.datetime.must_equal           Time.utc(2010, 04, 01, 12, 34, 56, 3000), "Microseconds were <#{obj.datetime.usec}> vs <3000>"
       obj.save!
-      obj.datetime.must_equal           Time.utc(2010, 01, 01, 12, 34, 56, 3000), "Microseconds were <#{obj.reload.datetime.usec}> vs <3000>"
+      obj.datetime.must_equal           Time.utc(2010, 04, 01, 12, 34, 56, 3000), "Microseconds were <#{obj.reload.datetime.usec}> vs <3000>"
       obj.reload
-      obj.datetime.must_equal           Time.utc(2010, 01, 01, 12, 34, 56, 3000), "Microseconds were <#{obj.reload.datetime.usec}> vs <3000>"
+      obj.datetime.must_equal           Time.utc(2010, 04, 01, 12, 34, 56, 3000), "Microseconds were <#{obj.reload.datetime.usec}> vs <3000>"
       # Will cast to true DB value on attribute write, save and return again.
-      obj.datetime = Time.utc(2010, 01, 01, 12, 34, 56, 234567)
-      obj.datetime.must_equal           Time.utc(2010, 01, 01, 12, 34, 56, 233000), "Microseconds were <#{obj.datetime.usec}> vs <233000>"
+      obj.datetime = Time.utc(2010, 04, 01, 12, 34, 56, 234567)
+      obj.datetime.must_equal           Time.utc(2010, 04, 01, 12, 34, 56, 233000), "Microseconds were <#{obj.datetime.usec}> vs <233000>"
       obj.save!
-      obj.reload.datetime.must_equal    Time.utc(2010, 01, 01, 12, 34, 56, 233000), "Microseconds were <#{obj.reload.datetime.usec}> vs <233000>"
+      obj.reload.datetime.must_equal    Time.utc(2010, 04, 01, 12, 34, 56, 233000), "Microseconds were <#{obj.reload.datetime.usec}> vs <233000>"
     end
 
     it 'datetime2' do
@@ -388,12 +388,12 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       type.precision.must_equal         7
       type.scale.must_equal             nil
       # Can save 100 nanosecond precisoins and return again.
-      obj.datetimeoffset_7 = Time.new(2010, 01, 01, 12, 34, 56, +18000).change(nsec: 123456755)
-      obj.datetimeoffset_7.must_equal   Time.new(2010, 01, 01, 12, 34, 56, +18000).change(nsec: 123456800), "Nanoseconds were <#{obj.datetimeoffset_7.nsec}> vs <123456800>"
+      obj.datetimeoffset_7 = Time.new(2010, 04, 01, 12, 34, 56, +18000).change(nsec: 123456755)
+      obj.datetimeoffset_7.must_equal   Time.new(2010, 04, 01, 12, 34, 56, +18000).change(nsec: 123456800), "Nanoseconds were <#{obj.datetimeoffset_7.nsec}> vs <123456800>"
       obj.save!
-      obj.datetimeoffset_7.must_equal   Time.new(2010, 01, 01, 12, 34, 56, +18000).change(nsec: 123456800), "Nanoseconds were <#{obj.datetimeoffset_7.nsec}> vs <123456800>"
+      obj.datetimeoffset_7.must_equal   Time.new(2010, 04, 01, 12, 34, 56, +18000).change(nsec: 123456800), "Nanoseconds were <#{obj.datetimeoffset_7.nsec}> vs <123456800>"
       obj.reload
-      obj.datetimeoffset_7.must_equal   Time.new(2010, 01, 01, 12, 34, 56, +18000).change(nsec: 123456800), "Nanoseconds were <#{obj.datetimeoffset_7.nsec}> vs <123456800>"
+      obj.datetimeoffset_7.must_equal   Time.new(2010, 04, 01, 12, 34, 56, +18000).change(nsec: 123456800), "Nanoseconds were <#{obj.datetimeoffset_7.nsec}> vs <123456800>"
       # With other precisions.
       time = ActiveSupport::TimeZone['America/Los_Angeles'].local 2010, 12, 31, 23, 59, 59, Rational(123456755, 1000)
       col = column('datetimeoffset_3')
@@ -401,7 +401,6 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       obj.datetimeoffset_3 = time
       obj.datetimeoffset_3.must_equal time.change(nsec: 123000000), "Nanoseconds were <#{obj.datetimeoffset_3.nsec}> vs <123000000>"
       # TODO: FreeTDS date bug fixed: https://github.com/FreeTDS/freetds/issues/44
-      return
       obj.save! ; obj.reload
       obj.datetimeoffset_3.must_equal time.change(nsec: 123000000), "Nanoseconds were <#{obj.datetimeoffset_3.nsec}> vs <123000000>"
       col = column('datetime2_1')
