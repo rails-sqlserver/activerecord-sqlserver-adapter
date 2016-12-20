@@ -3,7 +3,7 @@ init:
   - SET PATH=C:\MinGW\msys\1.0\bin;%PATH%
   - SET RAKEOPT=-rdevkit
   - SET TESTOPTS='-v'
-  - SET TINYTDS_VERSION=1.0.4
+  - SET TINYTDS_VERSION=1.0.5
   - SET ONLY_SQLSERVER=1
 clone_depth: 5
 skip_tags: true
@@ -33,7 +33,7 @@ environment:
   CI_AZURE_PASS:
     secure: cSQp8sk4urJYvq0utpsK+r7J+snJ2wpcdp8RdXJfB+w=
   matrix:
-    - ruby_version: "23-x64"
+    # - ruby_version: "23-x64"
     - ruby_version: "23"
     # - ruby_version: "22-x64"
     - ruby_version: "22"
