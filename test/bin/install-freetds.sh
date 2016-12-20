@@ -3,9 +3,7 @@
 set -x
 set -e
 
-if [ -z "$FREETDS_VERSION" ]; then
-  FREETDS_VERSION=$(ruby -r "./ext/tiny_tds/extconsts.rb" -e "puts FREETDS_VERSION")
-fi
+FREETDS_VERSION=1.00.21
 
 wget ftp://ftp.freetds.org/pub/freetds/stable/freetds-$FREETDS_VERSION.tar.gz
 tar -xzf freetds-$FREETDS_VERSION.tar.gz

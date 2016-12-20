@@ -3,9 +3,7 @@
 set -x
 set -e
 
-if [ -z "$OPENSSL_VERSION" ]; then
-  OPENSSL_VERSION=$(ruby -r "./ext/tiny_tds/extconsts.rb" -e "puts OPENSSL_VERSION")
-fi
+OPENSSL_VERSION=1.0.2j
 
 wget https://www.openssl.org/source/openssl-$OPENSSL_VERSION.tar.gz
 tar -xzf openssl-$OPENSSL_VERSION.tar.gz
