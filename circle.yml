@@ -5,6 +5,7 @@ general:
 
 machine:
   environment:
+    PATH: /opt/local/bin:${PATH}
     TESTOPTS: -v
     TINYTDS_VERSION: 1.0.5
     ACTIVERECORD_UNITTEST_HOST: localhost
@@ -17,11 +18,14 @@ dependencies:
   override:
     - rvm-exec 2.2.5 bundle install
     - rvm-exec 2.3.1 bundle install
-  post:
-    - docker info
+    - sudo ./test/bin/install-openssl.sh
+    - openssl version
+    - sudo ./test/bin/install-freetds.sh
+    - tsql -C
 
 database:
   post:
+    - docker info
     - ./test/bin/setup.sh
 
 test:
