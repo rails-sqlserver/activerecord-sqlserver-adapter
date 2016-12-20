@@ -16,12 +16,12 @@ machine:
 
 dependencies:
   override:
-    - rvm-exec 2.2.5 bundle install
-    - rvm-exec 2.3.1 bundle install
     - sudo ./test/bin/install-openssl.sh
     - openssl version
     - sudo ./test/bin/install-freetds.sh
     - tsql -C
+    - rvm-exec 2.2.5 bundle install
+    - rvm-exec 2.3.1 bundle install
 
 database:
   post:
