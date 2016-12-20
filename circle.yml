@@ -26,5 +26,5 @@ database:
 
 test:
   override:
-    - rvm-exec 2.2.5 bundle exec rake
-    - rvm-exec 2.3.1 bundle exec rake
+    - rvm-exec 2.2.5 bundle exec rake test
+    - rvm-exec 2.3.1 bundle exec rake test

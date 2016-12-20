@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+
+set -x
 set -e
 
 docker pull metaskills/mssql-server-linux-rails
