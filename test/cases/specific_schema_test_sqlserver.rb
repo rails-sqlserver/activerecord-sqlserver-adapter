@@ -45,7 +45,7 @@ class SpecificSchemaTestSQLServer < ActiveRecord::TestCase
 
   it 'default strings before save' do
     default = SSTestStringDefault.new
-    assert_equal nil, default.string_with_null_default
+    assert_nil default.string_with_null_default
     assert_equal 'null', default.string_with_pretend_null_one
     assert_equal '(null)', default.string_with_pretend_null_two
     assert_equal 'NULL', default.string_with_pretend_null_three
@@ -55,7 +55,7 @@ class SpecificSchemaTestSQLServer < ActiveRecord::TestCase
 
   it 'default strings after save' do
     default = SSTestStringDefault.create
-    assert_equal nil, default.string_with_null_default
+    assert_nil default.string_with_null_default
     assert_equal 'null', default.string_with_pretend_null_one
     assert_equal '(null)', default.string_with_pretend_null_two
     assert_equal 'NULL', default.string_with_pretend_null_three

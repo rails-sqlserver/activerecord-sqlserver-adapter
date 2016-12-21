@@ -40,7 +40,7 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       col.null.must_equal               true
       col.default.must_equal            42
       obj.bigint.must_equal             42
-      col.default_function.must_equal   nil
+      col.default_function.must_be_nil
       type = connection.lookup_cast_type_from_column(col)
       type.must_be_instance_of          Type::BigInteger
       type.limit.must_equal             8
@@ -55,7 +55,7 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       col.null.must_equal               true
       col.default.must_equal            42
       obj.int.must_equal                42
-      col.default_function.must_equal   nil
+      col.default_function.must_be_nil
       type = connection.lookup_cast_type_from_column(col)
       type.must_be_instance_of          Type::Integer
       type.limit.must_equal             4
@@ -70,7 +70,7 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       col.null.must_equal               true
       col.default.must_equal            42
       obj.smallint.must_equal           42
-      col.default_function.must_equal   nil
+      col.default_function.must_be_nil
       type = connection.lookup_cast_type_from_column(col)
       type.must_be_instance_of          Type::SmallInteger
       type.limit.must_equal             2
@@ -85,7 +85,7 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       col.null.must_equal               true
       col.default.must_equal            42
       obj.tinyint.must_equal            42
-      col.default_function.must_equal   nil
+      col.default_function.must_be_nil
       type = connection.lookup_cast_type_from_column(col)
       type.must_be_instance_of          Type::TinyInteger
       type.limit.must_equal             1
@@ -100,10 +100,10 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       col.null.must_equal               true
       col.default.must_equal            true
       obj.bit.must_equal                true
-      col.default_function.must_equal   nil
+      col.default_function.must_be_nil
       type = connection.lookup_cast_type_from_column(col)
       type.must_be_instance_of          Type::Boolean
-      type.limit.must_equal             nil
+      type.limit.must_be_nil
       obj.bit = 0
       obj.bit.must_equal false
       obj.save!
@@ -121,10 +121,10 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       col.null.must_equal               true
       col.default.must_equal            BigDecimal('12345.01')
       obj.decimal_9_2.must_equal        BigDecimal('12345.01')
-      col.default_function.must_equal   nil
+      col.default_function.must_be_nil
       type = connection.lookup_cast_type_from_column(col)
       type.must_be_instance_of          Type::Decimal
-      type.limit.must_equal             nil
+      type.limit.must_be_nil
       type.precision.must_equal         9
       type.scale.must_equal             2
       obj.decimal_9_2 = '1234567.8901'
@@ -138,7 +138,7 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       col.sql_type.must_equal           'decimal(16,4)'
       col.default.must_equal            BigDecimal('1234567.89')
       obj.decimal_16_4.must_equal       BigDecimal('1234567.89')
-      col.default_function.must_equal   nil
+      col.default_function.must_be_nil
       type = connection.lookup_cast_type_from_column(col)
       type.precision.must_equal         16
       type.scale.must_equal             4
@@ -155,10 +155,10 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       col.null.must_equal               true
       col.default.must_equal            BigDecimal('191')
       obj.numeric_18_0.must_equal       BigDecimal('191')
-      col.default_function.must_equal   nil
+      col.default_function.must_be_nil
       type = connection.lookup_cast_type_from_column(col)
       type.must_be_instance_of          Type::Decimal
-      type.limit.must_equal             nil
+      type.limit.must_be_nil
       type.precision.must_equal         18
       type.scale.must_equal             0
       obj.numeric_18_0 = '192.1'
@@ -174,10 +174,10 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       col.null.must_equal               true
       col.default.must_equal            BigDecimal('12345678901234567890.01')
       obj.numeric_36_2.must_equal       BigDecimal('12345678901234567890.01')
-      col.default_function.must_equal   nil
+      col.default_function.must_be_nil
       type = connection.lookup_cast_type_from_column(col)
       type.must_be_instance_of          Type::Decimal
-      type.limit.must_equal             nil
+      type.limit.must_be_nil
       type.precision.must_equal         36
       type.scale.must_equal             2
       obj.numeric_36_2 = '192.123'
@@ -193,10 +193,10 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       col.null.must_equal               true
       col.default.must_equal            BigDecimal('4.20')
       obj.money.must_equal              BigDecimal('4.20')
-      col.default_function.must_equal   nil
+      col.default_function.must_be_nil
       type = connection.lookup_cast_type_from_column(col)
       type.must_be_instance_of          Type::Money
-      type.limit.must_equal             nil
+      type.limit.must_be_nil
       type.precision.must_equal         19
       type.scale.must_equal             4
       obj.money = '922337203685477.58061'
@@ -212,10 +212,10 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       col.null.must_equal               true
       col.default.must_equal            BigDecimal('4.20')
       obj.smallmoney.must_equal         BigDecimal('4.20')
-      col.default_function.must_equal   nil
+      col.default_function.must_be_nil
       type = connection.lookup_cast_type_from_column(col)
       type.must_be_instance_of          Type::SmallMoney
-      type.limit.must_equal             nil
+      type.limit.must_be_nil
       type.precision.must_equal         10
       type.scale.must_equal             4
       obj.smallmoney = '214748.36461'
@@ -235,12 +235,12 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       col.null.must_equal               true
       col.default.must_equal            123.00000001
       obj.float.must_equal              123.00000001
-      col.default_function.must_equal   nil
+      col.default_function.must_be_nil
       type = connection.lookup_cast_type_from_column(col)
       type.must_be_instance_of          Type::Float
-      type.limit.must_equal             nil
-      type.precision.must_equal         nil
-      type.scale.must_equal             nil
+      type.limit.must_be_nil
+      type.precision.must_be_nil
+      type.scale.must_be_nil
       obj.float = '214748.36461'
       obj.float.must_equal        214748.36461
       obj.save!
@@ -254,12 +254,12 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       col.null.must_equal               true
       col.default.must_be_close_to      123.45, 0.01
       obj.real.must_be_close_to         123.45, 0.01
-      col.default_function.must_equal   nil
+      col.default_function.must_be_nil
       type = connection.lookup_cast_type_from_column(col)
       type.must_be_instance_of          Type::Real
-      type.limit.must_equal             nil
-      type.precision.must_equal         nil
-      type.scale.must_equal             nil
+      type.limit.must_be_nil
+      type.precision.must_be_nil
+      type.scale.must_be_nil
       obj.real = '214748.36461'
       obj.real.must_be_close_to         214748.36461, 0.01
       obj.save!
@@ -275,12 +275,12 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       col.null.must_equal               true
       col.default.must_equal            connection_dblib_73? ? Date.civil(0001, 1, 1) : '0001-01-01'
       obj.date.must_equal               Date.civil(0001, 1, 1)
-      col.default_function.must_equal   nil
+      col.default_function.must_be_nil
       type = connection.lookup_cast_type_from_column(col)
       type.must_be_instance_of          Type::Date
-      type.limit.must_equal             nil
-      type.precision.must_equal         nil
-      type.scale.must_equal             nil
+      type.limit.must_be_nil
+      type.precision.must_be_nil
+      type.scale.must_be_nil
       # Can cast strings.
       obj.date = '0001-04-01'
       obj.date.must_equal               Date.civil(0001, 4, 1)
@@ -304,12 +304,12 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       col.null.must_equal               true
       col.default.must_equal            Time.utc(1753, 01, 01, 00, 00, 00, 123000), "Microseconds were <#{col.default.usec}> vs <123000>"
       obj.datetime.must_equal           Time.utc(1753, 01, 01, 00, 00, 00, 123000), "Microseconds were <#{obj.datetime.usec}> vs <123000>"
-      col.default_function.must_equal   nil
+      col.default_function.must_be_nil
       type = connection.lookup_cast_type_from_column(col)
       type.must_be_instance_of          Type::DateTime
-      type.limit.must_equal             nil
-      type.precision.must_equal         nil
-      type.scale.must_equal             nil
+      type.limit.must_be_nil
+      type.precision.must_be_nil
+      type.scale.must_be_nil
       # Can save to proper accuracy and return again.
       obj.datetime = Time.utc(2010, 04, 01, 12, 34, 56, 3000)
       obj.datetime.must_equal           Time.utc(2010, 04, 01, 12, 34, 56, 3000), "Microseconds were <#{obj.datetime.usec}> vs <3000>"
@@ -332,12 +332,12 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       col.null.must_equal               true
       col.default.must_equal            Time.utc(9999, 12, 31, 23, 59, 59, Rational(999999900, 1000)), "Nanoseconds were <#{col.default.nsec}> vs <999999900>"
       obj.datetime2_7.must_equal        Time.utc(9999, 12, 31, 23, 59, 59, Rational(999999900, 1000)), "Nanoseconds were <#{obj.datetime2_7.nsec}> vs <999999900>"
-      col.default_function.must_equal   nil
+      col.default_function.must_be_nil
       type = connection.lookup_cast_type_from_column(col)
       type.must_be_instance_of          Type::DateTime2
-      type.limit.must_equal             nil
+      type.limit.must_be_nil
       type.precision.must_equal         7
-      type.scale.must_equal             nil
+      type.scale.must_be_nil
       # Can save 100 nanosecond precisoins and return again.
       obj.datetime2_7 = Time.utc(9999, 12, 31, 23, 59, 59, Rational(123456755, 1000))
       obj.datetime2_7.must_equal           Time.utc(9999, 12, 31, 23, 59, 59, Rational(123456800, 1000)), "Nanoseconds were <#{obj.datetime2_7.nsec}> vs <123456800>"
@@ -381,12 +381,12 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       col.null.must_equal               true
       col.default.must_equal            Time.new(1984, 01, 24, 04, 20, 00, -28800).change(nsec: 123456700), "Nanoseconds <#{col.default.nsec}> vs <123456700>"
       obj.datetimeoffset_7.must_equal   Time.new(1984, 01, 24, 04, 20, 00, -28800).change(nsec: 123456700), "Nanoseconds were <#{obj.datetimeoffset_7.nsec}> vs <999999900>"
-      col.default_function.must_equal   nil
+      col.default_function.must_be_nil
       type = connection.lookup_cast_type_from_column(col)
       type.must_be_instance_of          Type::DateTimeOffset
-      type.limit.must_equal             nil
+      type.limit.must_be_nil
       type.precision.must_equal         7
-      type.scale.must_equal             nil
+      type.scale.must_be_nil
       # Can save 100 nanosecond precisoins and return again.
       obj.datetimeoffset_7 = Time.new(2010, 04, 01, 12, 34, 56, +18000).change(nsec: 123456755)
       obj.datetimeoffset_7.must_equal   Time.new(2010, 04, 01, 12, 34, 56, +18000).change(nsec: 123456800), "Nanoseconds were <#{obj.datetimeoffset_7.nsec}> vs <123456800>"
@@ -418,12 +418,12 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       col.null.must_equal               true
       col.default.must_equal            Time.utc(1901, 01, 01, 15, 45, 00, 000)
       obj.smalldatetime.must_equal      Time.utc(1901, 01, 01, 15, 45, 00, 000)
-      col.default_function.must_equal   nil
+      col.default_function.must_be_nil
       type = connection.lookup_cast_type_from_column(col)
       type.must_be_instance_of          Type::SmallDateTime
-      type.limit.must_equal             nil
-      type.precision.must_equal         nil
-      type.scale.must_equal             nil
+      type.limit.must_be_nil
+      type.precision.must_be_nil
+      type.scale.must_be_nil
       # Will remove fractional seconds and return again.
       obj.smalldatetime = Time.utc(2078, 06, 05, 4, 20, 00, 3000)
       obj.smalldatetime.must_equal      Time.utc(2078, 06, 05, 4, 20, 00, 0), "Microseconds were <#{obj.smalldatetime.usec}> vs <0>"
@@ -440,12 +440,12 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       col.type.must_equal               :time
       col.null.must_equal               true
       col.default.must_equal            Time.utc(1900, 01, 01, 04, 20, 00, Rational(288321500, 1000)), "Nanoseconds were <#{col.default.nsec}> vs <288321500>"
-      col.default_function.must_equal   nil
+      col.default_function.must_be_nil
       type = connection.lookup_cast_type_from_column(col)
       type.must_be_instance_of          Type::Time
-      type.limit.must_equal             nil
+      type.limit.must_be_nil
       type.precision.must_equal         7
-      type.scale.must_equal             nil
+      type.scale.must_be_nil
       # Time's #usec precision (low micro)
       obj.time_7 = Time.utc(2000, 01, 01, 15, 45, 00, 300)
       obj.time_7.must_equal             Time.utc(2000, 01, 01, 15, 45, 00, 300), "Microseconds were <#{obj.time_7.usec}> vs <0>"
@@ -471,13 +471,13 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       col.sql_type.must_equal           'time(2)'
       col.type.must_equal               :time
       col.null.must_equal               true
-      col.default.must_equal            nil
-      col.default_function.must_equal   nil
+      col.default.must_be_nil
+      col.default_function.must_be_nil
       type = connection.lookup_cast_type_from_column(col)
       type.must_be_instance_of          Type::Time
-      type.limit.must_equal             nil
+      type.limit.must_be_nil
       type.precision.must_equal         2
-      type.scale.must_equal             nil
+      type.scale.must_be_nil
       # Always uses TinyTDS/Windows 2000-01-01 convention too.
       obj.time_2 = Time.utc(2015, 01, 10, 15, 45, 00, 0)
       obj.time_2.must_equal             Time.utc(2000, 01, 01, 15, 45, 00, 0)
@@ -504,12 +504,12 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       col.null.must_equal               true
       col.default.must_equal            '1234567890'
       obj.char_10.must_equal            '1234567890'
-      col.default_function.must_equal   nil
+      col.default_function.must_be_nil
       type = connection.lookup_cast_type_from_column(col)
       type.must_be_instance_of          Type::Char
       type.limit.must_equal             10
-      type.precision.must_equal         nil
-      type.scale.must_equal             nil
+      type.precision.must_be_nil
+      type.scale.must_be_nil
       # Basic set and save.
       obj.char_10 = '012345'
       obj.char_10.strip.must_equal         '012345'
@@ -524,12 +524,12 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       col.null.must_equal               true
       col.default.must_equal            'test varchar_50'
       obj.varchar_50.must_equal         'test varchar_50'
-      col.default_function.must_equal   nil
+      col.default_function.must_be_nil
       type = connection.lookup_cast_type_from_column(col)
       type.must_be_instance_of          Type::Varchar
       type.limit.must_equal             50
-      type.precision.must_equal         nil
-      type.scale.must_equal             nil
+      type.precision.must_be_nil
+      type.scale.must_be_nil
       # Basic set and save.
       assert_obj_set_and_save :varchar_50, 'Hello World'
     end
@@ -541,12 +541,12 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       col.null.must_equal               true
       col.default.must_equal            'test varchar_max'
       obj.varchar_max.must_equal        'test varchar_max'
-      col.default_function.must_equal   nil
+      col.default_function.must_be_nil
       type = connection.lookup_cast_type_from_column(col)
       type.must_be_instance_of          Type::VarcharMax
       type.limit.must_equal             2_147_483_647
-      type.precision.must_equal         nil
-      type.scale.must_equal             nil
+      type.precision.must_be_nil
+      type.scale.must_be_nil
       # Basic set and save.
       assert_obj_set_and_save :varchar_max, 'Hello World'
     end
@@ -558,12 +558,12 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       col.null.must_equal               true
       col.default.must_equal            'test text'
       obj.text.must_equal               'test text'
-      col.default_function.must_equal   nil
+      col.default_function.must_be_nil
       type = connection.lookup_cast_type_from_column(col)
       type.must_be_instance_of          Type::Text
       type.limit.must_equal             2_147_483_647
-      type.precision.must_equal         nil
-      type.scale.must_equal             nil
+      type.precision.must_be_nil
+      type.scale.must_be_nil
       # Basic set and save.
       assert_obj_set_and_save :text, 'Hello World'
     end
@@ -577,12 +577,12 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       col.null.must_equal               true
       col.default.must_equal            '12345678åå'
       obj.nchar_10.must_equal           '12345678åå'
-      col.default_function.must_equal   nil
+      col.default_function.must_be_nil
       type = connection.lookup_cast_type_from_column(col)
       type.must_be_instance_of          Type::UnicodeChar
       type.limit.must_equal             10
-      type.precision.must_equal         nil
-      type.scale.must_equal             nil
+      type.precision.must_be_nil
+      type.scale.must_be_nil
       # Basic set and save.
       obj.nchar_10 = "五六"
       obj.nchar_10.strip.must_equal         "五六"
@@ -597,12 +597,12 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       col.null.must_equal               true
       col.default.must_equal            'test nvarchar_50 åå'
       obj.nvarchar_50.must_equal        'test nvarchar_50 åå'
-      col.default_function.must_equal   nil
+      col.default_function.must_be_nil
       type = connection.lookup_cast_type_from_column(col)
       type.must_be_instance_of          Type::UnicodeVarchar
       type.limit.must_equal             50
-      type.precision.must_equal         nil
-      type.scale.must_equal             nil
+      type.precision.must_be_nil
+      type.scale.must_be_nil
       # Basic set and save.
       assert_obj_set_and_save :nvarchar_50, "一二34五六"
     end
@@ -614,12 +614,12 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       col.null.must_equal               true
       col.default.must_equal            'test nvarchar_max åå'
       obj.nvarchar_max.must_equal       'test nvarchar_max åå'
-      col.default_function.must_equal   nil
+      col.default_function.must_be_nil
       type = connection.lookup_cast_type_from_column(col)
       type.must_be_instance_of          Type::UnicodeVarcharMax
       type.limit.must_equal             2_147_483_647
-      type.precision.must_equal         nil
-      type.scale.must_equal             nil
+      type.precision.must_be_nil
+      type.scale.must_be_nil
       # Basic set and save.
       assert_obj_set_and_save :nvarchar_max, "一二34五六"
     end
@@ -631,12 +631,12 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       col.null.must_equal               true
       col.default.must_equal            'test ntext åå'
       obj.ntext.must_equal              'test ntext åå'
-      col.default_function.must_equal   nil
+      col.default_function.must_be_nil
       type = connection.lookup_cast_type_from_column(col)
       type.must_be_instance_of          Type::UnicodeText
       type.limit.must_equal             2_147_483_647
-      type.precision.must_equal         nil
-      type.scale.must_equal             nil
+      type.precision.must_be_nil
+      type.scale.must_be_nil
       # Basic set and save.
       assert_obj_set_and_save :ntext, "一二34五六"
     end
@@ -651,13 +651,13 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       col.sql_type.must_equal           'binary(49)'
       col.type.must_equal               :binary_basic
       col.null.must_equal               true
-      col.default.must_equal            nil
-      col.default_function.must_equal   nil
+      col.default.must_be_nil
+      col.default_function.must_be_nil
       type = connection.lookup_cast_type_from_column(col)
       type.must_be_instance_of          Type::Binary
       type.limit.must_equal             49
-      type.precision.must_equal         nil
-      type.scale.must_equal             nil
+      type.precision.must_be_nil
+      type.scale.must_be_nil
       # Basic set and save.
       binary_data.encoding.must_equal Encoding::BINARY
       binary_data.length.must_equal 49
@@ -672,13 +672,13 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       col.sql_type.must_equal           'varbinary(49)'
       col.type.must_equal               :varbinary
       col.null.must_equal               true
-      col.default.must_equal            nil
-      col.default_function.must_equal   nil
+      col.default.must_be_nil
+      col.default_function.must_be_nil
       type = connection.lookup_cast_type_from_column(col)
       type.must_be_instance_of          Type::Varbinary
       type.limit.must_equal             49
-      type.precision.must_equal         nil
-      type.scale.must_equal             nil
+      type.precision.must_be_nil
+      type.scale.must_be_nil
       # Basic set and save.
       binary_data_20 = binary_data.to(20)
       binary_data_20.encoding.must_equal Encoding::BINARY
@@ -693,13 +693,13 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       col.sql_type.must_equal           'varbinary(max)'
       col.type.must_equal               :binary
       col.null.must_equal               true
-      col.default.must_equal            nil
-      col.default_function.must_equal   nil
+      col.default.must_be_nil
+      col.default_function.must_be_nil
       type = connection.lookup_cast_type_from_column(col)
       type.must_be_instance_of          Type::VarbinaryMax
       type.limit.must_equal             2_147_483_647
-      type.precision.must_equal         nil
-      type.scale.must_equal             nil
+      type.precision.must_be_nil
+      type.scale.must_be_nil
       # Basic set and save.
       binary_data.encoding.must_equal Encoding::BINARY
       assert_obj_set_and_save :varbinary_max, binary_data
@@ -712,16 +712,16 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       col.sql_type.must_equal           'uniqueidentifier'
       col.type.must_equal               :uuid
       col.null.must_equal               true
-      col.default.must_equal            nil
+      col.default.must_be_nil
       col.default_function.must_equal   'newid()'
       type = connection.lookup_cast_type_from_column(col)
       type.must_be_instance_of          Type::Uuid
-      type.limit.must_equal             nil
-      type.precision.must_equal         nil
-      type.scale.must_equal             nil
+      type.limit.must_be_nil
+      type.precision.must_be_nil
+      type.scale.must_be_nil
       # Basic set and save.
       obj.uniqueidentifier = "this will not qualify as valid"
-      obj.uniqueidentifier.must_equal   nil
+      obj.uniqueidentifier.must_be_nil
       obj.save! ; obj.reload
       obj.uniqueidentifier.must_match   Type::Uuid::ACCEPTABLE_UUID
       obj.uniqueidentifier = "6F9619FF-8B86-D011-B42D-00C04FC964FF"
@@ -735,15 +735,15 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       col.sql_type.must_equal           'timestamp'
       col.type.must_equal               :ss_timestamp
       col.null.must_equal               true
-      col.default.must_equal            nil
-      col.default_function.must_equal   nil
+      col.default.must_be_nil
+      col.default_function.must_be_nil
       type = connection.lookup_cast_type_from_column(col)
       type.must_be_instance_of          Type::Timestamp
-      type.limit.must_equal             nil
-      type.precision.must_equal         nil
-      type.scale.must_equal             nil
+      type.limit.must_be_nil
+      type.precision.must_be_nil
+      type.scale.must_be_nil
       # Basic read.
-      obj.timestamp.must_equal   nil
+      obj.timestamp.must_be_nil
       obj.save! ; obj.reload
       obj.timestamp.must_match   %r|\000|
       obj.timestamp
