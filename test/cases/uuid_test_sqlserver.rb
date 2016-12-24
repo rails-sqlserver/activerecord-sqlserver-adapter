@@ -11,7 +11,6 @@ class SQLServerUuidTest < ActiveRecord::TestCase
   end
 
   it 'can create with a new pk' do
-    # Type::Uuid::ACCEPTABLE_UUID
     obj = SSTestUuid.create!
     obj.id.must_be :present?
     obj.id.must_match acceptable_uuid
