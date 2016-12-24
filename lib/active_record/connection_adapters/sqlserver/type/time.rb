@@ -8,21 +8,24 @@ module ActiveRecord
 
           def serialize(value)
             return super unless value.acts_like?(:time)
-            time = value.to_s(:_sqlserver_time)
-            "#{time}".tap do |v|
-              fraction = quote_fractional(value)
-              v << ".#{fraction}" unless fraction.to_i.zero?
-            end
+            Data.new super, self
           end
 
           def type_cast_for_schema(value)
-            serialize(value).inspect
+            serialize(value).quoted
           end
 
           def sqlserver_type
             "time(#{precision.to_i})"
           end
 
+          def quoted(value)
+            time = value.to_s(:_sqlserver_time).tap do |v|
+              fraction = quote_fractional(value)
+              v << ".#{fraction}" unless fraction.to_i.zero?
+            end
+            Utils.quote_string_single(time)
+          end
 
           private
 

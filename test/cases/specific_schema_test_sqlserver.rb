@@ -117,9 +117,10 @@ class SpecificSchemaTestSQLServer < ActiveRecord::TestCase
     assert_sql(/@0 = 'T'/) { SSTestDatatypeMigration.where(char_col: value.new).first }
     assert_sql(/@0 = 'T'/) { SSTestDatatypeMigration.where(varchar_col: value.new).first }
     # Using our custom char type data.
-    data = ActiveRecord::Type::SQLServer::Char::Data
-    assert_sql(/@0 = 'T'/) { SSTestDatatypeMigration.where(char_col: data.new('T')).first }
-    assert_sql(/@0 = 'T'/) { SSTestDatatypeMigration.where(varchar_col: data.new('T')).first }
+    type = ActiveRecord::Type::SQLServer::Char
+    data = ActiveRecord::Type::SQLServer::Data
+    assert_sql(/@0 = 'T'/) { SSTestDatatypeMigration.where(char_col: data.new('T', type.new)).first }
+    assert_sql(/@0 = 'T'/) { SSTestDatatypeMigration.where(varchar_col: data.new('T', type.new)).first }
     # Taking care of everything.
     assert_sql(/@0 = 'T'/) { SSTestDatatypeMigration.where(char_col: 'T').first }
     assert_sql(/@0 = 'T'/) { SSTestDatatypeMigration.where(varchar_col: 'T').first }

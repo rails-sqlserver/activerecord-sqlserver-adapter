@@ -34,20 +34,6 @@ module ActiveRecord
             Utils.quote_string_single(datetime)
           end
 
-          class Data
-
-            attr_reader :value, :type
-
-            def initialize(value, type)
-              @value, @type = value, type
-            end
-
-            def quoted
-              type.quoted(@value)
-            end
-
-          end
-
           private
 
           def cast_value(value)
