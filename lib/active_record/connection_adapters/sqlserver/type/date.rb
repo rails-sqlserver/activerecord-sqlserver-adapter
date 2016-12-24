@@ -11,7 +11,7 @@ module ActiveRecord
           def serialize(value)
             return unless value.present?
             return value if value.is_a?(Data)
-            Data.new(super)
+            Data.new super, self
           end
 
           def deserialize(value)
@@ -23,18 +23,9 @@ module ActiveRecord
             serialize(value).quoted
           end
 
-          class Data
-
-            attr_reader :value
-
-            def initialize(value)
-              @value = value
-            end
-
-            def quoted
-              Utils.quote_string_single @value.to_s(:_sqlserver_dateformat)
-            end
-
+          def quoted(value)
+            date = value.to_s(:_sqlserver_dateformat)
+            Utils.quote_string_single(date)
           end
 
         end

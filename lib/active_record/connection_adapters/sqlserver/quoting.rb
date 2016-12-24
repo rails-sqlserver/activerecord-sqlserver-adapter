@@ -62,9 +62,9 @@ module ActiveRecord
 
         def quoted_date(value)
           if value.acts_like?(:date)
-            Type::Date.new.serialize(value)
+            Type::Date.new.serialize(value).quoted
           else value.acts_like?(:time)
-            Type::DateTime.new.serialize(value)
+            Type::DateTime.new.serialize(value).quoted
           end
         end
 
@@ -75,11 +75,7 @@ module ActiveRecord
           case value
           when Type::Binary::Data
             "0x#{value.hex}"
-          when ActiveRecord::Type::SQLServer::Char::Data
-            value.quoted
-          when ActiveRecord::Type::SQLServer::Date::Data,
-               ActiveRecord::Type::SQLServer::DateTime::Data,
-               ActiveRecord::Type::SQLServer::DateTime2::Data
+          when ActiveRecord::Type::SQLServer::Data
             value.quoted
           when String, ActiveSupport::Multibyte::Chars
             "#{QUOTED_STRING_PREFIX}#{super}"
@@ -94,14 +90,12 @@ module ActiveRecord
             "NULL"
           when Symbol
             _quote(value.to_s)
-          when String, ActiveSupport::Multibyte::Chars, Type::Binary::Data
+          when String, ActiveSupport::Multibyte::Chars
             _quote(value)
-          when ActiveRecord::Type::SQLServer::Char::Data
-            value.quoted
-          when ActiveRecord::Type::SQLServer::Date::Data,
-               ActiveRecord::Type::SQLServer::DateTime::Data,
-               ActiveRecord::Type::SQLServer::DateTime2::Data
-            value.quoted
+          when Type::Binary::Data
+            _quote(value)
+          when ActiveRecord::Type::SQLServer::Data
+            _quote(value)
           else super
           end
         end

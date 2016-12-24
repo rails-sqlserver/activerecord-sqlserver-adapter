@@ -11,7 +11,7 @@ module ActiveRecord
           def serialize(value)
             return if value.nil?
             return value if value.is_a?(Data)
-            Data.new(super)
+            Data.new super, self
           end
 
           def sqlserver_type
@@ -20,22 +20,9 @@ module ActiveRecord
             end
           end
 
-          class Data
-
-            def initialize(value)
-              @quoted_id = value.respond_to?(:quoted_id)
-              @value = @quoted_id ? value.quoted_id : value.to_s
-            end
-
-            def quoted
-              @quoted_id ? @value : "'#{Utils.quote_string(@value)}'"
-            end
-
-            def to_s
-              @value
-            end
-            alias_method :to_str, :to_s
-
+          def quoted(value)
+            return value.quoted_id if value.respond_to?(:quoted_id)
+            Utils.quote_string_single(value)
           end
 
         end

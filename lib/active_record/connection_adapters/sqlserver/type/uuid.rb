@@ -16,8 +16,17 @@ module ActiveRecord
             'uniqueidentifier'.freeze
           end
 
+          def serialize(value)
+            return unless value
+            Data.new super, self
+          end
+
           def cast(value)
             value.to_s[ACCEPTABLE_UUID, 0]
+          end
+
+          def quoted(value)
+            Utils.quote_string_single(value) if value
           end
 
         end
