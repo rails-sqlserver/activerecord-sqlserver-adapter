@@ -281,7 +281,14 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       type.limit.must_be_nil
       type.precision.must_be_nil
       type.scale.must_be_nil
-      # Can cast strings.
+      # Can cast strings. SQL Server format.
+      obj.date = '04-01-0001'
+      obj.date.must_equal               Date.civil(0001, 4, 1)
+      obj.save!
+      obj.date.must_equal               Date.civil(0001, 4, 1)
+      obj.reload
+      obj.date.must_equal               Date.civil(0001, 4, 1)
+      # Can cast strings. ISO format.
       obj.date = '0001-04-01'
       obj.date.must_equal               Date.civil(0001, 4, 1)
       obj.save!

@@ -10,13 +10,12 @@ module ActiveRecord
 
           def serialize(value)
             return unless value.present?
-            return value if value.is_a?(Data)
-            Data.new super, self
+            date = value.to_s(:_sqlserver_dateformat)
+            Data.new date, self
           end
 
           def deserialize(value)
-            return value.value if value.is_a?(Data)
-            super
+            value.is_a?(Data) ? super(value.value) : super
           end
 
           def type_cast_for_schema(value)
@@ -24,8 +23,19 @@ module ActiveRecord
           end
 
           def quoted(value)
-            date = value.to_s(:_sqlserver_dateformat)
-            Utils.quote_string_single(date)
+            Utils.quote_string_single(value)
+          end
+
+          private
+
+          def fast_string_to_date(string)
+            ::Date.strptime(string, fast_string_to_date_format)
+          rescue ArgumentError
+            super
+          end
+
+          def fast_string_to_date_format
+            ::Date::DATE_FORMATS[:_sqlserver_dateformat]
           end
 
         end

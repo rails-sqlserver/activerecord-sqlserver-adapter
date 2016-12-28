@@ -12,13 +12,15 @@ module ActiveRecord
 
           def serialize(value)
             return super unless value.acts_like?(:time)
-            Data.new super, self
+            datetime = super.to_s(:_sqlserver_datetime).tap do |v|
+              fraction = quote_fractional(value)
+              v << ".#{fraction}" unless fraction.to_i.zero?
+            end
+            Data.new datetime, self
           end
 
           def deserialize(value)
-            datetime = value.is_a?(Data) ? value.value : super
-            return unless datetime
-            zone_conversion(datetime)
+            value.is_a?(Data) ? super(value.value) : super
           end
 
           def type_cast_for_schema(value)
@@ -26,12 +28,7 @@ module ActiveRecord
           end
 
           def quoted(value)
-            datetime = value.to_s(:_sqlserver_datetime)
-            datetime = "#{datetime}".tap do |v|
-              fraction = quote_fractional(value)
-              v << ".#{fraction}" unless fraction.to_i.zero?
-            end
-            Utils.quote_string_single(datetime)
+            Utils.quote_string_single(value)
           end
 
           private
@@ -42,9 +39,18 @@ module ActiveRecord
             apply_seconds_precision(value)
           end
 
-          def zone_conversion(value)
-            method = ActiveRecord::Base.default_timezone == :utc ? :getutc : :getlocal
-            value.respond_to?(method) ? value.send(method) : value
+          def fast_string_to_time(string)
+            fast_string_to_time_zone.strptime(string, fast_string_to_time_format).time
+          rescue ArgumentError
+            super
+          end
+
+          def fast_string_to_time_format
+            "#{::Time::DATE_FORMATS[:_sqlserver_datetime]}.%N".freeze
+          end
+
+          def fast_string_to_time_zone
+            ::Time.zone || ActiveSupport::TimeZone.new('UTC')
           end
 
         end
