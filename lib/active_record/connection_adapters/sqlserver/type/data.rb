@@ -19,6 +19,10 @@ module ActiveRecord
           end
           alias_method :to_str, :to_s
 
+          def inspect
+            @value.inspect
+          end
+
         end
       end
     end

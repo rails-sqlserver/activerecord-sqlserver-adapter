@@ -240,7 +240,7 @@ module ActiveRecord
           types, params = [], []
           binds.each_with_index do |attr, index|
             types << "@#{index} #{sp_executesql_sql_type(attr)}"
-            params << type_cast(attr.value_for_database)
+            params << sp_executesql_sql_param(attr)
           end
           [types, params]
         end
@@ -250,9 +250,20 @@ module ActiveRecord
           case value = attr.value_for_database
           when Numeric
             'int'.freeze
+          when String
+            'nvarchar(max)'.freeze
           else
             raise TypeError, "sp_executesql_sql_type can not find sql type for attr #{attr.inspect}"
-            quote(value)
+          end
+        end
+
+        def sp_executesql_sql_param(attr)
+          case attr.value_for_database
+          when Type::Binary::Data,
+               ActiveRecord::Type::SQLServer::Data
+            quote(attr.value_for_database)
+          else
+            quote(type_cast(attr.value_for_database))
           end
         end
 

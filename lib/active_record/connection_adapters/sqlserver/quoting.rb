@@ -86,17 +86,10 @@ module ActiveRecord
 
         def _type_cast(value)
           case value
-          when nil
-            "NULL"
-          when Symbol
-            _quote(value.to_s)
-          when String, ActiveSupport::Multibyte::Chars
-            _quote(value)
-          when Type::Binary::Data
-            _quote(value)
           when ActiveRecord::Type::SQLServer::Data
-            _quote(value)
-          else super
+            value.to_s
+          else
+            super
           end
         end
 
