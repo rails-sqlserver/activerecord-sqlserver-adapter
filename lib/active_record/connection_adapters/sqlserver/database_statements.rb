@@ -15,8 +15,8 @@ module ActiveRecord
           end
         end
 
-        def exec_query(sql, name = 'SQL', binds = [], sqlserver_options = {})
-          sp_executesql(sql, name, binds)
+        def exec_query(sql, name = 'SQL', binds = [], prepare: false)
+          sp_executesql(sql, name, binds, prepare: prepare)
         end
 
         def exec_insert(sql, name, binds, pk = nil, _sequence_name = nil)
@@ -125,7 +125,7 @@ module ActiveRecord
         end
 
         def with_identity_insert_enabled(table_name)
-          table_name = quote_table_name(table_name_or_views_table_name(table_name))
+          table_name = quote_table_name(table_name)
           set_identity_insert(table_name, true)
           yield
         ensure
@@ -197,10 +197,6 @@ module ActiveRecord
 
         protected
 
-        def select(sql, name = nil, binds = [])
-          exec_query(sql, name, binds)
-        end
-
         def sql_for_insert(sql, pk, id_value, sequence_name, binds)
           if pk.nil?
             table_name = query_requires_identity_insert?(sql)
@@ -231,8 +227,10 @@ module ActiveRecord
 
         def sp_executesql(sql, name, binds, options = {})
           options[:ar_result] = true if options[:fetch] != :rows
-          types, params = sp_executesql_types_and_parameters(binds)
-          sql = sp_executesql_sql(sql, types, params, name)
+          unless without_prepared_statement?(binds)
+            types, params = sp_executesql_types_and_parameters(binds)
+            sql = sp_executesql_sql(sql, types, params, name)
+          end
           raw_select sql, name, binds, options
         end
 

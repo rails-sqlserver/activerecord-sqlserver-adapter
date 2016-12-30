@@ -80,7 +80,7 @@ module ActiveRecord
         end
 
         def primary_keys(table_name)
-          primaries = columns(table_name).select(&:is_primary?).map(&:name)
+          primaries = schema_cache.columns(table_name).select(&:is_primary?).map(&:name)
           primaries.present? ? primaries : identity_columns(table_name).map(&:name)
         end
 
@@ -254,7 +254,7 @@ module ActiveRecord
           end
           database    = identifier.fully_qualified_database_quoted
           view_exists = view_exists?(table_name)
-          view_tblnm  = table_name_or_views_table_name(table_name) if view_exists
+          view_tblnm  = view_table_name(table_name) if view_exists
           sql = %{
             SELECT DISTINCT
             #{lowercase_schema_reflection_sql('columns.TABLE_NAME')} AS table_name,
@@ -307,7 +307,7 @@ module ActiveRecord
           nv128 = SQLServer::Type::UnicodeVarchar.new limit: 128
           binds << Relation::QueryAttribute.new('TABLE_NAME', identifier.object, nv128)
           binds << Relation::QueryAttribute.new('TABLE_SCHEMA', identifier.schema, nv128) unless identifier.schema.blank?
-          results = sp_executesql(sql, 'SCHEMA', binds)
+          results = sp_executesql(sql, 'SCHEMA', binds, prepare: true)
           results.map do |ci|
             ci = ci.symbolize_keys
             ci[:_type] = ci[:type]
@@ -444,10 +444,6 @@ module ActiveRecord
             end
           end
           view_info
-        end
-
-        def table_name_or_views_table_name(table_name)
-          view_exists?(table_name) ? view_table_name(table_name) : table_name
         end
 
         def views_real_column_name(table_name, column_name)
