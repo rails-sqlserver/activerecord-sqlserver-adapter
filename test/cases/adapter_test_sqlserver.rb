@@ -396,15 +396,6 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
       assert SSTestStringDefaultsView.connection.data_source_exists?(SSTestStringDefaultsView.table_name)
     end
 
-    # Doing identity inserts
-
-    it 'be able to do an identity insert' do
-      customer = SSTestCustomersView.new
-      customer.id = 420
-      customer.save!
-      assert SSTestCustomersView.find(420)
-    end
-
     # That have more than 4000 chars for their defintion
 
     it 'cope with null returned for the defintion' do
