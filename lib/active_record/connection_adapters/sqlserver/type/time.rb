@@ -10,7 +10,7 @@ module ActiveRecord
             return super unless value.acts_like?(:time)
             time = value.to_s(:_sqlserver_time).tap do |v|
               fraction = quote_fractional(value)
-              v << ".#{fraction}" unless fraction.to_i.zero?
+              v << ".#{fraction}"
             end
             Data.new time, self
           end
