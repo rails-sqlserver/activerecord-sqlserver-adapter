@@ -4,7 +4,7 @@ module ActiveRecord
       module Type
         class SmallMoney < Money
 
-          def initialize(options = {})
+          def initialize(*args)
             super
             @precision = 10
             @scale = 4

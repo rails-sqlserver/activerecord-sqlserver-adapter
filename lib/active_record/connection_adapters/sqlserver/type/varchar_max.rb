@@ -4,7 +4,7 @@ module ActiveRecord
       module Type
         class VarcharMax < Varchar
 
-          def initialize(options = {})
+          def initialize(*args)
             super
             @limit = 2_147_483_647
           end
