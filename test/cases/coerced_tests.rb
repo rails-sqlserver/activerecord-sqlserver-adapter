@@ -35,11 +35,8 @@ end
 class BasicsTest < ActiveRecord::TestCase
   coerce_tests! :test_column_names_are_escaped
   def test_column_names_are_escaped_coerced
-    conn      = ActiveRecord::Base.connection
-    classname = conn.class.name[/[^:]*$/]
-    badchar   = "'"
-    quoted = conn.quote_column_name "foo#{badchar}bar"
-    assert_equal "[foo'bar]", quoted
+    conn = ActiveRecord::Base.connection
+    assert_equal '[t]]]', conn.quote_column_name('t]')
   end
 
   # PENDING: [Rails5.x] Remove coerced tests and use simple symbol types..
