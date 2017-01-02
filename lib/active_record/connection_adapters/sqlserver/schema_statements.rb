@@ -124,11 +124,13 @@ module ActiveRecord
           sql_commands.each { |c| do_execute(c) }
         end
 
-        def change_column_default(table_name, column_name, default)
+        def change_column_default(table_name, column_name, default_or_changes)
           clear_cache!
+          column = column_for(table_name, column_name)
+          return unless column
           remove_default_constraint(table_name, column_name)
-          column_object = schema_cache.columns(table_name).find { |c| c.name.to_s == column_name.to_s }
-          do_execute "ALTER TABLE #{quote_table_name(table_name)} ADD CONSTRAINT #{default_constraint_name(table_name, column_name)} DEFAULT #{quote_default_expression(default, column_object)} FOR #{quote_column_name(column_name)}"
+          default = extract_new_default_value(default_or_changes)
+          do_execute "ALTER TABLE #{quote_table_name(table_name)} ADD CONSTRAINT #{default_constraint_name(table_name, column_name)} DEFAULT #{quote_default_expression(default, column)} FOR #{quote_column_name(column_name)}"
           clear_cache!
         end
 
