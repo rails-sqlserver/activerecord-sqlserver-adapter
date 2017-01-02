@@ -25,7 +25,7 @@ module ARTest
             undef_method(method)
             once = true
           end
-          STDOUT.puts "Info: Undefined all tests: #{self.name}"
+          STDOUT.puts "🙉 🙈 🙊  Undefined all tests: #{self.name}"
         end
 
         private
@@ -35,9 +35,9 @@ module ARTest
           Array(method).each do |m|
             result = undef_method(m) if m && method_defined?(m)
             if result.blank?
-              STDOUT.puts "Warning: Unfound coerced test: #{self.name}##{m}"
+              STDOUT.puts "🐳  Unfound coerced test: #{self.name}##{m}"
             else
-              STDOUT.puts "Info: Undefined coerced test: #{self.name}##{m}"
+              STDOUT.puts "🐵  Undefined coerced test: #{self.name}##{m}"
             end
           end
         end

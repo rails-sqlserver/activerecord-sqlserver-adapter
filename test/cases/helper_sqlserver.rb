@@ -1,6 +1,7 @@
 require 'support/paths_sqlserver'
 require 'bundler/setup'
 Bundler.require :default, :development
+require 'pry'
 require 'support/minitest_sqlserver'
 require 'cases/helper'
 require 'support/load_schema_sqlserver'
