@@ -657,12 +657,15 @@ class TransactionIsolationTest < ActiveRecord::TestCase
 end
 
 
-
+require 'models/book'
+class Paperback < ActiveRecord::Base; end
 class ViewWithPrimaryKeyTest < ActiveRecord::TestCase
-
+  # We have a few fews and test is poor equality based.
+  coerce_tests! :test_views
+  # This is deprecated and we dont care in thsi version to pass it.
+  coerce_tests! :test_table_exists
   # We do better than ActiveRecord and find the views PK.
   coerce_tests! :test_does_not_assume_id_column_as_primary_key
-
 end
 
 

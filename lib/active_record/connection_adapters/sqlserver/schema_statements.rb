@@ -21,6 +21,11 @@ module ActiveRecord
           tables('VIEW')
         end
 
+        def view_exists?(table_name)
+          identifier = SQLServer::Utils.extract_identifiers(table_name)
+          super(identifier.object)
+        end
+
         def create_table(table_name, comment: nil, **options)
           res = super
           clear_cache!
@@ -418,11 +423,6 @@ module ActiveRecord
         end
 
         # === SQLServer Specific (View Reflection) ====================== #
-
-        def view_exists?(table_name)
-          identifier = SQLServer::Utils.extract_identifiers(table_name)
-          views.include? identifier.object
-        end
 
         def view_table_name(table_name)
           view_info = view_information(table_name)

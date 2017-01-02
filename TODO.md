@@ -13,6 +13,10 @@ After we get some tests passing
 * Check `sql_for_insert` can do without the table regular expresion.
 * Do we need the `query_requires_identity_insert` check in `execute`?
 * Does the schema cache serialize properly since we conform to that now?
+* What does `supports_materialized_views?` means for SQL Server
+  http://michaeljswart.com/2014/12/materialized-views-in-sql-server/
+  https://blogs.msdn.microsoft.com/ssma/2011/06/20/migrating-oracle-materialized-view-to-sql-server/
+  http://stackoverflow.com/questions/3986366/how-to-create-materialized-views-in-sql-server
 
 
 #### Does Find By SQL Work?
