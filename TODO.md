@@ -17,6 +17,7 @@ After we get some tests passing
   http://michaeljswart.com/2014/12/materialized-views-in-sql-server/
   https://blogs.msdn.microsoft.com/ssma/2011/06/20/migrating-oracle-materialized-view-to-sql-server/
   http://stackoverflow.com/questions/3986366/how-to-create-materialized-views-in-sql-server
+* BIGINT PK support. https://github.com/rails/rails/pull/26266
 
 
 #### Does Find By SQL Work?
