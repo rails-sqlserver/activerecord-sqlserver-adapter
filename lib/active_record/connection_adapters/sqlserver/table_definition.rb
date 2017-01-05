@@ -1,7 +1,8 @@
 module ActiveRecord
   module ConnectionAdapters
     module SQLServer
-      class TableDefinition < ActiveRecord::ConnectionAdapters::TableDefinition
+
+      module ColumnMethods
 
         def primary_key(name, type = :primary_key, **options)
           return super unless type == :uuid
@@ -10,66 +11,89 @@ module ActiveRecord
           column name, type, options
         end
 
-        def real(name, options = {})
-          column(name, :real, options)
+        def real(*args, **options)
+          args.each { |name| column(name, :real, options) }
         end
 
-        def money(name, options = {})
-          column(name, :money, options)
+        def money(*args, **options)
+          args.each { |name| column(name, :money, options) }
         end
 
-        def datetime2(name, options = {})
-          column(name, :datetime2, options)
+        def datetime(*args, **options)
+          args.each do |name|
+            if options[:precision]
+              datetime2(name, options)
+            else
+              column(name, :datetime, options)
+            end
+          end
         end
 
-        def datetimeoffset(name, options = {})
-          column(name, :datetimeoffset, options)
+        def datetime2(*args, **options)
+          args.each { |name| column(name, :datetime2, options) }
         end
 
-        def smallmoney(name, options = {})
-          column(name, :smallmoney, options)
+        def datetimeoffset(*args, **options)
+          args.each { |name| column(name, :datetimeoffset, options) }
         end
 
-        def char(name, options = {})
-          column(name, :char, options)
+        def smallmoney(*args, **options)
+          args.each { |name| column(name, :smallmoney, options) }
         end
 
-        def varchar(name, options = {})
-          column(name, :varchar, options)
+        def char(*args, **options)
+          args.each { |name| column(name, :char, options) }
         end
 
-        def varchar_max(name, options = {})
-          column(name, :varchar_max, options)
+        def varchar(*args, **options)
+          args.each { |name| column(name, :varchar, options) }
         end
 
-        def text_basic(name, options = {})
-          column(name, :text_basic, options)
+        def varchar_max(*args, **options)
+          args.each { |name| column(name, :varchar_max, options) }
         end
 
-        def nchar(name, options = {})
-          column(name, :nchar, options)
+        def text_basic(*args, **options)
+          args.each { |name| column(name, :text_basic, options) }
         end
 
-        def ntext(name, options = {})
-          column(name, :ntext, options)
+        def nchar(*args, **options)
+          args.each { |name| column(name, :nchar, options) }
         end
 
-        def binary_basic(name, options = {})
-          column(name, :binary_basic, options)
+        def ntext(*args, **options)
+          args.each { |name| column(name, :ntext, options) }
         end
 
-        def varbinary(name, options = {})
-          column(name, :varbinary, options)
+        def binary_basic(*args, **options)
+          args.each { |name| column(name, :binary_basic, options) }
         end
 
-        def uuid(name, options = {})
-          column(name, :uniqueidentifier, options)
+        def varbinary(*args, **options)
+          args.each { |name| column(name, :varbinary, options) }
         end
 
-        def ss_timestamp(name, options = {})
-          column(name, :ss_timestamp, options)
+        def uuid(*args, **options)
+          args.each { |name| column(name, :uniqueidentifier, options) }
         end
 
+        def ss_timestamp(*args, **options)
+          args.each { |name| column(name, :ss_timestamp, options) }
+        end
+
+      end
+
+      class TableDefinition < ActiveRecord::ConnectionAdapters::TableDefinition
+        include ColumnMethods
+
+        def new_column_definition(name, type, options)
+          type = :datetime2 if type == :datetime && options[:precision]
+          super name, type, options
+        end
+      end
+
+      class Table < ActiveRecord::ConnectionAdapters::Table
+        include ColumnMethods
       end
     end
   end

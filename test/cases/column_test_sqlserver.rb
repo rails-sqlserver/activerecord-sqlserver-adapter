@@ -309,26 +309,43 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       col.sql_type.must_equal           'datetime'
       col.type.must_equal               :datetime
       col.null.must_equal               true
-      col.default.must_equal            Time.utc(1753, 01, 01, 00, 00, 00, 123000), "Microseconds were <#{col.default.usec}> vs <123000>"
-      obj.datetime.must_equal           Time.utc(1753, 01, 01, 00, 00, 00, 123000), "Microseconds were <#{obj.datetime.usec}> vs <123000>"
+      time = Time.utc 1753, 01, 01, 00, 00, 00, 123000
+      col.default.must_equal            time, "Microseconds were <#{col.default.usec}> vs <123000>"
+      obj.datetime.must_equal           time, "Microseconds were <#{obj.datetime.usec}> vs <123000>"
       col.default_function.must_be_nil
       type = connection.lookup_cast_type_from_column(col)
       type.must_be_instance_of          Type::DateTime
       type.limit.must_be_nil
       type.precision.must_be_nil
       type.scale.must_be_nil
+      obj.save!
+      obj.must_equal obj.class.where(datetime: time).first
       # Can save to proper accuracy and return again.
-      obj.datetime = Time.utc(2010, 04, 01, 12, 34, 56, 3000)
-      obj.datetime.must_equal           Time.utc(2010, 04, 01, 12, 34, 56, 3000), "Microseconds were <#{obj.datetime.usec}> vs <3000>"
+      time = Time.utc 2010, 04, 01, 12, 34, 56, 3000
+      obj.datetime = time
+      obj.datetime.must_equal           time, "Microseconds were <#{obj.datetime.usec}> vs <3000>"
       obj.save!
-      obj.datetime.must_equal           Time.utc(2010, 04, 01, 12, 34, 56, 3000), "Microseconds were <#{obj.reload.datetime.usec}> vs <3000>"
+      obj.datetime.must_equal           time, "Microseconds were <#{obj.datetime.usec}> vs <3000>"
       obj.reload
-      obj.datetime.must_equal           Time.utc(2010, 04, 01, 12, 34, 56, 3000), "Microseconds were <#{obj.reload.datetime.usec}> vs <3000>"
+      obj.datetime.must_equal           time, "Microseconds were <#{obj.datetime.usec}> vs <3000>"
+      obj.must_equal obj.class.where(datetime: time).first
       # Will cast to true DB value on attribute write, save and return again.
-      obj.datetime = Time.utc(2010, 04, 01, 12, 34, 56, 234567)
-      obj.datetime.must_equal           Time.utc(2010, 04, 01, 12, 34, 56, 233000), "Microseconds were <#{obj.datetime.usec}> vs <233000>"
+      time  = Time.utc 2010, 04, 01, 12, 34, 56, 234567
+      time2 = Time.utc 2010, 04, 01, 12, 34, 56, 233000
+      obj.datetime = time
+      obj.datetime.must_equal           time2, "Microseconds were <#{obj.datetime.usec}> vs <233000>"
       obj.save!
-      obj.reload.datetime.must_equal    Time.utc(2010, 04, 01, 12, 34, 56, 233000), "Microseconds were <#{obj.reload.datetime.usec}> vs <233000>"
+      obj.datetime.must_equal           time2, "Microseconds were <#{obj.datetime.usec}> vs <233000>"
+      obj.reload
+      obj.datetime.must_equal           time2, "Microseconds were <#{obj.datetime.usec}> vs <233000>"
+      obj.must_equal obj.class.where(datetime: time).first
+      obj.must_equal obj.class.where(datetime: time2).first
+      # Set and find nil.
+      obj.datetime = nil
+      obj.datetime.must_be_nil
+      obj.save!
+      obj.datetime.must_be_nil
+      obj.must_equal obj.class.where(datetime: nil).first
     end
 
     it 'datetime2' do
@@ -337,27 +354,38 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       col.sql_type.must_equal           'datetime2(7)'
       col.type.must_equal               :datetime2
       col.null.must_equal               true
-      col.default.must_equal            Time.utc(9999, 12, 31, 23, 59, 59, Rational(999999900, 1000)), "Nanoseconds were <#{col.default.nsec}> vs <999999900>"
-      obj.datetime2_7.must_equal        Time.utc(9999, 12, 31, 23, 59, 59, Rational(999999900, 1000)), "Nanoseconds were <#{obj.datetime2_7.nsec}> vs <999999900>"
+      time = Time.utc 9999, 12, 31, 23, 59, 59, Rational(999999900, 1000)
+      col.default.must_equal            time, "Nanoseconds were <#{col.default.nsec}> vs <999999900>"
+      obj.datetime2_7.must_equal        time, "Nanoseconds were <#{obj.datetime2_7.nsec}> vs <999999900>"
       col.default_function.must_be_nil
       type = connection.lookup_cast_type_from_column(col)
       type.must_be_instance_of          Type::DateTime2
       type.limit.must_be_nil
       type.precision.must_equal         7
       type.scale.must_be_nil
+      obj.save!
+      obj.must_equal obj.class.where(datetime2_7: time).first
       # Can save 100 nanosecond precisoins and return again.
-      obj.datetime2_7 = Time.utc(9999, 12, 31, 23, 59, 59, Rational(123456755, 1000))
-      obj.datetime2_7.must_equal           Time.utc(9999, 12, 31, 23, 59, 59, Rational(123456800, 1000)), "Nanoseconds were <#{obj.datetime2_7.nsec}> vs <123456800>"
+      time  = Time.utc 9999, 12, 31, 23, 59, 59, Rational(123456755, 1000)
+      time2 = Time.utc 9999, 12, 31, 23, 59, 59, Rational(123456800, 1000)
+      obj.datetime2_7 = time
+      obj.datetime2_7.must_equal           time2, "Nanoseconds were <#{obj.datetime2_7.nsec}> vs <123456800>"
       obj.save!
-      obj.datetime2_7.must_equal           Time.utc(9999, 12, 31, 23, 59, 59, Rational(123456800, 1000)), "Nanoseconds were <#{obj.datetime2_7.nsec}> vs <123456800>"
+      obj.datetime2_7.must_equal           time2, "Nanoseconds were <#{obj.datetime2_7.nsec}> vs <123456800>"
       obj.reload
-      obj.datetime2_7.must_equal           Time.utc(9999, 12, 31, 23, 59, 59, Rational(123456800, 1000)), "Nanoseconds were <#{obj.datetime2_7.nsec}> vs <123456800>"
+      obj.datetime2_7.must_equal           time2, "Nanoseconds were <#{obj.datetime2_7.nsec}> vs <123456800>"
+      obj.must_equal obj.class.where(datetime2_7: time).first
+      obj.must_equal obj.class.where(datetime2_7: time2).first
       # Can save small fraction nanosecond precisoins and return again.
-      obj.datetime2_7 = Time.utc(2008, 6, 21, 13, 30, 0, Rational(15020, 1000))
-      obj.datetime2_7.must_equal           Time.utc(2008, 6, 21, 13, 30, 0, Rational(15000, 1000)), "Nanoseconds were <#{obj.datetime2_7.nsec}> vs <15000>"
+      time  = Time.utc 2008, 6, 21, 13, 30, 0, Rational(15020, 1000)
+      time2 = Time.utc 2008, 6, 21, 13, 30, 0, Rational(15000, 1000)
+      obj.datetime2_7 = time
+      obj.datetime2_7.must_equal           time2, "Nanoseconds were <#{obj.datetime2_7.nsec}> vs <15000>"
       obj.save!
-      obj.reload.datetime2_7.must_equal    Time.utc(2008, 6, 21, 13, 30, 0, Rational(15000, 1000)), "Nanoseconds were <#{obj.datetime2_7.nsec}> vs <15000>"
-      # With other precisions.
+      obj.reload.datetime2_7.must_equal    time2, "Nanoseconds were <#{obj.datetime2_7.nsec}> vs <15000>"
+      obj.must_equal obj.class.where(datetime2_7: time).first
+      obj.must_equal obj.class.where(datetime2_7: time2).first
+      # datetime2_3
       time = Time.utc 9999, 12, 31, 23, 59, 59, Rational(123456789, 1000)
       col = column('datetime2_3')
       connection.lookup_cast_type_from_column(col).precision.must_equal 3
@@ -365,12 +393,16 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       obj.datetime2_3.must_equal time.change(nsec: 123000000), "Nanoseconds were <#{obj.datetime2_3.nsec}> vs <123000000>"
       obj.save! ; obj.reload
       obj.datetime2_3.must_equal time.change(nsec: 123000000), "Nanoseconds were <#{obj.datetime2_3.nsec}> vs <123000000>"
+      obj.must_equal obj.class.where(datetime2_3: time).first
+      # datetime2_1
       col = column('datetime2_1')
       connection.lookup_cast_type_from_column(col).precision.must_equal 1
       obj.datetime2_1 = time
       obj.datetime2_1.must_equal time.change(nsec: 100000000), "Nanoseconds were <#{obj.datetime2_1.nsec}> vs <100000000>"
       obj.save! ; obj.reload
       obj.datetime2_1.must_equal time.change(nsec: 100000000), "Nanoseconds were <#{obj.datetime2_1.nsec}> vs <100000000>"
+      obj.must_equal obj.class.where(datetime2_1: time).first
+      # datetime2_0
       col = column('datetime2_0')
       connection.lookup_cast_type_from_column(col).precision.must_equal 0
       time = Time.utc 2016, 4, 19, 16, 45, 40, 771036
@@ -378,6 +410,7 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       obj.datetime2_0.must_equal time.change(nsec: 0), "Nanoseconds were <#{obj.datetime2_0.nsec}> vs <0>"
       obj.save! ; obj.reload
       obj.datetime2_0.must_equal time.change(nsec: 0), "Nanoseconds were <#{obj.datetime2_0.nsec}> vs <0>"
+      obj.must_equal obj.class.where(datetime2_0: time).first
     end
 
     it 'datetimeoffset' do
