@@ -9,13 +9,18 @@
 
 ## RAILS v5 COMING!!!
 
-The work for Rails v5 started a on 2016-07-03 and none of the work landed in master yet. The changes for adapters from v4.2 to v5.0 is one of the most dramatic I have seen and Rails 5 compatibility will take several more weeks till it is ready.
+2017-01-04 - All core adapter tests are passing on Rails v5. We have ~60 failures under the full AcitveRecord suite. At this time, the foundation of the adapter is considered to be solid and the remaining tests will not likely require any refactors of the adapter internals.
 
-2016-07-14 UPDATE: https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/tree/rails5
+This means you can technically bundle to the adapter's master branch and work with Rails 5. However, but reports should not be given till we have a release and pass all ActiveRecord tests. Please follow the `RAILS5-TODO.md` and `RAILS5-FAILS.txt` notes before filing issues.
 
-* **Can I help?** - Thanks so much! But no, not yet. There are some foundational changes coming to master in the next few weeks. Having multiple people involved at this stage is counter productive. Please stay tuned here for when that may change.
-* **Why is it taking so long?** - I spent the last several months trying to make TinyTDS/FreeTDS strong vs working on the adapter. If you did not know, the FreeTDS finally hit a v1.0 release which has been in the works for several years. It is a major achievement by that team. I thought it was more important to get the low level connection strong before doing the adapter work. We will get there soon.
-* **What branch you working on?** - Right now I am on the [rails5](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/tree/rails5) branch.
+* [RAILS5-TODO.md](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/blob/master/RAILS5-TODO.md)
+* [RAILS5-FAILS.txt](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/blob/master/RAILS5-FAILS.txt)
+* [All Rails 5.0 Issues - Closed](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/issues?q=label%3A%22Rails+5.0%22+is%3Aclosed)
+* [All Rails 5.0 Issues - Open](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/labels/Rails%205.0)
+
+* **Can I help?** - Thanks so much! Feel free to jump in. I suggest chatting on Gitter or GitHub to make sure we are not dupliating work.
+* **What is the ETA of an initial release?** - My guess is that we can have an initial release by mid January easily.
+
 
 #### Using Rails v4
 

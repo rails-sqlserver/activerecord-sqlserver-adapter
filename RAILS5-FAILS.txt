@@ -1,0 +1,1346 @@
+Run options: --seed=44527
+
+# Running:
+
+..........................................................................................................................................................................................................FF......................................................................................................................................................................................................................F....F...........E..EF.....S..E....................................................................................................................E................................................................................................................................................................F................................................................................................................................................................................................................................................................E.........................................................F.................................................................................................................F.........................................................................E.......................................................................................................................................................................................................................................................................................................E...E...................................................F.........................................................................................................................................F......F....F...........F................F....F...................................................................................................................................................................................................................................................................................................................................E.........................................................S..................................................F...................................................................................................................................................................................................................................................E......E......E..........................................................................................................................E.............E......................F...........................................................................................................................E......F...............................................................................................................................................................E..................F...............F.............F..E...........F....F...FE.....F.......E..................................................................................................................................................................................................................................................................................................................................E........................E.................................E........................................F...E..............E............F..F..........F........................................................................................................E...................................................................................................................................................................................................................................................................................................................................................................F.................................................................................................E.......................................E.......E........................................................................................E...........................................................................................................................................................................E................................................................................E.................................E...................................E..............................................................................................................S.........................................E........................E.............................................................................................................................................................................................E..
+
+Finished in 442.623076s, 10.9664 runs/s, 31.5641 assertions/s.
+
+  1) Failure:
+DefaultNumbersTest#test_default_positive_integer [/Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/test/cases/defaults_test.rb:43]:
+Expected: "7"
+  Actual: 7
+
+
+  2) Failure:
+DefaultNumbersTest#test_default_negative_integer [/Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/test/cases/defaults_test.rb:49]:
+Expected: "-5"
+  Actual: -5
+
+
+  3) Failure:
+UniquenessValidationTest#test_validate_uniqueness_with_limit [/Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/test/cases/validations/uniqueness_validation_test.rb:376]:
+ActiveRecord::ValueTooLong expected but nothing was raised.
+
+
+  4) Failure:
+UniquenessValidationTest#test_validate_uniqueness_with_limit_and_utf8 [/Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/test/cases/validations/uniqueness_validation_test.rb:395]:
+ActiveRecord::ValueTooLong expected but nothing was raised.
+
+
+  5) Error:
+UniquenessValidationTest#test_validates_uniqueness_with_newline_chars:
+ActiveRecord::StatementInvalid: TinyTds::Error: The number of rows provided for a TOP or FETCH clauses row count parameter must be an integer.: EXEC sp_executesql N'SELECT  1 AS one FROM [topics] WHERE [topics].[title] = N''new
+line''  ORDER BY [topics].[id] ASC OFFSET 0 ROWS FETCH NEXT @0 ROWS ONLY', N'@0 nvarchar(max), @1 int', @0 = N'new
+line', @1 = 1
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:330:in `each'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:330:in `handle_to_names_and_values_dblib'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:321:in `handle_to_names_and_values'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:300:in `_raw_select'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:295:in `block in raw_select'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract_adapter.rb:589:in `block in log'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/notifications/instrumenter.rb:21:in `instrument'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract_adapter.rb:583:in `log'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:295:in `raw_select'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:234:in `sp_executesql'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:7:in `select_rows'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract/database_statements.rb:54:in `select_value'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation/finder_methods.rb:335:in `exists?'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/validations/uniqueness.rb:29:in `validate_each'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activemodel/lib/active_model/validator.rb:151:in `block in validate'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activemodel/lib/active_model/validator.rb:148:in `each'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activemodel/lib/active_model/validator.rb:148:in `validate'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/callbacks.rb:405:in `public_send'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/callbacks.rb:405:in `block in make_lambda'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/callbacks.rb:169:in `block (2 levels) in halting'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/callbacks.rb:547:in `block (2 levels) in default_terminator'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/callbacks.rb:546:in `catch'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/callbacks.rb:546:in `block in default_terminator'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/callbacks.rb:170:in `block in halting'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/callbacks.rb:454:in `block in call'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/callbacks.rb:454:in `each'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/callbacks.rb:454:in `call'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/callbacks.rb:101:in `__run_callbacks__'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/callbacks.rb:750:in `_run_validate_callbacks'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activemodel/lib/active_model/validations.rb:408:in `run_validations!'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activemodel/lib/active_model/validations/callbacks.rb:113:in `block in run_validations!'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/callbacks.rb:126:in `call'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/callbacks.rb:506:in `block (2 levels) in compile'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/callbacks.rb:455:in `call'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/callbacks.rb:101:in `__run_callbacks__'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/callbacks.rb:750:in `_run_validation_callbacks'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activemodel/lib/active_model/validations/callbacks.rb:113:in `run_validations!'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activemodel/lib/active_model/validations.rb:338:in `valid?'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/validations.rb:65:in `valid?'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/validations.rb:82:in `perform_validations'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/validations.rb:44:in `save'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/attribute_methods/dirty.rb:22:in `save'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/transactions.rb:319:in `block (2 levels) in save'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/transactions.rb:395:in `block in with_transaction_returning_status'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract/database_statements.rb:232:in `block in transaction'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract/transaction.rb:189:in `within_new_transaction'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract/database_statements.rb:232:in `transaction'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/transactions.rb:211:in `transaction'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/transactions.rb:392:in `with_transaction_returning_status'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/transactions.rb:319:in `block in save'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/transactions.rb:334:in `rollback_active_record_state!'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/transactions.rb:318:in `save'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/suppressor.rb:41:in `save'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/test/cases/validations/uniqueness_validation_test.rb:135:in `test_validates_uniqueness_with_newline_chars'
+
+
+  6) Error:
+UniquenessValidationTest#test_validate_case_insensitive_uniqueness_with_special_sql_like_chars:
+ActiveRecord::StatementInvalid: TinyTds::Error: The number of rows provided for a TOP or FETCH clauses row count parameter must be an integer.: EXEC sp_executesql N'SELECT  1 AS one FROM [topics] WHERE [topics].[title] = N''I''''m unique!''  ORDER BY [topics].[id] ASC OFFSET 0 ROWS FETCH NEXT @0 ROWS ONLY', N'@0 nvarchar(max), @1 int', @0 = N'I''m unique!', @1 = 1
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:330:in `each'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:330:in `handle_to_names_and_values_dblib'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:321:in `handle_to_names_and_values'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:300:in `_raw_select'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:295:in `block in raw_select'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract_adapter.rb:589:in `block in log'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/notifications/instrumenter.rb:21:in `instrument'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract_adapter.rb:583:in `log'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:295:in `raw_select'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:234:in `sp_executesql'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:7:in `select_rows'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract/database_statements.rb:54:in `select_value'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation/finder_methods.rb:335:in `exists?'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/validations/uniqueness.rb:29:in `validate_each'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activemodel/lib/active_model/validator.rb:151:in `block in validate'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activemodel/lib/active_model/validator.rb:148:in `each'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activemodel/lib/active_model/validator.rb:148:in `validate'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/callbacks.rb:405:in `public_send'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/callbacks.rb:405:in `block in make_lambda'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/callbacks.rb:169:in `block (2 levels) in halting'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/callbacks.rb:547:in `block (2 levels) in default_terminator'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/callbacks.rb:546:in `catch'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/callbacks.rb:546:in `block in default_terminator'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/callbacks.rb:170:in `block in halting'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/callbacks.rb:454:in `block in call'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/callbacks.rb:454:in `each'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/callbacks.rb:454:in `call'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/callbacks.rb:101:in `__run_callbacks__'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/callbacks.rb:750:in `_run_validate_callbacks'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activemodel/lib/active_model/validations.rb:408:in `run_validations!'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activemodel/lib/active_model/validations/callbacks.rb:113:in `block in run_validations!'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/callbacks.rb:126:in `call'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/callbacks.rb:506:in `block (2 levels) in compile'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/callbacks.rb:455:in `call'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/callbacks.rb:101:in `__run_callbacks__'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/callbacks.rb:750:in `_run_validation_callbacks'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activemodel/lib/active_model/validations/callbacks.rb:113:in `run_validations!'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activemodel/lib/active_model/validations.rb:338:in `valid?'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/validations.rb:65:in `valid?'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/validations.rb:82:in `perform_validations'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/validations.rb:44:in `save'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/attribute_methods/dirty.rb:22:in `save'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/transactions.rb:319:in `block (2 levels) in save'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/transactions.rb:395:in `block in with_transaction_returning_status'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract/database_statements.rb:232:in `block in transaction'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract/transaction.rb:189:in `within_new_transaction'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract/database_statements.rb:232:in `transaction'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/transactions.rb:211:in `transaction'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/transactions.rb:392:in `with_transaction_returning_status'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/transactions.rb:319:in `block in save'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/transactions.rb:334:in `rollback_active_record_state!'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/transactions.rb:318:in `save'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/suppressor.rb:41:in `save'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/test/cases/validations/uniqueness_validation_test.rb:299:in `test_validate_case_insensitive_uniqueness_with_special_sql_like_chars'
+
+
+  7) Failure:
+UniquenessValidationTest#test_validate_case_sensitive_uniqueness [/Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/test/cases/validations/uniqueness_validation_test.rb:318]:
+Should be valid
+
+
+  8) Error:
+UniquenessValidationTest#test_validate_case_insensitive_uniqueness:
+ActiveRecord::StatementInvalid: TinyTds::Error: The number of rows provided for a TOP or FETCH clauses row count parameter must be an integer.: EXEC sp_executesql N'SELECT  1 AS one FROM [topics] WHERE [topics].[title] = N''I''''m unique!''  ORDER BY [topics].[id] ASC OFFSET 0 ROWS FETCH NEXT @0 ROWS ONLY', N'@0 nvarchar(max), @1 int', @0 = N'I''m unique!', @1 = 1
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:330:in `each'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:330:in `handle_to_names_and_values_dblib'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:321:in `handle_to_names_and_values'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:300:in `_raw_select'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:295:in `block in raw_select'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract_adapter.rb:589:in `block in log'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/notifications/instrumenter.rb:21:in `instrument'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract_adapter.rb:583:in `log'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:295:in `raw_select'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:234:in `sp_executesql'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:7:in `select_rows'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract/database_statements.rb:54:in `select_value'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation/finder_methods.rb:335:in `exists?'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/validations/uniqueness.rb:29:in `validate_each'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activemodel/lib/active_model/validator.rb:151:in `block in validate'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activemodel/lib/active_model/validator.rb:148:in `each'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activemodel/lib/active_model/validator.rb:148:in `validate'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/callbacks.rb:405:in `public_send'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/callbacks.rb:405:in `block in make_lambda'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/callbacks.rb:169:in `block (2 levels) in halting'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/callbacks.rb:547:in `block (2 levels) in default_terminator'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/callbacks.rb:546:in `catch'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/callbacks.rb:546:in `block in default_terminator'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/callbacks.rb:170:in `block in halting'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/callbacks.rb:454:in `block in call'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/callbacks.rb:454:in `each'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/callbacks.rb:454:in `call'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/callbacks.rb:101:in `__run_callbacks__'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/callbacks.rb:750:in `_run_validate_callbacks'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activemodel/lib/active_model/validations.rb:408:in `run_validations!'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activemodel/lib/active_model/validations/callbacks.rb:113:in `block in run_validations!'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/callbacks.rb:126:in `call'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/callbacks.rb:506:in `block (2 levels) in compile'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/callbacks.rb:455:in `call'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/callbacks.rb:101:in `__run_callbacks__'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/callbacks.rb:750:in `_run_validation_callbacks'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activemodel/lib/active_model/validations/callbacks.rb:113:in `run_validations!'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activemodel/lib/active_model/validations.rb:338:in `valid?'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/validations.rb:65:in `valid?'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/validations.rb:82:in `perform_validations'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/validations.rb:44:in `save'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/attribute_methods/dirty.rb:22:in `save'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/transactions.rb:319:in `block (2 levels) in save'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/transactions.rb:395:in `block in with_transaction_returning_status'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract/database_statements.rb:232:in `block in transaction'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract/transaction.rb:189:in `within_new_transaction'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract/database_statements.rb:232:in `transaction'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/transactions.rb:211:in `transaction'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/transactions.rb:392:in `with_transaction_returning_status'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/transactions.rb:319:in `block in save'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/transactions.rb:334:in `rollback_active_record_state!'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/transactions.rb:318:in `save'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/suppressor.rb:41:in `save'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/test/cases/validations/uniqueness_validation_test.rb:245:in `test_validate_case_insensitive_uniqueness'
+
+
+  9) Error:
+ActiveRecord::ConnectionAdapters::ConnectionHandlerTest#test_establish_connection_uses_spec_name:
+Gem::LoadError: Specified 'sqlite3' for database adapter, but the gem is not loaded. Add `gem 'sqlite3'` to your Gemfile (and ensure its version is at the minimum required by ActiveRecord).
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/connection_specification.rb:176:in `rescue in spec'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/connection_specification.rb:173:in `spec'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/test/cases/connection_adapters/connection_handler_test.rb:16:in `test_establish_connection_uses_spec_name'
+
+
+ 10) Failure:
+DirtyTest#test_time_attributes_changes_with_time_zone [/Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/test/cases/dirty_test.rb:80]:
+Expected 2017-01-05 01:55:43 UTC to be a kind of ActiveSupport::TimeWithZone, not Time.
+
+
+ 11) Error:
+DefaultScopingTest#test_unscope_string_where_clauses_involved:
+ActiveRecord::StatementInvalid: TinyTds::Error: Incorrect syntax near '01'.: SELECT [developers].* FROM [developers] WHERE (created_at > ''01-05-2016 01:56:15.689'')  ORDER BY salary DESC
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:330:in `each'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:330:in `handle_to_names_and_values_dblib'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:321:in `handle_to_names_and_values'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:300:in `_raw_select'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:295:in `block in raw_select'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract_adapter.rb:589:in `block in log'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/notifications/instrumenter.rb:21:in `instrument'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract_adapter.rb:583:in `log'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:295:in `raw_select'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:234:in `sp_executesql'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:19:in `exec_query'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract/database_statements.rb:373:in `select'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract/database_statements.rb:41:in `select_all'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract/query_cache.rb:95:in `select_all'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/querying.rb:39:in `find_by_sql'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation.rb:702:in `exec_queries'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation/record_fetch_warning.rb:17:in `exec_queries'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation.rb:583:in `load'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation.rb:260:in `records'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation/delegation.rb:38:in `collect'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/test/cases/scoping/default_scoping_test.rb:178:in `test_unscope_string_where_clauses_involved'
+
+
+ 12) Failure:
+DefaultScopingTest#test_with_abstract_class_scope_should_be_executed_in_correct_context [/Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/test/cases/scoping/default_scoping_test.rb:497]:
+Expected /"lions"."is_vegetarian"/ to match "SELECT [lions].* FROM [lions] WHERE [lions].[is_vegetarian] = 0".
+
+
+ 13) Failure:
+CalculationsTest#test_limit_is_kept_coerced [/Users/kencollins/Repositories/activerecord-sqlserver-adapter/test/cases/coerced_tests.rb:95]:
+Expected: 1
+  Actual: 3
+
+
+ 14) Error:
+CalculationsTest#test_having_with_strong_parameters:
+ActiveRecord::StatementInvalid: TinyTds::Error: Column 'accounts.credit_limit' is invalid in the HAVING clause because it is not contained in either an aggregate function or the GROUP BY clause.: EXEC sp_executesql N'SELECT [accounts].* FROM [accounts] GROUP BY [accounts].[id] HAVING [accounts].[credit_limit] = @0', N'@0 int', @0 = 50
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:330:in `each'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:330:in `handle_to_names_and_values_dblib'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:321:in `handle_to_names_and_values'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:300:in `_raw_select'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:295:in `block in raw_select'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract_adapter.rb:589:in `block in log'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/notifications/instrumenter.rb:21:in `instrument'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract_adapter.rb:583:in `log'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:295:in `raw_select'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:234:in `sp_executesql'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:19:in `exec_query'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract/database_statements.rb:377:in `select_prepared'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract/database_statements.rb:39:in `select_all'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract/query_cache.rb:95:in `select_all'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/querying.rb:39:in `find_by_sql'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation.rb:702:in `exec_queries'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation/record_fetch_warning.rb:17:in `exec_queries'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation.rb:583:in `load'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation.rb:260:in `records'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation/delegation.rb:38:in `[]'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/test/cases/calculations_test.rb:789:in `test_having_with_strong_parameters'
+
+
+ 15) Error:
+MultipleDbTest#test_associations_should_work_when_model_has_no_connection:
+ActiveRecord::ConnectionNotEstablished: No connection pool with id primary found.
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract/connection_pool.rb:882:in `retrieve_connection'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_handling.rb:128:in `retrieve_connection'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_handling.rb:91:in `connection'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/arel/visitors/sqlserver.rb:80:in `visit_Arel_Table'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/gems/arel-7.1.4/lib/arel/visitors/reduce.rb:13:in `visit'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/arel/visitors/sqlserver.rb:94:in `visit_Arel_Nodes_JoinSource'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/gems/arel-7.1.4/lib/arel/visitors/reduce.rb:13:in `visit'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/gems/arel-7.1.4/lib/arel/visitors/to_sql.rb:250:in `visit_Arel_Nodes_SelectCore'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/arel/visitors/sqlserver.rb:67:in `block in visit_Arel_Nodes_SelectStatement'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/arel/visitors/sqlserver.rb:66:in `each'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/arel/visitors/sqlserver.rb:66:in `inject'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/arel/visitors/sqlserver.rb:66:in `visit_Arel_Nodes_SelectStatement'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/gems/arel-7.1.4/lib/arel/visitors/reduce.rb:13:in `visit'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/gems/arel-7.1.4/lib/arel/visitors/reduce.rb:7:in `accept'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/determine_if_preparable_visitor.rb:8:in `accept'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract/database_statements.rb:12:in `to_sql'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract/database_statements.rb:32:in `select_all'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract/query_cache.rb:95:in `select_all'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/querying.rb:39:in `find_by_sql'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation.rb:702:in `exec_queries'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation/record_fetch_warning.rb:17:in `exec_queries'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation.rb:583:in `load'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation.rb:260:in `records'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation.rb:256:in `to_a'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation/finder_methods.rb:563:in `find_nth_with_limit'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation/finder_methods.rb:592:in `find_nth_with_limit_and_offset'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation/finder_methods.rb:545:in `find_nth'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation/finder_methods.rb:122:in `first'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/querying.rb:3:in `first'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/test/cases/multiple_db_test.rb:115:in `block in test_associations_should_work_when_model_has_no_connection'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/test_case.rb:83:in `assert_nothing_raised'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/test/cases/multiple_db_test.rb:114:in `test_associations_should_work_when_model_has_no_connection'
+
+
+ 16) Error:
+MultipleDbTest#test_count_on_custom_connection:
+ActiveRecord::ConnectionNotEstablished: No connection pool with id primary found.
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract/connection_pool.rb:882:in `retrieve_connection'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_handling.rb:128:in `retrieve_connection'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_handling.rb:91:in `connection'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/arel/visitors/sqlserver.rb:80:in `visit_Arel_Table'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/gems/arel-7.1.4/lib/arel/visitors/reduce.rb:13:in `visit'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/arel/visitors/sqlserver.rb:94:in `visit_Arel_Nodes_JoinSource'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/gems/arel-7.1.4/lib/arel/visitors/reduce.rb:13:in `visit'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/gems/arel-7.1.4/lib/arel/visitors/to_sql.rb:250:in `visit_Arel_Nodes_SelectCore'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/arel/visitors/sqlserver.rb:67:in `block in visit_Arel_Nodes_SelectStatement'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/arel/visitors/sqlserver.rb:66:in `each'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/arel/visitors/sqlserver.rb:66:in `inject'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/arel/visitors/sqlserver.rb:66:in `visit_Arel_Nodes_SelectStatement'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/gems/arel-7.1.4/lib/arel/visitors/reduce.rb:13:in `visit'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/gems/arel-7.1.4/lib/arel/visitors/reduce.rb:7:in `accept'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/determine_if_preparable_visitor.rb:8:in `accept'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract/database_statements.rb:12:in `to_sql'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract/database_statements.rb:32:in `select_all'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract/query_cache.rb:95:in `select_all'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation/calculations.rb:248:in `execute_simple_calculation'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation/calculations.rb:207:in `perform_calculation'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation/calculations.rb:121:in `calculate'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation/calculations.rb:40:in `count'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/querying.rb:13:in `count'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/test/cases/multiple_db_test.rb:106:in `test_count_on_custom_connection'
+
+
+ 17) Failure:
+EachTest#test_in_batches_should_quote_batch_order [/Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/test/cases/batches_test.rb:375]:
+Query pattern(s) /ORDER BY [posts].[id]/ not found.
+Queries:
+EXEC sp_executesql N'SELECT  [posts].[id] FROM [posts]  ORDER BY [posts].[id] ASC OFFSET 0 ROWS FETCH NEXT @0 ROWS ONLY', N'@0 int', @0 = 1
+EXEC sp_executesql N'SELECT  [posts].* FROM [posts] WHERE [posts].[id] = 1  ORDER BY [posts].[id] ASC OFFSET 0 ROWS FETCH NEXT @0 ROWS ONLY', N'@0 int', @0 = 1
+EXEC sp_executesql N'SELECT  [posts].[id] FROM [posts] WHERE ([posts].[id] > 1)  ORDER BY [posts].[id] ASC OFFSET 0 ROWS FETCH NEXT @0 ROWS ONLY', N'@0 int', @0 = 1
+EXEC sp_executesql N'SELECT  [posts].* FROM [posts] WHERE [posts].[id] = 2  ORDER BY [posts].[id] ASC OFFSET 0 ROWS FETCH NEXT @0 ROWS ONLY', N'@0 int', @0 = 1
+EXEC sp_executesql N'SELECT  [posts].[id] FROM [posts] WHERE ([posts].[id] > 2)  ORDER BY [posts].[id] ASC OFFSET 0 ROWS FETCH NEXT @0 ROWS ONLY', N'@0 int', @0 = 1
+EXEC sp_executesql N'SELECT  [posts].* FROM [posts] WHERE [posts].[id] = 3  ORDER BY [posts].[id] ASC OFFSET 0 ROWS FETCH NEXT @0 ROWS ONLY', N'@0 int', @0 = 1
+EXEC sp_executesql N'SELECT  [posts].[id] FROM [posts] WHERE ([posts].[id] > 3)  ORDER BY [posts].[id] ASC OFFSET 0 ROWS FETCH NEXT @0 ROWS ONLY', N'@0 int', @0 = 1
+EXEC sp_executesql N'SELECT  [posts].* FROM [posts] WHERE [posts].[id] = 4  ORDER BY [posts].[id] ASC OFFSET 0 ROWS FETCH NEXT @0 ROWS ONLY', N'@0 int', @0 = 1
+EXEC sp_executesql N'SELECT  [posts].[id] FROM [posts] WHERE ([posts].[id] > 4)  ORDER BY [posts].[id] ASC OFFSET 0 ROWS FETCH NEXT @0 ROWS ONLY', N'@0 int', @0 = 1
+EXEC sp_executesql N'SELECT  [posts].* FROM [posts] WHERE [posts].[id] = 5  ORDER BY [posts].[id] ASC OFFSET 0 ROWS FETCH NEXT @0 ROWS ONLY', N'@0 int', @0 = 1
+EXEC sp_executesql N'SELECT  [posts].[id] FROM [posts] WHERE ([posts].[id] > 5)  ORDER BY [posts].[id] ASC OFFSET 0 ROWS FETCH NEXT @0 ROWS ONLY', N'@0 int', @0 = 1
+EXEC sp_executesql N'SELECT  [posts].* FROM [posts] WHERE [posts].[id] = 6  ORDER BY [posts].[id] ASC OFFSET 0 ROWS FETCH NEXT @0 ROWS ONLY', N'@0 int', @0 = 1
+EXEC sp_executesql N'SELECT  [posts].[id] FROM [posts] WHERE ([posts].[id] > 6)  ORDER BY [posts].[id] ASC OFFSET 0 ROWS FETCH NEXT @0 ROWS ONLY', N'@0 int', @0 = 1
+EXEC sp_executesql N'SELECT  [posts].* FROM [posts] WHERE [posts].[id] = 7  ORDER BY [posts].[id] ASC OFFSET 0 ROWS FETCH NEXT @0 ROWS ONLY', N'@0 int', @0 = 1
+EXEC sp_executesql N'SELECT  [posts].[id] FROM [posts] WHERE ([posts].[id] > 7)  ORDER BY [posts].[id] ASC OFFSET 0 ROWS FETCH NEXT @0 ROWS ONLY', N'@0 int', @0 = 1
+EXEC sp_executesql N'SELECT  [posts].* FROM [posts] WHERE [posts].[id] = 8  ORDER BY [posts].[id] ASC OFFSET 0 ROWS FETCH NEXT @0 ROWS ONLY', N'@0 int', @0 = 1
+EXEC sp_executesql N'SELECT  [posts].[id] FROM [posts] WHERE ([posts].[id] > 8)  ORDER BY [posts].[id] ASC OFFSET 0 ROWS FETCH NEXT @0 ROWS ONLY', N'@0 int', @0 = 1
+EXEC sp_executesql N'SELECT  [posts].* FROM [posts] WHERE [posts].[id] = 9  ORDER BY [posts].[id] ASC OFFSET 0 ROWS FETCH NEXT @0 ROWS ONLY', N'@0 int', @0 = 1
+EXEC sp_executesql N'SELECT  [posts].[id] FROM [posts] WHERE ([posts].[id] > 9)  ORDER BY [posts].[id] ASC OFFSET 0 ROWS FETCH NEXT @0 ROWS ONLY', N'@0 int', @0 = 1
+EXEC sp_executesql N'SELECT  [posts].* FROM [posts] WHERE [posts].[id] = 10  ORDER BY [posts].[id] ASC OFFSET 0 ROWS FETCH NEXT @0 ROWS ONLY', N'@0 int', @0 = 1
+EXEC sp_executesql N'SELECT  [posts].[id] FROM [posts] WHERE ([posts].[id] > 10)  ORDER BY [posts].[id] ASC OFFSET 0 ROWS FETCH NEXT @0 ROWS ONLY', N'@0 int', @0 = 1
+EXEC sp_executesql N'SELECT  [posts].* FROM [posts] WHERE [posts].[id] = 11  ORDER BY [posts].[id] ASC OFFSET 0 ROWS FETCH NEXT @0 ROWS ONLY', N'@0 int', @0 = 1
+EXEC sp_executesql N'SELECT  [posts].[id] FROM [posts] WHERE ([posts].[id] > 11)  ORDER BY [posts].[id] ASC OFFSET 0 ROWS FETCH NEXT @0 ROWS ONLY', N'@0 int', @0 = 1
+
+
+ 18) Failure:
+MigrationTest#test_add_table_with_decimals [/Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/test/cases/migration_test.rb:181]:
+Expected #<BigDecimal:7fdb1b6bb068,'0.6E10',9(18)> to be a kind of Integer, not BigDecimal.
+
+
+ 19) Failure:
+MigrationTest#test_migration_sets_internal_metadata_even_when_fully_migrated [/Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/test/cases/migration_test.rb:419]:
+Expected "development" to not be equal to "development".
+
+
+ 20) Failure:
+MigrationTest#test_internal_metadata_stores_environment [/Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/test/cases/migration_test.rb:393]:
+Expected "development" to not be equal to "development".
+
+
+ 21) Failure:
+MigrationTest#test_filtering_migrations [/Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/test/cases/migration_test.rb:223]:
+[ActiveRecord::StatementInvalid] exception expected, not
+Class: <NoMethodError>
+Message: <"undefined method `second' for nil:NilClass">
+---Backtrace---
+/Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/arel/visitors/sqlserver.rb:193:in `primary_Key_From_Table'
+/Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/arel/visitors/sqlserver.rb:161:in `make_Fetch_Possible_And_Deterministic'
+/Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/arel/visitors/sqlserver.rb:123:in `visit_Orders_And_Let_Fetch_Happen'
+/Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/arel/visitors/sqlserver.rb:69:in `visit_Arel_Nodes_SelectStatement'
+/Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/gems/arel-7.1.4/lib/arel/visitors/reduce.rb:13:in `visit'
+/Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/gems/arel-7.1.4/lib/arel/visitors/reduce.rb:7:in `accept'
+/Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/determine_if_preparable_visitor.rb:8:in `accept'
+/Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract/database_statements.rb:12:in `to_sql'
+/Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract/database_statements.rb:32:in `select_all'
+/Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract/query_cache.rb:95:in `select_all'
+/Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/querying.rb:39:in `find_by_sql'
+/Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation.rb:702:in `exec_queries'
+/Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation/record_fetch_warning.rb:17:in `exec_queries'
+/Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation.rb:583:in `load'
+/Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation.rb:260:in `records'
+/Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation.rb:256:in `to_a'
+/Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation/finder_methods.rb:563:in `find_nth_with_limit'
+/Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation/finder_methods.rb:592:in `find_nth_with_limit_and_offset'
+/Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation/finder_methods.rb:545:in `find_nth'
+/Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation/finder_methods.rb:122:in `first'
+/Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/querying.rb:3:in `first'
+/Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/test/cases/migration_test.rb:223:in `block in test_filtering_migrations'
+---------------
+
+
+ 22) Failure:
+SchemaDumperTest#test_schema_dump_keeps_id_column_when_id_is_false_and_id_column_added [/Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/test/cases/schema_dumper_test.rb:320]:
+non-primary key id column not preserved.
+Expected /t\.string\s+"id",.*?null: false$/ to match "    t.string \"id\",   null: false, collation: \"SQL_Latin1_General_CP1_CI_AS\"".
+
+
+ 23) Failure:
+SchemaDumperTest#test_schema_dump_includes_decimal_options [/Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/test/cases/schema_dumper_test.rb:262]:
+Expected /precision: 3,[[:space:]]+scale: 2,[[:space:]]+default: "2\.78"/ to match "# This file is auto-generated from the current state of the database. Instead\n# of editing this file, please use the migrations feature of Active Record to\n# incrementally modify your database, and then regenerate this schema definition.\n#\n# Note that this schema.rb definition is the authoritative source for your\n# database schema. If you need to create the application database on another\n# system, you should be using db:schema:load, not running all the migrations\n# from scratch. The latter is a flawed and unsustainable approach (the more migrations\n# you'll amass, the slower it'll run and the greater likelihood for issues).\n#\n# It's strongly recommended that you check this file into your version control system.\n\nActiveRecord::Schema.define(version: 0) do\n\n  create_table \"nep_ar_internal_metadata\", primary_key: \"key\", id: :string, collation: \"SQL_Latin1_General_CP1_CI_AS\", force: :cascade do |t|\n    t.string   \"value\",                   collation: \"SQL_Latin1_General_CP1_CI_AS\"\n    t.datetime \"created_at\", null: false\n    t.datetime \"updated_at\", null: false\n  end\n\n  create_table \"nodes\", force: :cascade do |t|\n    t.integer  \"tree_id\"\n    t.integer  \"parent_id\"\n    t.string   \"name\",       collation: \"SQL_Latin1_General_CP1_CI_AS\"\n    t.datetime \"updated_at\"\n  end\n\n  create_table \"non_poly_ones\", force: :cascade do |t|\n  end\n\n  create_table \"non_poly_twos\", force: :cascade do |t|\n  end\n\n  create_table \"notifications\", force: :cascade do |t|\n    t.string \"message\", collation: \"SQL_Latin1_General_CP1_CI_AS\"\n  end\n\n  create_table \"numeric_data\", force: :cascade do |t|\n    t.decimal \"bank_balance\",                precision: 10, scale: 2\n    t.decimal \"big_bank_balance\",            precision: 15, scale: 2\n    t.decimal \"world_population\",            precision: 10, scale: 0\n    t.decimal \"my_house_population\",         precision: 2,  scale: 0\n    t.decimal \"decimal_number_with_default\", precision: 3,  scale: 2, default: 2.78\n    t.float   \"temperature\"\n    t.decimal \"atoms_in_universe\",           precision: 38, scale: 0\n  end\n\nend\n".
+
+
+ 24) Error:
+BasicsTest#test_create_without_prepared_statement:
+ActiveRecord::StatementInvalid: TinyTds::Error: Must declare the scalar variable "@0".: SELECT DISTINCT columns.TABLE_NAME AS table_name, columns.COLUMN_NAME AS name, columns.DATA_TYPE AS type, columns.COLUMN_DEFAULT AS default_value, columns.NUMERIC_SCALE AS numeric_scale, columns.NUMERIC_PRECISION AS numeric_precision, columns.DATETIME_PRECISION AS datetime_precision, columns.COLLATION_NAME AS collation, columns.ordinal_position, CASE WHEN columns.DATA_TYPE IN ('nchar','nvarchar','char','varchar') THEN columns.CHARACTER_MAXIMUM_LENGTH ELSE COL_LENGTH('.'+columns.TABLE_SCHEMA+'.'+columns.TABLE_NAME, columns.COLUMN_NAME) END AS [length], CASE WHEN columns.IS_NULLABLE = 'YES' THEN 1 ELSE NULL END AS [is_nullable], CASE WHEN KCU.COLUMN_NAME IS NOT NULL AND TC.CONSTRAINT_TYPE = N'PRIMARY KEY' THEN 1 ELSE NULL END AS [is_primary], c.is_identity AS [is_identity] FROM .INFORMATION_SCHEMA.COLUMNS columns LEFT OUTER JOIN .INFORMATION_SCHEMA.TABLE_CONSTRAINTS AS TC ON TC.TABLE_NAME = columns.TABLE_NAME AND TC.CONSTRAINT_TYPE = N'PRIMARY KEY' LEFT OUTER JOIN .INFORMATION_SCHEMA.KEY_COLUMN_USAGE AS KCU ON KCU.COLUMN_NAME = columns.COLUMN_NAME AND KCU.CONSTRAINT_NAME = TC.CONSTRAINT_NAME AND KCU.CONSTRAINT_CATALOG = TC.CONSTRAINT_CATALOG AND KCU.CONSTRAINT_SCHEMA = TC.CONSTRAINT_SCHEMA INNER JOIN .sys.schemas AS s ON s.name = columns.TABLE_SCHEMA AND s.schema_id = s.schema_id INNER JOIN .sys.objects AS o ON s.schema_id = o.schema_id AND o.is_ms_shipped = 0 AND o.type IN ('U', 'V') AND o.name = columns.TABLE_NAME INNER JOIN .sys.columns AS c ON o.object_id = c.object_id AND c.name = columns.COLUMN_NAME WHERE columns.TABLE_NAME = @0 AND columns.TABLE_SCHEMA = schema_name() ORDER BY columns.ordinal_position
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:330:in `each'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:330:in `handle_to_names_and_values_dblib'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:321:in `handle_to_names_and_values'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:300:in `_raw_select'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:295:in `block in raw_select'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract_adapter.rb:589:in `block in log'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/notifications/instrumenter.rb:21:in `instrument'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract_adapter.rb:583:in `log'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:295:in `raw_select'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:234:in `sp_executesql'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/schema_statements.rb:331:in `column_definitions'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/schema_statements.rb:57:in `columns'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/schema_statements.rb:489:in `identity_columns'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/schema_statements.rb:477:in `query_requires_identity_insert?'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:23:in `exec_insert'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract/database_statements.rb:124:in `insert'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract/query_cache.rb:17:in `insert'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation.rb:65:in `insert'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/persistence.rb:560:in `_create_record'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/counter_cache.rb:128:in `_create_record'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/locking/optimistic.rb:75:in `_create_record'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/attribute_methods/dirty.rb:123:in `_create_record'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/callbacks.rb:302:in `block in _create_record'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/callbacks.rb:126:in `call'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/callbacks.rb:506:in `block (2 levels) in compile'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/callbacks.rb:455:in `call'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/callbacks.rb:101:in `__run_callbacks__'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/callbacks.rb:750:in `_run_create_callbacks'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/callbacks.rb:302:in `_create_record'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/timestamp.rb:68:in `_create_record'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/persistence.rb:540:in `create_or_update'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/callbacks.rb:298:in `block in create_or_update'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/callbacks.rb:126:in `call'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/callbacks.rb:506:in `block (2 levels) in compile'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/callbacks.rb:455:in `call'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/callbacks.rb:101:in `__run_callbacks__'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/callbacks.rb:750:in `_run_save_callbacks'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/callbacks.rb:298:in `create_or_update'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/persistence.rb:125:in `save'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/validations.rb:44:in `save'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/attribute_methods/dirty.rb:22:in `save'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/transactions.rb:319:in `block (2 levels) in save'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/transactions.rb:395:in `block in with_transaction_returning_status'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract/database_statements.rb:232:in `block in transaction'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract/transaction.rb:189:in `within_new_transaction'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract/database_statements.rb:232:in `transaction'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/transactions.rb:211:in `transaction'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/transactions.rb:392:in `with_transaction_returning_status'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/transactions.rb:319:in `block in save'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/transactions.rb:334:in `rollback_active_record_state!'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/transactions.rb:318:in `save'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/suppressor.rb:41:in `save'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/persistence.rb:34:in `create'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/test/cases/base_test.rb:616:in `block in test_create_without_prepared_statement'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract_adapter.rb:215:in `unprepared_statement'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/test/cases/base_test.rb:615:in `test_create_without_prepared_statement'
+
+
+ 25) Failure:
+MultiParameterAttributeTest#test_multiparameter_attributes_on_time_with_time_zone_aware_attributes [/Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/test/cases/multiparameter_attributes_test.rb:209]:
+Expected: 2004-06-24 23:24:00 UTC
+  Actual: 2004-06-24 16:24:00 UTC
+
+
+ 26) Error:
+TransactionCallbacksTest#test_only_call_after_rollback_on_create_after_transaction_rollsback_for_new_record:
+ActiveRecord::StatementInvalid: TinyTds::Error: Error converting data type nvarchar to datetime2.: EXEC sp_executesql N'INSERT INTO [topics] ([title], [written_on], [created_at], [updated_at]) OUTPUT INSERTED.[id] VALUES (@0, @1, @2, @3)', N'@0 nvarchar(250), @1 datetime2(6), @2 datetime2(6), @3 datetime2(6)', @0 = N'New topic', @1 = N'''01-04-2017''', @2 = '01-05-2017 02:00:21.044915', @3 = '01-05-2017 02:00:21.044915'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:330:in `each'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:330:in `handle_to_names_and_values_dblib'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:321:in `handle_to_names_and_values'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:300:in `_raw_select'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:295:in `block in raw_select'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract_adapter.rb:589:in `block in log'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/notifications/instrumenter.rb:21:in `instrument'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract_adapter.rb:583:in `log'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:295:in `raw_select'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:234:in `sp_executesql'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:19:in `exec_query'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:26:in `exec_insert'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract/database_statements.rb:124:in `insert'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract/query_cache.rb:17:in `insert'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation.rb:65:in `insert'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/persistence.rb:560:in `_create_record'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/counter_cache.rb:128:in `_create_record'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/locking/optimistic.rb:75:in `_create_record'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/attribute_methods/dirty.rb:123:in `_create_record'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/callbacks.rb:302:in `block in _create_record'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/callbacks.rb:126:in `call'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/callbacks.rb:506:in `block (2 levels) in compile'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/callbacks.rb:455:in `call'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/callbacks.rb:101:in `__run_callbacks__'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/callbacks.rb:750:in `_run_create_callbacks'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/callbacks.rb:302:in `_create_record'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/timestamp.rb:68:in `_create_record'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/persistence.rb:540:in `create_or_update'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/callbacks.rb:298:in `block in create_or_update'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/callbacks.rb:126:in `call'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/callbacks.rb:506:in `block (2 levels) in compile'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/callbacks.rb:455:in `call'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/callbacks.rb:101:in `__run_callbacks__'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/callbacks.rb:750:in `_run_save_callbacks'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/callbacks.rb:298:in `create_or_update'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/persistence.rb:152:in `save!'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/validations.rb:50:in `save!'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/attribute_methods/dirty.rb:30:in `save!'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/transactions.rb:324:in `block in save!'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/transactions.rb:395:in `block in with_transaction_returning_status'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract/database_statements.rb:230:in `transaction'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/transactions.rb:211:in `transaction'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/transactions.rb:392:in `with_transaction_returning_status'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/transactions.rb:324:in `save!'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/suppressor.rb:45:in `save!'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/test/cases/transaction_callbacks_test.rb:220:in `block in test_only_call_after_rollback_on_create_after_transaction_rollsback_for_new_record'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract/database_statements.rb:232:in `block in transaction'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract/transaction.rb:189:in `within_new_transaction'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract/database_statements.rb:232:in `transaction'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/transactions.rb:211:in `transaction'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/test/cases/transaction_callbacks_test.rb:219:in `test_only_call_after_rollback_on_create_after_transaction_rollsback_for_new_record'
+
+
+ 27) Error:
+TransactionCallbacksTest#test_only_call_after_commit_on_create_after_transaction_commits_for_new_record_if_create_succeeds_creating_through_association:
+ActiveRecord::StatementInvalid: TinyTds::Error: Error converting data type nvarchar to datetime2.: EXEC sp_executesql N'INSERT INTO [topics] ([title], [written_on], [created_at], [updated_at]) OUTPUT INSERTED.[id] VALUES (@0, @1, @2, @3)', N'@0 nvarchar(250), @1 datetime2(6), @2 datetime2(6), @3 datetime2(6)', @0 = N'New topic', @1 = N'''01-04-2017''', @2 = '01-05-2017 02:00:21.183741', @3 = '01-05-2017 02:00:21.183741'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:330:in `each'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:330:in `handle_to_names_and_values_dblib'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:321:in `handle_to_names_and_values'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:300:in `_raw_select'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:295:in `block in raw_select'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract_adapter.rb:589:in `block in log'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/notifications/instrumenter.rb:21:in `instrument'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract_adapter.rb:583:in `log'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:295:in `raw_select'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:234:in `sp_executesql'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:19:in `exec_query'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:26:in `exec_insert'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract/database_statements.rb:124:in `insert'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract/query_cache.rb:17:in `insert'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation.rb:65:in `insert'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/persistence.rb:560:in `_create_record'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/counter_cache.rb:128:in `_create_record'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/locking/optimistic.rb:75:in `_create_record'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/attribute_methods/dirty.rb:123:in `_create_record'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/callbacks.rb:302:in `block in _create_record'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/callbacks.rb:126:in `call'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/callbacks.rb:506:in `block (2 levels) in compile'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/callbacks.rb:455:in `call'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/callbacks.rb:101:in `__run_callbacks__'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/callbacks.rb:750:in `_run_create_callbacks'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/callbacks.rb:302:in `_create_record'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/timestamp.rb:68:in `_create_record'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/persistence.rb:540:in `create_or_update'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/callbacks.rb:298:in `block in create_or_update'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/callbacks.rb:126:in `call'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/callbacks.rb:506:in `block (2 levels) in compile'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/callbacks.rb:455:in `call'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/callbacks.rb:101:in `__run_callbacks__'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/callbacks.rb:750:in `_run_save_callbacks'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/callbacks.rb:298:in `create_or_update'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/persistence.rb:152:in `save!'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/validations.rb:50:in `save!'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/attribute_methods/dirty.rb:30:in `save!'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/transactions.rb:324:in `block in save!'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/transactions.rb:395:in `block in with_transaction_returning_status'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract/database_statements.rb:232:in `block in transaction'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract/transaction.rb:189:in `within_new_transaction'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract/database_statements.rb:232:in `transaction'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/transactions.rb:211:in `transaction'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/transactions.rb:392:in `with_transaction_returning_status'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/transactions.rb:324:in `save!'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/suppressor.rb:45:in `save!'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/persistence.rb:51:in `create!'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/test/cases/transaction_callbacks_test.rb:134:in `test_only_call_after_commit_on_create_after_transaction_commits_for_new_record_if_create_succeeds_creating_through_association'
+
+
+ 28) Error:
+TransactionCallbacksTest#test_only_call_after_commit_on_create_after_transaction_commits_for_new_record:
+ActiveRecord::StatementInvalid: TinyTds::Error: Error converting data type nvarchar to datetime2.: EXEC sp_executesql N'INSERT INTO [topics] ([title], [written_on], [created_at], [updated_at]) OUTPUT INSERTED.[id] VALUES (@0, @1, @2, @3)', N'@0 nvarchar(250), @1 datetime2(6), @2 datetime2(6), @3 datetime2(6)', @0 = N'New topic', @1 = N'''01-04-2017''', @2 = '01-05-2017 02:00:21.328166', @3 = '01-05-2017 02:00:21.328166'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:330:in `each'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:330:in `handle_to_names_and_values_dblib'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:321:in `handle_to_names_and_values'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:300:in `_raw_select'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:295:in `block in raw_select'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract_adapter.rb:589:in `block in log'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/notifications/instrumenter.rb:21:in `instrument'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract_adapter.rb:583:in `log'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:295:in `raw_select'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:234:in `sp_executesql'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:19:in `exec_query'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:26:in `exec_insert'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract/database_statements.rb:124:in `insert'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract/query_cache.rb:17:in `insert'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation.rb:65:in `insert'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/persistence.rb:560:in `_create_record'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/counter_cache.rb:128:in `_create_record'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/locking/optimistic.rb:75:in `_create_record'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/attribute_methods/dirty.rb:123:in `_create_record'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/callbacks.rb:302:in `block in _create_record'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/callbacks.rb:126:in `call'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/callbacks.rb:506:in `block (2 levels) in compile'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/callbacks.rb:455:in `call'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/callbacks.rb:101:in `__run_callbacks__'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/callbacks.rb:750:in `_run_create_callbacks'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/callbacks.rb:302:in `_create_record'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/timestamp.rb:68:in `_create_record'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/persistence.rb:540:in `create_or_update'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/callbacks.rb:298:in `block in create_or_update'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/callbacks.rb:126:in `call'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/callbacks.rb:506:in `block (2 levels) in compile'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/callbacks.rb:455:in `call'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/callbacks.rb:101:in `__run_callbacks__'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/callbacks.rb:750:in `_run_save_callbacks'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/callbacks.rb:298:in `create_or_update'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/persistence.rb:152:in `save!'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/validations.rb:50:in `save!'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/attribute_methods/dirty.rb:30:in `save!'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/transactions.rb:324:in `block in save!'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/transactions.rb:395:in `block in with_transaction_returning_status'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract/database_statements.rb:232:in `block in transaction'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract/transaction.rb:189:in `within_new_transaction'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract/database_statements.rb:232:in `transaction'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/transactions.rb:211:in `transaction'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/transactions.rb:392:in `with_transaction_returning_status'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/transactions.rb:324:in `save!'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/suppressor.rb:45:in `save!'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/test/cases/transaction_callbacks_test.rb:129:in `test_only_call_after_commit_on_create_after_transaction_commits_for_new_record'
+
+
+ 29) Error:
+ActiveRecord::ConnectionAdapters::ConnectionSpecification::ResolverTest#test_spec_name_with_inline_config:
+Gem::LoadError: Specified 'sqlite3' for database adapter, but the gem is not loaded. Add `gem 'sqlite3'` to your Gemfile (and ensure its version is at the minimum required by ActiveRecord).
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/connection_specification.rb:176:in `rescue in spec'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/connection_specification.rb:173:in `spec'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/test/cases/connection_specification/resolver_test.rb:12:in `spec'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/test/cases/connection_specification/resolver_test.rb:125:in `test_spec_name_with_inline_config'
+
+
+ 30) Error:
+ActiveRecord::ConnectionAdapters::ConnectionSpecification::ResolverTest#test_spec_name_on_key_lookup:
+Gem::LoadError: Specified 'sqlite3' for database adapter, but the gem is not loaded. Add `gem 'sqlite3'` to your Gemfile (and ensure its version is at the minimum required by ActiveRecord).
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/connection_specification.rb:176:in `rescue in spec'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/connection_specification.rb:173:in `spec'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/test/cases/connection_specification/resolver_test.rb:12:in `spec'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/test/cases/connection_specification/resolver_test.rb:120:in `test_spec_name_on_key_lookup'
+
+
+ 31) Failure:
+ActiveRecord::ConnectionAdapters::QuoteBooleanTest#test_quote_returns_frozen_string [/Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/test/cases/quoting_test.rb:159]:
+Expected "1" to be frozen?.
+
+
+ 32) Error:
+ActiveRecord::Migration::ColumnsTest#test_rename_column_using_symbol_arguments:
+ActiveRecord::ActiveRecordError: No such column: test_models.first_name
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/schema_statements.rb:432:in `detect_column_for!'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/schema_statements.rb:139:in `rename_column'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/test/cases/migration/helper.rb:36:in `rename_column'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/test/cases/migration/columns_test.rb:33:in `test_rename_column_using_symbol_arguments'
+
+
+ 33) Failure:
+ActiveRecord::Migration::ColumnsTest#test_rename_column_with_sql_reserved_word [/Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/test/cases/migration/columns_test.rb:90]:
+Expected false to be truthy.
+
+
+ 34) Error:
+LeftOuterJoinAssociationTest#test_does_not_override_select:
+ActiveRecord::StatementInvalid: TinyTds::Error: Incorrect syntax near '|'.: EXEC sp_executesql N'SELECT  authors.name, (authors.author_address_id || '' '' || authors.author_address_extra_id) as addr_id FROM [authors] LEFT OUTER JOIN [posts] ON [posts].[author_id] = [authors].[id]  ORDER BY [authors].[id] ASC OFFSET 0 ROWS FETCH NEXT @0 ROWS ONLY', N'@0 int', @0 = 1
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:330:in `each'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:330:in `handle_to_names_and_values_dblib'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:321:in `handle_to_names_and_values'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:300:in `_raw_select'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:295:in `block in raw_select'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract_adapter.rb:589:in `block in log'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/notifications/instrumenter.rb:21:in `instrument'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract_adapter.rb:583:in `log'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:295:in `raw_select'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:234:in `sp_executesql'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:19:in `exec_query'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract/database_statements.rb:373:in `select'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract/database_statements.rb:41:in `select_all'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract/query_cache.rb:95:in `select_all'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/querying.rb:39:in `find_by_sql'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation.rb:702:in `exec_queries'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation/record_fetch_warning.rb:17:in `exec_queries'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation.rb:583:in `load'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation.rb:260:in `records'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation.rb:256:in `to_a'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation/finder_methods.rb:563:in `find_nth_with_limit'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation/finder_methods.rb:592:in `find_nth_with_limit_and_offset'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation/finder_methods.rb:545:in `find_nth'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation/finder_methods.rb:122:in `first'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/test/cases/associations/left_outer_join_association_test.rb:78:in `test_does_not_override_select'
+
+
+ 35) Failure:
+AttributeMethodsTest#test_read_attributes_after_type_cast_on_datetime [/Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/test/cases/attribute_methods_test.rb:235]:
+--- expected
++++ actual
+@@ -1 +1 @@
+-Thu, 24 Mar 2011 00:00:00 PDT -07:00
++2011-03-24 00:00:00 UTC
+
+
+
+ 36) Failure:
+AttributeMethodsTest#test_setting_time_zone_aware_attribute_in_other_time_zone [/Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/test/cases/attribute_methods_test.rb:614]:
+--- expected
++++ actual
+@@ -1 +1 @@
+-#<ActiveSupport::TimeZone:0xXXXXXX @name="Pacific Time (US & Canada)", @utc_offset=nil, @tzinfo=#<TZInfo::DataTimezone: America/Los_Angeles>>
++#<ActiveSupport::TimeZone:0xXXXXXX @name="Central Time (US & Canada)", @utc_offset=nil, @tzinfo=#<TZInfo::DataTimezone: America/Chicago>>
+
+
+
+ 37) Failure:
+AttributeMethodsTest#test_setting_time_zone_aware_attribute_interprets_time_zone_unaware_string_in_time_zone [/Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/test/cases/attribute_methods_test.rb:669]:
+--- expected
++++ actual
+@@ -1 +1 @@
+-Tue, 01 Jan 2008 00:00:00 SST -11:00
++2008-01-01 00:00:00 UTC
+
+
+
+ 38) Error:
+AttributeMethodsTest#test_setting_time_zone_aware_read_attribute:
+NoMethodError: undefined method `time_zone' for 2008-01-01 00:00:00 UTC:Time
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/test/cases/attribute_methods_test.rb:625:in `block in test_setting_time_zone_aware_read_attribute'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/test/cases/helper.rb:197:in `in_time_zone'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/test/cases/attribute_methods_test.rb:622:in `test_setting_time_zone_aware_read_attribute'
+
+
+ 39) Failure:
+AttributeMethodsTest#test_setting_time_zone_aware_time_with_dst [/Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/test/cases/attribute_methods_test.rb:719]:
+--- expected
++++ actual
+@@ -1 +1 @@
+-Sat, 01 Jan 2000 10:00:00 PST -08:00
++Sat, 01 Jan 2000 02:00:00 PST -08:00
+
+
+
+ 40) Failure:
+AttributeMethodsTest#test_time_attributes_are_retrieved_in_current_time_zone [/Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/test/cases/attribute_methods_test.rb:590]:
+Expected 2008-01-01 00:00:00 UTC to be a kind of ActiveSupport::TimeWithZone, not Time.
+
+
+ 41) Failure:
+AttributeMethodsTest#test_time_zone_aware_attribute_saved [/Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/test/cases/attribute_methods_test.rb:650]:
+--- expected
++++ actual
+@@ -1 +1 @@
+-Mon, 20 Feb 2012 09:00:00 CET +01:00
++2012-02-20 09:00:00 UTC
+
+
+
+ 42) Error:
+AttributeMethodsTest#test_setting_time_zone_aware_attribute_with_string:
+NoMethodError: undefined method `time_zone' for 2008-01-01 00:00:00 UTC:Time
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/test/cases/attribute_methods_test.rb:638:in `block (2 levels) in test_setting_time_zone_aware_attribute_with_string'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/test/cases/helper.rb:197:in `in_time_zone'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/test/cases/attribute_methods_test.rb:634:in `block in test_setting_time_zone_aware_attribute_with_string'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/core_ext/range/each.rb:5:in `each'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/core_ext/range/each.rb:5:in `each'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/test/cases/attribute_methods_test.rb:632:in `test_setting_time_zone_aware_attribute_with_string'
+
+
+ 43) Failure:
+AttributeMethodsTest#test_read_attributes_before_type_cast_on_datetime [/Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/test/cases/attribute_methods_test.rb:219]:
+--- expected
++++ actual
+@@ -1 +1 @@
+-Sun, 11 Oct 2009 12:13:14 PDT -07:00
++2009-10-11 12:13:14 UTC
+
+
+
+ 44) Error:
+AttributeMethodsTest#test_setting_time_zone_aware_attribute_to_utc:
+NoMethodError: undefined method `time_zone' for 2008-01-01 00:00:00 UTC:Time
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/test/cases/attribute_methods_test.rb:602:in `block in test_setting_time_zone_aware_attribute_to_utc'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/test/cases/helper.rb:197:in `in_time_zone'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/test/cases/attribute_methods_test.rb:597:in `test_setting_time_zone_aware_attribute_to_utc'
+
+
+ 45) Error:
+FinderTest#test_condition_local_time_interpolation_with_default_timezone_utc:
+ActiveRecord::StatementInvalid: TinyTds::Error: Incorrect syntax near '07'.: EXEC sp_executesql N'SELECT  [topics].* FROM [topics] WHERE (written_on = ''''07-16-2003 14:28:11.223'''')  ORDER BY [topics].[id] ASC OFFSET 0 ROWS FETCH NEXT @0 ROWS ONLY', N'@0 int', @0 = 1
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:330:in `each'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:330:in `handle_to_names_and_values_dblib'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:321:in `handle_to_names_and_values'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:300:in `_raw_select'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:295:in `block in raw_select'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract_adapter.rb:589:in `block in log'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/notifications/instrumenter.rb:21:in `instrument'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract_adapter.rb:583:in `log'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:295:in `raw_select'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:234:in `sp_executesql'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:19:in `exec_query'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract/database_statements.rb:373:in `select'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract/database_statements.rb:41:in `select_all'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract/query_cache.rb:95:in `select_all'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/querying.rb:39:in `find_by_sql'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation.rb:702:in `exec_queries'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation/record_fetch_warning.rb:17:in `exec_queries'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation.rb:583:in `load'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation.rb:260:in `records'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation.rb:256:in `to_a'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation/finder_methods.rb:563:in `find_nth_with_limit'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation/finder_methods.rb:592:in `find_nth_with_limit_and_offset'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation/finder_methods.rb:545:in `find_nth'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation/finder_methods.rb:122:in `first'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/test/cases/finder_test.rb:838:in `block (2 levels) in test_condition_local_time_interpolation_with_default_timezone_utc'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/test/cases/helper.rb:82:in `with_timezone_config'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/test/cases/finder_test.rb:836:in `block in test_condition_local_time_interpolation_with_default_timezone_utc'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/test/cases/helper.rb:61:in `with_env_tz'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/test/cases/finder_test.rb:835:in `test_condition_local_time_interpolation_with_default_timezone_utc'
+
+
+ 46) Error:
+FinderTest#test_exists_with_order:
+ActiveRecord::StatementInvalid: TinyTds::Error: ORDER BY items must appear in the select list if SELECT DISTINCT is specified.: EXEC sp_executesql N'SELECT  DISTINCT 1 AS one FROM [topics]  ORDER BY [topics].[id] ASC OFFSET 0 ROWS FETCH NEXT @0 ROWS ONLY', N'@0 int', @0 = 1
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:330:in `each'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:330:in `handle_to_names_and_values_dblib'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:321:in `handle_to_names_and_values'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:300:in `_raw_select'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:295:in `block in raw_select'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract_adapter.rb:589:in `block in log'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/notifications/instrumenter.rb:21:in `instrument'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract_adapter.rb:583:in `log'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:295:in `raw_select'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:234:in `sp_executesql'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:7:in `select_rows'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract/database_statements.rb:54:in `select_value'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation/finder_methods.rb:335:in `exists?'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/test/cases/finder_test.rb:209:in `test_exists_with_order'
+
+
+ 47) Error:
+FinderTest#test_exists_with_distinct_association_includes_limit_and_order:
+ActiveRecord::StatementInvalid: TinyTds::Error: ORDER BY items must appear in the select list if SELECT DISTINCT is specified.: EXEC sp_executesql N'SELECT  DISTINCT 1 AS one FROM [posts] LEFT OUTER JOIN [comments] ON [comments].[post_id] = [posts].[id] AND [comments].[type] IN (N''SpecialComment'', N''SubSpecialComment'') INNER JOIN [categorizations] ON [posts].[id] = [categorizations].[post_id] WHERE [categorizations].[author_id] = @0 AND [posts].[id] = 1  ORDER BY [posts].[id] ASC OFFSET 0 ROWS FETCH NEXT @1 ROWS ONLY', N'@0 int, @1 int', @0 = 1, @1 = 1
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:330:in `each'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:330:in `handle_to_names_and_values_dblib'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:321:in `handle_to_names_and_values'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:300:in `_raw_select'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:295:in `block in raw_select'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract_adapter.rb:589:in `block in log'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/notifications/instrumenter.rb:21:in `instrument'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract_adapter.rb:583:in `log'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:295:in `raw_select'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:234:in `sp_executesql'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:7:in `select_rows'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract/database_statements.rb:54:in `select_value'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation/finder_methods.rb:335:in `exists?'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/test/cases/finder_test.rb:226:in `test_exists_with_distinct_association_includes_limit_and_order'
+
+
+ 48) Failure:
+FinderTest#test_hash_condition_find_malformed [/Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/test/cases/finder_test.rb:752]:
+[ActiveRecord::StatementInvalid] exception expected, not
+Class: <TypeError>
+Message: <"sp_executesql_sql_type can not find sql type for attr #<ActiveRecord::Relation::QueryAttribute:0x007fdb1e329870 @name=\"dhh\", @value_before_type_cast=true, @type=#<ActiveModel::Type::Value:0x007fdb21643f80 @precision=nil, @scale=nil, @limit=nil>, @original_attribute=nil, @value=true, @value_for_database=true>">
+---Backtrace---
+/Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:254:in `sp_executesql_sql_type'
+/Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:240:in `block in sp_executesql_types_and_parameters'
+/Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:239:in `each'
+/Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:239:in `each_with_index'
+/Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:239:in `sp_executesql_types_and_parameters'
+/Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:231:in `sp_executesql'
+/Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:19:in `exec_query'
+/Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract/database_statements.rb:377:in `select_prepared'
+/Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract/database_statements.rb:39:in `select_all'
+/Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract/query_cache.rb:95:in `select_all'
+/Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/querying.rb:39:in `find_by_sql'
+/Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation.rb:702:in `exec_queries'
+/Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation/record_fetch_warning.rb:17:in `exec_queries'
+/Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation.rb:583:in `load'
+/Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation.rb:260:in `records'
+/Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation.rb:256:in `to_a'
+/Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation/finder_methods.rb:563:in `find_nth_with_limit'
+/Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation/finder_methods.rb:592:in `find_nth_with_limit_and_offset'
+/Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation/finder_methods.rb:545:in `find_nth'
+/Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation/finder_methods.rb:122:in `first'
+/Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/test/cases/finder_test.rb:753:in `block in test_hash_condition_find_malformed'
+---------------
+
+
+ 49) Error:
+FinderTest#test_condition_utc_time_interpolation_with_default_timezone_local:
+ActiveRecord::StatementInvalid: TinyTds::Error: Incorrect syntax near '07'.: EXEC sp_executesql N'SELECT  [topics].* FROM [topics] WHERE (written_on = ''''07-16-2003 14:28:11.223'''')  ORDER BY [topics].[id] ASC OFFSET 0 ROWS FETCH NEXT @0 ROWS ONLY', N'@0 int', @0 = 1
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:330:in `each'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:330:in `handle_to_names_and_values_dblib'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:321:in `handle_to_names_and_values'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:300:in `_raw_select'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:295:in `block in raw_select'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract_adapter.rb:589:in `block in log'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/notifications/instrumenter.rb:21:in `instrument'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract_adapter.rb:583:in `log'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:295:in `raw_select'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:234:in `sp_executesql'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:19:in `exec_query'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract/database_statements.rb:373:in `select'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract/database_statements.rb:41:in `select_all'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract/query_cache.rb:95:in `select_all'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/querying.rb:39:in `find_by_sql'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation.rb:702:in `exec_queries'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation/record_fetch_warning.rb:17:in `exec_queries'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation.rb:583:in `load'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation.rb:260:in `records'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation.rb:256:in `to_a'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation/finder_methods.rb:563:in `find_nth_with_limit'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation/finder_methods.rb:592:in `find_nth_with_limit_and_offset'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation/finder_methods.rb:545:in `find_nth'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation/finder_methods.rb:122:in `first'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/test/cases/finder_test.rb:820:in `block (2 levels) in test_condition_utc_time_interpolation_with_default_timezone_local'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/test/cases/helper.rb:82:in `with_timezone_config'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/test/cases/finder_test.rb:818:in `block in test_condition_utc_time_interpolation_with_default_timezone_local'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/test/cases/helper.rb:61:in `with_env_tz'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/test/cases/finder_test.rb:817:in `test_condition_utc_time_interpolation_with_default_timezone_local'
+
+
+ 50) Error:
+FinderTest#test_exists_with_distinct_association_includes_and_limit:
+ActiveRecord::StatementInvalid: TinyTds::Error: ORDER BY items must appear in the select list if SELECT DISTINCT is specified.: EXEC sp_executesql N'SELECT  DISTINCT 1 AS one FROM [posts] LEFT OUTER JOIN [comments] ON [comments].[post_id] = [posts].[id] AND [comments].[type] IN (N''SpecialComment'', N''SubSpecialComment'') INNER JOIN [categorizations] ON [posts].[id] = [categorizations].[post_id] WHERE [categorizations].[author_id] = @0 AND [posts].[id] = 1  ORDER BY [posts].[id] ASC OFFSET 0 ROWS FETCH NEXT @1 ROWS ONLY', N'@0 int, @1 int', @0 = 1, @1 = 1
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:330:in `each'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:330:in `handle_to_names_and_values_dblib'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:321:in `handle_to_names_and_values'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:300:in `_raw_select'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:295:in `block in raw_select'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract_adapter.rb:589:in `block in log'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/notifications/instrumenter.rb:21:in `instrument'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract_adapter.rb:583:in `log'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:295:in `raw_select'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:234:in `sp_executesql'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:7:in `select_rows'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract/database_statements.rb:54:in `select_value'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation/finder_methods.rb:335:in `exists?'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/test/cases/finder_test.rb:220:in `test_exists_with_distinct_association_includes_and_limit'
+
+
+ 51) Failure:
+ActiveRecord::AdapterTest#test_value_limit_violations_are_translated_to_specific_exception [/Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/test/cases/adapter_test.rb:217]:
+ActiveRecord::ValueTooLong expected but nothing was raised.
+
+
+ 52) Failure:
+ActiveRecord::AdapterTest#test_table_exists_checking_both_tables_and_views_is_deprecated [/Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/test/cases/adapter_test.rb:51]:
+Expected a deprecation warning within the block but received none
+
+
+ 53) Failure:
+ActiveRecord::AdapterTest#test_passing_arguments_to_tables_is_deprecated [/Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/test/cases/adapter_test.rb:291]:
+Expected a deprecation warning within the block but received none
+
+
+ 54) Error:
+EagerAssociationTest#test_0024_including association based on sql condition and no database column coerced:
+ActiveRecord::StatementInvalid: TinyTds::Error: Incorrect syntax near 'limit'.: EXEC sp_executesql N'SELECT
+      owners.*, (
+        select p.pet_id from pets p
+        where p.owner_id = owners.owner_id
+        order by p.name desc
+        limit 1
+      ) as last_pet_id
+     FROM [owners]  ORDER BY [owners].[owner_id] ASC OFFSET 0 ROWS FETCH NEXT @0 ROWS ONLY', N'@0 int', @0 = 1
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:330:in `each'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:330:in `handle_to_names_and_values_dblib'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:321:in `handle_to_names_and_values'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:300:in `_raw_select'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:295:in `block in raw_select'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract_adapter.rb:589:in `block in log'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/notifications/instrumenter.rb:21:in `instrument'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract_adapter.rb:583:in `log'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:295:in `raw_select'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:234:in `sp_executesql'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:19:in `exec_query'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract/database_statements.rb:373:in `select'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract/database_statements.rb:41:in `select_all'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract/query_cache.rb:95:in `select_all'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/querying.rb:39:in `find_by_sql'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation.rb:702:in `exec_queries'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation/record_fetch_warning.rb:17:in `exec_queries'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation.rb:583:in `load'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation.rb:260:in `records'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation.rb:256:in `to_a'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation/finder_methods.rb:563:in `find_nth_with_limit'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation/finder_methods.rb:592:in `find_nth_with_limit_and_offset'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation/finder_methods.rb:545:in `find_nth'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation/finder_methods.rb:122:in `first'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/test/cases/coerced_tests.rb:259:in `block in <class:EagerAssociationTest>'
+
+
+ 55) Failure:
+HasManyAssociationsTest#test_do_not_call_callbacks_for_delete_all [/Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/test/cases/associations/has_many_associations_test.rb:248]:
+bulbs should have been deleted using :delete_all strategy.
+Expected: 0
+  Actual: 1
+
+
+ 56) Error:
+HasAndBelongsToManyAssociationsTest#test_include_returns_false_for_non_matching_record_to_verify_scoping:
+ActiveRecord::StatementInvalid: TinyTds::Error: ORDER BY items must appear in the select list if SELECT DISTINCT is specified.: EXEC sp_executesql N'SELECT  DISTINCT 1 AS one FROM [developers] INNER JOIN [developers_projects] ON [developers].[id] = [developers_projects].[developer_id] WHERE [developers_projects].[project_id] = @0 AND [developers].[id] = @1  ORDER BY [developers].[id] ASC OFFSET 0 ROWS FETCH NEXT @2 ROWS ONLY', N'@0 int, @1 int, @2 int', @0 = 1, @1 = 54, @2 = 1
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:330:in `each'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:330:in `handle_to_names_and_values_dblib'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:321:in `handle_to_names_and_values'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:300:in `_raw_select'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:295:in `block in raw_select'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract_adapter.rb:589:in `block in log'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/notifications/instrumenter.rb:21:in `instrument'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract_adapter.rb:583:in `log'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:295:in `raw_select'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:234:in `sp_executesql'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:7:in `select_rows'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract/database_statements.rb:54:in `select_value'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation/finder_methods.rb:335:in `exists?'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/associations/collection_association.rb:407:in `include?'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/associations/collection_proxy.rb:898:in `include?'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/test/cases/associations/has_and_belongs_to_many_associations_test.rb:569:in `test_include_returns_false_for_non_matching_record_to_verify_scoping'
+
+
+ 57) Error:
+HasAndBelongsToManyAssociationsTest#test_has_and_belongs_to_many:
+ActiveRecord::StatementInvalid: TinyTds::Error: ORDER BY items must appear in the select list if SELECT DISTINCT is specified.: EXEC sp_executesql N'SELECT  DISTINCT 1 AS one FROM [developers] INNER JOIN [developers_projects] ON [developers].[id] = [developers_projects].[developer_id] WHERE [developers_projects].[project_id] = @0  ORDER BY [developers].[id] ASC OFFSET 0 ROWS FETCH NEXT @1 ROWS ONLY', N'@0 int, @1 int', @0 = 1, @1 = 1
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:330:in `each'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:330:in `handle_to_names_and_values_dblib'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:321:in `handle_to_names_and_values'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:300:in `_raw_select'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:295:in `block in raw_select'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract_adapter.rb:589:in `block in log'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/notifications/instrumenter.rb:21:in `instrument'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract_adapter.rb:583:in `log'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:295:in `raw_select'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:234:in `sp_executesql'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:7:in `select_rows'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract/database_statements.rb:54:in `select_value'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation/finder_methods.rb:335:in `exists?'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/associations/collection_association.rb:350:in `empty?'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/associations/has_many_association.rb:56:in `empty?'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/associations/collection_proxy.rb:813:in `empty?'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/test/cases/associations/has_and_belongs_to_many_associations_test.rb:170:in `test_has_and_belongs_to_many'
+
+
+ 58) Error:
+HasAndBelongsToManyAssociationsTest#test_include_checks_if_record_exists_if_target_not_loaded:
+ActiveRecord::StatementInvalid: TinyTds::Error: ORDER BY items must appear in the select list if SELECT DISTINCT is specified.: EXEC sp_executesql N'SELECT  DISTINCT 1 AS one FROM [developers] INNER JOIN [developers_projects] ON [developers].[id] = [developers_projects].[developer_id] WHERE [developers_projects].[project_id] = @0 AND [developers].[id] = @1  ORDER BY [developers].[id] ASC OFFSET 0 ROWS FETCH NEXT @2 ROWS ONLY', N'@0 int, @1 int, @2 int', @0 = 1, @1 = 11, @2 = 1
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:330:in `each'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:330:in `handle_to_names_and_values_dblib'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:321:in `handle_to_names_and_values'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:300:in `_raw_select'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:295:in `block in raw_select'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract_adapter.rb:589:in `block in log'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/notifications/instrumenter.rb:21:in `instrument'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract_adapter.rb:583:in `log'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:295:in `raw_select'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:234:in `sp_executesql'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:7:in `select_rows'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract/database_statements.rb:54:in `select_value'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation/finder_methods.rb:335:in `exists?'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/associations/collection_association.rb:407:in `include?'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/associations/collection_proxy.rb:898:in `include?'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/test/cases/associations/has_and_belongs_to_many_associations_test.rb:559:in `block in test_include_checks_if_record_exists_if_target_not_loaded'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/test/cases/test_case.rb:38:in `assert_queries'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/test/cases/associations/has_and_belongs_to_many_associations_test.rb:558:in `test_include_checks_if_record_exists_if_target_not_loaded'
+
+
+ 59) Error:
+DateTest#test_date_with_string_value:
+ArgumentError: wrong number of arguments (given 1, expected 0)
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/type/date.rb:13:in `to_s'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/type/date.rb:13:in `serialize'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/attribute.rb:51:in `value_for_database'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation/query_attribute.rb:11:in `value_for_database'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:259:in `sp_executesql_sql_param'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:241:in `block in sp_executesql_types_and_parameters'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:239:in `each'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:239:in `each_with_index'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:239:in `sp_executesql_types_and_parameters'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:231:in `sp_executesql'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:19:in `exec_query'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract/database_statements.rb:377:in `select_prepared'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract/database_statements.rb:39:in `select_all'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract/query_cache.rb:95:in `select_all'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/querying.rb:39:in `find_by_sql'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/statement_cache.rb:109:in `execute'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/core.rb:203:in `find_by'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/test/cases/date_test.rb:14:in `test_date_with_string_value'
+
+
+ 60) Error:
+RelationTest#test_reverse_order_with_function:
+ActiveRecord::StatementInvalid: TinyTds::Error: 'length' is not a recognized built-in function name.: EXEC sp_executesql N'SELECT  [topics].* FROM [topics]  ORDER BY length(title) DESC OFFSET 0 ROWS FETCH NEXT @0 ROWS ONLY', N'@0 int', @0 = 1
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:330:in `each'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:330:in `handle_to_names_and_values_dblib'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:321:in `handle_to_names_and_values'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:300:in `_raw_select'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:295:in `block in raw_select'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract_adapter.rb:589:in `block in log'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/notifications/instrumenter.rb:21:in `instrument'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract_adapter.rb:583:in `log'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:295:in `raw_select'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:234:in `sp_executesql'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:19:in `exec_query'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract/database_statements.rb:373:in `select'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract/database_statements.rb:41:in `select_all'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract/query_cache.rb:95:in `select_all'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/querying.rb:39:in `find_by_sql'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation.rb:702:in `exec_queries'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation/record_fetch_warning.rb:17:in `exec_queries'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation.rb:583:in `load'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation.rb:260:in `records'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation.rb:256:in `to_a'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation/finder_methods.rb:563:in `find_nth_with_limit'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation/finder_methods.rb:592:in `find_nth_with_limit_and_offset'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation/finder_methods.rb:545:in `find_nth'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation/finder_methods.rb:122:in `first'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/test/cases/relations_test.rb:229:in `test_reverse_order_with_function'
+
+
+ 61) Error:
+RelationTest#test_multiple_where_and_having_clauses:
+ActiveRecord::StatementInvalid: TinyTds::Error: Column 'posts.author_id' is invalid in the select list because it is not contained in either an aggregate function or the GROUP BY clause.: EXEC sp_executesql N'SELECT [posts].* FROM [posts] WHERE [posts].[title] = @0 AND [posts].[title] = @1 GROUP BY [posts].[id] HAVING [posts].[id] = @2 AND [posts].[id] = @3', N'@0 nvarchar(4000), @1 nvarchar(4000), @2 int, @3 int', @0 = N'Welcome to the weblog', @1 = N'Welcome to the weblog', @2 = 1, @3 = 1
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:330:in `each'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:330:in `handle_to_names_and_values_dblib'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:321:in `handle_to_names_and_values'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:300:in `_raw_select'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:295:in `block in raw_select'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract_adapter.rb:589:in `block in log'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/notifications/instrumenter.rb:21:in `instrument'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract_adapter.rb:583:in `log'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:295:in `raw_select'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:234:in `sp_executesql'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:19:in `exec_query'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract/database_statements.rb:377:in `select_prepared'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract/database_statements.rb:39:in `select_all'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract/query_cache.rb:95:in `select_all'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/querying.rb:39:in `find_by_sql'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation.rb:702:in `exec_queries'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation/record_fetch_warning.rb:17:in `exec_queries'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation.rb:583:in `load'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation.rb:260:in `records'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation.rb:668:in `=='
+
+
+ 62) Error:
+RelationTest#test_having_with_binds_for_both_where_and_having:
+ActiveRecord::StatementInvalid: TinyTds::Error: Column 'posts.author_id' is invalid in the select list because it is not contained in either an aggregate function or the GROUP BY clause.: EXEC sp_executesql N'SELECT [posts].* FROM [posts] WHERE [posts].[title] = @0 GROUP BY [posts].[id] HAVING [posts].[id] = @1', N'@0 nvarchar(4000), @1 int', @0 = N'Welcome to the weblog', @1 = 1
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:330:in `each'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:330:in `handle_to_names_and_values_dblib'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:321:in `handle_to_names_and_values'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:300:in `_raw_select'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:295:in `block in raw_select'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract_adapter.rb:589:in `block in log'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/notifications/instrumenter.rb:21:in `instrument'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract_adapter.rb:583:in `log'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:295:in `raw_select'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:234:in `sp_executesql'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:19:in `exec_query'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract/database_statements.rb:377:in `select_prepared'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract/database_statements.rb:39:in `select_all'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract/query_cache.rb:95:in `select_all'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/querying.rb:39:in `find_by_sql'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation.rb:702:in `exec_queries'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation/record_fetch_warning.rb:17:in `exec_queries'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation.rb:583:in `load'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation.rb:260:in `records'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation.rb:668:in `=='
+
+
+ 63) Error:
+RelationTest#test_reverse_order_with_function_other_predicates:
+ActiveRecord::StatementInvalid: TinyTds::Error: 'length' is not a recognized built-in function name.: EXEC sp_executesql N'SELECT  [topics].* FROM [topics]  ORDER BY author_name DESC, length(title) DESC, id DESC OFFSET 0 ROWS FETCH NEXT @0 ROWS ONLY', N'@0 int', @0 = 1
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:330:in `each'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:330:in `handle_to_names_and_values_dblib'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:321:in `handle_to_names_and_values'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:300:in `_raw_select'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:295:in `block in raw_select'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract_adapter.rb:589:in `block in log'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/notifications/instrumenter.rb:21:in `instrument'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract_adapter.rb:583:in `log'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:295:in `raw_select'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:234:in `sp_executesql'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:19:in `exec_query'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract/database_statements.rb:373:in `select'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract/database_statements.rb:41:in `select_all'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract/query_cache.rb:95:in `select_all'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/querying.rb:39:in `find_by_sql'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation.rb:702:in `exec_queries'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation/record_fetch_warning.rb:17:in `exec_queries'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation.rb:583:in `load'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation.rb:260:in `records'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation.rb:256:in `to_a'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation/finder_methods.rb:563:in `find_nth_with_limit'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation/finder_methods.rb:592:in `find_nth_with_limit_and_offset'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation/finder_methods.rb:545:in `find_nth'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation/finder_methods.rb:122:in `first'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/test/cases/relations_test.rb:234:in `test_reverse_order_with_function_other_predicates'
+
+
+ 64) Error:
+NamedScopingTest#test_method_missing_priority_when_delegating:
+ActiveRecord::StatementInvalid: TinyTds::Error: Incorrect syntax near '01'.: SELECT [topics].* FROM [topics] WHERE (written_on <= ''01-05-2017 02:02:11.789'') AND (written_on >= ''01-04-2017 02:02:11.799'')
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:330:in `each'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:330:in `handle_to_names_and_values_dblib'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:321:in `handle_to_names_and_values'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:300:in `_raw_select'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:295:in `block in raw_select'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract_adapter.rb:589:in `block in log'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/notifications/instrumenter.rb:21:in `instrument'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract_adapter.rb:583:in `log'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:295:in `raw_select'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:234:in `sp_executesql'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:19:in `exec_query'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract/database_statements.rb:373:in `select'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract/database_statements.rb:41:in `select_all'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract/query_cache.rb:95:in `select_all'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/querying.rb:39:in `find_by_sql'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation.rb:702:in `exec_queries'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation/record_fetch_warning.rb:17:in `exec_queries'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation.rb:583:in `load'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation.rb:260:in `records'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation.rb:256:in `to_a'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/test/cases/scoping/named_scoping_test.rb:55:in `test_method_missing_priority_when_delegating'
+
+
+ 65) Error:
+NamedScopingTest#test_nested_scopes_queries_size:
+ActiveRecord::StatementInvalid: TinyTds::Error: Incorrect syntax near '01'.: EXEC sp_executesql N'SELECT [topics].* FROM [topics] WHERE [topics].[approved] = @0 AND [topics].[author_name] = @1 AND (replies_count > 0) AND (written_on < ''''01-05-2017 02:02:12.476'''')', N'@0 bit, @1 nvarchar(4000)', @0 = 1, @1 = N'lifo'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:330:in `each'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:330:in `handle_to_names_and_values_dblib'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:321:in `handle_to_names_and_values'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:300:in `_raw_select'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:295:in `block in raw_select'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract_adapter.rb:589:in `block in log'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/notifications/instrumenter.rb:21:in `instrument'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract_adapter.rb:583:in `log'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:295:in `raw_select'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:234:in `sp_executesql'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:19:in `exec_query'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract/database_statements.rb:373:in `select'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract/database_statements.rb:41:in `select_all'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract/query_cache.rb:95:in `select_all'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/querying.rb:39:in `find_by_sql'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation.rb:702:in `exec_queries'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation/record_fetch_warning.rb:17:in `exec_queries'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation.rb:583:in `load'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation.rb:260:in `records'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation.rb:256:in `to_a'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/test/cases/scoping/named_scoping_test.rb:479:in `block in test_nested_scopes_queries_size'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/test/cases/test_case.rb:38:in `assert_queries'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/test/cases/scoping/named_scoping_test.rb:478:in `test_nested_scopes_queries_size'
+
+
+ 66) Error:
+ActiveRecord::CollectionCacheKeyTest#test_0011_cache_key for queries with offset which return 0 rows:
+ActiveRecord::StatementInvalid: TinyTds::Error: Column "developers.id" is invalid in the ORDER BY clause because it is not contained in either an aggregate function or the GROUP BY clause.: EXEC sp_executesql N'SELECT COUNT(*) AS [size], MAX([developers].[updated_at]) AS timestamp FROM [developers]  ORDER BY [developers].[id] ASC OFFSET @0 ROWS', N'@0 int', @0 = 20
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:330:in `each'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:330:in `handle_to_names_and_values_dblib'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:321:in `handle_to_names_and_values'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:300:in `_raw_select'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:295:in `block in raw_select'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract_adapter.rb:589:in `block in log'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activesupport/lib/active_support/notifications/instrumenter.rb:21:in `instrument'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract_adapter.rb:583:in `log'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:295:in `raw_select'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:234:in `sp_executesql'
+    /Users/kencollins/Repositories/activerecord-sqlserver-adapter/lib/active_record/connection_adapters/sqlserver/database_statements.rb:19:in `exec_query'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract/database_statements.rb:373:in `select'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract/database_statements.rb:41:in `select_all'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract/query_cache.rb:95:in `select_all'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/connection_adapters/abstract/database_statements.rb:48:in `select_one'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/collection_cache_key.rb:21:in `collection_cache_key'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/lib/active_record/relation.rb:337:in `cache_key'
+    /Users/kencollins/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/bundler/gems/rails-3843ee5ac37f/activerecord/test/cases/collection_cache_key_test.rb:80:in `block in <class:CollectionCacheKeyTest>'
+
+4854 runs, 13971 assertions, 30 failures, 36 errors, 3 skips
+
+* 10 - AttributeMethodsTest
+*  6 - FinderTest
+*  6 - Gem `sqlite3` load error.
+*  6 - UniquenessValidationTest
+*  4 - RelationTest
+*  4 - MigrationTest
+*  4 - (HasMany|HasAndBelongs)AssociationsTest
+*  3 - AdapterTest
+*  3 - TransactionCallbacksTest
+*  2 - NamedScopingTest
+*  2 - DefaultNumbersTest
+*  2 - DefaultScopingTest
+*  2 - CalculationsTest
+*  2 - MultipleDbTest
+*  2 - EachTest
+*  2 - ColumnsTest
+*  2 - SchemaDumperTest
+*  1 - BasicsTest
+*  1 - MultiParameterAttributeTest
+*  1 - QuoteBooleanTest
+*  1 - LeftOuterJoinAssociationTest
+*  1 - EagerAssociationTest
+*  1 - DateTest
+
