@@ -6,11 +6,6 @@ module ActiveRecord
 
           include TimeValueFractional
 
-          def initialize(*args)
-            super
-            @precision = nil if self.class == DateTime
-          end
-
           def sqlserver_type
             'datetime'.freeze
           end

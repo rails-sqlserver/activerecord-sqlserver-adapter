@@ -188,6 +188,16 @@ module ActiveRecord
             when 5..8       then  'bigint'
             else raise(ActiveRecordError, "No integer type has byte size #{limit}. Use a numeric with precision 0 instead.")
             end
+          when 'datetime2'
+            column_type_sql = super
+            if precision
+              if (0..7) === precision
+                column_type_sql << "(#{precision})"
+              else
+                raise(ActiveRecordError, "The dattime2 type has precision of #{precision}. The allowed range of precision is from 0 to 7")
+              end
+            end
+            column_type_sql
           else
             super
           end
@@ -200,6 +210,10 @@ module ActiveRecord
                .gsub(/\s+NULLS\s+(?:FIRST|LAST)\b/i, '')
             }.reject(&:blank?).map.with_index { |column, i| "#{column} AS alias_#{i}" }
           [super, *order_columns].join(', ')
+        end
+
+        def update_table_definition(table_name, base)
+          SQLServer::Table.new(table_name, base)
         end
 
         def change_column_null(table_name, column_name, allow_null, default = nil)

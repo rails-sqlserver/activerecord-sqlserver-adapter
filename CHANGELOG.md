@@ -3,7 +3,7 @@
 
 #### Added
 
-* ...
+* Support for `supports_datetime_with_precision`.
 
 #### Changed
 

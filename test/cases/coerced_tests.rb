@@ -612,3 +612,29 @@ class YamlSerializationTest < ActiveRecord::TestCase
     assert_equal 5, dumped.posts_count
   end
 end
+
+
+
+
+class DateTimePrecisionTest < ActiveRecord::TestCase
+  # Original test had `7` which we support vs `8` which we use.
+  coerce_tests! :test_invalid_datetime_precision_raises_error
+  def test_invalid_datetime_precision_raises_error_coerced
+    assert_raises ActiveRecord::ActiveRecordError do
+      @connection.create_table(:foos, force: true) do |t|
+        t.timestamps precision: 8
+      end
+    end
+  end
+
+  # Original test uses `datetime` vs `datetime2` type which we dynamically use.
+  coerce_tests! :test_schema_dump_includes_datetime_precision
+  def test_schema_dump_includes_datetime_precision_coerced
+    @connection.create_table(:foos, force: true) do |t|
+      t.timestamps precision: 6
+    end
+    output = dump_table_schema("foos")
+    assert_match %r{t\.datetime2\s+"created_at",\s+precision: 6,\s+null: false$}, output
+    assert_match %r{t\.datetime2\s+"updated_at",\s+precision: 6,\s+null: false$}, output
+  end
+end

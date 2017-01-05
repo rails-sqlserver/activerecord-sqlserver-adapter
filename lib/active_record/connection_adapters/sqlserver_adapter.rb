@@ -128,7 +128,7 @@ module ActiveRecord
       end
 
       def supports_datetime_with_precision?
-        false
+        true
       end
 
       def supports_json?
@@ -268,10 +268,13 @@ module ActiveRecord
         m.register_type              'real',              SQLServer::Type::Real.new
         # Date and Time
         m.register_type              'date',              SQLServer::Type::Date.new
-        m.register_type              'datetime',          SQLServer::Type::DateTime.new
-        m.register_type              %r{\Adatetime2}i do |sql_type|
+        m.register_type              %r{\Adatetime} do |sql_type|
           precision = extract_precision(sql_type)
-          SQLServer::Type::DateTime2.new precision: precision
+          if precision
+            SQLServer::Type::DateTime2.new precision: precision
+          else
+            SQLServer::Type::DateTime.new
+          end
         end
         m.register_type              %r{\Adatetimeoffset}i do |sql_type|
           precision = extract_precision(sql_type)
