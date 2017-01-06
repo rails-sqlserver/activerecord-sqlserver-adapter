@@ -638,3 +638,22 @@ class DateTimePrecisionTest < ActiveRecord::TestCase
     assert_match %r{t\.datetime2\s+"updated_at",\s+precision: 6,\s+null: false$}, output
   end
 end
+
+
+
+
+class DefaultNumbersTest < ActiveRecord::TestCase
+  # We do better with native types and do not return strings for everything.
+  coerce_tests! :test_default_positive_integer
+  def test_default_positive_integer_coerced
+    record = DefaultNumber.new
+    assert_equal 7, record.positive_integer
+    assert_equal 7, record.positive_integer_before_type_cast
+  end
+  coerce_tests! :test_default_negative_integer
+  def test_default_negative_integer_coerced
+    record = DefaultNumber.new
+    assert_equal -5, record.negative_integer
+    assert_equal -5, record.negative_integer_before_type_cast
+  end
+end
