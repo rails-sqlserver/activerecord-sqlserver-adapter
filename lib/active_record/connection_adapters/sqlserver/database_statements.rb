@@ -135,9 +135,17 @@ module ActiveRecord
         
         def user_options
           return {} if sqlserver_azure?
-          select_rows("dbcc useroptions",'SCHEMA').inject(HashWithIndifferentAccess.new) do |values,row| 
-            set_option = row[0].gsub(/\s+/,'_')
-            user_value = row[1]
+          # fixes #535
+          rows = select_rows('dbcc useroptions', 'SCHEMA')
+          rows = rows.first if rows.size == 2 && rows.last.empty?
+          rows.reduce(HashWithIndifferentAccess.new) do |values, row|
+            if row.instance_of? Hash
+              set_option = row.values[0].gsub(/\s+/, '_')
+              user_value = row.values[1]
+            elsif  row.instance_of? Array
+              set_option = row[0].gsub(/\s+/, '_')
+              user_value = row[1]
+            end
             values[set_option] = user_value
             values
           end
