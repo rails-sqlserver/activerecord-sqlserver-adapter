@@ -4,6 +4,7 @@
 #### Added
 
 * Support for `supports_datetime_with_precision`.
+* Support for `unprepared_statement` blocks on the connection.
 
 #### Changed
 
