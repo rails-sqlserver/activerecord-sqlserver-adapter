@@ -8,11 +8,11 @@
 
 #### Changed
 
-* ...
+* Major refactoring of all type objects. Especially time types.
 
 #### Deprecated
 
-* ...
+* Support for a handful of standard Rails deprecations in 5-0-stable suite.
 
 #### Removed
 
