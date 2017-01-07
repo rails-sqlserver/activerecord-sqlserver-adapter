@@ -11,6 +11,15 @@ module ActiveRecord
           select_values "SELECT #{lowercase_schema_reflection_sql('TABLE_NAME')} FROM INFORMATION_SCHEMA.TABLES #{"WHERE TABLE_TYPE = '#{table_type}'" if table_type} ORDER BY TABLE_NAME", 'SCHEMA'
         end
 
+        def table_exists?(table_name)
+          ActiveSupport::Deprecation.warn(<<-MSG.squish)
+            #table_exists? currently checks both tables and views.
+            This behavior is deprecated and will be changed with Rails 5.1 to only check tables.
+            Use #data_source_exists? instead.
+          MSG
+          data_source_exists?(table_name)
+        end
+
         def data_source_exists?(table_name)
           return false if table_name.blank?
           unquoted_table_name = SQLServer::Utils.extract_identifiers(table_name).object

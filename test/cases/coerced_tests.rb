@@ -578,9 +578,6 @@ class ViewWithPrimaryKeyTest < ActiveRecord::TestCase
     assert_includes @connection.views, Ebook.table_name
   end
 
-  # This is deprecated and we dont care in this version to pass it.
-  coerce_tests! :test_table_exists
-
   # We do better than ActiveRecord and find the views PK.
   coerce_tests! :test_does_not_assume_id_column_as_primary_key
   def test_does_not_assume_id_column_as_primary_key_coerced
@@ -594,9 +591,6 @@ class ViewWithoutPrimaryKeyTest < ActiveRecord::TestCase
   def test_views_coerced
     assert_includes @connection.views, Paperback.table_name
   end
-
-  # This is deprecated and we dont care in this version to pass it.
-  coerce_tests! :test_table_exists
 end
 
 
