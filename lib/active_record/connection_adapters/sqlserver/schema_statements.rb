@@ -7,8 +7,9 @@ module ActiveRecord
           @native_database_types ||= initialize_native_database_types.freeze
         end
 
-        def tables(table_type = 'BASE TABLE')
-          select_values "SELECT #{lowercase_schema_reflection_sql('TABLE_NAME')} FROM INFORMATION_SCHEMA.TABLES #{"WHERE TABLE_TYPE = '#{table_type}'" if table_type} ORDER BY TABLE_NAME", 'SCHEMA'
+        def tables(name = nil)
+          ActiveSupport::Deprecation.warn 'Passing arguments to #tables is deprecated without replacement.' if name
+          tables_sql('BASE TABLE')
         end
 
         def table_exists?(table_name)
@@ -27,7 +28,7 @@ module ActiveRecord
         end
 
         def views
-          tables('VIEW')
+          tables_sql('VIEW')
         end
 
         def view_exists?(table_name)
@@ -274,6 +275,12 @@ module ActiveRecord
             uuid: { name: 'uniqueidentifier' },
             ss_timestamp: { name: 'timestamp' }
           }
+        end
+
+        def tables_sql(type)
+          tn  = lowercase_schema_reflection_sql 'TABLE_NAME'
+          sql = "SELECT #{tn} FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = '#{type}' ORDER BY TABLE_NAME"
+          select_values sql, 'SCHEMA'
         end
 
         def column_definitions(table_name)
