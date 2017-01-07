@@ -316,6 +316,8 @@ module ActiveRecord
           DeadlockVictim.new(message)
         when /database .* does not exist/i
           NoDatabaseError.new(message)
+        when /data would be truncated/
+          ValueTooLong.new(message)
         else
           super
         end
