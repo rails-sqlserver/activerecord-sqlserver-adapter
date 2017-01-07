@@ -2,10 +2,22 @@ require 'cases/helper_sqlserver'
 
 
 
+require 'models/event'
 module ActiveRecord
   class AdapterTest < ActiveRecord::TestCase
     # As far as I can tell, SQL Server does not support null bytes in strings.
     coerce_tests! :test_update_prepared_statement
+
+    # So sp_executesql swallows this exception. Run without prpared to see it.
+    coerce_tests! :test_value_limit_violations_are_translated_to_specific_exception
+    def test_value_limit_violations_are_translated_to_specific_exception_coerced
+      connection.unprepared_statement do
+        error = assert_raises(ActiveRecord::ValueTooLong) do
+          Event.create(title: 'abcdefgh')
+        end
+        assert_not_nil error.cause
+      end
+    end
   end
 end
 
