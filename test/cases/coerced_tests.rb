@@ -270,6 +270,7 @@ end
 require 'models/post'
 require 'models/subscriber'
 class EachTest < ActiveRecord::TestCase
+  # Quoting in tests does not cope with bracket quoting.
   coerce_tests! :test_find_in_batches_should_quote_batch_order
   def test_find_in_batches_should_quote_batch_order_coerced
     c = Post.connection
@@ -277,6 +278,18 @@ class EachTest < ActiveRecord::TestCase
       Post.find_in_batches(:batch_size => 1) do |batch|
         assert_kind_of Array, batch
         assert_kind_of Post, batch.first
+      end
+    end
+  end
+
+  # Quoting in tests does not cope with bracket quoting.
+  coerce_tests! :test_in_batches_should_quote_batch_order
+  def test_in_batches_should_quote_batch_order_coerced
+    c = Post.connection
+    assert_sql(/ORDER BY \[posts\]\.\[id\]/) do
+      Post.in_batches(of: 1) do |relation|
+        assert_kind_of ActiveRecord::Relation, relation
+        assert_kind_of Post, relation.first
       end
     end
   end
