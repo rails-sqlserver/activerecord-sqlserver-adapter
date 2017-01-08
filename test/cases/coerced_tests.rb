@@ -243,6 +243,10 @@ class MigrationTest < ActiveRecord::TestCase
     GiveMeBigNumbers.down
     assert_raise(ActiveRecord::StatementInvalid) { BigNumber.first }
   end
+
+  # For some reason our tests set Rails.@_env which breaks test env switching.
+  coerce_tests! :test_migration_sets_internal_metadata_even_when_fully_migrated
+  coerce_tests! :test_internal_metadata_stores_environment
 end
 
 
