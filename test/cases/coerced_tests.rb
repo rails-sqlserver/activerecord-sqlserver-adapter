@@ -129,7 +129,7 @@ class CalculationsTest < ActiveRecord::TestCase
 
   coerce_tests! :test_limit_is_kept
   def test_limit_is_kept_coerced
-    queries = assert_sql { Account.limit(1).count }
+    queries = capture_sql_ss { Account.limit(1).count }
     assert_equal 1, queries.length
     queries.first.must_match %r{ORDER BY \[accounts\]\.\[id\] ASC OFFSET 0 ROWS FETCH NEXT @0 ROWS ONLY.*@0 = 1}
   end

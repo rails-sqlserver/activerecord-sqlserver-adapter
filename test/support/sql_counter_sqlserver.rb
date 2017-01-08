@@ -1,32 +1,27 @@
 module ARTest
   module SQLServer
 
-    extend self
+    module SqlCounterSqlserver
 
-    attr_accessor :sql_counter_listenter
-
-    def ignored_sql
-      [ /SELECT SCOPE_IDENTITY/,
-        /INFORMATION_SCHEMA\.(TABLES|VIEWS|COLUMNS)/,
-        /SELECT @@version/,
-        /SELECT @@TRANCOUNT/,
-        /(BEGIN|COMMIT|ROLLBACK|SAVE) TRANSACTION/,
-        /SELECT CAST\(.* AS .*\) AS value/ ]
-    end
-
-    def sql_counter_listenters
-      ActiveSupport::Notifications.notifier.listeners_for('sql.active_record').select do |listener|
-        listener.inspect =~ /ActiveRecord::SQLCounter/
+      # Only return the log vs. log_all
+      def capture_sql_ss
+        ActiveRecord::SQLCounter.clear_log
+        yield
+        ActiveRecord::SQLCounter.log.dup
       end
+
     end
 
-    def sql_counter_listenters_unsubscribe
-      sql_counter_listenters.each { |listener| ActiveSupport::Notifications.unsubscribe(listener) }
-    end
+    ignored_sql = [
+      /INFORMATION_SCHEMA\.(TABLES|VIEWS|COLUMNS)/im,
+      /SELECT @@version/,
+      /SELECT @@TRANCOUNT/,
+      /(BEGIN|COMMIT|ROLLBACK|SAVE) TRANSACTION/,
+      /SELECT CAST\(.* AS .*\) AS value/
+    ]
+
+    sqlcounter = ObjectSpace.each_object(ActiveRecord::SQLCounter).to_a.first
+    sqlcounter.instance_variable_set :@ignore, Regexp.union(ignored_sql.push(sqlcounter.ignore))
 
   end
 end
-
-ActiveRecord::SQLCounter.ignored_sql.concat ARTest::SQLServer.ignored_sql
-ARTest::SQLServer.sql_counter_listenters_unsubscribe
-ARTest::SQLServer.sql_counter_listenter = ActiveSupport::Notifications.subscribe 'sql.active_record', ActiveRecord::SQLCounter.new

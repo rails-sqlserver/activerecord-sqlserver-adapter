@@ -17,6 +17,7 @@ module ActiveRecord
 
     include ARTest::SQLServer::CoerceableTest,
             ARTest::SQLServer::ConnectionReflection,
+            ARTest::SQLServer::SqlCounterSqlserver,
             ActiveSupport::Testing::Stream
 
     let(:logger) { ActiveRecord::Base.logger }
