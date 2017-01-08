@@ -62,9 +62,9 @@ module ActiveRecord
 
         def quoted_date(value)
           if value.acts_like?(:date)
-            Type::Date.new.serialize(value).quoted
+            Type::Date.new.serialize(value)
           else value.acts_like?(:time)
-            Type::DateTime.new.serialize(value).quoted
+            Type::DateTime.new.serialize(value)
           end
         end
 
