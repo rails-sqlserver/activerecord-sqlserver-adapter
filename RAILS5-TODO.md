@@ -4,35 +4,6 @@
 Misc remidners while in the heat of adapting the adpater.
 
 
-## TEST FAILURE SUMMARY
-
-I am currently using `TESTOPTS="--seed=44527"` to get a consistant order for now. Also, the CI suite is locked down to using `ONLY_SQLSERVER=1` to make PRs feel good. Soon we will want to change this.
-
-* 10 - AttributeMethodsTest
-*  6 - FinderTest
-*  6 - Gem `sqlite3` load error.
-*  6 - UniquenessValidationTest
-*  4 - RelationTest
-*  4 - MigrationTest
-*  4 - (HasMany|HasAndBelongs)AssociationsTest
-*  3 - AdapterTest
-*  3 - TransactionCallbacksTest
-*  2 - NamedScopingTest
-*  2 - DefaultNumbersTest
-*  2 - DefaultScopingTest
-*  2 - CalculationsTest
-*  2 - MultipleDbTest
-*  2 - EachTest
-*  2 - ColumnsTest
-*  2 - SchemaDumperTest
-*  1 - BasicsTest
-*  1 - MultiParameterAttributeTest
-*  1 - QuoteBooleanTest
-*  1 - LeftOuterJoinAssociationTest
-*  1 - EagerAssociationTest
-*  1 - DateTest
-
-
 ## LONG TERM
 
 After we get some tests passing
