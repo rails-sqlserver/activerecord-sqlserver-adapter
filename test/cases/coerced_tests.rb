@@ -3,6 +3,32 @@ require 'cases/helper_sqlserver'
 
 
 require 'models/event'
+class UniquenessValidationTest < ActiveRecord::TestCase
+  # So sp_executesql swallows this exception. Run without prpared to see it.
+  coerce_tests! :test_validate_uniqueness_with_limit
+  def test_validate_uniqueness_with_limit_coerced
+    connection.unprepared_statement do
+      assert_raise(ActiveRecord::ValueTooLong) do
+        Event.create(title: "abcdefgh")
+      end
+    end
+  end
+
+  # So sp_executesql swallows this exception. Run without prpared to see it.
+  coerce_tests! :test_validate_uniqueness_with_limit_and_utf8
+  def test_validate_uniqueness_with_limit_and_utf8_coerced
+    connection.unprepared_statement do
+      assert_raise(ActiveRecord::ValueTooLong) do
+        Event.create(title: "一二三四五六七八")
+      end
+    end
+  end
+end
+
+
+
+
+require 'models/event'
 module ActiveRecord
   class AdapterTest < ActiveRecord::TestCase
     # As far as I can tell, SQL Server does not support null bytes in strings.
