@@ -77,9 +77,7 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal '[t]]]', conn.quote_column_name('t]')
   end
 
-  # PENDING: [Rails5.x] Remove coerced tests and use simple symbol types..
-  # This test has a few problems. First, it would require that we use the
-  # `Type::SQLServer::BigInteger.new(limit: 8)` for the `world_population` attribute.
+  # We do not have do the DecimalWithoutScale type.
   coerce_tests! :test_numeric_fields
   coerce_tests! :test_numeric_fields_with_scale
 
@@ -206,6 +204,44 @@ module ActiveRecord
         assert_equal [], connection.indexes('test_models').map(&:name)
       end
     end
+  end
+end
+
+
+
+
+class MigrationTest < ActiveRecord::TestCase
+  # We do not have do the DecimalWithoutScale type.
+  coerce_tests! :test_add_table_with_decimals
+  def test_add_table_with_decimals_coerced
+    Person.connection.drop_table :big_numbers rescue nil
+    assert !BigNumber.table_exists?
+    GiveMeBigNumbers.up
+    BigNumber.reset_column_information
+    assert BigNumber.create(
+      :bank_balance => 1586.43,
+      :big_bank_balance => BigDecimal("1000234000567.95"),
+      :world_population => 6000000000,
+      :my_house_population => 3,
+      :value_of_e => BigDecimal("2.7182818284590452353602875")
+    )
+    b = BigNumber.first
+    assert_not_nil b
+    assert_not_nil b.bank_balance
+    assert_not_nil b.big_bank_balance
+    assert_not_nil b.world_population
+    assert_not_nil b.my_house_population
+    assert_not_nil b.value_of_e
+    assert_kind_of BigDecimal, b.world_population
+    assert_equal '6000000000.0', b.world_population.to_s
+    assert_kind_of Integer, b.my_house_population
+    assert_equal 3, b.my_house_population
+    assert_kind_of BigDecimal, b.bank_balance
+    assert_equal BigDecimal("1586.43"), b.bank_balance
+    assert_kind_of BigDecimal, b.big_bank_balance
+    assert_equal BigDecimal("1000234000567.95"), b.big_bank_balance
+    GiveMeBigNumbers.down
+    assert_raise(ActiveRecord::StatementInvalid) { BigNumber.first }
   end
 end
 
