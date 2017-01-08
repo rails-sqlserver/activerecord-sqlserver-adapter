@@ -1,4 +1,3 @@
-default_connection: dblib
 
 default_connection_info: &default_connection_info
   adapter: sqlserver
