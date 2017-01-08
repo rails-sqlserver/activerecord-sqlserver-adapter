@@ -254,6 +254,14 @@ end
 class DefaultScopingTest < ActiveRecord::TestCase
   # We are not doing order duplicate removal anymore.
   coerce_tests! :test_order_in_default_scope_should_not_prevail
+
+  # Use our escaped format in assertion.
+  coerce_tests! :test_with_abstract_class_scope_should_be_executed_in_correct_context
+  def test_with_abstract_class_scope_should_be_executed_in_correct_context_coerced
+    vegetarian_pattern, gender_pattern = [/[lions].[is_vegetarian]/, /[lions].[gender]/]
+    assert_match vegetarian_pattern, Lion.all.to_sql
+    assert_match gender_pattern, Lion.female.to_sql
+  end
 end
 
 
