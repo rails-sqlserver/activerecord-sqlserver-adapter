@@ -987,29 +987,18 @@ ActiveRecord::StatementInvalid: TinyTds::Error: Column "developers.id" is invali
 4856 runs, 14140 assertions, 21 failures, 26 errors, 3 skips
 
 
+* 7 - Incorrect syntax
+  3 - Incorrect syntax near '01'
+  2 - Incorrect syntax near '07'
+  1 - Incorrect syntax near '|'
+  1 - Incorrect syntax near 'limit'
 * 6 - ORDER BY items
-* 4 - The number of rows provided for a TOP or FETCH clauses row count parameter must be an integer.
+* 3 - The number of rows provided for a TOP or FETCH clauses row count parameter must be an integer.
 * 2 - ActiveRecord::ValueTooLong expected
-
-
-*  6 - AttributeMethodsTest
-*  7 - FinderTest
-*  6 - UniquenessValidationTest
-*  4 - RelationTest
-*  4 - MigrationTest
-*  4 - (HasMany|HasAndBelongs)AssociationsTest
-*  3 - TransactionCallbacksTest
-*  2 - NamedScopingTest
-*  2 - DefaultScopingTest
-*  2 - CalculationsTest
-*  2 - MultipleDbTest
-*  2 - EachTest
-*  2 - ColumnsTest
-*  2 - SchemaDumperTest
-*  1 - BasicsTest
-*  1 - MultiParameterAttributeTest
-*  1 - QuoteBooleanTest
-*  1 - LeftOuterJoinAssociationTest
-*  1 - EagerAssociationTest
-*  1 - DateTest
+* 1 - to be an instance of Time, not ActiveSupport::TimeWithZone
+* 4 - is invalid in
+  2 - is invalid in the select list
+  1 - is invalid in the HAVING
+  1 - is invalid in the ORDER BY clause
+* 2 - No connection pool with id primary found
 
