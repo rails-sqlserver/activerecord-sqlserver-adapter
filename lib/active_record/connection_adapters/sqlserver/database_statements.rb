@@ -79,26 +79,10 @@ module ActiveRecord
         def release_savepoint(name = current_savepoint_name)
         end
 
-        def case_sensitive_modifier(node, table_attribute)
-          node = Arel::Nodes.build_quoted node, table_attribute
-          Arel::Nodes::Bin.new(node)
+        def can_perform_case_insensitive_comparison_for?(column)
+          column.case_sensitive?
         end
-
-        def case_sensitive_comparison(table, attribute, column, value)
-          if column.case_sensitive?
-            table[attribute].eq(value)
-          else
-            super
-          end
-        end
-
-        def case_insensitive_comparison(table, attribute, column, value)
-          if column.case_sensitive?
-            super
-          else
-            table[attribute].eq(value)
-          end
-        end
+        private :can_perform_case_insensitive_comparison_for?
 
         # === SQLServer Specific ======================================== #
 
