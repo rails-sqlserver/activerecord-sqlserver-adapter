@@ -19,11 +19,7 @@ module Arel
 
       def visit_Arel_Nodes_Bin o, collector
         visit o.expr, collector
-        if o.expr.val.is_a? Numeric
-          collector
-        else
-          collector << " #{ActiveRecord::ConnectionAdapters::SQLServerAdapter.cs_equality_operator} "
-        end
+        collector << " #{ActiveRecord::ConnectionAdapters::SQLServerAdapter.cs_equality_operator} "
       end
 
       def visit_Arel_Nodes_UpdateStatement(o, a)
