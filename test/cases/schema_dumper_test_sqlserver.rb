@@ -36,15 +36,15 @@ class SchemaDumperTestSQLServer < ActiveRecord::TestCase
     assert_line :time_2,            type: 'time',         limit: nil,           precision: 2,     scale: nil,  default: nil
     end
     # Character Strings
-    assert_line :char_10,           type: 'char',         limit: 10,            precision: nil,   scale: nil,  default: "1234567890",           collation: "SQL_Latin1_General_CP1_CI_AS"
-    assert_line :varchar_50,        type: 'varchar',      limit: 50,            precision: nil,   scale: nil,  default: "test varchar_50",      collation: "SQL_Latin1_General_CP1_CI_AS"
-    assert_line :varchar_max,       type: 'varchar_max',  limit: 2147483647,    precision: nil,   scale: nil,  default: "test varchar_max",     collation: "SQL_Latin1_General_CP1_CI_AS"
-    assert_line :text,              type: 'text_basic',   limit: 2147483647,    precision: nil,   scale: nil,  default: "test text",            collation: "SQL_Latin1_General_CP1_CI_AS"
+    assert_line :char_10,           type: 'char',         limit: 10,            precision: nil,   scale: nil,  default: "1234567890",           collation: nil
+    assert_line :varchar_50,        type: 'varchar',      limit: 50,            precision: nil,   scale: nil,  default: "test varchar_50",      collation: nil
+    assert_line :varchar_max,       type: 'varchar_max',  limit: 2147483647,    precision: nil,   scale: nil,  default: "test varchar_max",     collation: nil
+    assert_line :text,              type: 'text_basic',   limit: 2147483647,    precision: nil,   scale: nil,  default: "test text",            collation: nil
     # Unicode Character Strings
-    assert_line :nchar_10,          type: 'nchar',        limit: 10,            precision: nil,   scale: nil,  default: "12345678åå",           collation: "SQL_Latin1_General_CP1_CI_AS"
-    assert_line :nvarchar_50,       type: 'string',       limit: 50,            precision: nil,   scale: nil,  default: "test nvarchar_50 åå",  collation: "SQL_Latin1_General_CP1_CI_AS"
-    assert_line :nvarchar_max,      type: 'text',         limit: 2147483647,    precision: nil,   scale: nil,  default: "test nvarchar_max åå", collation: "SQL_Latin1_General_CP1_CI_AS"
-    assert_line :ntext,             type: 'ntext',        limit: 2147483647,    precision: nil,   scale: nil,  default: "test ntext åå",        collation: "SQL_Latin1_General_CP1_CI_AS"
+    assert_line :nchar_10,          type: 'nchar',        limit: 10,            precision: nil,   scale: nil,  default: "12345678åå",           collation: nil
+    assert_line :nvarchar_50,       type: 'string',       limit: 50,            precision: nil,   scale: nil,  default: "test nvarchar_50 åå",  collation: nil
+    assert_line :nvarchar_max,      type: 'text',         limit: 2147483647,    precision: nil,   scale: nil,  default: "test nvarchar_max åå", collation: nil
+    assert_line :ntext,             type: 'ntext',        limit: 2147483647,    precision: nil,   scale: nil,  default: "test ntext åå",        collation: nil
     # Binary Strings
     assert_line :binary_49,         type: 'binary_basic', limit: 49,            precision: nil,   scale: nil,  default: nil
     assert_line :varbinary_49,      type: 'varbinary',    limit: 49,            precision: nil,   scale: nil,  default: nil
@@ -125,7 +125,7 @@ class SchemaDumperTestSQLServer < ActiveRecord::TestCase
   it 'no id with model driven primary key' do
     output = generate_schema_for_table 'sst_no_pk_data'
     output.must_match %r{create_table "sst_no_pk_data".*id:\sfalse.*do}
-    assert_line :name, type: 'string', limit: nil, default: nil, collation: "SQL_Latin1_General_CP1_CI_AS"
+    assert_line :name, type: 'string', limit: nil, default: nil, collation: nil
   end
 
 
@@ -154,7 +154,7 @@ class SchemaDumperTestSQLServer < ActiveRecord::TestCase
   def assert_line(column_name, options={})
     line = line(column_name)
     assert line, "Count not find line with column name: #{column_name.inspect} in schema:\n#{schema}"
-    [:type, :limit, :precision, :scale, :default].each do |key|
+    [:type, :limit, :precision, :scale, :collation, :default].each do |key|
       next unless options.key?(key)
       actual   = key == :type ? line.send(:type_method) : line.send(key)
       expected = options[key]

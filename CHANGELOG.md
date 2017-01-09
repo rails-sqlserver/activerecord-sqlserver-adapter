@@ -21,4 +21,4 @@
 
 #### Fixed
 
-* ...
+* Do not output column collation in schema when same as database.
