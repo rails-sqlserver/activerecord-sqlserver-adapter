@@ -138,8 +138,10 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal 1, queries.length
     queries.first.must_match %r{ORDER BY \[accounts\]\.\[id\] ASC OFFSET @0 ROWS FETCH NEXT @1 ROWS ONLY.*@0 = 1, @1 = 1}
   end
-end
 
+  # Leave it up to users to format selects/functions so HAVING works correctly.
+  coerce_tests! :test_having_with_strong_parameters
+end
 
 
 
@@ -585,6 +587,10 @@ class RelationTest < ActiveRecord::TestCase
 
   # We are not doing order duplicate removal anymore.
   coerce_tests! :test_default_scope_order_with_scope_order
+
+  # Leave it up to users to format selects/functions so HAVING works correctly.
+  coerce_tests! :test_multiple_where_and_having_clauses
+  coerce_tests! :test_having_with_binds_for_both_where_and_having
 end
 
 
