@@ -446,6 +446,13 @@ end
 
 
 
+class LeftOuterJoinAssociationTest < ActiveRecord::TestCase
+  # Uses || operator in SQL. Just trust core gets value out of this test.
+  coerce_tests! :test_does_not_override_select
+end
+
+
+
 
 class NamedScopingTest < ActiveRecord::TestCase
   # This works now because we add an `order(:id)` sort to break the order tie for deterministic results.
