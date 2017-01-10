@@ -634,6 +634,13 @@ class SchemaDumperTest < ActiveRecord::TestCase
     index_definition = standard_dump.split(/\n/).grep(/t.index.*company_partial_index/).first.strip
     assert_equal 't.index ["firm_id", "type"], name: "company_partial_index", where: "([rating]>(10))"', index_definition
   end
+
+  # We do not quote the 2.78 string default.
+  coerce_tests! :test_schema_dump_includes_decimal_options
+  def test_schema_dump_includes_decimal_options_coerced
+    output = dump_all_table_schema([/^[^n]/])
+    assert_match %r{precision: 3,[[:space:]]+scale: 2,[[:space:]]+default: 2\.78}, output
+  end
 end
 
 class SchemaDumperDefaultsTest < ActiveRecord::TestCase
