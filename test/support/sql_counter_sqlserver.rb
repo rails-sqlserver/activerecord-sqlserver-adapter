@@ -17,7 +17,8 @@ module ARTest
       /SELECT @@version/,
       /SELECT @@TRANCOUNT/,
       /(BEGIN|COMMIT|ROLLBACK|SAVE) TRANSACTION/,
-      /SELECT CAST\(.* AS .*\) AS value/
+      /SELECT CAST\(.* AS .*\) AS value/,
+      /SELECT DATABASEPROPERTYEX/im
     ]
 
     sqlcounter = ObjectSpace.each_object(ActiveRecord::SQLCounter).to_a.first

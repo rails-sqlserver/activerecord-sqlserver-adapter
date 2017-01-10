@@ -14,6 +14,7 @@ require 'active_record/connection_adapters/sqlserver/database_tasks'
 require 'active_record/connection_adapters/sqlserver/transaction'
 require 'active_record/connection_adapters/sqlserver/errors'
 require 'active_record/connection_adapters/sqlserver/schema_creation'
+require 'active_record/connection_adapters/sqlserver/schema_dumper'
 require 'active_record/connection_adapters/sqlserver/schema_statements'
 require 'active_record/connection_adapters/sqlserver/sql_type_metadata'
 require 'active_record/connection_adapters/sqlserver/showplan'
@@ -32,6 +33,7 @@ module ActiveRecord
               SQLServer::Quoting,
               SQLServer::DatabaseStatements,
               SQLServer::Showplan,
+              SQLServer::SchemaDumper,
               SQLServer::SchemaStatements,
               SQLServer::DatabaseLimits,
               SQLServer::DatabaseTasks
@@ -169,12 +171,17 @@ module ActiveRecord
 
       def disconnect!
         super
-        @spid = nil
         case @connection_options[:mode]
         when :dblib
           @connection.close rescue nil
         end
         @connection = nil
+      end
+
+      def clear_cache!
+        super
+        @spid = nil
+        @collation = nil
       end
 
       def reset!

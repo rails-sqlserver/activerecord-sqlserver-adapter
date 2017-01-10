@@ -20,7 +20,7 @@ module ActiveRecord
       end
 
       def case_sensitive?
-        collation && !collation.match(/_CI/)
+        collation && collation.match(/_CS/)
       end
 
     end

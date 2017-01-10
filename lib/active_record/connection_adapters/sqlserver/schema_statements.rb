@@ -301,10 +301,7 @@ module ActiveRecord
             columns.NUMERIC_SCALE AS numeric_scale,
             columns.NUMERIC_PRECISION AS numeric_precision,
             columns.DATETIME_PRECISION AS datetime_precision,
-            CASE
-              WHEN columns.COLLATION_NAME <> DATABASEPROPERTYEX(DB_NAME(), 'Collation') THEN columns.COLLATION_NAME
-              ELSE NULL
-            END AS [collation],
+            columns.COLLATION_NAME AS [collation],
             columns.ordinal_position,
             CASE
               WHEN columns.DATA_TYPE IN ('nchar','nvarchar','char','varchar') THEN columns.CHARACTER_MAXIMUM_LENGTH

@@ -24,9 +24,8 @@ module ActiveRecord
         end
 
         def collation
-          select_value "SELECT DATABASEPROPERTYEX(DB_NAME(), 'Collation')"
+          @collation ||= select_value "SELECT DATABASEPROPERTYEX(DB_NAME(), 'Collation')"
         end
-
 
         private
 
