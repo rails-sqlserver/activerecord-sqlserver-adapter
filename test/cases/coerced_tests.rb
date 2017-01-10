@@ -340,13 +340,6 @@ end
 
 
 
-require 'models/owner'
-class Owner < ActiveRecord::Base
-  scope :including_last_pet, -> {
-    select('owners.*, (select TOP (1) p.pet_id from pets p where p.owner_id = owners.owner_id order by p.name desc ) as last_pet_id').
-    includes(:last_pet)
-  }
-end
 class EagerAssociationTest < ActiveRecord::TestCase
   # Use LEN() vs length() function.
   coerce_tests! :test_count_with_include
@@ -356,9 +349,6 @@ class EagerAssociationTest < ActiveRecord::TestCase
 
   # Use TOP (1) in scope vs limit 1.
   coerce_tests! %r{including association based on sql condition and no database column}
-  it "including association based on sql condition and no database column coerced" do
-    assert_equal pets(:parrot), Owner.including_last_pet.first.last_pet
-  end
 end
 
 
