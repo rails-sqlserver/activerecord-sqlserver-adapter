@@ -179,9 +179,9 @@ module ActiveRecord
       end
 
       def clear_cache!
-        super
         @spid = nil
         @collation = nil
+        super
       end
 
       def reset!
