@@ -35,7 +35,7 @@ module ActiveRecord
           private
 
           def cast_value(value)
-            super.try(:in_time_zone)
+            is_utc? ? super.try(:in_time_zone) : super
           end
 
           def fast_string_to_time(string)
