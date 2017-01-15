@@ -765,3 +765,13 @@ class DefaultNumbersTest < ActiveRecord::TestCase
     assert_equal -5, record.negative_integer_before_type_cast
   end
 end
+
+
+
+
+module ActiveRecord
+  class CollectionCacheKeyTest < ActiveRecord::TestCase
+    # Will trust rails has this sorted since you cant offset without a limit.
+    coerce_tests! %r{with offset which return 0 rows}
+  end
+end
