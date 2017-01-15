@@ -7,7 +7,8 @@ module ActiveRecord
           include TimeValueFractional2
 
           def serialize(value)
-            return super unless value.acts_like?(:time)
+            value = super
+            return value unless value.acts_like?(:time)
             time = value.to_s(:_sqlserver_time).tap do |v|
               fraction = quote_fractional(value)
               v << ".#{fraction}"
@@ -34,7 +35,7 @@ module ActiveRecord
           private
 
           def cast_value(value)
-            value = value.acts_like?(:time) ? value : super
+            value = super
             return if value.blank?
             value = value.change year: 2000, month: 01, day: 01
             apply_seconds_precision(value)

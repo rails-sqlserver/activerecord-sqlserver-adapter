@@ -26,9 +26,9 @@ class SchemaDumperTestSQLServer < ActiveRecord::TestCase
     assert_line :date,              type: 'date',         limit: nil,           precision: nil,   scale: nil,  default: "01-01-0001"
     assert_line :datetime,          type: 'datetime',     limit: nil,           precision: nil,   scale: nil,  default: "01-01-1753 00:00:00.123"
     if connection_dblib_73?
-    assert_line :datetime2_7,       type: 'datetime2',    limit: nil,           precision: 7,     scale: nil,  default: "12-31-9999 23:59:59.9999999"
-    assert_line :datetime2_3,       type: 'datetime2',    limit: nil,           precision: 3,     scale: nil,  default: nil
-    assert_line :datetime2_1,       type: 'datetime2',    limit: nil,           precision: 1,     scale: nil,  default: nil
+    assert_line :datetime2_7,       type: 'datetime',     limit: nil,           precision: 7,     scale: nil,  default: "12-31-9999 23:59:59.9999999"
+    assert_line :datetime2_3,       type: 'datetime',     limit: nil,           precision: 3,     scale: nil,  default: nil
+    assert_line :datetime2_1,       type: 'datetime',     limit: nil,           precision: 1,     scale: nil,  default: nil
     end
     assert_line :smalldatetime,     type: 'smalldatetime',limit: nil,           precision: nil,   scale: nil,  default: "01-01-1901 15:45:00.0"
     if connection_dblib_73?
@@ -99,7 +99,7 @@ class SchemaDumperTestSQLServer < ActiveRecord::TestCase
     columns['sstimestamp_col'].sql_type.must_equal  'timestamp'
     assert_line :real_col,          type: 'real',         limit: nil,           precision: nil,   scale: nil,  default: nil
     assert_line :money_col,         type: 'money',        limit: nil,           precision: 19,    scale: 4,    default: nil
-    assert_line :datetime2_col,     type: 'datetime2',    limit: nil,           precision: 7,     scale: nil,  default: nil
+    assert_line :datetime2_col,     type: 'datetime',     limit: nil,           precision: 7,     scale: nil,  default: nil
     assert_line :smallmoney_col,    type: 'smallmoney',   limit: nil,           precision: 10,    scale: 4,    default: nil
     assert_line :char_col,          type: 'char',         limit: 1,             precision: nil,   scale: nil,  default: nil
     assert_line :varchar_col,       type: 'varchar',      limit: nil,           precision: nil,   scale: nil,  default: nil

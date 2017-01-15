@@ -352,7 +352,7 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       skip 'datetime2 not supported in this protocal version' unless connection_dblib_73?
       col = column('datetime2_7')
       col.sql_type.must_equal           'datetime2(7)'
-      col.type.must_equal               :datetime2
+      col.type.must_equal               :datetime
       col.null.must_equal               true
       time = Time.utc 9999, 12, 31, 23, 59, 59, Rational(999999900, 1000)
       col.default.must_equal            time, "Nanoseconds were <#{col.default.nsec}> vs <999999900>"
@@ -417,7 +417,7 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       skip 'datetimeoffset not supported in this protocal version' unless connection_dblib_73?
       col = column('datetimeoffset_7')
       col.sql_type.must_equal           'datetimeoffset(7)'
-      col.type.must_equal               :datetimeoffset
+      col.type.must_equal               :datetime
       col.null.must_equal               true
       col.default.must_equal            Time.new(1984, 01, 24, 04, 20, 00, -28800).change(nsec: 123456700), "Nanoseconds <#{col.default.nsec}> vs <123456700>"
       obj.datetimeoffset_7.must_equal   Time.new(1984, 01, 24, 04, 20, 00, -28800).change(nsec: 123456700), "Nanoseconds were <#{obj.datetimeoffset_7.nsec}> vs <999999900>"

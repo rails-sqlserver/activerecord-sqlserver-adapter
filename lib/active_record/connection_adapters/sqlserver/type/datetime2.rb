@@ -6,10 +6,6 @@ module ActiveRecord
 
           include TimeValueFractional2
 
-          def type
-            :datetime2
-          end
-
           def sqlserver_type
             "datetime2(#{precision.to_i})"
           end
