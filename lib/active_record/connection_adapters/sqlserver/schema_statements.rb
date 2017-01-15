@@ -146,7 +146,6 @@ module ActiveRecord
 
         def rename_column(table_name, column_name, new_column_name)
           clear_cache!
-          detect_column_for! table_name, column_name
           identifier = SQLServer::Utils.extract_identifiers("#{table_name}.#{column_name}")
           execute_procedure :sp_rename, identifier.quoted, new_column_name, 'COLUMN'
           rename_column_indexes(table_name, column_name, new_column_name)
