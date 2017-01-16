@@ -381,6 +381,28 @@ class FinderTest < ActiveRecord::TestCase
 
   # This fails only when run in the full test suite task. Just taking it out of the mix.
   coerce_tests! :test_find_with_order_on_included_associations_with_construct_finder_sql_for_association_limiting_and_is_distinct
+
+  # Can not use array condition due to not finding right type and hence fractional second quoting.
+  coerce_tests! :test_condition_utc_time_interpolation_with_default_timezone_local
+  def test_condition_utc_time_interpolation_with_default_timezone_local_coerced
+    with_env_tz 'America/New_York' do
+      with_timezone_config default: :local do
+        topic = Topic.first
+        assert_equal topic, Topic.where(written_on: topic.written_on.getutc).first
+      end
+    end
+  end
+
+  # Can not use array condition due to not finding right type and hence fractional second quoting.
+  coerce_tests! :test_condition_local_time_interpolation_with_default_timezone_utc
+  def test_condition_local_time_interpolation_with_default_timezone_utc_coerced
+    with_env_tz 'America/New_York' do
+      with_timezone_config default: :utc do
+        topic = Topic.first
+        assert_equal topic, Topic.where(written_on: topic.written_on.getlocal).first
+      end
+    end
+  end
 end
 
 
