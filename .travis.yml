@@ -4,7 +4,6 @@ services:
   - docker
 env:
   global:
-    - TESTOPTS="-v"
     - TINYTDS_VERSION=1.1.0
     - ACTIVERECORD_UNITTEST_HOST=localhost
     - ACTIVERECORD_UNITTEST_DATASERVER=localhost
