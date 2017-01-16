@@ -8,8 +8,10 @@ class ConnectionTestSQLServer < ActiveRecord::TestCase
 
   fixtures :topics, :accounts
 
-  before { assert connection.active? }
-  after  { connection.reconnect! }
+  before do
+    connection.reconnect!
+    assert connection.active?
+  end
 
   it 'affect rows' do
     topic_data = { 1 => { "content" => "1 updated" }, 2 => { "content" => "2 updated" } }
