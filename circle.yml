@@ -10,7 +10,6 @@ machine:
     TINYTDS_VERSION: 1.1.0
     ACTIVERECORD_UNITTEST_HOST: localhost
     ACTIVERECORD_UNITTEST_DATASERVER: localhost
-    ONLY_SQLSERVER: 1
   services:
     - docker
 
