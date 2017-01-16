@@ -205,14 +205,14 @@ module ActiveRecord
         remove_column("test_models", "hat_size")
         assert_equal [], connection.indexes('test_models').map(&:name)
       end
-    end
 
-    # Choose `StatementInvalid` vs `ActiveRecordError`.
-    coerce_tests! :test_rename_nonexistent_column
-    def test_rename_nonexistent_column_coerced
-      exception = ActiveRecord::StatementInvalid
-      assert_raise(exception) do
-        rename_column "test_models", "nonexistent", "should_fail"
+      # Choose `StatementInvalid` vs `ActiveRecordError`.
+      coerce_tests! :test_rename_nonexistent_column
+      def test_rename_nonexistent_column_coerced
+        exception = ActiveRecord::StatementInvalid
+        assert_raise(exception) do
+          rename_column "test_models", "nonexistent", "should_fail"
+        end
       end
     end
   end
