@@ -240,10 +240,8 @@ module ActiveRecord
           case value = attr.value_for_database
           when Numeric
             'int'.freeze
-          when String
-            'nvarchar(max)'.freeze
           else
-            raise TypeError, "sp_executesql_sql_type can not find sql type for attr #{attr.inspect}"
+            'nvarchar(max)'.freeze
           end
         end
 
