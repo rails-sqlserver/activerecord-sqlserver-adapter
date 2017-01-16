@@ -3,9 +3,9 @@ module ActiveRecord
     module SQLServer
       module Quoting
 
-        QUOTED_TRUE  = '1'
-        QUOTED_FALSE = '0'
-        QUOTED_STRING_PREFIX = 'N'
+        QUOTED_TRUE  = '1'.freeze
+        QUOTED_FALSE = '0'.freeze
+        QUOTED_STRING_PREFIX = 'N'.freeze
 
         def fetch_type_metadata(sql_type, sqlserver_options = {})
           cast_type = lookup_cast_type(sql_type)
