@@ -2,7 +2,7 @@ source 'https://rubygems.org'
 gemspec
 
 gem 'sqlite3'
-gem 'minitest', '~> 5.9.0'
+gem 'minitest', '< 5.3.4'
 gem 'bcrypt', platforms: [:mri]
 gem 'tzinfo-data', platforms: [:mingw, :mswin, :x64_mingw, :jruby]
 
