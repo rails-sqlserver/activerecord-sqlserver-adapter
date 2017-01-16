@@ -7,37 +7,10 @@
 * [![Gem Version](http://img.shields.io/gem/v/activerecord-sqlserver-adapter.svg)](https://rubygems.org/gems/activerecord-sqlserver-adapter) - Gem Version
 * [![Gitter chat](https://img.shields.io/badge/%E2%8A%AA%20GITTER%20-JOIN%20CHAT%20%E2%86%92-brightgreen.svg?style=flat)](https://gitter.im/rails-sqlserver/activerecord-sqlserver-adapter) - Community
 
-## RAILS v5 COMING!!!
 
-2017-01-04 - All core adapter tests are passing on Rails v5. We have ~60 failures under the full AcitveRecord suite. At this time, the foundation of the adapter is considered to be solid and the remaining tests will not likely require any refactors of the adapter internals.
+The SQL Server adapter for ActiveRecord v5.0 using SQL Server 2012 or higher.
 
-This means you can technically bundle to the adapter's master branch and work with Rails 5. However, but reports should not be given till we have a release and pass all ActiveRecord tests. Please follow the `RAILS5-TODO.md` and `RAILS5-FAILS.txt` notes before filing issues.
-
-* [RAILS5-TODO.md](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/blob/master/RAILS5-TODO.md)
-* [RAILS5-FAILS.txt](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/blob/master/RAILS5-FAILS.txt)
-* [All Rails 5.0 Issues - Closed](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/issues?q=label%3A%22Rails+5.0%22+is%3Aclosed)
-* [All Rails 5.0 Issues - Open](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/labels/Rails%205.0)
-
-* **Can I help?** - Thanks so much! Feel free to jump in. I suggest chatting on Gitter or GitHub to make sure we are not dupliating work.
-* **What is the ETA of an initial release?** - My guess is that we can have an initial release by mid January easily.
-
-
-#### Using Rails v4
-
-Use these commands to use the latest of Rails v4 till our v5 release is ready.
-
-```shell
-$ gem install rails -v 4.2.7.1
-$ rails _4.2.7.1_ new MYAPP --database=sqlserver
-```
-
-![kantishna-wide](https://cloud.githubusercontent.com/assets/2381/5895051/aa6a57e0-a4e1-11e4-95b9-23627af5876a.jpg)
-
-## Code Name Kantishna
-
-The SQL Server adapter for ActiveRecord v4.2 using SQL Server 2012 or higher.
-
-Interested in older versions? We follow a rational versioning policy that tracks Rails. That means that our 4.2.x version of the adapter is only for the latest 4.2 version of Rails. If you need the adapter for SQL Server 2008 or 2005, you are still in the right spot. Just install the latest 3.2.x to 4.1.x version of the adapter that matches your Rails version. We also have stable branches for each major/minor release of ActiveRecord.
+Interested in older versions? We follow a rational versioning policy that tracks Rails. That means that our 5.0.x version of the adapter is only for the latest 4.2 version of Rails. If you need the adapter for SQL Server 2008 or 2005, you are still in the right spot. Just install the latest 3.2.x to 4.1.x version of the adapter that matches your Rails version. We also have stable branches for each major/minor release of ActiveRecord.
 
 
 #### Executing Stored Procedures
