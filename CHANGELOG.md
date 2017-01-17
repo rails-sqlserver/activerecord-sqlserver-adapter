@@ -4,6 +4,10 @@
 
 * Set `tds_version` fallback to `7.3`.
 
+#### Fixed
+
+* Support 2014, 2012 drop table statement.
+
 
 ## v5.0.0
 
