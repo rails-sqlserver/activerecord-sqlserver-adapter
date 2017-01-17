@@ -42,6 +42,14 @@ module ActiveRecord
           res
         end
 
+        def drop_table(table_name, options = {})
+          if options[:if_exists] && @version_year != 2016
+            execute "IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = #{quote(table_name)}) DROP TABLE #{quote_table_name(table_name)}"
+          else
+            super
+          end
+        end
+
         def indexes(table_name, name = nil)
           data = select("EXEC sp_helpindex #{quote(table_name)}", name) rescue []
           data.reduce([]) do |indexes, index|
