@@ -11,6 +11,7 @@ install:
   - ps: Update-AppveyorBuild -Version "$(Get-Content $env:appveyor_build_folder\VERSION).$env:appveyor_build_number"
   - ruby --version
   - gem --version
+  - gem install bcrypt --platform=ruby
   - bundle install
 build: off
 test_script:
