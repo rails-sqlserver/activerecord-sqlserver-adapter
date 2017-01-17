@@ -1,3 +1,9 @@
+## v5.0.1
+
+#### Changed
+
+* Set `tds_version` fallback to `7.3`.
+
 
 ## v5.0.0
 

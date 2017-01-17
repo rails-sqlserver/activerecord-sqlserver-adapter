@@ -10,65 +10,16 @@
 
 The SQL Server adapter for ActiveRecord v5.0 using SQL Server 2012 or higher.
 
-Interested in older versions? We follow a rational versioning policy that tracks Rails. That means that our 5.0.x version of the adapter is only for the latest 4.2 version of Rails. If you need the adapter for SQL Server 2008 or 2005, you are still in the right spot. Just install the latest 3.2.x to 4.1.x version of the adapter that matches your Rails version. We also have stable branches for each major/minor release of ActiveRecord.
-
-
-#### Executing Stored Procedures
-
-Every class that sub classes ActiveRecord::Base will now have an execute_procedure class method to use. This method takes the name of the stored procedure which can be a string or symbol and any number of variables to pass to the procedure. Arguments will automatically be quoted per the connection's standards as normal. For example:
-
-```ruby
-Account.execute_procedure :update_totals, 'admin', nil, true
-# Or with named parameters.
-Account.execute_procedure :update_totals, named: 'params'
-```
+Interested in older versions? We follow a rational versioning policy that tracks Rails. That means that our 5.0.x version of the adapter is only for the latest 5.0 version of Rails. If you need the adapter for SQL Server 2008 or 2005, you are still in the right spot. Just install the latest 3.2.x to 4.1.x version of the adapter that matches your Rails version. We also have stable branches for each major/minor release of ActiveRecord.
 
 
 #### Native Data Type Support
 
-We support every data type supported by FreeTDS and then a few more. All simplified Rails types in migrations will coorespond to a matching SQL Server national (unicode) data type. Here is a basic chart. Always check the `initialize_native_database_types` method for an updated list.
+We support every data type supported by FreeTDS. All simplified Rails types in migrations will coorespond to a matching SQL Server national (unicode) data type. Always check the `initialize_native_database_types` [(here)](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/blob/master/lib/active_record/connection_adapters/sqlserver/schema_statements.rb#L243) for an updated list.
 
-```ruby
-integer:        { name: 'int', limit: 4 }
-bigint:         { name: 'bigint' }
-boolean:        { name: 'bit' }
-decimal:        { name: 'decimal' }
-money:          { name: 'money' }
-smallmoney:     { name: 'smallmoney' }
-float:          { name: 'float' }
-real:           { name: 'real' }
-date:           { name: 'date' }
-datetime:       { name: 'datetime' }
-datetime2:      { name: 'datetime2', precision: 7 }
-datetimeoffset: { name: 'datetimeoffset', precision: 7 }
-smalldatetime:  { name: 'smalldatetime' }
-timestamp:      { name: 'datetime' }
-time:           { name: 'time' }
-char:           { name: 'char' }
-varchar:        { name: 'varchar', limit: 8000 }
-varchar_max:    { name: 'varchar(max)' }
-text_basic:     { name: 'text' }
-nchar:          { name: 'nchar' }
-string:         { name: 'nvarchar', limit: 4000 }
-text:           { name: 'nvarchar(max)' }
-ntext:          { name: 'ntext' }
-binary_basic:   { name: 'binary' }
-varbinary:      { name: 'varbinary', limit: 8000 }
-binary:         { name: 'varbinary(max)' }
-uuid:           { name: 'uniqueidentifier' }
-ss_timestamp:   { name: 'timestamp' }
-```
+The following types (date, datetime2, datetimeoffset, time) all require TDS version 7.3 with TinyTDS. We recommend using FreeTDS 1.0 or higher which default to using `TDSVER` to "7.3". The adapter also sets TinyTDS's `tds_version` to this as well if non is specified.
 
-The following types require TDS version 7.3 with TinyTDS. This requires the latest FreeTDS v0.95 or higher.
-
-* date
-* datetime2
-* datetimeoffset
-* time
-
-Set `tds_version` in your database.yml or the `TDSVER` environment variable to `7.3` to ensure you are using the proper protocol version till 7.3 becomes the default.
-
-**Zone Conversion** - The `[datetimeoffset]` type is the only ActiveRecord time based datatype that does not cast the zone to ActiveRecord's default - typically UTC. As intended, this datatype is meant to maintain the zone you pass to it and/or retreived from the database.
+The Rails v5 adapter supports ActiveRecord's `datetime_with_precision` setting. This means that passing `:precision` to a datetime column is supported. Using a pecision with the `:datetime` type will signal the adapter to use the `datetime2` type under the hood.
 
 
 #### Force Schema To Lowercase
@@ -111,6 +62,16 @@ module ActiveRecord
 end
 ```
 
+#### Executing Stored Procedures
+
+Every class that sub classes ActiveRecord::Base will now have an execute_procedure class method to use. This method takes the name of the stored procedure which can be a string or symbol and any number of variables to pass to the procedure. Arguments will automatically be quoted per the connection's standards as normal. For example:
+
+```ruby
+Account.execute_procedure :update_totals, 'admin', nil, true
+# Or with named parameters.
+Account.execute_procedure :update_totals, named: 'params'
+```
+
 #### Explain Support (SHOWPLAN)
 
 The 3.2 version of the adapter support ActiveRecord's explain features. In SQL Server, this is called the showplan. By default we use the `SHOWPLAN_ALL` option and format it using a simple table printer. So the following ruby would log the plan table below it.
@@ -143,18 +104,13 @@ ActiveRecord::ConnectionAdapters::SQLServerAdapter.showplan_option = 'SHOWPLAN_X
 **NOTE:** The method we utilize to make SHOWPLANs work is very brittle to complex SQL. There is no getting around this as we have to deconstruct an already prepared statement for the sp_executesql method. If you find that explain breaks your app, simple disable it. Do not open a github issue unless you have a patch.  Please [consult the Rails guides](http://guides.rubyonrails.org/active_record_querying.html#running-explain) for more info.
 
 
-## Versions
-
-The adapter follows a rational versioning policy that also tracks ActiveRecord's major and minor version. That means the latest 3.1.x version of the adapter will always work for the latest 3.1.x version of ActiveRecord.
-
-
 ## Installation
 
 The adapter has no strict gem dependencies outside of ActiveRecord. You will have to pick a connection mode, the default is dblib which uses the TinyTDS gem. Just bundle the gem and the adapter will use it.
 
 ```ruby
 gem 'tiny_tds'
-gem 'activerecord-sqlserver-adapter', '~> 4.2.0'
+gem 'activerecord-sqlserver-adapter'
 ```
 
 
@@ -172,6 +128,7 @@ Many many people have contributed. If you do not see your name here and it shoul
 
 
 ## Contributers
+
 Up-to-date list of contributors: http://github.com/rails-sqlserver/activerecord-sqlserver-adapter/contributors
 
 * metaskills (Ken Collins)
@@ -194,5 +151,5 @@ Up-to-date list of contributors: http://github.com/rails-sqlserver/activerecord-
 
 ## License
 
-Copyright © 2008-2016. It is free software, and may be redistributed under the terms specified in the MIT-LICENSE file.
+Copyright © 2008-2017. It is free software, and may be redistributed under the terms specified in the MIT-LICENSE file.
 

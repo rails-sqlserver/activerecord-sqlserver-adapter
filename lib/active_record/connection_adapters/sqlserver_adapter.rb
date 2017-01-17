@@ -356,7 +356,7 @@ module ActiveRecord
           username: config[:username],
           password: config[:password],
           database: config[:database],
-          tds_version: config[:tds_version],
+          tds_version: config[:tds_version] || '7.3',
           appname: config_appname(config),
           login_timeout: config_login_timeout(config),
           timeout: config_timeout(config),
