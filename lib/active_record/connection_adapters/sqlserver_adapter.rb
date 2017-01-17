@@ -339,6 +339,7 @@ module ActiveRecord
                         dblib_connect(config)
                       end
         @spid = _raw_select('SELECT @@SPID', fetch: :rows).first.first
+        @version_year = version_year
         configure_connection
       end
 
@@ -413,6 +414,13 @@ module ActiveRecord
         ::Time::DATE_FORMATS[:_sqlserver_datetimeoffset] = lambda { |time|
           time.strftime "#{dateformat} %H:%M:%S.%9N #{time.formatted_offset}"
         }
+      end
+
+      def version_year
+        vstring = _raw_select('SELECT @@version', fetch: :rows).first.first.to_s
+        /SQL Server (\d+)/.match(vstring).to_a.last.to_s.to_i
+      rescue Exception => e
+        2016
       end
 
     end
