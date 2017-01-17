@@ -3,7 +3,7 @@ gemspec
 
 gem 'sqlite3'
 gem 'minitest', '< 5.3.4'
-gem 'bcrypt', platforms: [:mri]
+gem 'bcrypt'
 gem 'tzinfo-data', platforms: [:mingw, :mswin, :x64_mingw, :jruby]
 
 if RbConfig::CONFIG["host_os"] =~ /darwin/
