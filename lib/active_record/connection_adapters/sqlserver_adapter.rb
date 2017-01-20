@@ -204,10 +204,13 @@ module ActiveRecord
         connect
         @database_version = select_value 'SELECT @@version', 'SCHEMA'
         @database_year = begin
-                           if @database_version =~ /Azure/i
+			   case
+			   when @database_version =~ /Azure/i
                              @sqlserver_azure = true
                              @database_version.match(/\s-\s([0-9.]+)/)[1]
                              year = 2012
+			   when @database_version =~ /vNext/i
+			     @database_version.match(/\n\t?.*(\d{4})/)[1].to_i
                            else
                              year = DATABASE_VERSION_REGEXP.match(@database_version)[1]
                              year == "Denali" ? 2011 : year.to_i
@@ -215,6 +218,7 @@ module ActiveRecord
                          rescue
                            0
                          end
+
         @product_level    = select_value "SELECT CAST(SERVERPROPERTY('productlevel') AS VARCHAR(128))", 'SCHEMA'
         @product_version  = select_value "SELECT CAST(SERVERPROPERTY('productversion') AS VARCHAR(128))", 'SCHEMA'
         @edition          = select_value "SELECT CAST(SERVERPROPERTY('edition') AS VARCHAR(128))", 'SCHEMA'
