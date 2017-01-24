@@ -1,3 +1,10 @@
+## v4.2.16
+
+#### Fixed
+
+* Overwrite `_type_cast` method for char data. Fixes #491 #494
+
+
 ## v4.2.15
 
 #### Fixed
