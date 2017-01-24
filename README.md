@@ -1,7 +1,12 @@
 
 # ActiveRecord SQL Server Adapter. For SQL Server 2012 And Higher.
 
-[![Build status](https://ci.appveyor.com/api/projects/status/mtgbx8f57vr7k2qa/branch/master?svg=true)](https://ci.appveyor.com/project/rails-sqlserver/activerecord-sqlserver-adapter/branch/master) [![Gem Version](http://img.shields.io/gem/v/activerecord-sqlserver-adapter.svg?style=flat)](https://rubygems.org/gems/activerecord-sqlserver-adapter) [![Gitter chat](https://img.shields.io/badge/%E2%8A%AA%20GITTER%20-JOIN%20CHAT%20%E2%86%92-brightgreen.svg?style=flat)](https://gitter.im/rails-sqlserver/activerecord-sqlserver-adapter)
+* [![TravisCI](https://travis-ci.org/rails-sqlserver/activerecord-sqlserver-adapter.svg?branch=4-2-stable)](https://travis-ci.org/rails-sqlserver/activerecord-sqlserver-adapter) - TravisCI
+* [![CircleCI](https://circleci.com/gh/rails-sqlserver/activerecord-sqlserver-adapter/tree/4-2-stable.svg?style=svg)](https://circleci.com/gh/rails-sqlserver/activerecord-sqlserver-adapter/tree/4-2-stable) - CircleCI
+* [![Build Status](https://ci.appveyor.com/api/projects/status/mtgbx8f57vr7k2qa/branch/4-2-stable?svg=true)](https://ci.appveyor.com/project/rails-sqlserver/activerecord-sqlserver-adapter/branch/4-2-stable) - Appveyor
+* [![Gem Version](http://img.shields.io/gem/v/activerecord-sqlserver-adapter.svg)](https://rubygems.org/gems/activerecord-sqlserver-adapter) - Gem Version
+* [![Dependency Status](https://dependencyci.com/github/rails-sqlserver/activerecord-sqlserver-adapter/badge)](https://dependencyci.com/github/rails-sqlserver/activerecord-sqlserver-adapter) - Dependency Status
+* [![Gitter chat](https://img.shields.io/badge/%E2%8A%AA%20GITTER%20-JOIN%20CHAT%20%E2%86%92-brightgreen.svg?style=flat)](https://gitter.im/rails-sqlserver/activerecord-sqlserver-adapter) - Community
 
 ![kantishna-wide](https://cloud.githubusercontent.com/assets/2381/5895051/aa6a57e0-a4e1-11e4-95b9-23627af5876a.jpg)
 

@@ -1,0 +1,34 @@
+general:
+  branches:
+    ignore:
+      - /dev.*/
+
+machine:
+  environment:
+    PATH: /opt/local/bin:${PATH}
+    TINYTDS_VERSION: 1.1.0
+    ACTIVERECORD_UNITTEST_HOST: localhost
+    ACTIVERECORD_UNITTEST_DATASERVER: localhost
+  services:
+    - docker
+
+dependencies:
+  override:
+    - sudo ./test/bin/install-openssl.sh
+    - openssl version
+    - sudo ./test/bin/install-freetds.sh
+    - tsql -C
+    - rvm-exec 2.2.5 bundle install
+    - rvm-exec 2.3.1 bundle install
+
+database:
+  override:
+    - echo "Hello"
+  post:
+    - docker info
+    - ./test/bin/setup.sh
+
+test:
+  override:
+    - rvm-exec 2.2.5 bundle exec rake test
+    - rvm-exec 2.3.1 bundle exec rake test
