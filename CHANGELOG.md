@@ -1,3 +1,10 @@
+## v5.0.2
+
+#### Fixed
+
+* Filter table constraints with matching table schema to column. Fixes #478
+
+
 ## v5.0.1
 
 #### Changed
