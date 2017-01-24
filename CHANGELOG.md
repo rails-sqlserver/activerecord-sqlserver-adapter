@@ -4,6 +4,7 @@
 
 * Overwrite `_type_cast` method for char data. Fixes #491 #494
 * Char type data compared against it's string value. Fixes #487 #488
+* Filter table constraints with matching table schema to column. Fixes #478
 
 
 ## v4.2.15
