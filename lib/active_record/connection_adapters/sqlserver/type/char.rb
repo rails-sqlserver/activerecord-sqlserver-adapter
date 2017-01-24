@@ -29,6 +29,11 @@ module ActiveRecord
             end
             alias_method :to_str, :to_s
 
+            def ==(other)
+              self.to_s == other.to_s
+            end
+            alias_method :eql?, :==
+
           end
 
         end
