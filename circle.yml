@@ -20,6 +20,7 @@ dependencies:
     - tsql -C
     - rvm-exec 2.2.5 bundle install
     - rvm-exec 2.3.1 bundle install
+    - rvm-exec 2.4.0 bundle install
 
 database:
   override:
@@ -32,3 +33,4 @@ test:
   override:
     - rvm-exec 2.2.5 bundle exec rake test
     - rvm-exec 2.3.1 bundle exec rake test
+    - rvm-exec 2.4.0 bundle exec rake test
