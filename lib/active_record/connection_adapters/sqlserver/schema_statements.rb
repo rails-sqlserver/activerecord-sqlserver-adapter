@@ -470,20 +470,23 @@ module ActiveRecord
         end
 
         def view_information(table_name)
-          identifier = SQLServer::Utils.extract_identifiers(table_name)
-          view_info = select_one "SELECT * FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_NAME = '#{identifier.object}'", 'SCHEMA'
-          if view_info
-            view_info = view_info.with_indifferent_access
-            if view_info[:VIEW_DEFINITION].blank? || view_info[:VIEW_DEFINITION].length == 4000
-              view_info[:VIEW_DEFINITION] = begin
-                select_values("EXEC sp_helptext #{identifier.object_quoted}", 'SCHEMA').join
-              rescue
-                warn "No view definition found, possible permissions problem.\nPlease run GRANT VIEW DEFINITION TO your_user;"
-                nil
+          @view_information ||= {}
+          @view_information[table_name] ||= begin
+            identifier = SQLServer::Utils.extract_identifiers(table_name)
+            view_info = select_one "SELECT * FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_NAME = '#{identifier.object}'", 'SCHEMA'
+            if view_info
+              view_info = view_info.with_indifferent_access
+              if view_info[:VIEW_DEFINITION].blank? || view_info[:VIEW_DEFINITION].length == 4000
+                view_info[:VIEW_DEFINITION] = begin
+                  select_values("EXEC sp_helptext #{identifier.object_quoted}", 'SCHEMA').join
+                rescue
+                  warn "No view definition found, possible permissions problem.\nPlease run GRANT VIEW DEFINITION TO your_user;"
+                  nil
+                end
               end
             end
+            view_info
           end
-          view_info
         end
 
         def views_real_column_name(table_name, column_name)

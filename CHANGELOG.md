@@ -1,3 +1,10 @@
+## v5.0.3
+
+#### Changed
+
+* Reduce view information reflection to per table vs. column. Fixes #552
+
+
 ## v5.0.2
 
 #### Fixed

@@ -176,11 +176,12 @@ module ActiveRecord
           @connection.close rescue nil
         end
         @connection = nil
+        @spid = nil
+        @collation = nil
       end
 
       def clear_cache!
-        @spid = nil
-        @collation = nil
+        @view_information = nil
         super
       end
 
