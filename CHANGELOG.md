@@ -1,3 +1,10 @@
+## v4.2.17
+
+#### Changed
+
+* The `user_options` parsing. Works for hash/array. Fixes #535
+
+
 ## v4.2.16
 
 #### Fixed
