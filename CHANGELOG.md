@@ -1,3 +1,10 @@
+## v4.2.18
+
+#### Changed
+
+* Pass the `:contained` option to TinyTDS. Fixes #527
+
+
 ## v4.2.17
 
 #### Changed
