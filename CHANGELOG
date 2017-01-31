@@ -1,3 +1,7 @@
+* 3.2.16 *
+
+* All user optons to be array/hash. Fixes #540
+
 * 3.2.15 *
 
 * Added vNext support.
