@@ -4,6 +4,7 @@
 
 * Reduce view information reflection to per table vs. column. Fixes #552
 * The `user_options` parsing. Works for hash/array. Fixes #535
+* Pass the `:contained` option to TinyTDS. Fixes #527
 
 
 ## v5.0.2

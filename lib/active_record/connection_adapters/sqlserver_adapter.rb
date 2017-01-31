@@ -363,7 +363,8 @@ module ActiveRecord
           login_timeout: config_login_timeout(config),
           timeout: config_timeout(config),
           encoding:  config_encoding(config),
-          azure: config[:azure]
+          azure: config[:azure],
+          contained: config[:contained]
         ).tap do |client|
           if config[:azure]
             client.execute('SET ANSI_NULLS ON').do
