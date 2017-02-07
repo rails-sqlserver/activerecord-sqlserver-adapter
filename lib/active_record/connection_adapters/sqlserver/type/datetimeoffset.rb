@@ -4,6 +4,10 @@ module ActiveRecord
       module Type
         class DateTimeOffset < DateTime2
 
+          def type
+            :datetimeoffset
+          end
+
           def sqlserver_type
             "datetimeoffset(#{precision.to_i})"
           end
