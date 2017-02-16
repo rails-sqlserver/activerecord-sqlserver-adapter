@@ -1,3 +1,8 @@
+* 4.0.3 *
+
+* Fix parens around `enable_default_unicode_types`. Fixes #562
+
+
 * 4.0.2 *
 
 * Added vNext support.
