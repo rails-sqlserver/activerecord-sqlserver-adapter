@@ -417,7 +417,7 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       skip 'datetimeoffset not supported in this protocal version' unless connection_dblib_73?
       col = column('datetimeoffset_7')
       col.sql_type.must_equal           'datetimeoffset(7)'
-      col.type.must_equal               :datetime
+      col.type.must_equal               :datetimeoffset
       col.null.must_equal               true
       col.default.must_equal            Time.new(1984, 01, 24, 04, 20, 00, -28800).change(nsec: 123456700), "Nanoseconds <#{col.default.nsec}> vs <123456700>"
       obj.datetimeoffset_7.must_equal   Time.new(1984, 01, 24, 04, 20, 00, -28800).change(nsec: 123456700), "Nanoseconds were <#{obj.datetimeoffset_7.nsec}> vs <999999900>"

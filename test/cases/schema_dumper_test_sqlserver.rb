@@ -97,19 +97,20 @@ class SchemaDumperTestSQLServer < ActiveRecord::TestCase
     columns['varbinary_col'].sql_type.must_equal    'varbinary(8000)'
     columns['uuid_col'].sql_type.must_equal         'uniqueidentifier'
     columns['sstimestamp_col'].sql_type.must_equal  'timestamp'
-    assert_line :real_col,          type: 'real',         limit: nil,           precision: nil,   scale: nil,  default: nil
-    assert_line :money_col,         type: 'money',        limit: nil,           precision: 19,    scale: 4,    default: nil
-    assert_line :datetime2_col,     type: 'datetime',     limit: nil,           precision: 7,     scale: nil,  default: nil
-    assert_line :smallmoney_col,    type: 'smallmoney',   limit: nil,           precision: 10,    scale: 4,    default: nil
-    assert_line :char_col,          type: 'char',         limit: 1,             precision: nil,   scale: nil,  default: nil
-    assert_line :varchar_col,       type: 'varchar',      limit: nil,           precision: nil,   scale: nil,  default: nil
-    assert_line :text_basic_col,    type: 'text_basic',   limit: 2147483647,    precision: nil,   scale: nil,  default: nil
-    assert_line :nchar_col,         type: 'nchar',        limit: 1,             precision: nil,   scale: nil,  default: nil
-    assert_line :ntext_col,         type: 'ntext',        limit: 2147483647,    precision: nil,   scale: nil,  default: nil
-    assert_line :binary_basic_col,  type: 'binary_basic', limit: 1,             precision: nil,   scale: nil,  default: nil
-    assert_line :varbinary_col,     type: 'varbinary',    limit: nil,           precision: nil,   scale: nil,  default: nil
-    assert_line :uuid_col,          type: 'uuid',         limit: nil,           precision: nil,   scale: nil,  default: nil
-    assert_line :sstimestamp_col,   type: 'ss_timestamp', limit: nil,           precision: nil,   scale: nil,  default: nil
+    assert_line :real_col,          type: 'real',           limit: nil,           precision: nil,   scale: nil,  default: nil
+    assert_line :money_col,         type: 'money',          limit: nil,           precision: 19,    scale: 4,    default: nil
+    assert_line :datetime2_col,     type: 'datetime',       limit: nil,           precision: 7,     scale: nil,  default: nil
+    assert_line :datetimeoffset,    type: 'datetimeoffset', limit: nil,           precision: 7,     scale: nil,  default: nil
+    assert_line :smallmoney_col,    type: 'smallmoney',     limit: nil,           precision: 10,    scale: 4,    default: nil
+    assert_line :char_col,          type: 'char',           limit: 1,             precision: nil,   scale: nil,  default: nil
+    assert_line :varchar_col,       type: 'varchar',        limit: nil,           precision: nil,   scale: nil,  default: nil
+    assert_line :text_basic_col,    type: 'text_basic',     limit: 2147483647,    precision: nil,   scale: nil,  default: nil
+    assert_line :nchar_col,         type: 'nchar',          limit: 1,             precision: nil,   scale: nil,  default: nil
+    assert_line :ntext_col,         type: 'ntext',          limit: 2147483647,    precision: nil,   scale: nil,  default: nil
+    assert_line :binary_basic_col,  type: 'binary_basic',   limit: 1,             precision: nil,   scale: nil,  default: nil
+    assert_line :varbinary_col,     type: 'varbinary',      limit: nil,           precision: nil,   scale: nil,  default: nil
+    assert_line :uuid_col,          type: 'uuid',           limit: nil,           precision: nil,   scale: nil,  default: nil
+    assert_line :sstimestamp_col,   type: 'ss_timestamp',   limit: nil,           precision: nil,   scale: nil,  default: nil
   end
 
   # Special Cases
