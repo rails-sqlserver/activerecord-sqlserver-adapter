@@ -1,3 +1,10 @@
+## v5.0.4
+
+#### Fixed
+
+* Allow `datetimeoffset` to be used in migrations and represented in schema.
+
+
 ## v5.0.3
 
 #### Changed
