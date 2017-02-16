@@ -3,6 +3,7 @@
 #### Fixed
 
 * Allow `datetimeoffset` to be used in migrations and represented in schema.
+* Using transactions and resetting isolation level correctly when `READ_COMMITTED_SNAPSHOT` is set to `ON` Fixes #520
 
 
 ## v5.0.3
