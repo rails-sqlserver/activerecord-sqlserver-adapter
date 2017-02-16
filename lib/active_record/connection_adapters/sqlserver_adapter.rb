@@ -235,7 +235,7 @@ module ActiveRecord
       end
 
       def native_text_database_type
-        @@native_text_database_type || enable_default_unicode_types ? 'nvarchar(max)' : 'varchar(max)'
+        @@native_text_database_type || (enable_default_unicode_types ? 'nvarchar(max)' : 'varchar(max)')
       end
 
       def native_time_database_type
