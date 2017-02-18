@@ -6,13 +6,18 @@ module ActiveRecord
         private
 
         def visit_TableDefinition(o)
+          table_name = o.name
+          table_name = "##{table_name}" if o.temporary
+          table_name = quote_table_name(table_name)
           if o.as
-            table_name = quote_table_name(o.temporary ? "##{o.name}" : o.name)
             projections, source = @conn.to_sql(o.as).match(%r{SELECT\s+(.*)?\s+FROM\s+(.*)?}).captures
             select_into = "SELECT #{projections} INTO #{table_name} FROM #{source}"
           else
-            o.instance_variable_set :@as, nil
-            super
+            create_sql = "CREATE TABLE "
+            create_sql << "#{table_name} "
+            create_sql << "(#{o.columns.map { |c| accept c }.join(', ')}) "
+            create_sql << "#{o.options}"
+            create_sql
           end
         end
 
