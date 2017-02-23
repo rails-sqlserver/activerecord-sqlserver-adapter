@@ -1,3 +1,10 @@
+## v5.0.5
+
+#### Changed
+
+* Add TinyTDS as a runtime dependency.
+
+
 ## v5.0.4
 
 #### Fixed
