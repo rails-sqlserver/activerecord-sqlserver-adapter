@@ -1,3 +1,4 @@
+require 'openssl'
 source 'https://rubygems.org'
 gemspec
 
