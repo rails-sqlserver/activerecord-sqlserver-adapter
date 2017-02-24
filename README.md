@@ -1,3 +1,4 @@
+[![Support via Gratipay](https://cdn.rawgit.com/gratipay/gratipay-badge/2.3.0/dist/gratipay.svg)](https://gratipay.com/metaskills/)
 
 # ActiveRecord SQL Server Adapter. For SQL Server 2012 And Higher.
 
