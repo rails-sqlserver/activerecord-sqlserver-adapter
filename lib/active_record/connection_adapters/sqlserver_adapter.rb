@@ -97,10 +97,6 @@ module ActiveRecord
         true
       end
 
-      def supports_index_sort_order?
-        false
-      end
-
       def supports_partial_index?
         true
       end

@@ -290,21 +290,6 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
 
   end
 
-  describe 'indexes' do
-
-    let(:desc_index_name) { 'idx_credit_limit_test_desc' }
-
-    it 'have indexes with descending order' do
-      begin
-        connection.execute "CREATE INDEX [#{desc_index_name}] ON [accounts] (credit_limit DESC)"
-        assert connection.indexes('accounts').find { |i| i.name == desc_index_name }
-      ensure
-        connection.execute "DROP INDEX [#{desc_index_name}] ON [accounts]"
-      end
-    end
-
-  end
-
   describe 'views' do
 
     # Using connection.views
