@@ -32,4 +32,11 @@ class IndexTestSQLServer < ActiveRecord::TestCase
     end
   end
 
+  it 'add index with where' do
+    assert_sql(/CREATE.*INDEX.*\(\[last_name\]\) WHERE \[first_name\] = N'john doe'/i) do
+      connection.add_index 'testings', 'last_name', where: "[first_name] = N'john doe'"
+      connection.remove_index 'testings', 'last_name'
+    end
+  end
+
 end
