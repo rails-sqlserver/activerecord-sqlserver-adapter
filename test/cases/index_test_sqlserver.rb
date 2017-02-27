@@ -39,4 +39,9 @@ class IndexTestSQLServer < ActiveRecord::TestCase
     end
   end
 
+  it 'add index with expression' do
+    connection.execute "ALTER TABLE [testings] ADD [first_name_upper] AS UPPER([first_name])"
+    connection.add_index 'testings', 'first_name_upper'
+  end
+
 end
