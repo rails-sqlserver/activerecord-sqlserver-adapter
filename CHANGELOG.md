@@ -1,3 +1,11 @@
+## v5.0.6
+
+#### Changed
+
+* Misc index enhancements or testing. Fixes #570
+  Enable `supports_index_sort_order?`, test `supports_partial_index?`, test how expression indexes work.
+
+
 ## v5.0.5
 
 #### Changed
