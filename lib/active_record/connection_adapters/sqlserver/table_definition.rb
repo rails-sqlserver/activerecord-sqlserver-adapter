@@ -11,6 +11,10 @@ module ActiveRecord
           column name, type, options
         end
 
+        def primary_key_nonclustered(*args, **options)
+          args.each { |name| column(name, :primary_key_nonclustered, options) }
+        end
+
         def real(*args, **options)
           args.each { |name| column(name, :real, options) }
         end

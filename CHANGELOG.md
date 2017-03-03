@@ -5,6 +5,20 @@
 * Misc index enhancements or testing. Fixes #570
   Enable `supports_index_sort_order?`, test `supports_partial_index?`, test how expression indexes work.
 
+#### Added
+
+* New `primary_key_nonclustered` type for easy In-Memory table creation.
+* Examples for an In-Memory table.
+
+```ruby
+create_table :in_memory_table, id: false,
+             options: 'WITH (MEMORY_OPTIMIZED = ON, DURABILITY = SCHEMA_AND_DATA)' do |t|
+  t.primary_key_nonclustered :id
+  t.string :name
+  t.timestamps
+end
+```
+
 
 ## v5.0.5
 
