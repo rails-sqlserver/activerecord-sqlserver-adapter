@@ -3,6 +3,7 @@ require 'bundler/setup'
 Bundler.require :default, :development
 require 'pry'
 require 'support/minitest_sqlserver'
+require 'support/test_in_memory_oltp'
 require 'cases/helper'
 require 'support/load_schema_sqlserver'
 require 'support/coerceable_test_sqlserver'

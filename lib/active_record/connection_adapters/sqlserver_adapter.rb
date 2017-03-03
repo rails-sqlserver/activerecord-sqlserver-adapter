@@ -141,6 +141,10 @@ module ActiveRecord
         false
       end
 
+      def supports_in_memory_oltp?
+        @version_year >= 2014
+      end
+
       def disable_referential_integrity
         tables = tables_with_referential_integrity
         tables.each { |t| do_execute "ALTER TABLE #{t} NOCHECK CONSTRAINT ALL" }
@@ -416,6 +420,7 @@ module ActiveRecord
 
       def version_year
         vstring = _raw_select('SELECT @@version', fetch: :rows).first.first.to_s
+        return 2016 if vstring =~ /vNext/
         /SQL Server (\d+)/.match(vstring).to_a.last.to_s.to_i
       rescue Exception => e
         2016

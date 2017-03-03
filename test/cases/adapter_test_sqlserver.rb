@@ -416,5 +416,14 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
 
   end
 
+  it 'in_memory_oltp' do
+    if ENV['IN_MEMORY_OLTP'] && connection.supports_in_memory_oltp?
+      SSTMemory.primary_key.must_equal 'id'
+      SSTMemory.columns_hash['id'].must_be :is_identity?
+    else
+      skip 'supports_in_memory_oltp? => false'
+    end
+  end
+
 end
 

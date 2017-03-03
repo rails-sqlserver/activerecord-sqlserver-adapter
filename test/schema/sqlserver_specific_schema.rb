@@ -37,6 +37,15 @@ ActiveRecord::Schema.define do
 
   # Edge Cases
 
+  if ENV['IN_MEMORY_OLTP'] && supports_in_memory_oltp?
+    create_table 'sst_memory', force: true, id: false,
+                 options: 'WITH (MEMORY_OPTIMIZED = ON, DURABILITY = SCHEMA_AND_DATA)' do |t|
+      t.primary_key_nonclustered :id
+      t.string :name
+      t.timestamps
+    end
+  end
+
   create_table 'sst_bookings', force: true do |t|
     t.string :name
     t.datetime2 :created_at, null: false
