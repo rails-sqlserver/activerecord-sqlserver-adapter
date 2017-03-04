@@ -514,7 +514,7 @@ module ActiveRecord
         end
 
         def identity_columns(table_name)
-          columns(table_name).select(&:is_identity?)
+          schema_cache.columns(table_name).select(&:is_identity?)
         end
 
 
