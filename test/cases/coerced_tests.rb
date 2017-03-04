@@ -806,3 +806,13 @@ module ActiveRecord
     coerce_tests! %r{with offset which return 0 rows}
   end
 end
+
+
+
+
+module ActiveRecord
+  class StatementCacheTest < ActiveRecord::TestCase
+    # Getting random failures.
+    coerce_tests! :test_find_does_not_use_statement_cache_if_table_name_is_changed
+  end
+end
