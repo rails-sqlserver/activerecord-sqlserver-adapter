@@ -20,7 +20,7 @@ module ActiveRecord
         end
 
         def exec_insert(sql, name, binds, pk = nil, _sequence_name = nil)
-          if pk && id_insert_table_name = query_requires_identity_insert?(sql)
+          if id_insert_table_name = exec_insert_requires_identity?(sql, pk, binds)
             with_identity_insert_enabled(id_insert_table_name) { exec_query(sql, name, binds) }
           else
             exec_query(sql, name, binds)
@@ -279,6 +279,30 @@ module ActiveRecord
           end
         ensure
           @update_sql = false
+        end
+
+        # === SQLServer Specific (Identity Inserts) ===================== #
+
+        def exec_insert_requires_identity?(sql, pk, binds)
+          query_requires_identity_insert?(sql) if pk && binds.map(&:name).include?(pk)
+        end
+
+        def query_requires_identity_insert?(sql)
+          if insert_sql?(sql)
+            table_name = get_table_name(sql)
+            id_column = identity_columns(table_name).first
+            id_column && sql =~ /^\s*(INSERT|EXEC sp_executesql N'INSERT)[^(]+\([^)]*\b(#{id_column.name})\b,?[^)]*\)/i ? quote_table_name(table_name) : false
+          else
+            false
+          end
+        end
+
+        def insert_sql?(sql)
+          !(sql =~ /^\s*(INSERT|EXEC sp_executesql N'INSERT)/i).nil?
+        end
+
+        def identity_columns(table_name)
+          schema_cache.columns(table_name).select(&:is_identity?)
         end
 
         # === SQLServer Specific (Selecting) ============================ #
