@@ -1,5 +1,10 @@
 ## v5.0.6
 
+#### Fixed
+
+* Performance w/inserts. Check binds & use schema cache for id inserts.
+  Fixes #572. Thanks @noelr.
+
 #### Changed
 
 * Misc index enhancements or testing. Fixes #570
