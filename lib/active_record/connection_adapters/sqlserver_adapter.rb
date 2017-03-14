@@ -130,7 +130,7 @@ module ActiveRecord
       end
 
       def supports_json?
-        true
+        @version_year >= 2016
       end
 
       def supports_comments?
@@ -304,6 +304,8 @@ module ActiveRecord
         register_class_with_limit m, %r{\Anvarchar}i,     SQLServer::Type::UnicodeVarchar
         m.alias_type                 'string',            'nvarchar(4000)'
         m.register_type              'nvarchar(max)',     SQLServer::Type::UnicodeVarcharMax.new
+        m.register_type              'nvarchar(max)',     SQLServer::Type::UnicodeVarcharMax.new
+        m.alias_type                 'json',              'nvarchar(max)'
         m.register_type              'ntext',             SQLServer::Type::UnicodeText.new
         # Binary Strings
         register_class_with_limit m, %r{\Abinary}i,       SQLServer::Type::Binary
