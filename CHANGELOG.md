@@ -24,6 +24,24 @@ create_table :in_memory_table, id: false,
 end
 ```
 
+* Enable supports_json? Fixes #577.
+
+```ruby
+create_table :users do |t|
+  t.string :name, :email
+  t.json :data # Creates a nvarchar(max) column.
+ end
+
+class Users < ActiveRecord::Base
+  attribute :data, ActiveRecord::Type::SQLServer::Json.new
+end
+
+User.create! name: 'Ken Collins', data: { 'admin' => true, 'foo' => 'bar' }
+
+admin = User.where("JSON_VALUE(data, '$.admin') = CAST(1 AS BIT)").first
+admin.data['foo'] # => "bar"
+```
+
 
 ## v5.0.5
 
