@@ -85,6 +85,10 @@ module ActiveRecord
           args.each { |name| column(name, :ss_timestamp, options) }
         end
 
+        def json(*args, **options)
+          args.each { |name| column(name, :text, options) }
+        end
+
       end
 
       class TableDefinition < ActiveRecord::ConnectionAdapters::TableDefinition

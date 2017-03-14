@@ -97,6 +97,7 @@ class SchemaDumperTestSQLServer < ActiveRecord::TestCase
     columns['varbinary_col'].sql_type.must_equal    'varbinary(8000)'
     columns['uuid_col'].sql_type.must_equal         'uniqueidentifier'
     columns['sstimestamp_col'].sql_type.must_equal  'timestamp'
+    columns['json_col'].sql_type.must_equal         'nvarchar(max)'
     assert_line :real_col,          type: 'real',           limit: nil,           precision: nil,   scale: nil,  default: nil
     assert_line :money_col,         type: 'money',          limit: nil,           precision: 19,    scale: 4,    default: nil
     assert_line :datetime2_col,     type: 'datetime',       limit: nil,           precision: 7,     scale: nil,  default: nil
@@ -111,6 +112,7 @@ class SchemaDumperTestSQLServer < ActiveRecord::TestCase
     assert_line :varbinary_col,     type: 'varbinary',      limit: nil,           precision: nil,   scale: nil,  default: nil
     assert_line :uuid_col,          type: 'uuid',           limit: nil,           precision: nil,   scale: nil,  default: nil
     assert_line :sstimestamp_col,   type: 'ss_timestamp',   limit: nil,           precision: nil,   scale: nil,  default: nil
+    assert_line :json_col,          type: 'text',           limit: 2147483647,    precision: nil,   scale: nil,  default: nil
   end
 
   # Special Cases

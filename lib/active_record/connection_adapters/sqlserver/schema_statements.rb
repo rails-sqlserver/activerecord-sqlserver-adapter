@@ -281,7 +281,8 @@ module ActiveRecord
             varbinary: { name: 'varbinary', limit: 8000 },
             binary: { name: 'varbinary(max)' },
             uuid: { name: 'uniqueidentifier' },
-            ss_timestamp: { name: 'timestamp' }
+            ss_timestamp: { name: 'timestamp' },
+            json: { name: 'nvarchar(max)' }
           }
         end
 
