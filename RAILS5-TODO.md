@@ -2,7 +2,6 @@
 ## Rails v5.0
 
 * Docs on Docker Usage & Testing - https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/issues/547
-* Supports JSON - https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/issues/485
 * Supports Comments - https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/issues/486
 * Supports Indexed in Create - https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/issues/483
   https://blog.dbi-services.com/sql-server-2014-tips-create-indexes-directly-via-create-table/

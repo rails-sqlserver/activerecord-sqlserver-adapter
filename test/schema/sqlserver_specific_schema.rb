@@ -33,7 +33,11 @@ ActiveRecord::Schema.define do
     t.varbinary      :varbinary_col
     t.uuid           :uuid_col
     t.ss_timestamp   :sstimestamp_col
-    t.json           :json_col if supports_json?
+    if supports_json?
+      t.json :json_col
+    else
+      t.text :json_col
+    end
   end
 
   # Edge Cases
