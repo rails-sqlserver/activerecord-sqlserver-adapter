@@ -21,6 +21,7 @@ ActiveRecord::Schema.define do
     # Our type methods.
     t.real           :real_col
     t.money          :money_col
+    t.smalldatetime  :smalldatetime_col
     t.datetime2      :datetime2_col
     t.datetimeoffset :datetimeoffset
     t.smallmoney     :smallmoney_col

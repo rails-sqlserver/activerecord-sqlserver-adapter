@@ -4,6 +4,7 @@
 
 * Performance w/inserts. Check binds & use schema cache for id inserts.
   Fixes #572. Thanks @noelr.
+* Add smalldatetime type for migrations. Fixes #507
 
 #### Changed
 

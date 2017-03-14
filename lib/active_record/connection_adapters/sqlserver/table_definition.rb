@@ -23,6 +23,10 @@ module ActiveRecord
           args.each { |name| column(name, :money, options) }
         end
 
+        def smalldatetime(*args, **options)
+          args.each { |name| column(name, :smalldatetime, options) }
+        end
+
         def datetime(*args, **options)
           args.each do |name|
             if options[:precision]
