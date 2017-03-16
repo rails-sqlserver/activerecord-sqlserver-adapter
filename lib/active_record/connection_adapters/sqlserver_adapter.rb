@@ -305,7 +305,6 @@ module ActiveRecord
         m.alias_type                 'string',            'nvarchar(4000)'
         m.register_type              'nvarchar(max)',     SQLServer::Type::UnicodeVarcharMax.new
         m.register_type              'nvarchar(max)',     SQLServer::Type::UnicodeVarcharMax.new
-        m.alias_type                 'json',              'nvarchar(max)'
         m.register_type              'ntext',             SQLServer::Type::UnicodeText.new
         # Binary Strings
         register_class_with_limit m, %r{\Abinary}i,       SQLServer::Type::Binary
