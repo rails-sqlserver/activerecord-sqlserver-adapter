@@ -33,7 +33,7 @@ else
       ver
     end
   end
-  gem 'rails', git: "git://github.com/rails/rails.git", tag: "v#{version}"
+  gem 'rails', git: "https://github.com/rails/rails.git", tag: "v#{version}"
 end
 
 if ENV['AREL']
