@@ -23,9 +23,21 @@ namespace :test do
     ENV['ARCONN'] = 'dblib'
   end
 
+  Rake::TestTask.new(:sequel) do |t|
+    t.libs = ARTest::SQLServer.test_load_paths
+    t.test_files = test_files
+    t.warning = !!ENV['WARNING']
+    t.verbose = false
+  end
+
+  task 'sequel:env' do
+    ENV['ARCONN'] = 'sequel'
+  end
+
 end
 
 task 'test:dblib' => 'test:dblib:env'
+task 'test:sequel' => 'test:sequel:env'
 
 namespace :profile do
   ['dblib'].each do |mode|
