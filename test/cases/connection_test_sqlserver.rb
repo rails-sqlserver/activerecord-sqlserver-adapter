@@ -36,7 +36,7 @@ class ConnectionTestSQLServer < ActiveRecord::TestCase
   describe 'Connection management' do
 
     it 'set spid on connect' do
-      assert_instance_of Fixnum, connection.spid
+      ['Fixnum', 'Integer'].must_include connection.spid.class.name
     end
 
     it 'reset spid on disconnect!' do

@@ -17,7 +17,7 @@ class SpecificSchemaTestSQLServer < ActiveRecord::TestCase
 
   it 'models can use tinyint pk tables' do
     obj = SSTestTinyintPk.create! name: '1'
-    obj.id.is_a? Fixnum
+    ['Fixnum', 'Integer'].must_include obj.id.class.name
     SSTestTinyintPk.find(obj.id).must_equal obj
   end
 
