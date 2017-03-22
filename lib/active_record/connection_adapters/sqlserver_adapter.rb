@@ -194,7 +194,7 @@ module ActiveRecord
 
       def tables_with_referential_integrity
         schemas_and_tables = select_rows <<-SQL.strip_heredoc
-          SELECT DISTINCT s.name, o.name
+          SELECT DISTINCT s.name sc, o.name tab
           FROM sys.foreign_keys i
           INNER JOIN sys.objects o ON i.parent_object_id = o.OBJECT_ID
           INNER JOIN sys.schemas s ON o.schema_id = s.schema_id
