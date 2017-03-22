@@ -170,6 +170,8 @@ module ActiveRecord
       def disconnect!
         super
         case @connection_options[:mode]
+        when :sequel
+          @connection.disconnect rescue nil
         when :dblib
           @connection.close rescue nil
         end
@@ -357,6 +359,8 @@ module ActiveRecord
       def connect
         config = @connection_options
         @connection = case config[:mode]
+                      when :sequel
+                        sequel_connect(config)
                       when :dblib
                         dblib_connect(config)
                       end
@@ -368,6 +372,32 @@ module ActiveRecord
       def connection_errors
         @connection_errors ||= [].tap do |errors|
           errors << TinyTds::Error if defined?(TinyTds::Error)
+        end
+      end
+
+      def sequel_connect(config)
+        url = config[:url] || "jdbc:sqlserver://#{config[:host]};database=#{config[:database]};applicationName=#{config_appname(config)}"
+        Sequel.default_timezone = ActiveRecord::Base.default_timezone
+        Sequel.connect(url,
+          port: config[:port],
+          user: config[:username],
+          password: config[:password],
+          max_connections: (config[:pool] || 5).to_i,
+          login_timeout: config_login_timeout(config)
+        ).tap do |client|
+          if config[:azure]
+            client.run('SET ANSI_NULLS ON')
+            client.run('SET ANSI_NULL_DFLT_ON ON')
+            client.run('SET ANSI_PADDING ON')
+            client.run('SET ANSI_WARNINGS ON')
+          else
+            client.run('SET ANSI_DEFAULTS ON')
+          end
+          client.run('SET QUOTED_IDENTIFIER ON')
+          client.run('SET CURSOR_CLOSE_ON_COMMIT OFF')
+          client.run('SET IMPLICIT_TRANSACTIONS OFF')
+          client.run('SET TEXTSIZE 2147483647')
+          client.run('SET CONCAT_NULL_YIELDS_NULL ON')
         end
       end
 

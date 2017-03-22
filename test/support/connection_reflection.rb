@@ -18,6 +18,10 @@ module ARTest
         connection_options[:mode] == :dblib
       end
 
+      def connection_sequel?
+        connection_options[:mode] == :sequel
+      end
+
       def connection_dblib_73?
         return false unless connection_dblib?
         rc = connection.raw_connection

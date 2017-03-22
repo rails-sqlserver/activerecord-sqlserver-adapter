@@ -25,12 +25,30 @@ module ActiveRecord
 
         def exec_delete(sql, name, binds)
           sql = sql.dup << '; SELECT @@ROWCOUNT AS AffectedRows'
-          super(sql, name, binds).rows.first.first
+          case @connection_options[:mode]
+            when :sequel
+              exec_sequel_ddl(sql, name, binds)
+            when :dblib
+              super(sql, name, binds).rows.first.first
+          end
         end
 
         def exec_update(sql, name, binds)
           sql = sql.dup << '; SELECT @@ROWCOUNT AS AffectedRows'
-          super(sql, name, binds).rows.first.first
+          case @connection_options[:mode]
+            when :sequel
+              exec_sequel_ddl(sql, name, binds)
+            when :dblib
+              super(sql, name, binds).rows.first.first
+          end
+        end
+
+        def exec_sequel_ddl(sql, name, binds)
+          log(sql, name, binds) do
+            types, params = sp_executesql_types_and_parameters_sequel(binds)
+            args = [sql, types.join(', ')] + params
+            @connection.call_sproc("sp_executesql", args: args)
+          end
         end
 
         def begin_db_transaction
@@ -134,6 +152,10 @@ module ActiveRecord
           name = 'Execute Procedure'
           log(sql, name) do
             case @connection_options[:mode]
+            when :sequel
+              result = @connection.call_mssql_sproc(proc_name.to_sym, args: variables).with_indifferent_access
+              yield(result) if block_given?
+              [result]
             when :dblib
               result = @connection.execute(sql)
               options = { as: :hash, cache_rows: true, timezone: ActiveRecord::Base.default_timezone || :utc }
@@ -279,9 +301,19 @@ module ActiveRecord
           [types, params]
         end
 
+        def sp_executesql_types_and_parameters_sequel(binds)
+          types, params = [], []
+          binds.each_with_index do |attr, index|
+            types << "@#{index} #{sp_executesql_sql_type(attr)}"
+            params << sp_executesql_sql_param_sequel(attr)
+          end
+          [types, params]
+        end
+
         def sp_executesql_sql_type(attr)
           return attr.type.sqlserver_type if attr.type.respond_to?(:sqlserver_type)
-          case value = attr.value_for_database
+          value = attr.value_for_database
+          case value
           when Numeric
             value > 2_147_483_647 ? 'bigint'.freeze : 'int'.freeze
           else
@@ -296,6 +328,16 @@ module ActiveRecord
             quote(value)
           else
             quote(type_cast(value))
+          end
+        end
+
+        def sp_executesql_sql_param_sequel(attr)
+          case attr.value_for_database
+            when Type::Binary::Data,
+                ActiveRecord::Type::SQLServer::Data
+              attr.value_for_database.value
+            else
+              type_cast(attr.value_for_database)
           end
         end
 
@@ -316,6 +358,8 @@ module ActiveRecord
 
         def raw_connection_do(sql)
           case @connection_options[:mode]
+          when :sequel
+            @connection.run(sql)
           when :dblib
             @connection.execute(sql).do
           end
@@ -378,6 +422,8 @@ module ActiveRecord
 
         def raw_connection_run(sql)
           case @connection_options[:mode]
+          when :sequel
+            @connection[sql]
           when :dblib
             @connection.execute(sql)
           end
@@ -391,8 +437,30 @@ module ActiveRecord
 
         def handle_to_names_and_values(handle, options = {})
           case @connection_options[:mode]
+          when :sequel
+            handle_to_names_and_values_sequel(handle, options)
           when :dblib
             handle_to_names_and_values_dblib(handle, options)
+          end
+        end
+
+        def handle_to_names_and_values_sequel(handle, options = {})
+          query_options = {}.tap do |qo|
+            qo[:timezone] = ActiveRecord::Base.default_timezone || :utc
+            qo[:as] = (options[:ar_result] || options[:fetch] == :rows) ? :array : :hash
+          end
+
+          results = if query_options[:as] == :array
+            handle.all.map {|r| r.values}
+          else
+            handle.all
+          end
+
+          if options[:ar_result]
+            columns = (lowercase_schema_reflection ? handle.columns.map { |c| c.downcase } : handle.columns).map {|c| c.to_s}
+            ActiveRecord::Result.new(columns, results)
+          else
+            results
           end
         end
 
