@@ -3,8 +3,13 @@ source 'https://rubygems.org'
 gemspec
 
 gem 'sqlite3', '~> 1.3.6'
+gem 'minitest', '< 5.3.4'
 gem 'bcrypt'
 gem 'tzinfo-data', platforms: [:mingw, :mswin, :x64_mingw, :jruby]
+
+platform :mri do
+  gem 'sqlite3'
+end
 
 if RbConfig::CONFIG["host_os"] =~ /darwin/
   gem 'terminal-notifier-guard'
@@ -46,12 +51,16 @@ group :tinytds do
   elsif ENV['TINYTDS_VERSION']
     gem 'tiny_tds', ENV['TINYTDS_VERSION']
   else
-    gem 'tiny_tds'
+    if RUBY_ENGINE == 'jruby'
+      gem 'tiny_tds', '0.1.0', platform: :jruby
+    else
+      gem 'tiny_tds'
+    end
   end
 end
 
 group :development do
-  gem 'byebug'
+  gem 'byebug', platform: :mri
   gem 'mocha'
   gem 'minitest-spec-rails'
 end
@@ -60,3 +69,9 @@ group :guard do
   gem 'guard'
   gem 'guard-minitest'
 end
+
+platform :jruby do
+  gem 'sequel'
+  gem 'jdbc-mssql-azure'
+end
+
