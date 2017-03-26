@@ -1,3 +1,8 @@
+* 4.0.4 *
+
+* Add `WITH NO_INFOMSGS` to `user_options` method. Fixes #580
+
+
 * 4.0.3 *
 
 * Fix parens around `enable_default_unicode_types`. Fixes #562
