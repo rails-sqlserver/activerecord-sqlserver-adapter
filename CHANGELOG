@@ -1,6 +1,12 @@
+* 3.2.17*
+
+* Add `WITH NO_INFOMSGS` to `user_options` method. Fixes #580
+
+
 * 3.2.16 *
 
 * All user optons to be array/hash. Fixes #540
+
 
 * 3.2.15 *
 
