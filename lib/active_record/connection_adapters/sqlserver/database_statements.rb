@@ -122,7 +122,7 @@ module ActiveRecord
 
         def user_options
           return {} if sqlserver_azure?
-          select_rows('dbcc useroptions', 'SCHEMA').reduce(HashWithIndifferentAccess.new) do |values, row|
+          select_rows('DBCC USEROPTIONS WITH NO_INFOMSGS', 'SCHEMA').reduce(HashWithIndifferentAccess.new) do |values, row|
             if row.instance_of? Hash
               set_option = row.values[0].gsub(/\s+/, '_')
               user_value = row.values[1]
