@@ -1,3 +1,8 @@
+## v5.0.7
+
+* Add `WITH NO_INFOMSGS` to `user_options` method. Fixes #580
+
+
 ## v5.0.6
 
 #### Fixed
