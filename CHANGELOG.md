@@ -1,5 +1,9 @@
 ## v4.2.18
 
+## Fixed
+
+* Add `WITH NO_INFOMSGS` to `user_options` method. Fixes #580
+
 #### Changed
 
 * Pass the `:contained` option to TinyTDS. Fixes #527
