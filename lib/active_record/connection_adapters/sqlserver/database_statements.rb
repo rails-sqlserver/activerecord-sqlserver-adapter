@@ -457,7 +457,7 @@ module ActiveRecord
           end
 
           if options[:ar_result]
-            columns = (lowercase_schema_reflection ? handle.columns.map { |c| c.downcase } : handle.columns).map {|c| c.to_s}
+            columns = handle.columns.map {|c| c.to_s}
             ActiveRecord::Result.new(columns, results)
           else
             results
