@@ -101,14 +101,17 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
 
   describe 'testing #lowercase_schema_reflection' do
 
-    it 'not lowercase schema reflection by default' do
-      connection.lowercase_schema_reflection = false
-      connection.reconnect! if connection_sequel?
-
+    before do
       SSTestUpper.delete_all
-      SSTestUpper.create! COLUMN1: 'Got a minute?', COLUMN2: 419
-      SSTestUpper.create! COLUMN1: 'Favorite number?', COLUMN2: 69
+      SSTestUpper.create COLUMN1: 'Got a minute?', COLUMN2: 419
+      SSTestUpper.create COLUMN1: 'Favorite number?', COLUMN2: 69
+    end
 
+    after do
+      connection.lowercase_schema_reflection = false
+    end
+
+    it 'not lowercase schema reflection by default' do
       assert SSTestUpper.columns_hash['COLUMN1']
       assert_equal 'Got a minute?', SSTestUpper.first.COLUMN1
       assert_equal 'Favorite number?', SSTestUpper.last.COLUMN1
@@ -117,19 +120,10 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
 
     it 'lowercase schema reflection when set' do
       connection.lowercase_schema_reflection = true
-      connection.reconnect! if connection_sequel?
-
-      SSTestUpper.delete_all
-      SSTestUpper.create! COLUMN1: 'Got a minute?', COLUMN2: 419
-      SSTestUpper.create! COLUMN1: 'Favorite number?', COLUMN2: 69
-
       assert SSTestUppered.columns_hash['column1']
       assert_equal 'Got a minute?', SSTestUppered.first.column1
       assert_equal 'Favorite number?', SSTestUppered.last.column1
       assert SSTestUppered.columns_hash['column2']
-
-      connection.lowercase_schema_reflection = false
-      connection.reconnect! if connection_sequel?
     end
 
   end
