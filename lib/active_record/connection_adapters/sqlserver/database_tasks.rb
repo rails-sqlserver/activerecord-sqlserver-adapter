@@ -20,11 +20,11 @@ module ActiveRecord
         end
 
         def charset
-          select_value "SELECT DATABASEPROPERTYEX(DB_NAME(), 'SqlCharSetName')"
+          select_value "SELECT CAST(DATABASEPROPERTYEX(DB_NAME(), 'SqlCharSetName') AS NVARCHAR(128))"
         end
 
         def collation
-          @collation ||= select_value "SELECT DATABASEPROPERTYEX(DB_NAME(), 'Collation')"
+          @collation ||= select_value "SELECT CAST(DATABASEPROPERTYEX(DB_NAME(), 'Collation') AS NVARCHAR(128))"
         end
 
         private
