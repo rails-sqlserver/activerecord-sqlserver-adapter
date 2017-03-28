@@ -31,6 +31,7 @@ class ShowplanTestSQLServer < ActiveRecord::TestCase
   describe 'With SHOWPLAN_TEXT option' do
 
     it 'use simple table printer' do
+      skip "does not work with sequel because of multiple columns with same name in result set" if connection_sequel?
       with_showplan_option('SHOWPLAN_TEXT') do
         plan = Car.where(id: 1).explain
         plan.must_include "SELECT [cars].* FROM [cars] WHERE [cars].[id]"

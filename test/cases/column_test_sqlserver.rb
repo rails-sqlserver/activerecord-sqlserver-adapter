@@ -480,7 +480,7 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
     end
 
     it 'time(7)' do
-      skip 'time() not supported in sequel mode' if connection_sequel?
+      skip 'time() not correctly supported in sequel mode (nanoseconds issue)' if connection_sequel?
       skip 'time() not supported in this protocol version' unless connection_dblib_73?
       col = column('time_7')
       col.sql_type.must_equal           'time(7)'

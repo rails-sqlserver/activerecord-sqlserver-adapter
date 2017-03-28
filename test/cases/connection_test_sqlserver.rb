@@ -50,6 +50,7 @@ class ConnectionTestSQLServer < ActiveRecord::TestCase
     end
 
     it 'be able to disconnect and reconnect at will' do
+      skip('does not work with sequel mode, because sequel immediately reconnects on first query') if connection_sequel?
       disconnect_raw_connection!
       assert !connection.active?
       connection.reconnect!
