@@ -203,7 +203,7 @@ module ActiveRecord
               on_update: extract_foreign_key_action('update', row['FK_NAME']),
               on_delete: extract_foreign_key_action('delete', row['FK_NAME'])
             }
-            ForeignKeyDefinition.new from_table, to_table, options
+            ForeignKeyDefinition.new from_table.to_s, to_table.to_s, options
           end
         end
 
