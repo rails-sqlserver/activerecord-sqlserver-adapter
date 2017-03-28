@@ -6,6 +6,7 @@ module ActiveRecord
       mode = config[:mode].to_s.downcase.underscore.to_sym
       case mode
       when :sequel
+        require 'tiny_tds/java'
         require 'sequel'
       when :dblib
         require 'tiny_tds'
