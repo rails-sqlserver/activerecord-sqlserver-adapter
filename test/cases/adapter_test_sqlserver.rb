@@ -214,6 +214,42 @@ class AdapterTestSqlserver < ActiveRecord::TestCase
 
     end
 
+    context 'testing #native_string_database_type configuration' do
+
+      should 'use non-unicode types when set to false' do
+        with_native_string_database_type('varchar') do
+          assert_equal 'varchar', @connection.native_string_database_type
+          assert_equal 'nvarchar(max)', @connection.native_text_database_type
+        end
+      end
+
+      should 'use unicode types when set to true' do
+        with_native_string_database_type('nvarchar') do
+          assert_equal 'nvarchar', @connection.native_string_database_type
+          assert_equal 'nvarchar(max)', @connection.native_text_database_type
+        end
+      end
+
+    end
+
+    context 'testing #native_string_database_type configuration' do
+
+      should 'use unicode types when set to true' do
+        with_native_text_database_type('varchar(max)') do
+          assert_equal 'nvarchar', @connection.native_string_database_type
+          assert_equal 'varchar(max)', @connection.native_text_database_type
+        end
+      end
+
+      should 'use unicode types when set to true' do
+        with_native_text_database_type('nvarchar(max)') do
+          assert_equal 'nvarchar', @connection.native_string_database_type
+          assert_equal 'nvarchar(max)', @connection.native_text_database_type
+        end
+      end
+
+    end
+
     context 'testing #lowercase_schema_reflection' do
 
       setup do
