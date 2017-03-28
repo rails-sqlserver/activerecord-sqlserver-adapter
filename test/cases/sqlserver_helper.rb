@@ -103,6 +103,22 @@ module ActiveRecord
       ActiveRecord::ConnectionAdapters::SQLServerAdapter.native_string_database_type = old_string
     end
 
+    def with_native_string_database_type(type)
+      old_string = ActiveRecord::ConnectionAdapters::SQLServerAdapter.native_string_database_type
+      ActiveRecord::ConnectionAdapters::SQLServerAdapter.native_string_database_type = type
+      yield
+    ensure
+      ActiveRecord::ConnectionAdapters::SQLServerAdapter.native_string_database_type = old_string
+    end
+
+    def with_native_text_database_type(type)
+      old_text = ActiveRecord::ConnectionAdapters::SQLServerAdapter.native_text_database_type
+      ActiveRecord::ConnectionAdapters::SQLServerAdapter.native_text_database_type = type
+      yield
+    ensure
+      ActiveRecord::ConnectionAdapters::SQLServerAdapter.native_text_database_type = old_text
+    end
+
     def with_auto_connect(boolean)
       existing = ActiveRecord::ConnectionAdapters::SQLServerAdapter.auto_connect
       ActiveRecord::ConnectionAdapters::SQLServerAdapter.auto_connect = boolean
