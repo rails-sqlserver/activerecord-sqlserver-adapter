@@ -153,9 +153,11 @@ module ActiveRecord
           log(sql, name) do
             case @connection_options[:mode]
             when :sequel
-              result = @connection.call_mssql_sproc(proc_name.to_sym, args: variables).with_indifferent_access
-              yield(result) if block_given?
-              [result]
+              result = @connection.dataset.with_sql(sql).all
+              result.each do |r|
+                yield(r.with_indifferent_access)
+              end if block_given? && result.present?
+              result ? result.map(&:with_indifferent_access) : []
             when :dblib
               result = @connection.execute(sql)
               options = { as: :hash, cache_rows: true, timezone: ActiveRecord::Base.default_timezone || :utc }
