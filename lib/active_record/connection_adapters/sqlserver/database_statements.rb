@@ -335,7 +335,8 @@ module ActiveRecord
           case attr.value_for_database
             when Type::Binary::Data,
                 ActiveRecord::Type::SQLServer::Data
-              attr.value_for_database.value
+              value = attr.value_for_database
+              value.respond_to?(:value) ? value.value : value.to_s
             else
               type_cast(attr.value_for_database)
           end
