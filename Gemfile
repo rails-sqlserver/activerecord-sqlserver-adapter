@@ -52,7 +52,7 @@ group :tinytds do
     gem 'tiny_tds', ENV['TINYTDS_VERSION']
   else
     if RUBY_ENGINE == 'jruby'
-      gem 'tiny_tds', '0.1.0', platform: :jruby
+      gem 'tiny_tds', platform: :jruby
     else
       gem 'tiny_tds'
     end
@@ -72,6 +72,5 @@ end
 
 platform :jruby do
   gem 'sequel'
-  gem 'jdbc-mssql-azure'
 end
 
