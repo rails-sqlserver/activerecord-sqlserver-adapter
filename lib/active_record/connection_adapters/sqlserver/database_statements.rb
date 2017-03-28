@@ -451,13 +451,13 @@ module ActiveRecord
           end
 
           results = if query_options[:as] == :array
-            handle.all.map {|r| r.values}
+            handle.all.map {|r| r.values} rescue []
           else
             handle.all
           end
 
           if options[:ar_result]
-            columns = handle.columns.map { |c| (lowercase_schema_reflection ? c.downcase : c).to_s }
+            columns = (results.present? ? handle.columns.map { |c| (lowercase_schema_reflection ? c.downcase : c).to_s } : []) rescue []
             ActiveRecord::Result.new(columns, results)
           else
             results
