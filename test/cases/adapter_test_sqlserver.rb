@@ -265,23 +265,23 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
     end
 
     it 'create integers when limit is 4' do
-      assert_equal 'integer', connection.type_to_sql(:integer, 4)
+      assert_equal 'integer', connection.type_to_sql(:integer, limit: 4)
     end
 
     it 'create integers when limit is 3' do
-      assert_equal 'integer', connection.type_to_sql(:integer, 3)
+      assert_equal 'integer', connection.type_to_sql(:integer, limit: 3)
     end
 
     it 'create smallints when limit is less than 3' do
-      assert_equal 'smallint', connection.type_to_sql(:integer, 2)
-      assert_equal 'smallint', connection.type_to_sql(:integer, 1)
+      assert_equal 'smallint', connection.type_to_sql(:integer, limit: 2)
+      assert_equal 'smallint', connection.type_to_sql(:integer, limit: 1)
     end
 
     it 'create bigints when limit is greateer than 4' do
-      assert_equal 'bigint', connection.type_to_sql(:integer, 5)
-      assert_equal 'bigint', connection.type_to_sql(:integer, 6)
-      assert_equal 'bigint', connection.type_to_sql(:integer, 7)
-      assert_equal 'bigint', connection.type_to_sql(:integer, 8)
+      assert_equal 'bigint', connection.type_to_sql(:integer, limit: 5)
+      assert_equal 'bigint', connection.type_to_sql(:integer, limit: 6)
+      assert_equal 'bigint', connection.type_to_sql(:integer, limit: 7)
+      assert_equal 'bigint', connection.type_to_sql(:integer, limit: 8)
     end
 
     it 'create floats when no limit supplied' do
