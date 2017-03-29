@@ -130,7 +130,7 @@ module ActiveRecord
             remove_indexes(table_name, column_name)
           end
           sql_commands << "UPDATE #{quote_table_name(table_name)} SET #{quote_column_name(column_name)}=#{quote_default_expression(options[:default], column_object)} WHERE #{quote_column_name(column_name)} IS NULL" if !options[:null].nil? && options[:null] == false && !options[:default].nil?
-          sql_commands << "ALTER TABLE #{quote_table_name(table_name)} ALTER COLUMN #{quote_column_name(column_name)} #{type_to_sql(type, options[:limit], options[:precision], options[:scale])}"
+          sql_commands << "ALTER TABLE #{quote_table_name(table_name)} ALTER COLUMN #{quote_column_name(column_name)} #{type_to_sql(type, limit: options[:limit], precision: options[:precision], scale: options[:scale])}"
           sql_commands[-1] << ' NOT NULL' if !options[:null].nil? && options[:null] == false
           if options_include_default?(options)
             sql_commands << "ALTER TABLE #{quote_table_name(table_name)} ADD CONSTRAINT #{default_constraint_name(table_name, column_name)} DEFAULT #{quote_default_expression(options[:default], column_object)} FOR #{quote_column_name(column_name)}"
@@ -194,7 +194,7 @@ module ActiveRecord
           end
         end
 
-        def type_to_sql(type, limit = nil, precision = nil, scale = nil)
+        def type_to_sql(type, limit: nil, precision: nil, scale: nil, **)
           type_limitable = %w(string integer float char nchar varchar nvarchar).include?(type.to_s)
           limit = nil unless type_limitable
           case type.to_s
@@ -240,7 +240,7 @@ module ActiveRecord
           if !allow_null.nil? && allow_null == false && !default.nil?
             do_execute("UPDATE #{table_id} SET #{column_id}=#{quote(default)} WHERE #{column_id} IS NULL")
           end
-          sql = "ALTER TABLE #{table_id} ALTER COLUMN #{column_id} #{type_to_sql column.type, column.limit, column.precision, column.scale}"
+          sql = "ALTER TABLE #{table_id} ALTER COLUMN #{column_id} #{type_to_sql column.type, limit: column.limit, precision: column.precision, scale: column.scale}"
           sql << ' NOT NULL' if !allow_null.nil? && allow_null == false
           do_execute sql
         end
