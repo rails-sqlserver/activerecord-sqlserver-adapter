@@ -29,9 +29,11 @@ CREATE TABLE [sst_datatypes] (
   [datetime2_3] [datetime2](3) NULL,
   [datetime2_1] [datetime2](1) NULL,
   [datetime2_0] [datetime2](0) NULL,
+  -- <% unless ENV['ARCONN'] == 'sequel' %>
   [datetimeoffset_7] [datetimeoffset](7) NULL DEFAULT '1984-01-24 04:20:00.1234567 -08:00',
   [datetimeoffset_3] [datetimeoffset](3) NULL,
   [datetimeoffset_1] [datetimeoffset](1) NULL,
+  -- <% end %>
   [smalldatetime] [smalldatetime] NULL DEFAULT '1901-01-01T15:45:00.000Z',
   [time_7] [time](7) NULL DEFAULT '04:20:00.2883215',
   [time_2] [time](2) NULL,
