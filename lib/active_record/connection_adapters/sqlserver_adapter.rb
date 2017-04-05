@@ -338,6 +338,10 @@ module ActiveRecord
         @database_year == 2012
       end
 
+      def sqlserver_2016?
+        @database_year == 2016
+      end
+
       def sqlserver_azure?
         @sqlserver_azure
       end
