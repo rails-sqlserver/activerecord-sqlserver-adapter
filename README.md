@@ -129,7 +129,7 @@ If you would like to contribute a feature or bugfix, thanks! To make sure your f
 Many many people have contributed. If you do not see your name here and it should be let us know. Also, many thanks go out to those that have pledged financial contributions.
 
 
-## Contributers
+## Contributors
 
 Up-to-date list of contributors: http://github.com/rails-sqlserver/activerecord-sqlserver-adapter/contributors
 
