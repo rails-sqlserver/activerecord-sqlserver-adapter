@@ -153,7 +153,16 @@ module ActiveRecord
           log(sql, name) do
             case @connection_options[:mode]
             when :sequel
-              result = @connection.dataset.with_sql(sql).all
+              result = begin
+                @connection.dataset.with_sql(sql).all
+              rescue Sequel::DatabaseError => e
+                case e.to_s
+                  when 'Java::ComMicrosoftSqlserverJdbc::SQLServerException: The statement did not return a result set.'
+                    []
+                  else
+                    raise ActiveRecord::StatementInvalid, e
+                end
+              end
               result.each do |r|
                 yield(r.with_indifferent_access)
               end if block_given? && result.present?
@@ -454,7 +463,16 @@ module ActiveRecord
           end
 
           results = if query_options[:as] == :array
-            handle.all.map {|r| r.values} rescue []
+            begin
+              handle.all.map {|r| r.values}
+            rescue Sequel::DatabaseError => e
+              case e.to_s
+                when 'Java::ComMicrosoftSqlserverJdbc::SQLServerException: The statement did not return a result set.'
+                  []
+                else
+                  raise ActiveRecord::StatementInvalid, e
+              end
+            end
           else
             handle.all
           end
