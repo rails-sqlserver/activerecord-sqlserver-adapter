@@ -19,7 +19,12 @@ module ActiveRecord
           if id_insert_table_name = exec_insert_requires_identity?(sql, pk, binds)
             with_identity_insert_enabled(id_insert_table_name) { super(sql, name, binds, pk) }
           else
-            super(sql, name, binds, pk)
+            if @connection_options[:mode] == :sequel && !sql.include?(' OUTPUT INSERTED.')
+              id = exec_sequel_ddl(sql, name, binds)
+              ActiveRecord::Result.new(['id'], [[id]])
+            else
+              super(sql, name, binds, pk)
+            end
           end
         end
 
