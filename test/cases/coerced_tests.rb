@@ -212,6 +212,16 @@ class CalculationsTest < ActiveRecord::TestCase
 
   # Leave it up to users to format selects/functions so HAVING works correctly.
   coerce_tests! :test_having_with_strong_parameters
+
+  # Leave it up to users to qualify columns so pluck works correctly.
+  coerce_tests!(:test_pluck_columns_with_same_name) if connection_sequel?
+  def test_pluck_columns_with_same_name_coerced
+    expected = [["The First Topic", "The Second Topic of the day"], ["The Third Topic of the day", "The Fourth Topic of the day"]]
+    actual = Topic.joins(:replies)
+        .pluck('topics.title t1', 'replies_topics.title t2')
+    assert_equal expected, actual
+  end
+
 end
 
 
