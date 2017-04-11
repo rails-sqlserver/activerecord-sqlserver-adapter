@@ -463,7 +463,7 @@ module ActiveRecord
 
         def handle_to_names_and_values_sequel(handle, options = {})
           query_options = {}.tap do |qo|
-            qo[:timezone] = ActiveRecord::Base.default_timezone || :utc
+            Sequel.default_timezone = ActiveRecord::Base.default_timezone || :utc
             qo[:as] = (options[:ar_result] || options[:fetch] == :rows) ? :array : :hash
           end
 
