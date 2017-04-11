@@ -19,9 +19,18 @@ module ActiveRecord
           if id_insert_table_name = exec_insert_requires_identity?(sql, pk, binds)
             with_identity_insert_enabled(id_insert_table_name) { super(sql, name, binds, pk) }
           else
-            if @connection_options[:mode] == :sequel && !sql.include?(' OUTPUT INSERTED.')
-              id = exec_sequel_ddl(sql, name, binds)
-              ActiveRecord::Result.new(['id'], [[id]])
+            if @connection_options[:mode] == :sequel
+              if binds.blank? && sql.include?(IDENT_SELECT_QUERY)
+                raw_insert = sql.gsub(IDENT_SELECT_QUERY, '')
+                @connection.run(raw_insert)
+                result = @connection[IDENT_SELECT_QUERY].all
+                ActiveRecord::Result.new([:Ident], result.map(&:values))
+              elsif !sql.include?(' OUTPUT INSERTED.')
+                id = exec_sequel_ddl(sql, name, binds)
+                ActiveRecord::Result.new(['id'], [[id]])
+              else
+                exec_query(sql, name, binds)
+              end
             else
               super(sql, name, binds, pk)
             end
@@ -259,6 +268,7 @@ module ActiveRecord
 
         protected
 
+        IDENT_SELECT_QUERY = 'SELECT CAST(SCOPE_IDENTITY() AS bigint) AS Ident'.freeze
         def sql_for_insert(sql, pk, id_value, sequence_name, binds)
           if pk.nil?
             table_name = query_requires_identity_insert?(sql)
@@ -278,7 +288,7 @@ module ActiveRecord
                     sql.dup.insert sql.index(/ (DEFAULT )?VALUES/), " OUTPUT INSERTED.#{quoted_pk}"
                   end
                 else
-                  "#{sql}; SELECT CAST(SCOPE_IDENTITY() AS bigint) AS Ident"
+                  "#{sql}; #{IDENT_SELECT_QUERY}"
                 end
           super
         end
