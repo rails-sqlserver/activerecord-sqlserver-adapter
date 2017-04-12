@@ -377,7 +377,7 @@ module ActiveRecord
 
       def sequel_connect(config)
         url = config[:url] || "jdbc:sqlserver://#{config[:host]};database=#{config[:database]};applicationName=#{config_appname(config)}"
-        Sequel.default_timezone = ActiveRecord::Base.default_timezone
+        Sequel.database_timezone = ActiveRecord::Base.default_timezone || :utc
         Sequel.identifier_output_method = nil # so its default setting is similar to tiny_tds
 
         Sequel.connect(url,
