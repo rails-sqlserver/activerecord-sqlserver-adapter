@@ -1,5 +1,3 @@
-<a href="https://www.patreon.com/bePatron?u=5175541" data-patreon-widget-type="become-patron-button">Become a Patron!</a><script async src="https://cdn6.patreon.com/becomePatronButton.bundle.js"></script>
-
 # ActiveRecord SQL Server Adapter. For SQL Server 2012 And Higher.
 
 * [![TravisCI](https://travis-ci.org/rails-sqlserver/activerecord-sqlserver-adapter.svg?branch=master)](https://travis-ci.org/rails-sqlserver/activerecord-sqlserver-adapter) - TravisCI
@@ -9,6 +7,12 @@
 * [![Dependency Status](https://dependencyci.com/github/rails-sqlserver/activerecord-sqlserver-adapter/badge)](https://dependencyci.com/github/rails-sqlserver/activerecord-sqlserver-adapter) - Dependency Status
 * [![Gitter chat](https://img.shields.io/badge/%E2%8A%AA%20GITTER%20-JOIN%20CHAT%20%E2%86%92-brightgreen.svg?style=flat)](https://gitter.im/rails-sqlserver/activerecord-sqlserver-adapter) - Community
 
+## Supporting TinyTDS/Adapter
+
+Both TinyTDS and the Rails SQL Server Adapter are MIT-licensed open source projects. Its ongoing development is made possible thanks to the support by these awesome [backers](https://github.com/rails-sqlserver/tiny_tds/blob/master/BACKERS.md). If you'd like to join them, check out [MetaSkills Patreon Campaign](https://www.patreon.com/metaskills).
+
+
+## About The Adapter
 
 The SQL Server adapter for ActiveRecord v5.0 using SQL Server 2012 or higher.
 
