@@ -1,4 +1,4 @@
-[![Support via Gratipay](https://cdn.rawgit.com/gratipay/gratipay-badge/2.3.0/dist/gratipay.svg)](https://gratipay.com/metaskills/)
+<a href="https://www.patreon.com/bePatron?u=5175541" data-patreon-widget-type="become-patron-button">Become a Patron!</a><script async src="https://cdn6.patreon.com/becomePatronButton.bundle.js"></script>
 
 # ActiveRecord SQL Server Adapter. For SQL Server 2012 And Higher.
 
