@@ -147,10 +147,10 @@ module ActiveRecord
 
       def disable_referential_integrity
         tables = tables_with_referential_integrity
-        tables.each { |t| do_execute "ALTER TABLE #{t} NOCHECK CONSTRAINT ALL" }
+        tables.each { |t| do_execute "ALTER TABLE #{quote_table_name(t)} NOCHECK CONSTRAINT ALL" }
         yield
       ensure
-        tables.each { |t| do_execute "ALTER TABLE #{t} CHECK CONSTRAINT ALL" }
+        tables.each { |t| do_execute "ALTER TABLE #{quote_table_name(t)} CHECK CONSTRAINT ALL" }
       end
 
       # === Abstract Adapter (Connection Management) ================== #
@@ -327,6 +327,16 @@ module ActiveRecord
           NoDatabaseError.new(message)
         when /data would be truncated/
           ValueTooLong.new(message)
+        when /Column '(.*)' is not the same data type as referencing column '(.*)' in foreign key/
+          pk_id, fk_id = SQLServer::Utils.extract_identifiers($1), SQLServer::Utils.extract_identifiers($2)
+          MismatchedForeignKey.new(
+            self,
+            message: message,
+            table: fk_id.schema,
+            foreign_key: fk_id.object,
+            target_table: pk_id.schema,
+            primary_key: pk_id.object
+          )
         else
           super
         end

@@ -8,16 +8,10 @@ module ActiveRecord
         end
 
         def tables(name = nil)
-          ActiveSupport::Deprecation.warn 'Passing arguments to #tables is deprecated without replacement.' if name
           tables_sql('BASE TABLE')
         end
 
         def table_exists?(table_name)
-          ActiveSupport::Deprecation.warn(<<-MSG.squish)
-            #table_exists? currently checks both tables and views.
-            This behavior is deprecated and will be changed with Rails 5.1 to only check tables.
-            Use #data_source_exists? instead.
-          MSG
           data_source_exists?(table_name)
         end
 
@@ -43,6 +37,17 @@ module ActiveRecord
         end
 
         def drop_table(table_name, options = {})
+          # Mimic CASCADE option as best we can.
+          if options[:force] == :cascade
+            execute_procedure(:sp_fkeys, pktable_name: table_name).each do |fkdata|
+              fktable = fkdata['FKTABLE_NAME']
+              fkcolmn = fkdata['FKCOLUMN_NAME']
+              pktable = fkdata['PKTABLE_NAME']
+              pkcolmn = fkdata['PKCOLUMN_NAME']
+              remove_foreign_key fktable, name: fkdata['FK_NAME']
+              do_execute "DELETE FROM #{quote_table_name(fktable)} WHERE #{quote_column_name(fkcolmn)} IN ( SELECT #{quote_column_name(pkcolmn)} FROM #{quote_table_name(pktable)} )"
+            end
+          end
           if options[:if_exists] && @version_year != 2016
             execute "IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = #{quote(table_name)}) DROP TABLE #{quote_table_name(table_name)}"
           else
@@ -252,7 +257,7 @@ module ActiveRecord
 
         def initialize_native_database_types
           {
-            primary_key: 'int NOT NULL IDENTITY(1,1) PRIMARY KEY',
+            primary_key: 'bigint NOT NULL IDENTITY(1,1) PRIMARY KEY',
             primary_key_nonclustered: 'int NOT NULL IDENTITY(1,1) PRIMARY KEY NONCLUSTERED',
             integer: { name: 'int', limit: 4 },
             bigint: { name: 'bigint' },
