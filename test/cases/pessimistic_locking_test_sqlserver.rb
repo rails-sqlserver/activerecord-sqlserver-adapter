@@ -46,17 +46,6 @@ class PessimisticLockingTestSQLServer < ActiveRecord::TestCase
       end
     end
 
-    it 'reload with lock when #lock! called' do
-      assert_nothing_raised do
-        Person.transaction do
-          person = Person.find 1
-          old, person.first_name = person.first_name, 'fooman'
-          person.lock!
-          assert_equal old, person.first_name
-        end
-      end
-    end
-
     it 'can add a custom lock directive' do
       assert_sql %r|SELECT \[people\]\.\* FROM \[people\] WITH\(HOLDLOCK, ROWLOCK\)| do
         Person.lock('WITH(HOLDLOCK, ROWLOCK)').load

@@ -19,22 +19,22 @@ module ActiveRecord
           sp_executesql(sql, name, binds, prepare: prepare)
         end
 
-        def exec_insert(sql, name, binds, pk = nil, _sequence_name = nil)
+        def exec_insert(sql, name = nil, binds = [], pk = nil, _sequence_name = nil)
           if id_insert_table_name = exec_insert_requires_identity?(sql, pk, binds)
-            with_identity_insert_enabled(id_insert_table_name) { exec_query(sql, name, binds) }
+            with_identity_insert_enabled(id_insert_table_name) { super(sql, name, binds, pk) }
           else
-            exec_query(sql, name, binds)
+            super(sql, name, binds, pk)
           end
         end
 
         def exec_delete(sql, name, binds)
-          sql << '; SELECT @@ROWCOUNT AS AffectedRows'
-          super.rows.first.first
+          sql = sql.dup << '; SELECT @@ROWCOUNT AS AffectedRows'
+          super(sql, name, binds).rows.first.first
         end
 
         def exec_update(sql, name, binds)
-          sql << '; SELECT @@ROWCOUNT AS AffectedRows'
-          super.rows.first.first
+          sql = sql.dup << '; SELECT @@ROWCOUNT AS AffectedRows'
+          super(sql, name, binds).rows.first.first
         end
 
         def supports_statement_cache?
@@ -198,7 +198,7 @@ module ActiveRecord
           end
           sql = if pk && self.class.use_output_inserted && !database_prefix_remote_server?
                   quoted_pk = SQLServer::Utils.extract_identifiers(pk).quoted
-                  sql.insert sql.index(/ (DEFAULT )?VALUES/), " OUTPUT INSERTED.#{quoted_pk}"
+                  sql.dup.insert sql.index(/ (DEFAULT )?VALUES/), " OUTPUT INSERTED.#{quoted_pk}"
                 else
                   "#{sql}; SELECT CAST(SCOPE_IDENTITY() AS bigint) AS Ident"
                 end
@@ -261,7 +261,7 @@ module ActiveRecord
           if name == 'EXPLAIN'
             params.each.with_index do |param, index|
               substitute_at_finder = /(@#{index})(?=(?:[^']|'[^']*')*$)/ # Finds unquoted @n values.
-              sql.sub! substitute_at_finder, param.to_s
+              sql = sql.sub substitute_at_finder, param.to_s
             end
           else
             types = quote(types.join(', '))
