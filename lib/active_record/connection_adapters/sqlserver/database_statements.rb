@@ -3,10 +3,6 @@ module ActiveRecord
     module SQLServer
       module DatabaseStatements
 
-        def select_rows(sql, name = nil, binds = [])
-          sp_executesql sql, name, binds, fetch: :rows
-        end
-
         def execute(sql, name = nil)
           if id_insert_table_name = query_requires_identity_insert?(sql)
             with_identity_insert_enabled(id_insert_table_name) { do_execute(sql, name) }
