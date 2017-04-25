@@ -26,17 +26,17 @@ module ActiveRecord
         end
 
         def exec_insert_sequel(sql, name, binds, pk = nil, _sequence_name = nil)
-              if binds.blank? && sql.include?(IDENT_SELECT_QUERY)
-                raw_insert = sql.gsub(IDENT_SELECT_QUERY, '')
-                @connection.run(raw_insert)
-                result = @connection[IDENT_SELECT_QUERY].all
-                ActiveRecord::Result.new([:Ident], result.map(&:values))
-              elsif !sql.include?(' OUTPUT INSERTED.')
-                id = exec_sequel_ddl(sql, name, binds)
-                ActiveRecord::Result.new(['id'], [[id]])
-              else
-                exec_query(sql, name, binds)
-              end
+          if binds.blank? && sql.include?(IDENT_SELECT_QUERY)
+            raw_insert = sql.gsub(IDENT_SELECT_QUERY, '')
+            @connection.run(raw_insert)
+            result = @connection[IDENT_SELECT_QUERY].all
+            ActiveRecord::Result.new([:Ident], result.map(&:values))
+          elsif !sql.include?(' OUTPUT INSERTED.')
+            id = exec_sequel_ddl(sql, name, binds)
+            ActiveRecord::Result.new(['id'], [[id]])
+          else
+            exec_query(sql, name, binds)
+          end
         end
 
         def exec_delete(sql, name, binds)
@@ -474,7 +474,7 @@ module ActiveRecord
         end
 
         def handle_to_names_and_values_sequel(handle, options = {})
-            Sequel.default_timezone = ActiveRecord::Base.default_timezone || :utc
+          Sequel.default_timezone = ActiveRecord::Base.default_timezone || :utc
           query_options = {}.tap do |qo|
             qo[:as] = (options[:ar_result] || options[:fetch] == :rows) ? :array : :hash
           end
