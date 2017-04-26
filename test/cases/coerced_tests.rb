@@ -52,14 +52,14 @@ end
 
 require 'models/topic'
 class AttributeMethodsTest < ActiveRecord::TestCase
-  coerce_tests! :test_typecast_attribute_from_select_to_false
+  coerce_tests! %r{typecast attribute from select to false}
   def test_typecast_attribute_from_select_to_false_coerced
     Topic.create(:title => 'Budget')
     topic = Topic.all.merge!(:select => "topics.*, IIF (1 = 2, 1, 0) as is_test").first
     assert !topic.is_test?
   end
 
-  coerce_tests! :test_typecast_attribute_from_select_to_true
+  coerce_tests! %r{typecast attribute from select to true}
   def test_typecast_attribute_from_select_to_true_coerced
     Topic.create(:title => 'Budget')
     topic = Topic.all.merge!(:select => "topics.*, IIF (1 = 1, 1, 0) as is_test").first
@@ -375,12 +375,6 @@ class FinderTest < ActiveRecord::TestCase
     end
   end
 
-  coerce_tests! :test_string_sanitation
-  def test_string_sanitation_coerced
-    assert_not_equal "'something ' 1=1'", ActiveRecord::Base.sanitize("something ' 1=1")
-    assert_equal "N'something; select table'", ActiveRecord::Base.sanitize("something; select table")
-  end
-
   coerce_tests! :test_take_and_first_and_last_with_integer_should_use_sql_limit
   def test_take_and_first_and_last_with_integer_should_use_sql_limit_coerced
     assert_sql(/OFFSET 0 ROWS FETCH NEXT @0 ROWS ONLY.* @0 = 3/) { Topic.take(3).entries }
@@ -649,9 +643,6 @@ class SchemaDumperTest < ActiveRecord::TestCase
     output = standard_dump
     assert_match %r{t.decimal\s+"atoms_in_universe",\s+precision: 38}, output
   end
-
-  # This accidently returns the wrong number because of our tables too.
-  coerce_tests! :test_types_line_up
 
   # This is a poorly written test and really does not catch the bottom'ness it is meant too. Ours throw it off.
   coerce_tests! :test_foreign_keys_are_dumped_at_the_bottom_to_circumvent_dependency_issues
