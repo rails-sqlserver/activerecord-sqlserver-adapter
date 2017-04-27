@@ -380,7 +380,7 @@ module ActiveRecord
         Sequel.database_timezone = ActiveRecord::Base.default_timezone || :utc
         Sequel.identifier_output_method = nil # so its default setting is similar to tiny_tds
 
-        Sequel.connect(url,
+        TinyTds::Java::Database.connect(url,
           port: config[:port],
           user: config[:username],
           password: config[:password],

@@ -29,7 +29,7 @@ module ActiveRecord
           if binds.blank? && sql.include?(IDENT_SELECT_QUERY)
             raw_insert = sql.gsub(IDENT_SELECT_QUERY, '')
             @connection.run(raw_insert)
-            result = @connection[IDENT_SELECT_QUERY].all
+            result = @connection.fetch(IDENT_SELECT_QUERY).all
             ActiveRecord::Result.new([:Ident], result.map(&:values))
           elsif !sql.include?(' OUTPUT INSERTED.')
             id = exec_sequel_ddl(sql, name, binds)
@@ -170,7 +170,7 @@ module ActiveRecord
             case @connection_options[:mode]
             when :sequel
               result = begin
-                @connection.dataset.with_sql(sql).all
+                @connection.fetch(sql).all
               rescue Sequel::DatabaseError => e
                 case e.to_s
                   when 'Java::ComMicrosoftSqlserverJdbc::SQLServerException: The statement did not return a result set.'
@@ -452,7 +452,7 @@ module ActiveRecord
         def raw_connection_run(sql)
           case @connection_options[:mode]
           when :sequel
-            @connection[sql]
+            @connection.fetch(sql)
           when :dblib
             @connection.execute(sql)
           end
@@ -479,10 +479,10 @@ module ActiveRecord
             qo[:as] = (options[:ar_result] || options[:fetch] == :rows) ? :array : :hash
           end
 
-          results = if query_options[:as] == :array
+          results =
             begin
-              handle.all.map {|r| r.values}
-            rescue Sequel::DatabaseError => e
+              handle.all(query_options)
+            rescue => e
               case e.to_s
                 when 'Java::ComMicrosoftSqlserverJdbc::SQLServerException: The statement did not return a result set.'
                   []
@@ -490,9 +490,6 @@ module ActiveRecord
                   raise ActiveRecord::StatementInvalid, e
               end
             end
-          else
-            handle.all
-          end
 
           if options[:ar_result]
             columns = (results.present? ? handle.columns.map { |c| (lowercase_schema_reflection ? c.downcase : c).to_s } : []) rescue []
