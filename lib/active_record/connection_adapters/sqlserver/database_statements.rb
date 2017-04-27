@@ -18,21 +18,21 @@ module ActiveRecord
         def exec_insert(sql, name = nil, binds = [], pk = nil, _sequence_name = nil)
           if id_insert_table_name = exec_insert_requires_identity?(sql, pk, binds)
             with_identity_insert_enabled(id_insert_table_name) { super(sql, name, binds, pk) }
-          elsif @connection_options[:mode] == :sequel
-            exec_insert_sequel(sql, name, binds, pk, _sequence_name)
+          elsif @connection_options[:mode] == :jdbc
+            exec_insert_jdbc(sql, name, binds, pk, _sequence_name)
           else
             super(sql, name, binds, pk)
           end
         end
 
-        def exec_insert_sequel(sql, name, binds, pk = nil, _sequence_name = nil)
+        def exec_insert_jdbc(sql, name, binds, pk = nil, _sequence_name = nil)
           if binds.blank? && sql.include?(IDENT_SELECT_QUERY)
             raw_insert = sql.gsub(IDENT_SELECT_QUERY, '')
             @connection.run(raw_insert)
             result = @connection.fetch(IDENT_SELECT_QUERY).all
             ActiveRecord::Result.new([:Ident], result.map(&:values))
           elsif !sql.include?(' OUTPUT INSERTED.')
-            id = exec_sequel_ddl(sql, name, binds)
+            id = exec_jdbc_ddl(sql, name, binds)
             ActiveRecord::Result.new(['id'], [[id]])
           else
             exec_query(sql, name, binds)
@@ -42,8 +42,8 @@ module ActiveRecord
         def exec_delete(sql, name, binds)
           sql = sql.dup << '; SELECT @@ROWCOUNT AS AffectedRows'
           case @connection_options[:mode]
-            when :sequel
-              exec_sequel_ddl(sql, name, binds)
+            when :jdbc
+              exec_jdbc_ddl(sql, name, binds)
             when :dblib
               super(sql, name, binds).rows.first.first
           end
@@ -52,16 +52,16 @@ module ActiveRecord
         def exec_update(sql, name, binds)
           sql = sql.dup << '; SELECT @@ROWCOUNT AS AffectedRows'
           case @connection_options[:mode]
-            when :sequel
-              exec_sequel_ddl(sql, name, binds)
+            when :jdbc
+              exec_jdbc_ddl(sql, name, binds)
             when :dblib
               super(sql, name, binds).rows.first.first
           end
         end
 
-        def exec_sequel_ddl(sql, name, binds)
+        def exec_jdbc_ddl(sql, name, binds)
           log(sql, name, binds) do
-            types, params = sp_executesql_types_and_parameters_sequel(binds)
+            types, params = sp_executesql_types_and_parameters_jdbc(binds)
             args = [sql, types.join(', ')] + params
             @connection.call_sproc("sp_executesql", args: args)
           end
@@ -168,10 +168,10 @@ module ActiveRecord
           name = 'Execute Procedure'
           log(sql, name) do
             case @connection_options[:mode]
-            when :sequel
+            when :jdbc
               result = begin
                 @connection.fetch(sql).all
-              rescue Sequel::DatabaseError => e
+              rescue => e
                 case e.to_s
                   when 'Java::ComMicrosoftSqlserverJdbc::SQLServerException: The statement did not return a result set.'
                     []
@@ -329,11 +329,11 @@ module ActiveRecord
           [types, params]
         end
 
-        def sp_executesql_types_and_parameters_sequel(binds)
+        def sp_executesql_types_and_parameters_jdbc(binds)
           types, params = [], []
           binds.each_with_index do |attr, index|
             types << "@#{index} #{sp_executesql_sql_type(attr)}"
-            params << sp_executesql_sql_param_sequel(attr)
+            params << sp_executesql_sql_param_jdbc(attr)
           end
           [types, params]
         end
@@ -359,7 +359,7 @@ module ActiveRecord
           end
         end
 
-        def sp_executesql_sql_param_sequel(attr)
+        def sp_executesql_sql_param_jdbc(attr)
           case attr.value_for_database
             when Type::Binary::Data,
                 ActiveRecord::Type::SQLServer::Data
@@ -387,7 +387,7 @@ module ActiveRecord
 
         def raw_connection_do(sql)
           case @connection_options[:mode]
-          when :sequel
+          when :jdbc
             @connection.run(sql)
           when :dblib
             @connection.execute(sql).do
@@ -451,7 +451,7 @@ module ActiveRecord
 
         def raw_connection_run(sql)
           case @connection_options[:mode]
-          when :sequel
+          when :jdbc
             @connection.fetch(sql)
           when :dblib
             @connection.execute(sql)
@@ -466,17 +466,17 @@ module ActiveRecord
 
         def handle_to_names_and_values(handle, options = {})
           case @connection_options[:mode]
-          when :sequel
-            handle_to_names_and_values_sequel(handle, options)
+          when :jdbc
+            handle_to_names_and_values_jdbc(handle, options)
           when :dblib
             handle_to_names_and_values_dblib(handle, options)
           end
         end
 
-        def handle_to_names_and_values_sequel(handle, options = {})
-          Sequel.default_timezone = ActiveRecord::Base.default_timezone || :utc
+        def handle_to_names_and_values_jdbc(handle, options = {})
           query_options = {}.tap do |qo|
             qo[:as] = (options[:ar_result] || options[:fetch] == :rows) ? :array : :hash
+            qo[:database_timezone] = ActiveRecord::Base.default_timezone || :utc
           end
 
           results =

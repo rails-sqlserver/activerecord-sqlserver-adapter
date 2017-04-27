@@ -29,7 +29,7 @@ connections:
       azure: <%= !ENV['ACTIVERECORD_UNITTEST_AZURE'].nil? %>
       timeout: <%= ENV['ACTIVERECORD_UNITTEST_AZURE'].present? ? 20 : 10 %>
 
-  sequel:
+  jdbc:
     arunit:
       <<: *default_connection_info
       appname: SQLServerAdptrUnit

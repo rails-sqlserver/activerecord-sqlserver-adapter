@@ -87,7 +87,7 @@ class SchemaDumperTestSQLServer < ActiveRecord::TestCase
     columns['money_col'].sql_type.must_equal        'money'
     columns['smalldatetime_col'].sql_type.must_equal 'smalldatetime'
     columns['datetime2_col'].sql_type.must_equal    'datetime2(7)'
-    unless connection_sequel?
+    unless connection_jdbc?
     columns['datetimeoffset'].sql_type.must_equal   'datetimeoffset(7)'
     end
     columns['smallmoney_col'].sql_type.must_equal   'smallmoney'
@@ -105,7 +105,7 @@ class SchemaDumperTestSQLServer < ActiveRecord::TestCase
     assert_line :money_col,         type: 'money',          limit: nil,           precision: 19,    scale: 4,    default: nil
     assert_line :smalldatetime_col, type: 'smalldatetime',  limit: nil,           precision: nil,   scale: nil,  default: nil
     assert_line :datetime2_col,     type: 'datetime',       limit: nil,           precision: 7,     scale: nil,  default: nil
-    unless connection_sequel?
+    unless connection_jdbc?
     assert_line :datetimeoffset,    type: 'datetimeoffset', limit: nil,           precision: 7,     scale: nil,  default: nil
     end
     assert_line :smallmoney_col,    type: 'smallmoney',     limit: nil,           precision: 10,    scale: 4,    default: nil

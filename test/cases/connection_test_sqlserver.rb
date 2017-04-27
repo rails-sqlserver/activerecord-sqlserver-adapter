@@ -50,15 +50,15 @@ class ConnectionTestSQLServer < ActiveRecord::TestCase
     end
 
     it 'be able to disconnect and reconnect at will' do
-      skip('does not work with sequel mode, because sequel immediately reconnects on first query') if connection_sequel?
+      skip('does not work with jdbc mode, because jdbc immediately reconnects on first query') if connection_jdbc?
       disconnect_raw_connection!
       assert !connection.active?
       connection.reconnect!
       assert connection.active?
     end
 
-    it 'sequel mode to be able to disconnect and reconnect at will' do
-      skip('does test reconnect for sequel mode') unless connection_sequel?
+    it 'jdbc mode to be able to disconnect and reconnect at will' do
+      skip('does test reconnect for jdbc mode') unless connection_jdbc?
       disconnect_raw_connection!
       connection.reconnect!
       assert connection.active?
@@ -73,7 +73,7 @@ class ConnectionTestSQLServer < ActiveRecord::TestCase
     case connection_options[:mode]
     when :dblib
       connection.raw_connection.close rescue nil
-    when :sequel
+    when :jdbc
       connection.raw_connection.disconnect rescue nil
     end
   end

@@ -170,7 +170,7 @@ module ActiveRecord
       def disconnect!
         super
         case @connection_options[:mode]
-        when :sequel
+        when :jdbc
           @connection.disconnect rescue nil
         when :dblib
           @connection.close rescue nil
@@ -359,8 +359,8 @@ module ActiveRecord
       def connect
         config = @connection_options
         @connection = case config[:mode]
-                      when :sequel
-                        sequel_connect(config)
+                      when :jdbc
+                        jdbc_connect(config)
                       when :dblib
                         dblib_connect(config)
                       end
@@ -375,16 +375,13 @@ module ActiveRecord
         end
       end
 
-      def sequel_connect(config)
+      def jdbc_connect(config)
         url = config[:url] || "jdbc:sqlserver://#{config[:host]};database=#{config[:database]};applicationName=#{config_appname(config)}"
-        Sequel.database_timezone = ActiveRecord::Base.default_timezone || :utc
-        Sequel.identifier_output_method = nil # so its default setting is similar to tiny_tds
 
         TinyTds::Java::Database.connect(url,
           port: config[:port],
           user: config[:username],
           password: config[:password],
-          max_connections: (config[:pool] || 5).to_i,
           login_timeout: config_login_timeout(config)
         ).tap do |client|
           if config[:azure]

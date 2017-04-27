@@ -102,7 +102,7 @@ By default, Bundler will download the Rails git repo and use the git tag that ma
 * Possibly change the SQL Server TCP/IP properties in "SQL Server Configuration Manager -> SQL Server Network Configuration -> Protocols for MSSQLSERVER", and ensure that TCP/IP is enabled and the appropriate entries on the "IP Addresses" tab are enabled.
 
 
-## Testing sequel mode
+## Testing jdbc mode
 
-  export ARCONN=sequel
-  jruby -S bundle exec rake test:sequel
+  export ARCONN=jdbc
+  jruby -S bundle exec rake test:jdbc

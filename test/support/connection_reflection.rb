@@ -18,8 +18,8 @@ module ARTest
         connection_options[:mode] == :dblib
       end
 
-      def connection_sequel?
-        connection_options[:mode] == :sequel
+      def connection_jdbc?
+        connection_options[:mode] == :jdbc
       end
 
       def connection_dblib_73?

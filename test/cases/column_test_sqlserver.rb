@@ -273,7 +273,7 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       col.sql_type.must_equal           'date'
       col.type.must_equal               :date
       col.null.must_equal               true
-      col.default.must_equal            connection_dblib_73? || connection_sequel? ? Date.civil(0001, 1, 1) : '0001-01-01'
+      col.default.must_equal            connection_dblib_73? || connection_jdbc? ? Date.civil(0001, 1, 1) : '0001-01-01'
       obj.date.must_equal               Date.civil(0001, 1, 1)
       col.default_function.must_be_nil
       type = connection.lookup_cast_type_from_column(col)
@@ -349,7 +349,7 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
     end
 
     it 'datetime2' do
-      skip 'datetime2 not supported in this protocal version' unless connection_dblib_73? || connection_sequel?
+      skip 'datetime2 not supported in this protocal version' unless connection_dblib_73? || connection_jdbc?
       col = column('datetime2_7')
       col.sql_type.must_equal           'datetime2(7)'
       col.type.must_equal               :datetime
@@ -480,7 +480,7 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
     end
 
     it 'time(7)' do
-      skip 'time() not correctly supported in sequel mode (nanoseconds issue)' if connection_sequel?
+      skip 'time() not correctly supported in jdbc mode (nanoseconds issue)' if connection_jdbc?
       skip 'time() not supported in this protocol version' unless connection_dblib_73?
       col = column('time_7')
       col.sql_type.must_equal           'time(7)'
