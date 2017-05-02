@@ -414,13 +414,13 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
     end
 
     it 'datetimeoffset' do
-      skip 'datetimeoffset not supported in this protocal version' unless connection_dblib_73?
+      skip 'datetimeoffset not supported in this protocal version' unless connection_dblib_73? or connection_jdbc?
       col = column('datetimeoffset_7')
       col.sql_type.must_equal           'datetimeoffset(7)'
       col.type.must_equal               :datetimeoffset
       col.null.must_equal               true
-      col.default.must_equal            Time.new(1984, 01, 24, 04, 20, 00, -28800).change(nsec: 123456700), "Nanoseconds <#{col.default.nsec}> vs <123456700>"
-      obj.datetimeoffset_7.must_equal   Time.new(1984, 01, 24, 04, 20, 00, -28800).change(nsec: 123456700), "Nanoseconds were <#{obj.datetimeoffset_7.nsec}> vs <999999900>"
+      col.default.must_equal            Time.new(1984, 01, 24, 04, 20, 00, "-08:00").change(nsec: 123456700), "Nanoseconds <#{col.default.nsec}> vs <123456700>"
+      obj.datetimeoffset_7.must_equal   Time.new(1984, 01, 24, 04, 20, 00, "-08:00").change(nsec: 123456700), "Nanoseconds were <#{obj.datetimeoffset_7.nsec}> vs <123456700>"
       col.default_function.must_be_nil
       type = connection.lookup_cast_type_from_column(col)
       type.must_be_instance_of          Type::DateTimeOffset
@@ -480,13 +480,13 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
     end
 
     it 'time(7)' do
-      skip 'time() not correctly supported in jdbc mode (nanoseconds issue)' if connection_jdbc?
-      skip 'time() not supported in this protocol version' unless connection_dblib_73?
+      skip 'time() not supported in this protocol version' unless connection_dblib_73? or connection_jdbc?
+      default_year = connection_jdbc? ? 2000 : 1900
       col = column('time_7')
       col.sql_type.must_equal           'time(7)'
       col.type.must_equal               :time
       col.null.must_equal               true
-      col.default.must_equal            Time.utc(1900, 01, 01, 04, 20, 00, Rational(288321500, 1000)), "Nanoseconds were <#{col.default.nsec}> vs <288321500>"
+      col.default.must_equal            Time.utc(default_year, 01, 01, 04, 20, 00, Rational(288321500, 1000)), "Nanoseconds were <#{col.default.nsec}> vs <288321500>"
       col.default_function.must_be_nil
       type = connection.lookup_cast_type_from_column(col)
       type.must_be_instance_of          Type::Time
@@ -503,7 +503,8 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       # Time's #usec precision (high micro)
       obj.time_7 = Time.utc(2000, 01, 01, 15, 45, 00, 234567)
       obj.time_7.must_equal             Time.utc(2000, 01, 01, 15, 45, 00, 234567), "Microseconds were <#{obj.time_7.usec}> vs <234567>"
-      obj.save! ; obj.reload
+      obj.save!
+      obj.reload
       obj.time_7.must_equal             Time.utc(2000, 01, 01, 15, 45, 00, 234567), "Microseconds were <#{obj.time_7.usec}> vs <234567>"
       # Time's #usec precision (high nano rounded)
       obj.time_7 = Time.utc(2000, 01, 01, 15, 45, 00, Rational(288321545, 1000))
@@ -513,7 +514,7 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
     end
 
     it 'time(2)' do
-      skip 'time() not supported in this protocal version' unless connection_dblib_73?
+      skip 'time() not supported in this protocal version' unless connection_dblib_73? or connection_jdbc?
       col = column('time_2')
       col.sql_type.must_equal           'time(2)'
       col.type.must_equal               :time
