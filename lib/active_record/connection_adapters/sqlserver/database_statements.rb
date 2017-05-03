@@ -173,7 +173,7 @@ module ActiveRecord
                 @connection.fetch(sql).all
               rescue => e
                 case e.to_s
-                  when 'Java::ComMicrosoftSqlserverJdbc::SQLServerException: The statement did not return a result set.'
+                  when 'The statement did not return a result set.'
                     []
                   else
                     raise ActiveRecord::StatementInvalid, e
