@@ -52,7 +52,7 @@ group :tinytds do
     gem 'tiny_tds', ENV['TINYTDS_VERSION']
   else
     if RUBY_ENGINE == 'jruby'
-      gem 'tiny_tds', platform: :jruby
+      gem 'sqljdbc4'
     else
       gem 'tiny_tds'
     end
