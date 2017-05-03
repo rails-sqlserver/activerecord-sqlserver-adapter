@@ -104,5 +104,6 @@ By default, Bundler will download the Rails git repo and use the git tag that ma
 
 ## Testing jdbc mode
 
+  export JRUBY_OPTS="--dev -X+O -J-Xmx2048m"
   export ARCONN=jdbc
   jruby -S bundle exec rake test:jdbc
