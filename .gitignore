@@ -10,6 +10,7 @@ test/profile/output/*
 .rvmrc
 .rbenv-version
 .idea
+*.iml
 coverage/*
 .flooignore
 .floo
