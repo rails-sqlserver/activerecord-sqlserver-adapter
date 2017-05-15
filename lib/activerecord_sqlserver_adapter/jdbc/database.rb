@@ -117,13 +117,6 @@ module ActiveRecordSqlServerAdapter
         raise(Error, "No connection string specified") unless uri
       end
 
-      # Remove any existing loggers and just use the given logger:
-      #
-      #   DB.logger = Logger.new($stdout)
-      def logger=(logger)
-        @loggers = Array(logger)
-      end
-
       def database_timezone
         opts[:database_timezone]
       end
