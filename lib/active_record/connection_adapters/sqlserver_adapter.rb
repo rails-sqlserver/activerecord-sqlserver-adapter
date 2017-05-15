@@ -372,6 +372,7 @@ module ActiveRecord
       def connection_errors
         @connection_errors ||= [].tap do |errors|
           errors << TinyTds::Error if defined?(TinyTds::Error)
+          errors << Java::ComMicrosoftSqlserverJdbc::SQLServerException if defined?(Java::ComMicrosoftSqlserverJdbc::SQLServerException)
         end
       end
 

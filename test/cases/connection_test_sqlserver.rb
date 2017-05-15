@@ -50,20 +50,11 @@ class ConnectionTestSQLServer < ActiveRecord::TestCase
     end
 
     it 'be able to disconnect and reconnect at will' do
-      skip('does not work with jdbc mode, because jdbc immediately reconnects on first query') if connection_jdbc?
       disconnect_raw_connection!
       assert !connection.active?
       connection.reconnect!
       assert connection.active?
     end
-
-    it 'jdbc mode to be able to disconnect and reconnect at will' do
-      skip('does test reconnect for jdbc mode') unless connection_jdbc?
-      disconnect_raw_connection!
-      connection.reconnect!
-      assert connection.active?
-    end
-
   end
 
 
