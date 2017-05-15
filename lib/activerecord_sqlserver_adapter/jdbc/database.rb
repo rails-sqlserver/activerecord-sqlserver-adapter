@@ -303,7 +303,9 @@ module ActiveRecordSqlServerAdapter
         conn.close if conn
       end
 
-      # Get the last inserted id using SCOPE_IDENTITY().
+      ATAT_IDENTITY = 'SELECT @@IDENTITY'.freeze
+      SCOPE_IDENTITY = 'SELECT SCOPE_IDENTITY()'.freeze
+      # Get the last inserted id using SCOPE_IDENTITY() or @@IDENTITY.
       def last_insert_id(conn, opts=OPTS)
         statement(conn) do |stmt|
           sql = opts[:prepared] ? ATAT_IDENTITY : SCOPE_IDENTITY
