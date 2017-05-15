@@ -23,9 +23,7 @@ ActiveRecord::Schema.define do
     t.money          :money_col
     t.smalldatetime  :smalldatetime_col
     t.datetime2      :datetime2_col
-    unless ENV['ARCONN'] == 'jdbc'
     t.datetimeoffset :datetimeoffset
-    end
     t.smallmoney     :smallmoney_col
     t.char           :char_col
     t.varchar        :varchar_col
