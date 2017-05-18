@@ -36,7 +36,7 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
     it 'bigint(8)' do
       col = column('bigint')
       col.sql_type.must_equal           'bigint(8)'
-      col.type.must_equal               :bigint
+      col.type.must_equal               :integer
       col.null.must_equal               true
       col.default.must_equal            42
       obj.bigint.must_equal             42
