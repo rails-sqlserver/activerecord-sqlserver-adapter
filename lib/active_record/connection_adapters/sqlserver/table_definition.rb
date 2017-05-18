@@ -5,10 +5,11 @@ module ActiveRecord
       module ColumnMethods
 
         def primary_key(name, type = :primary_key, **options)
-          return super unless type == :uuid
-          options[:default] = options.fetch(:default, 'NEWID()')
-          options[:primary_key] = true
-          column name, type, options
+          if type == :uuid
+            options[:default] = options.fetch(:default, 'NEWID()')
+            options[:primary_key] = true
+          end
+          super
         end
 
         def primary_key_nonclustered(*args, **options)
@@ -98,9 +99,12 @@ module ActiveRecord
       class TableDefinition < ActiveRecord::ConnectionAdapters::TableDefinition
         include ColumnMethods
 
-        def new_column_definition(name, type, options)
-          type = :datetime2 if type == :datetime && options[:precision]
-          super name, type, options
+        def new_column_definition(name, type, **options)
+          case type
+          when :datetime
+            type = :datetime2 if options[:precision]
+          end
+          super
         end
       end
 

@@ -28,6 +28,14 @@ module ActiveRecord
           end
         end
 
+        def options_include_default?(options)
+          super || options_primary_key_with_nil_default?(options)
+        end
+
+        def options_primary_key_with_nil_default?(options)
+          options[:primary_key] && options.include?(:default) && options[:default].nil?
+        end
+
       end
     end
   end
