@@ -22,3 +22,5 @@
   been long unused and unsupported.
 * Deprecate using `#quoted_id` in quoting.
 * Deprecate `supports_migrations?` on connection adapters.
+* Dig moving `Column#sqlserver_options` to `sql_type_metadata` delegate.
+* Should we do like PG and add `options[:collation]` before `#add_column_options!`?
