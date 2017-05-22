@@ -24,3 +24,4 @@
 * Deprecate `supports_migrations?` on connection adapters.
 * Dig moving `Column#sqlserver_options` to `sql_type_metadata` delegate.
 * Should we do like PG and add `options[:collation]` before `#add_column_options!`?
+* Translated exceptions: `SerializationFailure` and `RangeError`.
