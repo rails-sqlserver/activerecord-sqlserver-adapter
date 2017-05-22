@@ -337,6 +337,8 @@ module ActiveRecord
             target_table: pk_id.schema,
             primary_key: pk_id.object
           )
+        when /Cannot insert the value NULL into column.*does not allow nulls/
+          NotNullViolation.new(message)
         else
           super
         end

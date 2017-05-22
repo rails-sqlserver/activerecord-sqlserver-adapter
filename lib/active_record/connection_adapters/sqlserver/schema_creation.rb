@@ -16,6 +16,20 @@ module ActiveRecord
           end
         end
 
+        def add_column_options!(sql, options)
+          sql << " DEFAULT #{quote_default_expression(options[:default], options[:column])}" if options_include_default?(options)
+          if options[:null] == false
+            sql << " NOT NULL"
+          end
+          if options[:is_identity] == true
+            sql << " IDENTITY(1,1)"
+          end
+          if options[:primary_key] == true
+            sql << " PRIMARY KEY"
+          end
+          sql
+        end
+
         def action_sql(action, dependency)
           case dependency
           when :restrict

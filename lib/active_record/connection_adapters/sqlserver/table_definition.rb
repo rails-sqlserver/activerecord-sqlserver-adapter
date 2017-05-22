@@ -5,7 +5,9 @@ module ActiveRecord
       module ColumnMethods
 
         def primary_key(name, type = :primary_key, **options)
-          if type == :uuid
+          if [:integer, :bigint].include?(type)
+            options[:is_identity] = true unless options.key?(:default)
+          elsif type == :uuid
             options[:default] = options.fetch(:default, 'NEWID()')
             options[:primary_key] = true
           end
@@ -103,6 +105,8 @@ module ActiveRecord
           case type
           when :datetime
             type = :datetime2 if options[:precision]
+          when :primary_key
+            options[:is_identity] = true
           end
           super
         end
