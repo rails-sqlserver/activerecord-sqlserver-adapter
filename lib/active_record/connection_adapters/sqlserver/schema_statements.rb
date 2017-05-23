@@ -7,28 +7,16 @@ module ActiveRecord
           @native_database_types ||= initialize_native_database_types.freeze
         end
 
-        def tables(name = nil)
-          tables_sql('BASE TABLE')
-        end
+        # def data_source_exists?(table_name)
+        #   return false if table_name.blank?
+        #   unquoted_table_name = SQLServer::Utils.extract_identifiers(table_name).object
+        #   super(unquoted_table_name)
+        # end
 
-        def table_exists?(table_name)
-          data_source_exists?(table_name)
-        end
-
-        def data_source_exists?(table_name)
-          return false if table_name.blank?
-          unquoted_table_name = SQLServer::Utils.extract_identifiers(table_name).object
-          super(unquoted_table_name)
-        end
-
-        def views
-          tables_sql('VIEW')
-        end
-
-        def view_exists?(table_name)
-          identifier = SQLServer::Utils.extract_identifiers(table_name)
-          super(identifier.object)
-        end
+        # def view_exists?(table_name)
+        #   identifier = SQLServer::Utils.extract_identifiers(table_name)
+        #   super(identifier.object)
+        # end
 
         def create_table(table_name, comment: nil, **options)
           res = super
@@ -250,8 +238,29 @@ module ActiveRecord
           do_execute sql
         end
 
+        private
 
-        protected
+        def data_source_sql(name = nil, type: nil)
+          scope = quoted_scope name, type: type
+          table_name = lowercase_schema_reflection_sql 'TABLE_NAME'
+          sql = "SELECT #{table_name}"
+          sql << ' FROM INFORMATION_SCHEMA.TABLES'
+          sql << ' WHERE TABLE_CATALOG = DB_NAME()'
+          sql << " AND TABLE_SCHEMA = #{quote(scope[:schema])}"
+          sql << " AND TABLE_NAME = #{quote(scope[:name])}" if scope[:name]
+          sql << " AND TABLE_TYPE = #{quote(scope[:type])}" if scope[:type]
+          sql << " ORDER BY #{table_name}"
+          sql
+        end
+
+        def quoted_scope(name = nil, type: nil)
+          identifier = SQLServer::Utils.extract_identifiers(name)
+          {}.tap do |scope|
+            scope[:schema] = identifier.schema || 'dbo'
+            scope[:name] = identifier.object if identifier.object
+            scope[:type] = type if type
+          end
+        end
 
         # === SQLServer Specific ======================================== #
 
@@ -289,12 +298,6 @@ module ActiveRecord
             ss_timestamp: { name: 'timestamp' },
             json: { name: 'nvarchar(max)' }
           }
-        end
-
-        def tables_sql(type)
-          tn  = lowercase_schema_reflection_sql 'TABLE_NAME'
-          sql = "SELECT #{tn} FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = '#{type}' ORDER BY TABLE_NAME"
-          select_values sql, 'SCHEMA'
         end
 
         def column_definitions(table_name)
@@ -480,7 +483,7 @@ module ActiveRecord
           @view_information ||= {}
           @view_information[table_name] ||= begin
             identifier = SQLServer::Utils.extract_identifiers(table_name)
-            view_info = select_one "SELECT * FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_NAME = '#{identifier.object}'", 'SCHEMA'
+            view_info = select_one "SELECT * FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_NAME = #{quote(identifier.object)}", 'SCHEMA'
             if view_info
               view_info = view_info.with_indifferent_access
               if view_info[:VIEW_DEFINITION].blank? || view_info[:VIEW_DEFINITION].length == 4000
@@ -502,8 +505,6 @@ module ActiveRecord
           match_data = view_definition.match(/([\w-]*)\s+as\s+#{column_name}/im)
           match_data ? match_data[1] : column_name
         end
-
-        private
 
         def create_table_definition(*args)
           SQLServer::TableDefinition.new(*args)
