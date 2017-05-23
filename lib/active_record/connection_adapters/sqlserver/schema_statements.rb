@@ -7,17 +7,6 @@ module ActiveRecord
           @native_database_types ||= initialize_native_database_types.freeze
         end
 
-        # def data_source_exists?(table_name)
-        #   return false if table_name.blank?
-        #   unquoted_table_name = SQLServer::Utils.extract_identifiers(table_name).object
-        #   super(unquoted_table_name)
-        # end
-
-        # def view_exists?(table_name)
-        #   identifier = SQLServer::Utils.extract_identifiers(table_name)
-        #   super(identifier.object)
-        # end
-
         def create_table(table_name, comment: nil, **options)
           res = super
           clear_cache!
