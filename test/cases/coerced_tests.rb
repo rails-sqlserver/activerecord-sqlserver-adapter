@@ -613,6 +613,26 @@ class RelationTest < ActiveRecord::TestCase
   # Leave it up to users to format selects/functions so HAVING works correctly.
   coerce_tests! :test_multiple_where_and_having_clauses
   coerce_tests! :test_having_with_binds_for_both_where_and_having
+
+  # Find any limit via our expression.
+  coerce_tests! %r{relations don't load all records in #inspect}
+  def test_relations_dont_load_all_records_in_inspect_coerced
+    assert_sql(/NEXT @0 ROWS.*@0 = \d+/) do
+      Post.all.inspect
+    end
+  end
+
+  # I wanted to add `.order("author_id")` scope to avoid error: Column "posts.id" is invalid in the ORDER BY
+  # However, this pull request on Rails core drops order on exists relation. https://github.com/rails/rails/pull/28699
+  # so we are skipping all together.
+  coerce_tests! :test_empty_complex_chained_relations
+
+  # Use LEN() vs length() function.
+  coerce_tests! :test_reverse_arel_assoc_order_with_function
+  def test_reverse_arel_assoc_order_with_function_coerced
+    topics = Topic.order(Arel.sql("LEN(title)") => :asc).reverse_order
+    assert_equal topics(:second).title, topics.first.title
+  end
 end
 
 
