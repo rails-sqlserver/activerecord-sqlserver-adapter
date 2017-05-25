@@ -18,8 +18,6 @@
 * Remove deprecated tasks: `db:test:clone`, `db:test:clone_schema`, `db:test:clone_structure`.
 * Make `table_name=` reset current statement cache,
   so queries are not run against the previous table name.
-* Deprecate `supports_primary_key?` on connection adapters since it's
-  been long unused and unsupported.
 * Deprecate using `#quoted_id` in quoting.
 * Deprecate `supports_migrations?` on connection adapters.
 * Dig moving `Column#sqlserver_options` to `sql_type_metadata` delegate.

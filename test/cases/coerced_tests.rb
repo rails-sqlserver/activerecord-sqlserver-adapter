@@ -593,6 +593,15 @@ end
 
 
 
+class PrimaryKeysTest < ActiveRecord::TestCase
+  # Gonna trust Rails core for this. We end up with 2 querys vs 3 asserted
+  # but as far as I can tell, this is only one for us anyway.
+  coerce_tests! :test_create_without_primary_key_no_extra_query
+end
+
+
+
+
 require 'models/task'
 class QueryCacheTest < ActiveRecord::TestCase
   coerce_tests! :test_cache_does_not_wrap_string_results_in_arrays
