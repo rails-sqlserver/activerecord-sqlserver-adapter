@@ -161,6 +161,29 @@ end
 
 
 
+module ActiveRecord
+  module ConnectionAdapters
+    class QuoteARBaseTest < ActiveRecord::TestCase
+
+      # Use our date format.
+      coerce_tests! :test_quote_ar_object
+      def test_quote_ar_object_coerced
+        value = DatetimePrimaryKey.new(id: @time)
+        assert_equal "'02-14-2017 12:34:56.79'",  @connection.quote(value)
+      end
+
+      # Use our date format.
+      coerce_tests! :test_type_cast_ar_object
+      def test_type_cast_ar_object_coerced
+        value = DatetimePrimaryKey.new(id: @time)
+        assert_equal "02-14-2017 12:34:56.79",  @connection.type_cast(value)
+      end
+
+    end
+  end
+end
+
+
 
 module ActiveRecord
   class Migration

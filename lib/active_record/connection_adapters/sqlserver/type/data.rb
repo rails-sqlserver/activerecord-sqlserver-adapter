@@ -23,6 +23,11 @@ module ActiveRecord
             @value.inspect
           end
 
+          def eql?(other)
+            self.class == other.class && self.value == other.value
+          end
+          alias :== :eql?
+
         end
       end
     end
