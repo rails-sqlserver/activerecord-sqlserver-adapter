@@ -226,6 +226,14 @@ module ActiveRecord
         @connection_options[:database_prefix]
       end
 
+      def database_prefix_identifier(name)
+        if database_prefix_remote_server?
+          SQLServer::Utils.extract_identifiers("#{database_prefix}#{name}")
+        else
+          SQLServer::Utils.extract_identifiers(name)
+        end
+      end
+
       def version
         self.class::VERSION
       end

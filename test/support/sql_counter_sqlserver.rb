@@ -13,7 +13,7 @@ module ARTest
     end
 
     ignored_sql = [
-      /INFORMATION_SCHEMA\.(TABLES|VIEWS|COLUMNS)/im,
+      /INFORMATION_SCHEMA\.(TABLES|VIEWS|COLUMNS|KEY_COLUMN_USAGE)/im,
       /SELECT @@version/,
       /SELECT @@TRANCOUNT/,
       /(BEGIN|COMMIT|ROLLBACK|SAVE) TRANSACTION/,

@@ -85,8 +85,32 @@ module ActiveRecord
         end
 
         def primary_keys(table_name)
-          primaries = schema_cache.columns(table_name).select(&:is_primary?).map(&:name)
+          primaries = primary_keys_select(table_name)
           primaries.present? ? primaries : identity_columns(table_name).map(&:name)
+        end
+
+        def primary_keys_select(table_name)
+          identifier = database_prefix_identifier(table_name)
+          database = identifier.fully_qualified_database_quoted
+          sql = %{
+            SELECT KCU.COLUMN_NAME AS [name]
+            FROM #{database}.INFORMATION_SCHEMA.KEY_COLUMN_USAGE AS KCU
+            LEFT OUTER JOIN #{database}.INFORMATION_SCHEMA.TABLE_CONSTRAINTS AS TC
+              ON KCU.CONSTRAINT_NAME = TC.CONSTRAINT_NAME
+              AND KCU.CONSTRAINT_NAME = TC.CONSTRAINT_NAME
+              AND KCU.CONSTRAINT_CATALOG = TC.CONSTRAINT_CATALOG
+              AND KCU.CONSTRAINT_SCHEMA = TC.CONSTRAINT_SCHEMA
+              AND TC.CONSTRAINT_TYPE = N'PRIMARY KEY'
+            WHERE KCU.TABLE_NAME = #{prepared_statements ? '@0' : quote(identifier.object)}
+            AND KCU.TABLE_SCHEMA = #{identifier.schema.blank? ? 'schema_name()' : (prepared_statements ? '@1' : quote(identifier.schema))}
+            AND TC.CONSTRAINT_TYPE = N'PRIMARY KEY'
+            ORDER BY KCU.ORDINAL_POSITION ASC
+          }.gsub(/[[:space:]]/, ' ')
+          binds = []
+          nv128 = SQLServer::Type::UnicodeVarchar.new limit: 128
+          binds << Relation::QueryAttribute.new('TABLE_NAME', identifier.object, nv128)
+          binds << Relation::QueryAttribute.new('TABLE_SCHEMA', identifier.schema, nv128) unless identifier.schema.blank?
+          sp_executesql(sql, 'SCHEMA', binds).map { |r| r['name'] }
         end
 
         def rename_table(table_name, new_name)
@@ -290,11 +314,7 @@ module ActiveRecord
         end
 
         def column_definitions(table_name)
-          identifier = if database_prefix_remote_server?
-            SQLServer::Utils.extract_identifiers("#{database_prefix}#{table_name}")
-          else
-            SQLServer::Utils.extract_identifiers(table_name)
-          end
+          identifier  = database_prefix_identifier(table_name)
           database    = identifier.fully_qualified_database_quoted
           view_exists = view_exists?(table_name)
           view_tblnm  = view_table_name(table_name) if view_exists
