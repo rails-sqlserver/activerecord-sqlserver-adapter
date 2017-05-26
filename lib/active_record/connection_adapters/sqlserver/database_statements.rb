@@ -198,7 +198,12 @@ module ActiveRecord
           end
           sql = if pk && self.class.use_output_inserted && !database_prefix_remote_server?
                   quoted_pk = SQLServer::Utils.extract_identifiers(pk).quoted
-                  sql.insert sql.index(/ (DEFAULT )?VALUES/), " OUTPUT INSERTED.#{quoted_pk}"
+                  if !self.class.use_output_inserted_into
+                    sql.dup.insert sql.index(/ (DEFAULT )?VALUES/), " OUTPUT INSERTED.#{quoted_pk}"
+                  else
+                    tempsql = sql.insert sql.index(/ (DEFAULT )?VALUES/), " OUTPUT INSERTED.#{quoted_pk} INTO @inserted_id"
+                    "DECLARE @inserted_id table (id int);#{tempsql}; SELECT * FROM @inserted_id;"
+                  end
                 else
                   "#{sql}; SELECT CAST(SCOPE_IDENTITY() AS bigint) AS Ident"
                 end
