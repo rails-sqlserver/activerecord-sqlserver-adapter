@@ -31,6 +31,9 @@ end
 require 'models/event'
 module ActiveRecord
   class AdapterTest < ActiveRecord::TestCase
+    # I really dont think we can support legacy binds.
+    coerce_tests! :test_select_all_with_legacy_binds
+
     # As far as I can tell, SQL Server does not support null bytes in strings.
     coerce_tests! :test_update_prepared_statement
 
