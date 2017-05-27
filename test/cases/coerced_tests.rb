@@ -862,3 +862,19 @@ module ActiveRecord
     coerce_tests! :test_find_does_not_use_statement_cache_if_table_name_is_changed
   end
 end
+
+
+
+
+module ActiveRecord
+  module ConnectionAdapters
+    class SchemaCacheTest < ActiveRecord::TestCase
+      private
+      # We need to give the full path for this to work.
+      def schema_dump_path
+        File.join ARTest::SQLServer.root_activerecord, 'test/assets/schema_dump_5_1.yml'
+      end
+    end
+  end
+end
+
