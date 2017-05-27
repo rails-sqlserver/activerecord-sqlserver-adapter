@@ -343,6 +343,8 @@ module ActiveRecord
           )
         when /Cannot insert the value NULL into column.*does not allow nulls/
           NotNullViolation.new(message)
+        when /Arithmetic overflow error/
+          RangeError.new(message)
         else
           super
         end
