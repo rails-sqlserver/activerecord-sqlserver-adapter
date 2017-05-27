@@ -23,8 +23,13 @@ module ActiveRecord
 
     let(:logger) { ActiveRecord::Base.logger }
 
+    setup :ensure_clean_rails_env
 
     private
+
+    def ensure_clean_rails_env
+      Rails.instance_variable_set(:@_env, nil) if defined?(::Rails)
+    end
 
     def host_windows?
       RbConfig::CONFIG['host_os'] =~ /mswin|mingw/
