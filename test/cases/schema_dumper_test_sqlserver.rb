@@ -38,17 +38,17 @@ class SchemaDumperTestSQLServer < ActiveRecord::TestCase
     # Character Strings
     assert_line :char_10,           type: 'char',         limit: 10,            precision: nil,   scale: nil,  default: "1234567890",           collation: nil
     assert_line :varchar_50,        type: 'varchar',      limit: 50,            precision: nil,   scale: nil,  default: "test varchar_50",      collation: nil
-    assert_line :varchar_max,       type: 'varchar_max',  limit: 2147483647,    precision: nil,   scale: nil,  default: "test varchar_max",     collation: nil
-    assert_line :text,              type: 'text_basic',   limit: 2147483647,    precision: nil,   scale: nil,  default: "test text",            collation: nil
+    assert_line :varchar_max,       type: 'varchar_max',  limit: nil,           precision: nil,   scale: nil,  default: "test varchar_max",     collation: nil
+    assert_line :text,              type: 'text_basic',   limit: nil,           precision: nil,   scale: nil,  default: "test text",            collation: nil
     # Unicode Character Strings
     assert_line :nchar_10,          type: 'nchar',        limit: 10,            precision: nil,   scale: nil,  default: "12345678åå",           collation: nil
     assert_line :nvarchar_50,       type: 'string',       limit: 50,            precision: nil,   scale: nil,  default: "test nvarchar_50 åå",  collation: nil
-    assert_line :nvarchar_max,      type: 'text',         limit: 2147483647,    precision: nil,   scale: nil,  default: "test nvarchar_max åå", collation: nil
-    assert_line :ntext,             type: 'ntext',        limit: 2147483647,    precision: nil,   scale: nil,  default: "test ntext åå",        collation: nil
+    assert_line :nvarchar_max,      type: 'text',         limit: nil,           precision: nil,   scale: nil,  default: "test nvarchar_max åå", collation: nil
+    assert_line :ntext,             type: 'ntext',        limit: nil,           precision: nil,   scale: nil,  default: "test ntext åå",        collation: nil
     # Binary Strings
     assert_line :binary_49,         type: 'binary_basic', limit: 49,            precision: nil,   scale: nil,  default: nil
     assert_line :varbinary_49,      type: 'varbinary',    limit: 49,            precision: nil,   scale: nil,  default: nil
-    assert_line :varbinary_max,     type: 'binary',       limit: 2147483647,    precision: nil,   scale: nil,  default: nil
+    assert_line :varbinary_max,     type: 'binary',       limit: nil,           precision: nil,   scale: nil,  default: nil
     # Other Data Types
     assert_line :uniqueidentifier,  type: 'uuid',         limit: nil,           precision: nil,   scale: nil,  default: -> { "newid()" }
     assert_line :timestamp,         type: 'ss_timestamp', limit: nil,           precision: nil,   scale: nil,  default: nil
@@ -76,12 +76,12 @@ class SchemaDumperTestSQLServer < ActiveRecord::TestCase
     assert_line :decimal_col,     type: 'decimal',      limit: nil,          precision: 18,   scale: 0,   default: nil
     assert_line :float_col,       type: 'float',        limit: nil,          precision: nil,  scale: nil, default: nil
     assert_line :string_col,      type: 'string',       limit: nil,          precision: nil,  scale: nil, default: nil
-    assert_line :text_col,        type: 'text',         limit: 2147483647,   precision: nil,  scale: nil, default: nil
+    assert_line :text_col,        type: 'text',         limit: nil,          precision: nil,  scale: nil, default: nil
     assert_line :datetime_col,    type: 'datetime',     limit: nil,          precision: nil,  scale: nil, default: nil
     assert_line :timestamp_col,   type: 'datetime',     limit: nil,          precision: nil,  scale: nil, default: nil
     assert_line :time_col,        type: 'time',         limit: nil,          precision: 7,    scale: nil, default: nil
     assert_line :date_col,        type: 'date',         limit: nil,          precision: nil,  scale: nil, default: nil
-    assert_line :binary_col,      type: 'binary',       limit: 2147483647,   precision: nil,  scale: nil, default: nil
+    assert_line :binary_col,      type: 'binary',       limit: nil,          precision: nil,  scale: nil, default: nil
     # Our type methods.
     columns['real_col'].sql_type.must_equal         'real'
     columns['money_col'].sql_type.must_equal        'money'
@@ -107,14 +107,14 @@ class SchemaDumperTestSQLServer < ActiveRecord::TestCase
     assert_line :smallmoney_col,    type: 'smallmoney',     limit: nil,           precision: 10,    scale: 4,    default: nil
     assert_line :char_col,          type: 'char',           limit: 1,             precision: nil,   scale: nil,  default: nil
     assert_line :varchar_col,       type: 'varchar',        limit: nil,           precision: nil,   scale: nil,  default: nil
-    assert_line :text_basic_col,    type: 'text_basic',     limit: 2147483647,    precision: nil,   scale: nil,  default: nil
+    assert_line :text_basic_col,    type: 'text_basic',     limit: nil,           precision: nil,   scale: nil,  default: nil
     assert_line :nchar_col,         type: 'nchar',          limit: 1,             precision: nil,   scale: nil,  default: nil
-    assert_line :ntext_col,         type: 'ntext',          limit: 2147483647,    precision: nil,   scale: nil,  default: nil
+    assert_line :ntext_col,         type: 'ntext',          limit: nil,           precision: nil,   scale: nil,  default: nil
     assert_line :binary_basic_col,  type: 'binary_basic',   limit: 1,             precision: nil,   scale: nil,  default: nil
     assert_line :varbinary_col,     type: 'varbinary',      limit: nil,           precision: nil,   scale: nil,  default: nil
     assert_line :uuid_col,          type: 'uuid',           limit: nil,           precision: nil,   scale: nil,  default: nil
     assert_line :sstimestamp_col,   type: 'ss_timestamp',   limit: nil,           precision: nil,   scale: nil,  default: nil
-    assert_line :json_col,          type: 'text',           limit: 2147483647,    precision: nil,   scale: nil,  default: nil
+    assert_line :json_col,          type: 'text',           limit: nil,           precision: nil,   scale: nil,  default: nil
   end
 
   # Special Cases
