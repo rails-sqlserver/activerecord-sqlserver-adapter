@@ -137,8 +137,10 @@ module ActiveRecord
           end
           sql_commands << "UPDATE #{quote_table_name(table_name)} SET #{quote_column_name(column_name)}=#{quote_default_expression(options[:default], column_object)} WHERE #{quote_column_name(column_name)} IS NULL" if !options[:null].nil? && options[:null] == false && !options[:default].nil?
           sql_commands << "ALTER TABLE #{quote_table_name(table_name)} ALTER COLUMN #{quote_column_name(column_name)} #{type_to_sql(type, limit: options[:limit], precision: options[:precision], scale: options[:scale])}"
-          sql_commands[-1] << ' NOT NULL' if !options[:null].nil? && options[:null] == false
-          if options_include_default?(options)
+          sql_commands.last << ' NOT NULL' if !options[:null].nil? && options[:null] == false
+          if options.key?(:default) && default_constraint_name(table_name, column_name).present?
+            change_column_default(table_name, column_name, options[:default])
+          elsif options_include_default?(options)
             sql_commands << "ALTER TABLE #{quote_table_name(table_name)} ADD CONSTRAINT #{default_constraint_name(table_name, column_name)} DEFAULT #{quote_default_expression(options[:default], column_object)} FOR #{quote_column_name(column_name)}"
           end
           # Add any removed indexes back
@@ -146,6 +148,7 @@ module ActiveRecord
             sql_commands << "CREATE INDEX #{quote_table_name(index.name)} ON #{quote_table_name(table_name)} (#{index.columns.map { |c| quote_column_name(c) }.join(', ')})"
           end
           sql_commands.each { |c| do_execute(c) }
+          clear_cache!
         end
 
         def change_column_default(table_name, column_name, default_or_changes)
