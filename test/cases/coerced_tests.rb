@@ -315,6 +315,10 @@ end
 
 
 module ActiveRecord
+  class DatabaseTasksDumpSchemaCacheTest < ActiveRecord::TestCase
+    # Skip this test with /tmp/my_schema_cache.yml path on Windows.
+    coerce_tests! :test_dump_schema_cache if RbConfig::CONFIG['host_os'] =~ /mswin|mingw/
+  end
   class DatabaseTasksCreateAllTest < ActiveRecord::TestCase
     # We extend `local_database?` so that common VM IPs can be used.
     coerce_tests! :test_ignores_remote_databases, :test_warning_for_remote_databases
