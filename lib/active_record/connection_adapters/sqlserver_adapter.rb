@@ -73,10 +73,6 @@ module ActiveRecord
         SQLServer::SchemaCreation.new self
       end
 
-      def supports_migrations?
-        true
-      end
-
       def supports_ddl_transactions?
         true
       end

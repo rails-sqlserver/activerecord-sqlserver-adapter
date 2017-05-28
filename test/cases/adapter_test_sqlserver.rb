@@ -37,10 +37,6 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
     assert_equal 'SQLServer', connection.adapter_name
   end
 
-  it 'supports migrations' do
-    assert connection.supports_migrations?
-  end
-
   it 'support DDL in transactions' do
     assert connection.supports_ddl_transactions?
   end
