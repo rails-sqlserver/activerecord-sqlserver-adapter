@@ -9,12 +9,6 @@ class SpecificSchemaTestSQLServer < ActiveRecord::TestCase
     SSTestDollarTableName.limit(20).offset(1)
   end
 
-  it 'handle dot table names' do
-    SSTestDotTableName.create! name: 'test'
-    SSTestDotTableName.limit(20).offset(1)
-    SSTestDotTableName.where(name: 'test').first.must_be :present?
-  end
-
   it 'models can use tinyint pk tables' do
     obj = SSTestTinyintPk.create! name: '1'
     ['Fixnum', 'Integer'].must_include obj.id.class.name
