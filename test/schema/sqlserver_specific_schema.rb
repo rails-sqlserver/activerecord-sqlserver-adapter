@@ -64,10 +64,6 @@ ActiveRecord::Schema.define do
     t.uuid   :uuid_nil_default, default: nil
   end
 
-  create_table '[some.Name]', force: true do |t|
-    t.varchar :name
-  end
-
   create_table 'sst_my$strange_table', force: true do |t|
     t.string :name
   end
