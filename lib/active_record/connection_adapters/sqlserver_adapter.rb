@@ -8,6 +8,7 @@ require 'active_record/connection_adapters/sqlserver/core_ext/explain_subscriber
 require 'active_record/connection_adapters/sqlserver/core_ext/attribute_methods'
 require 'active_record/connection_adapters/sqlserver/version'
 require 'active_record/connection_adapters/sqlserver/type'
+require 'active_record/connection_adapters/sqlserver/core_ext/attribute'
 require 'active_record/connection_adapters/sqlserver/database_limits'
 require 'active_record/connection_adapters/sqlserver/database_statements'
 require 'active_record/connection_adapters/sqlserver/database_tasks'
