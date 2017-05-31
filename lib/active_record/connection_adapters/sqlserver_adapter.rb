@@ -381,7 +381,7 @@ module ActiveRecord
           azure: config[:azure],
           contained: config[:contained]
         ).tap do |client|
-          if config[:azure]
+          if config[:azure] || config[:contained]
             client.execute('SET ANSI_NULLS ON').do
             client.execute('SET ANSI_NULL_DFLT_ON ON').do
             client.execute('SET ANSI_PADDING ON').do
