@@ -366,6 +366,7 @@ module ActiveRecord
       end
 
       def dblib_connect(config)
+        raise "Username should be of the format user@short-name" unless config[:username] =~ /\S+@[A-z\-]+$/
         TinyTds::Client.new(
           dataserver: config[:dataserver],
           host: config[:host],
