@@ -43,5 +43,7 @@ module ActiveRecord
   end
 end
 
-ActiveRecord::Base.extend ActiveRecord::ConnectionAdapters::SQLServer::CoreExt::Explain
-ActiveRecord::Relation.send :include, ActiveRecord::ConnectionAdapters::SQLServer::CoreExt::Explain
+ActiveSupport.on_load(:active_record) do
+  extend ActiveRecord::ConnectionAdapters::SQLServer::CoreExt::Explain
+  ActiveRecord::Relation.include(ActiveRecord::ConnectionAdapters::SQLServer::CoreExt::Explain)
+end

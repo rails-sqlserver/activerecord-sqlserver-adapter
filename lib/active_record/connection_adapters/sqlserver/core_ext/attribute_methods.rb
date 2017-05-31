@@ -22,4 +22,6 @@ module ActiveRecord
   end
 end
 
-ActiveRecord::Base.send :include, ActiveRecord::ConnectionAdapters::SQLServer::CoreExt::AttributeMethods
+ActiveSupport.on_load(:active_record) do
+  include ActiveRecord::ConnectionAdapters::SQLServer::CoreExt::AttributeMethods
+end
