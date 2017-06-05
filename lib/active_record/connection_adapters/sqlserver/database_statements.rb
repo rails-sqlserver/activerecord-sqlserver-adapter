@@ -198,7 +198,7 @@ module ActiveRecord
           end
           sql = if pk && self.class.use_output_inserted && !database_prefix_remote_server?
                   quoted_pk = SQLServer::Utils.extract_identifiers(pk).quoted
-                  "DECLARE @inserted_identity table (#{quoted_pk} bigint);" << (sql.dup.insert sql.index(/ (DEFAULT )?VALUES/), " OUTPUT INSERTED.#{quoted_pk} INTO @inserted_identity;") << ";SELECT CAST(#{quoted_pk} AS bigint) FROM @inserted_identity;"
+                  "DECLARE @inserted_identity table (#{quoted_pk} bigint);" << (sql.dup.insert sql.index(/ (DEFAULT )?VALUES/), " OUTPUT INSERTED.#{quoted_pk} INTO @inserted_identity") << ";SELECT CAST(#{quoted_pk} AS bigint) FROM @inserted_identity;"
                 else
                   "#{sql}; SELECT CAST(SCOPE_IDENTITY() AS bigint) AS Ident"
                 end
