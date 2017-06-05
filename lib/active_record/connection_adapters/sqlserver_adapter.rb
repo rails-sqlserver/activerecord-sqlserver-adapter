@@ -44,7 +44,6 @@ module ActiveRecord
 
       cattr_accessor :cs_equality_operator, instance_accessor: false
       cattr_accessor :use_output_inserted, instance_accessor: false
-      cattr_accessor :use_output_inserted_into, instance_accessor: false
       cattr_accessor :showplan_option, instance_accessor: false
       cattr_accessor :lowercase_schema_reflection
 
