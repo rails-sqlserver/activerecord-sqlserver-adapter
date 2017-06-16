@@ -418,14 +418,12 @@ module ActiveRecord
       def configure_application_name ; end
 
       def initialize_dateformatter
-        @database_dateformat = user_options_dateformat
-        a, b, c = @database_dateformat.each_char.to_a
-        [a, b, c].each { |f| f.upcase! if f == 'y' }
-        dateformat = "%#{a}-%#{b}-%#{c}"
+        # ISO 8601 format
+        dateformat = "%Y-%m-%d"
         ::Date::DATE_FORMATS[:_sqlserver_dateformat]     = dateformat
         ::Time::DATE_FORMATS[:_sqlserver_dateformat]     = dateformat
         ::Time::DATE_FORMATS[:_sqlserver_time]           = '%H:%M:%S'
-        ::Time::DATE_FORMATS[:_sqlserver_datetime]       = "#{dateformat} %H:%M:%S"
+        ::Time::DATE_FORMATS[:_sqlserver_datetime]       = "#{dateformat}T%H:%M:%S"
         ::Time::DATE_FORMATS[:_sqlserver_datetimeoffset] = lambda { |time|
           time.strftime "#{dateformat} %H:%M:%S.%9N #{time.formatted_offset}"
         }

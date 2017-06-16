@@ -143,14 +143,6 @@ module ActiveRecord
           end
         end
 
-        def user_options_dateformat
-          if sqlserver_azure?
-            select_value 'SELECT [dateformat] FROM [sys].[syslanguages] WHERE [langid] = @@LANGID', 'SCHEMA'
-          else
-            user_options['dateformat']
-          end
-        end
-
         def user_options_isolation_level
           if sqlserver_azure?
             sql = %(SELECT CASE [transaction_isolation_level]
