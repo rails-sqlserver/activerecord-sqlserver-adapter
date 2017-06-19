@@ -23,14 +23,14 @@ class SchemaDumperTestSQLServer < ActiveRecord::TestCase
     assert_line :float,             type: 'float',        limit: nil,           precision: nil,   scale: nil,  default: 123.00000001
     assert_line :real,              type: 'real',         limit: nil,           precision: nil,   scale: nil,  default: 123.45
     # Date and Time
-    assert_line :date,              type: 'date',         limit: nil,           precision: nil,   scale: nil,  default: "01-01-0001"
-    assert_line :datetime,          type: 'datetime',     limit: nil,           precision: nil,   scale: nil,  default: "01-01-1753 00:00:00.123"
+    assert_line :date,              type: 'date',         limit: nil,           precision: nil,   scale: nil,  default: "0001-01-01"
+    assert_line :datetime,          type: 'datetime',     limit: nil,           precision: nil,   scale: nil,  default: "1753-01-01T00:00:00.123"
     if connection_dblib_73?
-    assert_line :datetime2_7,       type: 'datetime',     limit: nil,           precision: 7,     scale: nil,  default: "12-31-9999 23:59:59.9999999"
+    assert_line :datetime2_7,       type: 'datetime',     limit: nil,           precision: 7,     scale: nil,  default: "999-12-31T23:59:59.9999999"
     assert_line :datetime2_3,       type: 'datetime',     limit: nil,           precision: 3,     scale: nil,  default: nil
     assert_line :datetime2_1,       type: 'datetime',     limit: nil,           precision: 1,     scale: nil,  default: nil
     end
-    assert_line :smalldatetime,     type: 'smalldatetime',limit: nil,           precision: nil,   scale: nil,  default: "01-01-1901 15:45:00.0"
+    assert_line :smalldatetime,     type: 'smalldatetime',limit: nil,           precision: nil,   scale: nil,  default: "1901-01-01T15:45:00.0"
     if connection_dblib_73?
     assert_line :time_7,            type: 'time',         limit: nil,           precision: 7,     scale: nil,  default: "04:20:00.2883215"
     assert_line :time_2,            type: 'time',         limit: nil,           precision: 2,     scale: nil,  default: nil
