@@ -422,9 +422,9 @@ module ActiveRecord
         ::Date::DATE_FORMATS[:_sqlserver_dateformat]     = dateformat_iso8601
         ::Time::DATE_FORMATS[:_sqlserver_dateformat]     = dateformat_iso8601
         ::Time::DATE_FORMATS[:_sqlserver_time]           = '%H:%M:%S'
-        ::Time::DATE_FORMATS[:_sqlserver_datetime]       = "#{dateformat}T%H:%M:%S"
+        ::Time::DATE_FORMATS[:_sqlserver_datetime]       = "#{dateformat_iso8601}T%H:%M:%S"
         ::Time::DATE_FORMATS[:_sqlserver_datetimeoffset] = lambda { |time|
-          time.strftime "#{dateformat} %H:%M:%S.%9N #{time.formatted_offset}"
+          time.strftime "#{dateformat_iso8601} %H:%M:%S.%9N #{time.formatted_offset}"
         }
       end
 
