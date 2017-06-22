@@ -32,7 +32,7 @@ module ActiveRecord
             result = @connection.fetch(IDENT_SELECT_QUERY).all
             ActiveRecord::Result.new([:Ident], result.map(&:values))
           elsif !sql.include?(' OUTPUT INSERTED.')
-            id = exec_jdbc_ddl(sql, name, binds)
+            id = exec_jdbc_dml(sql, name, binds, {type: :insert})
             ActiveRecord::Result.new(['id'], [[id]])
           else
             exec_query(sql, name, binds)
@@ -43,7 +43,7 @@ module ActiveRecord
           sql = sql.dup << '; SELECT @@ROWCOUNT AS AffectedRows'
           case @connection_options[:mode]
             when :jdbc
-              exec_jdbc_ddl(sql, name, binds)
+              exec_jdbc_dml(sql, name, binds)
             when :dblib
               super(sql, name, binds).rows.first.first
           end
@@ -53,17 +53,17 @@ module ActiveRecord
           sql = sql.dup << '; SELECT @@ROWCOUNT AS AffectedRows'
           case @connection_options[:mode]
             when :jdbc
-              exec_jdbc_ddl(sql, name, binds)
+              exec_jdbc_dml(sql, name, binds)
             when :dblib
               super(sql, name, binds).rows.first.first
           end
         end
 
-        def exec_jdbc_ddl(sql, name, binds)
+        def exec_jdbc_dml(sql, name, binds, extra_jdbc_args={})
           log(sql, name, binds) do
             types, params = sp_executesql_types_and_parameters_jdbc(binds)
             args = [sql, types.join(', ')] + params
-            @connection.call_sproc("sp_executesql", args: args)
+            @connection.call_sproc("sp_executesql", {args: args}.merge(extra_jdbc_args))
           end
         end
 
