@@ -28,9 +28,8 @@ module ActiveRecord
         def exec_insert_jdbc(sql, name, binds, pk = nil, _sequence_name = nil)
           if binds.blank? && sql.include?(IDENT_SELECT_QUERY)
             raw_insert = sql.gsub(IDENT_SELECT_QUERY, '')
-            @connection.run(raw_insert)
-            result = @connection.fetch(IDENT_SELECT_QUERY).all
-            ActiveRecord::Result.new([:Ident], result.map(&:values))
+            id = @connection.execute_insert(raw_insert)
+            ActiveRecord::Result.new([:Ident], [[id]])
           elsif !sql.include?(' OUTPUT INSERTED.')
             id = exec_jdbc_dml(sql, name, binds, {type: :insert})
             ActiveRecord::Result.new(['id'], [[id]])
