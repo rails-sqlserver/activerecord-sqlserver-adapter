@@ -7,9 +7,7 @@ gem 'minitest', '< 5.3.4'
 gem 'bcrypt'
 gem 'tzinfo-data', platforms: [:mingw, :mswin, :x64_mingw, :jruby]
 
-platform :mri do
-  gem 'sqlite3'
-end
+gem 'sqlite3', platforms: [:mri, :mswin, :mingw]
 
 if RbConfig::CONFIG["host_os"] =~ /darwin/
   gem 'terminal-notifier-guard'
