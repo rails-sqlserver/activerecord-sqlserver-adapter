@@ -144,7 +144,7 @@ module ActiveRecordSqlServerAdapter
               case opts[:type]
                 when :insert
                   log_connection_yield(sql, conn){cps.executeUpdate}
-                  last_insert_id(conn, opts)
+                  last_insert_id(conn, opts.merge(:prepared => true))
                 else
                   log_connection_yield(sql, conn){cps.executeUpdate}
               end
