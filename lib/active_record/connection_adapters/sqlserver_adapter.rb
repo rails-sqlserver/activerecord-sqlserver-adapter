@@ -379,7 +379,7 @@ module ActiveRecord
       def jdbc_connect(config)
         url = config[:url] || "jdbc:sqlserver://#{config[:host]};database=#{config[:database]};applicationName=#{config_appname(config)}"
 
-        ActiveRecordSqlServerAdapter::Jdbc::Database.connect(url,
+        ::ActiveRecord::ConnectionAdapters::SQLServer::Jdbc::Database.connect(url,
           port: config[:port],
           user: config[:username],
           password: config[:password],
