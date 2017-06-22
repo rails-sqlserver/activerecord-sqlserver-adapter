@@ -150,7 +150,7 @@ module ActiveRecordSqlServerAdapter
               end
             end
           rescue NativeException, JavaSQL::SQLException => e
-            raise_error(e)
+            raise e
           ensure
             cps.close
           end
