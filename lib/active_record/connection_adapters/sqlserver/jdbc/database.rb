@@ -133,29 +133,22 @@ module ActiveRecord
           def call_sproc(name, opts = OPTS)
             args = opts[:args] || []
             sql = "{call #{name}(#{args.map{'?'}.join(',')})}"
-            Jdbc.synchronize do
-              cps = conn.prepareCall(sql)
+            cps = conn.prepareCall(sql)
 
-              i = 0
-              args.each{|arg| set_ps_arg(cps, arg, i+=1)}
+            args.each_with_index{|arg, i| set_ps_arg(cps, arg, i+1)}
 
-              begin
-                if block_given?
-                  yield log_connection_yield(sql, conn){cps.executeQuery}
+            begin
+              case opts[:type]
+                when :insert
+                  log_connection_yield(sql, conn){cps.executeUpdate}
+                  last_insert_id(conn, opts.merge(:prepared => true))
                 else
-                  case opts[:type]
-                    when :insert
-                      log_connection_yield(sql, conn){cps.executeUpdate}
-                      last_insert_id(conn, opts.merge(:prepared => true))
-                    else
-                      log_connection_yield(sql, conn){cps.executeUpdate}
-                  end
-                end
-              rescue NativeException, JavaSQL::SQLException => e
-                raise e
-              ensure
-                cps.close
+                  log_connection_yield(sql, conn){cps.executeUpdate}
               end
+            rescue NativeException, JavaSQL::SQLException => e
+              raise e
+            ensure
+              cps.close
             end
           end
 
@@ -205,23 +198,21 @@ module ActiveRecord
           def execute(sql, opts=OPTS, &block)
             return call_sproc(sql, opts, &block) if opts[:sproc]
 
-            Jdbc.synchronize do
-              statement(conn) do |stmt|
-                if block
-                  if size = fetch_size
-                    stmt.setFetchSize(size)
-                  end
-                  yield log_connection_yield(sql, conn){stmt.executeQuery(sql)}
-                else
-                  case opts[:type]
-                    when :ddl
-                      log_connection_yield(sql, conn){stmt.execute(sql)}
-                    when :insert
-                      log_connection_yield(sql, conn){execute_statement_insert(stmt, sql)}
-                      last_insert_id(conn, Hash[opts].merge!(:stmt=>stmt))
-                    else
-                      log_connection_yield(sql, conn){stmt.executeUpdate(sql)}
-                  end
+            statement(conn) do |stmt|
+              if block
+                if size = fetch_size
+                  stmt.setFetchSize(size)
+                end
+                yield log_connection_yield(sql, conn){stmt.executeQuery(sql)}
+              else
+                case opts[:type]
+                  when :ddl
+                    log_connection_yield(sql, conn){stmt.execute(sql)}
+                  when :insert
+                    log_connection_yield(sql, conn){execute_statement_insert(stmt, sql)}
+                    last_insert_id(conn, Hash[opts].merge!(:stmt=>stmt))
+                  else
+                    log_connection_yield(sql, conn){stmt.executeUpdate(sql)}
                 end
               end
             end

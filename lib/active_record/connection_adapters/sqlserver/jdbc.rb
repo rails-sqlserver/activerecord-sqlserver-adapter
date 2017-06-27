@@ -16,27 +16,12 @@ module ActiveRecord
 
         OPTS = {}.freeze
 
-        # Mutex used to protect mutable data structures
-        @data_mutex = Mutex.new
-
-        # Unless in single threaded mode, protects access to any mutable
-        # global data structure.
-        # Uses a non-reentrant mutex, so calling code should be careful.
-        def self.synchronize(&block)
-          @data_mutex.synchronize(&block)
-        end
-
-        # Make it accesing the java.lang hierarchy more ruby friendly.
-        module JavaLang
-          include_package 'java.lang'
-        end
-
-        # Make it accesing the java.sql hierarchy more ruby friendly.
+        # Make it accessing the java.sql hierarchy more ruby friendly.
         module JavaSQL
           include_package 'java.sql'
         end
 
-        # Make it accesing the javax.naming hierarchy more ruby friendly.
+        # Make it accessing the javax.naming hierarchy more ruby friendly.
         module JavaxNaming
           include_package 'javax.naming'
         end
