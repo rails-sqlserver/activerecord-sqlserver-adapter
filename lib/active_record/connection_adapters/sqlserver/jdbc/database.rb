@@ -319,7 +319,11 @@ module ActiveRecord
               #when Sequel::SQL::Blob
               #  cps.setBytes(i, arg.to_java_bytes)
               when String
-                cps.setString(i, arg)
+                if arg.encoding == Encoding::BINARY
+                  cps.setBytes(i, arg.to_java_bytes)
+                else
+                  cps.setString(i, arg)
+                end
               when Float
                 cps.setDouble(i, arg)
               when TrueClass, FalseClass
