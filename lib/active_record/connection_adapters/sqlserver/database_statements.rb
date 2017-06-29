@@ -25,7 +25,8 @@ module ActiveRecord
           end
         end
 
-        def exec_insert_jdbc(sql, name, binds, pk = nil, _sequence_name = nil)
+        def exec_insert_jdbc(sql, name, binds, pk = nil, sequence_name = nil)
+          sql, binds = sql_for_insert(sql, pk, nil, sequence_name, binds)
           if binds.blank? && sql.include?(IDENT_SELECT_QUERY)
             raw_insert = sql.gsub(IDENT_SELECT_QUERY, '')
             id = @connection.execute_insert(raw_insert)
