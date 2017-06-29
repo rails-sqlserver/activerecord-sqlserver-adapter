@@ -209,7 +209,7 @@ module ActiveRecord
                   when :ddl
                     log_connection_yield(sql, conn){stmt.execute(sql)}
                   when :insert
-                    log_connection_yield(sql, conn){execute_statement_insert(stmt, sql)}
+                    log_connection_yield(sql, conn){stmt.executeUpdate(sql)}
                     last_insert_id(conn, Hash[opts].merge!(:stmt=>stmt))
                   else
                     log_connection_yield(sql, conn){stmt.executeUpdate(sql)}
@@ -276,11 +276,6 @@ module ActiveRecord
           end
 
           private
-
-          # Execute the insert SQL using the statement
-          def execute_statement_insert(stmt, sql)
-            stmt.executeUpdate(sql)
-          end
 
           # Gets the connection from JNDI.
           def get_connection_from_jndi
