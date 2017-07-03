@@ -50,7 +50,7 @@ group :tinytds do
     gem 'tiny_tds', ENV['TINYTDS_VERSION']
   else
     if RUBY_ENGINE == 'jruby'
-      gem 'sqljdbc4'
+      gem 'sqljdbc4', git: 'https://github.com/iaddict/sqljdbc4-java.git'
     else
       gem 'tiny_tds'
     end
