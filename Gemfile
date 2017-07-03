@@ -44,16 +44,14 @@ if ENV['AREL']
 end
 
 group :tinytds do
-  if ENV['TINYTDS_SOURCE']
+  if RUBY_ENGINE == 'jruby'
+    gem 'sqljdbc4', git: 'https://github.com/iaddict/sqljdbc4-java.git'
+  elsif ENV['TINYTDS_SOURCE']
     gem 'tiny_tds', path: ENV['TINYTDS_SOURCE']
   elsif ENV['TINYTDS_VERSION']
     gem 'tiny_tds', ENV['TINYTDS_VERSION']
   else
-    if RUBY_ENGINE == 'jruby'
-      gem 'sqljdbc4', git: 'https://github.com/iaddict/sqljdbc4-java.git'
-    else
-      gem 'tiny_tds'
-    end
+    gem 'tiny_tds'
   end
 end
 
