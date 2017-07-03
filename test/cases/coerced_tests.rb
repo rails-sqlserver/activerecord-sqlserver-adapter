@@ -392,6 +392,9 @@ module ActiveRecord
     class ConnectionHandlerTest < ActiveRecord::TestCase
       if connection_jdbc?
         coerce_tests! :test_establish_connection_uses_spec_name
+        coerce_tests! :test_establish_connection_using_top_level_key_in_two_level_config
+        coerce_tests! :test_establish_connection_using_two_level_configurations
+        coerce_tests! :test_establish_connection_using_3_levels_config
       end
     end
 
