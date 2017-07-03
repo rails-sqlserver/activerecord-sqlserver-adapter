@@ -128,30 +128,6 @@ module ActiveRecord
             opts[:database_timezone] = zone
           end
 
-          # Execute the given stored procedure with the give name. If a block is
-          # given, the stored procedure should return rows.
-          def call_sproc(name, opts = OPTS)
-            args = opts[:args] || []
-            sql = "{call #{name}(#{args.map{'?'}.join(',')})}"
-            cps = conn.prepareCall(sql)
-
-            args.each_with_index{|arg, i| set_ps_arg(cps, arg, i+1)}
-
-            begin
-              case opts[:type]
-                when :insert
-                  log_connection_yield(sql, conn){cps.executeUpdate}
-                  last_insert_id(conn, opts.merge(:prepared => true))
-                else
-                  log_connection_yield(sql, conn){cps.executeUpdate}
-              end
-            rescue NativeException, JavaSQL::SQLException => e
-              raise e
-            ensure
-              cps.close
-            end
-          end
-
           # Connect to the database using JavaSQL::DriverManager.getConnection.
           def connect(opts)
             conn = if jndi?
@@ -215,6 +191,30 @@ module ActiveRecord
                     log_connection_yield(sql, conn){stmt.executeUpdate(sql)}
                 end
               end
+            end
+          end
+
+          # Execute the given stored procedure with the give name. If a block is
+          # given, the stored procedure should return rows.
+          def call_sproc(name, opts = OPTS)
+            args = opts[:args] || []
+            sql = "{call #{name}(#{args.map{'?'}.join(',')})}"
+            cps = conn.prepareCall(sql)
+
+            args.each_with_index{|arg, i| set_ps_arg(cps, arg, i+1)}
+
+            begin
+              case opts[:type]
+                when :insert
+                  log_connection_yield(sql, conn){cps.executeUpdate}
+                  last_insert_id(conn, opts.merge(:prepared => true))
+                else
+                  log_connection_yield(sql, conn){cps.executeUpdate}
+              end
+            rescue NativeException, JavaSQL::SQLException => e
+              raise e
+            ensure
+              cps.close
             end
           end
 
