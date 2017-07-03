@@ -37,6 +37,8 @@ module ActiveRecord
           else
             exec_query(sql, name, binds)
           end
+        rescue Java::JavaSql::SQLException => e
+          raise translate_exception(e, e.message)
         end
 
         def exec_delete(sql, name, binds)
