@@ -3,31 +3,22 @@ require 'rake/testtask'
 require_relative 'test/support/paths_sqlserver'
 require_relative 'test/support/rake_helpers'
 
-task test: ['test:dblib']
+AR_SQL_SERVER_MODE = RUBY_ENGINE == 'jruby' ? 'jdbc' : 'dblib'
+
+task test: ['test:' + AR_SQL_SERVER_MODE]
 task default: [:test]
 
 namespace :test do
 
-  %w(dblib).each do |mode|
-
-    Rake::TestTask.new(mode) do |t|
-      t.libs = ARTest::SQLServer.test_load_paths
-      t.test_files = test_files
-      t.warning = !!ENV['WARNING']
-      t.verbose = false
-    end
-
-  end
-
-  task 'dblib:env' do
-    ENV['ARCONN'] = 'dblib'
-  end
-
-  Rake::TestTask.new(:jdbc) do |t|
+  Rake::TestTask.new(AR_SQL_SERVER_MODE) do |t|
     t.libs = ARTest::SQLServer.test_load_paths
     t.test_files = test_files
     t.warning = !!ENV['WARNING']
     t.verbose = false
+  end
+
+  task 'dblib:env' do
+    ENV['ARCONN'] = 'dblib'
   end
 
   task 'jdbc:env' do
