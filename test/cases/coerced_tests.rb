@@ -586,6 +586,28 @@ class PersistenceTest < ActiveRecord::TestCase
     # assert_nothing_raised { topic.reload }
     # assert_equal topic.title, Topic.find(1234).title
   end
+
+  def test_update_date_time_attributes
+    Time.use_zone("Eastern Time (US & Canada)") do
+      topic = Topic.find(1)
+      time = Time.zone.parse("2017-07-17 10:56")
+      topic.update_attributes!(written_on: time)
+      assert_equal(time, topic.written_on)
+    end
+  end
+
+  def test_update_date_time_attributes_with_default_timezone_local
+    with_env_tz 'America/New_York' do
+      with_timezone_config default: :local do
+        Time.use_zone("Eastern Time (US & Canada)") do
+          topic = Topic.find(1)
+          time = Time.zone.parse("2017-07-17 10:56")
+          topic.update_attributes!(written_on: time)
+          assert_equal(time, topic.written_on)
+        end
+      end
+    end
+  end
 end
 
 
