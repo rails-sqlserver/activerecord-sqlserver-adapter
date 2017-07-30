@@ -6,7 +6,7 @@ general:
 machine:
   environment:
     PATH: /opt/local/bin:${PATH}
-    TINYTDS_VERSION: 2.0.0.pre1
+    TINYTDS_VERSION: 2.1.0.pre1
     ACTIVERECORD_UNITTEST_HOST: localhost
     ACTIVERECORD_UNITTEST_DATASERVER: localhost
   services:
