@@ -254,6 +254,10 @@ module ActiveRecord
           do_execute sql
         end
 
+        def create_schema_dumper(options)
+          SQLServer::SchemaDumper.create(self, options)
+        end
+
         private
 
         def data_source_sql(name = nil, type: nil)

@@ -1,7 +1,7 @@
 module ActiveRecord
   module ConnectionAdapters
     module SQLServer
-      module SchemaDumper
+      class SchemaDumper < ConnectionAdapters::SchemaDumper
 
         SQLSEVER_NO_LIMIT_TYPES = [
           'text',
