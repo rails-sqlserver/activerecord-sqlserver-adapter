@@ -35,7 +35,9 @@ module ActiveRecord
           private
 
           def fast_string_to_time(string)
-            fast_string_to_time_zone.strptime(string, fast_string_to_time_format).time
+            time = ActiveSupport::TimeZone['UTC'].strptime(string, fast_string_to_time_format)
+            new_time(time.year, time.month, time.day, time.hour,
+                     time.min, time.sec, Rational(time.nsec, 1_000))
           rescue ArgumentError
             super
           end
@@ -43,11 +45,6 @@ module ActiveRecord
           def fast_string_to_time_format
             "#{::Time::DATE_FORMATS[:_sqlserver_datetime]}.%N".freeze
           end
-
-          def fast_string_to_time_zone
-            ::Time.zone || ActiveSupport::TimeZone['UTC']
-          end
-
         end
       end
     end
