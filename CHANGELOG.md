@@ -1,3 +1,10 @@
+## v5.1.2
+
+#### Fixed
+
+* The `fast_string_to_time` method when zone local. Fixes #609 #614 #620
+
+
 ## v5.1.1
 
 #### Fixed
