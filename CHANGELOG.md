@@ -1,3 +1,8 @@
+## v5.1.2
+
+* Fix `fast_string_to_time` with local support. Fixes #614. Thanks @wpolicarpo
+
+
 ## v5.1.1
 
 #### Fixed

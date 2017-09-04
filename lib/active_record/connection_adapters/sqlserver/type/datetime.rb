@@ -35,7 +35,8 @@ module ActiveRecord
           private
 
           def fast_string_to_time(string)
-            fast_string_to_time_zone.strptime(string, fast_string_to_time_format).time
+            time_method = default_timezone == :local ? :utc : :time
+            fast_string_to_time_zone.strptime(string, fast_string_to_time_format).send(time_method)
           rescue ArgumentError
             super
           end
