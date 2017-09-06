@@ -4,7 +4,7 @@ services:
   - docker
 env:
   global:
-    - TINYTDS_VERSION=2.1.0.pre1
+    - TINYTDS_VERSION=2.1.0.pre2
     - ACTIVERECORD_UNITTEST_HOST=localhost
     - ACTIVERECORD_UNITTEST_DATASERVER=localhost
 rvm:
