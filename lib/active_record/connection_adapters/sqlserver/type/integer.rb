@@ -12,8 +12,12 @@ module ActiveRecord
 
           private
 
+          def min_value
+            -2_147_483_648
+          end
+
           def max_value
-            2_147_483_647
+            2_147_483_648
           end
 
         end
