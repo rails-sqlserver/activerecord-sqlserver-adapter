@@ -84,7 +84,7 @@ module ActiveRecord
         end
 
         def can_perform_case_insensitive_comparison_for?(column)
-          column.type == :string
+          column.type == :string && (!column.collation || column.case_sensitive?)
         end
         private :can_perform_case_insensitive_comparison_for?
 
