@@ -1,3 +1,10 @@
+## v5.1.3
+
+#### Fixed
+
+* Patched `Relation#build_count_subquery`. Fixes #613.
+
+
 ## v5.1.2
 
 #### Fixed
