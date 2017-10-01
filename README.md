@@ -18,7 +18,6 @@ The SQL Server adapter for ActiveRecord v5.1 using SQL Server 2012 or higher.
 
 Interested in older versions? We follow a rational versioning policy that tracks Rails. That means that our 5.0.x version of the adapter is only for the latest 5.0 version of Rails. If you need the adapter for SQL Server 2008 or 2005, you are still in the right spot. Just install the latest 3.2.x to 4.1.x version of the adapter that matches your Rails version. We also have stable branches for each major/minor release of ActiveRecord.
 
-
 #### Native Data Type Support
 
 We support every data type supported by FreeTDS. All simplified Rails types in migrations will coorespond to a matching SQL Server national (unicode) data type. Always check the `initialize_native_database_types` [(here)](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/blob/master/lib/active_record/connection_adapters/sqlserver/schema_statements.rb#L243) for an updated list.
@@ -26,6 +25,21 @@ We support every data type supported by FreeTDS. All simplified Rails types in m
 The following types (date, datetime2, datetimeoffset, time) all require TDS version 7.3 with TinyTDS. We recommend using FreeTDS 1.0 or higher which default to using `TDSVER` to "7.3". The adapter also sets TinyTDS's `tds_version` to this as well if non is specified.
 
 The Rails v5 adapter supports ActiveRecord's `datetime_with_precision` setting. This means that passing `:precision` to a datetime column is supported. Using a pecision with the `:datetime` type will signal the adapter to use the `datetime2` type under the hood.
+
+
+#### Identity Inserts with Triggers
+
+The adapter uses `OUTPUT INSERTED` so that we can select any data type key, for example UUID tables. However, this poses a problem with tables that use triggers. The solution requires that we use a more complex insert statement which uses a temporary table to select the inserted identity. To use this format you must declare your table exempt from the simple output inserted style with the table name into a concurrent hash. Optionally, you can set the data type of the table's primary key to return.
+
+```ruby
+adapter = ActiveRecord::ConnectionAdapters::SQLServerAdapter
+
+# Will assume `bigint` as the id key temp table type.
+adapter.exclude_output_inserted_table_names['my_table_name'] = true
+
+# Explicitly set the data type for the temporary key table.
+adapter.exclude_output_inserted_table_names['my_uuid_table_name'] = 'uniqueidentifier'
+```
 
 
 #### Force Schema To Lowercase

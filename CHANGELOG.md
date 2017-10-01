@@ -3,6 +3,7 @@
 #### Fixed
 
 * Patched `Relation#build_count_subquery`. Fixes #613.
+* Inserts to tables with triggers using default `OUTPUT INSERTED` style. Fixes #595.
 
 
 ## v5.1.2

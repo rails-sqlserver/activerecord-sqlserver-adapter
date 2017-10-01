@@ -45,11 +45,13 @@ module ActiveRecord
 
       cattr_accessor :cs_equality_operator, instance_accessor: false
       cattr_accessor :use_output_inserted, instance_accessor: false
+      cattr_accessor :exclude_output_inserted_table_names, instance_accessor: false
       cattr_accessor :showplan_option, instance_accessor: false
       cattr_accessor :lowercase_schema_reflection
 
       self.cs_equality_operator = 'COLLATE Latin1_General_CS_AS_WS'
       self.use_output_inserted = true
+      self.exclude_output_inserted_table_names = Concurrent::Map.new { false }
 
       def initialize(connection, logger = nil, config = {})
         super(connection, logger, config)

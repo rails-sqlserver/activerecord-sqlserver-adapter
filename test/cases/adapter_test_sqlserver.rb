@@ -140,12 +140,12 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
     end
 
     it 'return quoted table_name to #query_requires_identity_insert? when INSERT sql contains id column' do
-      assert_equal '[funny_jokes]', connection.send(:query_requires_identity_insert?,@identity_insert_sql)
-      assert_equal '[funny_jokes]', connection.send(:query_requires_identity_insert?,@identity_insert_sql_unquoted)
-      assert_equal '[funny_jokes]', connection.send(:query_requires_identity_insert?,@identity_insert_sql_unordered)
-      assert_equal '[funny_jokes]', connection.send(:query_requires_identity_insert?,@identity_insert_sql_sp)
-      assert_equal '[funny_jokes]', connection.send(:query_requires_identity_insert?,@identity_insert_sql_unquoted_sp)
-      assert_equal '[funny_jokes]', connection.send(:query_requires_identity_insert?,@identity_insert_sql_unordered_sp)
+      assert_equal 'funny_jokes', connection.send(:query_requires_identity_insert?,@identity_insert_sql)
+      assert_equal 'funny_jokes', connection.send(:query_requires_identity_insert?,@identity_insert_sql_unquoted)
+      assert_equal 'funny_jokes', connection.send(:query_requires_identity_insert?,@identity_insert_sql_unordered)
+      assert_equal 'funny_jokes', connection.send(:query_requires_identity_insert?,@identity_insert_sql_sp)
+      assert_equal 'funny_jokes', connection.send(:query_requires_identity_insert?,@identity_insert_sql_unquoted_sp)
+      assert_equal 'funny_jokes', connection.send(:query_requires_identity_insert?,@identity_insert_sql_unordered_sp)
     end
 
     it 'return false to #query_requires_identity_insert? for normal SQL' do

@@ -177,6 +177,44 @@ ActiveRecord::Schema.define do
       FROM sst_string_defaults
   STRINGDEFAULTSBIGVIEW
 
+  # Trigger
+
+  execute "IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'sst_table_with_trigger') DROP TABLE sst_table_with_trigger"
+  execute "IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'sst_table_with_trigger_history') DROP TABLE sst_table_with_trigger_history"
+  execute <<-SQL
+    CREATE TABLE sst_table_with_trigger(
+      id bigint IDENTITY NOT NULL PRIMARY KEY,
+      event_name nvarchar(255)
+    )
+    CREATE TABLE sst_table_with_trigger_history(
+      id bigint IDENTITY NOT NULL PRIMARY KEY,
+      id_source nvarchar(36),
+      event_name nvarchar(255)
+    )
+  SQL
+  execute <<-SQL
+    CREATE TRIGGER sst_table_with_trigger_t ON sst_table_with_trigger
+    FOR INSERT
+    AS
+    INSERT INTO sst_table_with_trigger_history (id_source, event_name)
+    SELECT id AS id_source, event_name FROM INSERTED
+  SQL
+
+  execute "IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'sst_table_with_uuid_trigger') DROP TABLE sst_table_with_uuid_trigger"
+  execute <<-SQL
+    CREATE TABLE sst_table_with_uuid_trigger(
+      id uniqueidentifier DEFAULT NEWID() PRIMARY KEY,
+      event_name nvarchar(255)
+    )
+  SQL
+  execute <<-SQL
+    CREATE TRIGGER sst_table_with_uuid_trigger_t ON sst_table_with_uuid_trigger
+    FOR INSERT
+    AS
+    INSERT INTO sst_table_with_trigger_history (id_source, event_name)
+    SELECT id AS id_source, event_name FROM INSERTED
+  SQL
+
   # Another schema.
 
   create_table :sst_schema_columns, force: true do |t|
