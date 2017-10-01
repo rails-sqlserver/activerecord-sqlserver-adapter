@@ -14,7 +14,7 @@ Both TinyTDS and the Rails SQL Server Adapter are MIT-licensed open source proje
 
 ## About The Adapter
 
-The SQL Server adapter for ActiveRecord v5.0 using SQL Server 2012 or higher.
+The SQL Server adapter for ActiveRecord v5.1 using SQL Server 2012 or higher.
 
 Interested in older versions? We follow a rational versioning policy that tracks Rails. That means that our 5.0.x version of the adapter is only for the latest 5.0 version of Rails. If you need the adapter for SQL Server 2008 or 2005, you are still in the right spot. Just install the latest 3.2.x to 4.1.x version of the adapter that matches your Rails version. We also have stable branches for each major/minor release of ActiveRecord.
 
