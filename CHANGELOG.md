@@ -1,16 +1,10 @@
-## v5.1.3
-
-#### Fixed
-
-* Patched `Relation#build_count_subquery`. Fixes #613.
-* Inserts to tables with triggers using default `OUTPUT INSERTED` style. Fixes #595.
-
-
 ## v5.1.2
 
 #### Fixed
 
 * The `fast_string_to_time` method when zone local. Fixes #609 #614 #620
+* Patched `Relation#build_count_subquery`. Fixes #613.
+* Inserts to tables with triggers using default `OUTPUT INSERTED` style. Fixes #595.
 
 
 ## v5.1.1
