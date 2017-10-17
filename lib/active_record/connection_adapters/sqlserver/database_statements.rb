@@ -247,7 +247,7 @@ module ActiveRecord
           return attr.type.sqlserver_type if attr.type.respond_to?(:sqlserver_type)
           case value = attr.value_for_database
           when Numeric
-            'int'.freeze
+            value > 2_147_483_647 ? 'bigint'.freeze : 'int'.freeze
           else
             'nvarchar(max)'.freeze
           end
