@@ -1,3 +1,10 @@
+## v5.1.3
+
+#### Fixed
+
+* Use bigint type in sqlserver_type when needed. Fixes #616
+
+
 ## v5.1.2
 
 #### Fixed
