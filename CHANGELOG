@@ -1,3 +1,11 @@
+## v4.1.8
+
+* Allow 2017 in supported versions.
+
+## v4.1.7
+
+* Fix `user_options`.
+
 ## v4.1.6
 
 * Fix parens around `enable_default_unicode_types`. Fixes #562
