@@ -1,3 +1,10 @@
+## v5.1.4
+
+#### Fixed
+
+* Add case insensitive comparison for better performance with CI collations. Fixes #624
+
+
 ## v5.1.3
 
 #### Fixed
