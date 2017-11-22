@@ -3,7 +3,7 @@
 set -x
 set -e
 
-tag=2.0
+tag=2017-GA
 
 docker pull metaskills/mssql-server-linux-rails:$tag
 
