@@ -1,3 +1,10 @@
+## v5.1.5
+
+#### Fixed
+
+* Memoize `@@version` queries. Fixes #632
+
+
 ## v5.1.4
 
 #### Fixed
