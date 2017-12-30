@@ -1,3 +1,7 @@
+## v5.0.8
+
+* Memorized SQL Server Version to prevent a flood of SELECT @@version queries. Fixes #632
+
 ## v5.0.7
 
 * Add `WITH NO_INFOMSGS` to `user_options` method. Fixes #580

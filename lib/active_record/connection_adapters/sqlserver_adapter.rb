@@ -418,11 +418,14 @@ module ActiveRecord
       end
 
       def version_year
-        vstring = _raw_select('SELECT @@version', fetch: :rows).first.first.to_s
-        return 2016 if vstring =~ /vNext/
-        /SQL Server (\d+)/.match(vstring).to_a.last.to_s.to_i
-      rescue Exception => e
-        2016
+        return @version_year if defined?(@version_year)
+        @version_year = begin
+          vstring = _raw_select('SELECT @@version', fetch: :rows).first.first.to_s
+          return 2016 if vstring =~ /vNext/
+          /SQL Server (\d+)/.match(vstring).to_a.last.to_s.to_i
+        rescue Exception => e
+          2016
+        end
       end
 
     end
