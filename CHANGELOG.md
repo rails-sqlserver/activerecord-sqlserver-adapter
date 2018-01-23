@@ -1,5 +1,9 @@
 ## v5.1.5
 
+#### Added
+
+* Use lock hint when joining table in query.
+
 #### Fixed
 
 * Memoize `@@version` queries. Fixes #632
