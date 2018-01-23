@@ -1,3 +1,10 @@
+## v5.1.6
+
+#### Added
+
+* Use lock hint when joining table in query.
+
+
 ## v5.1.5
 
 #### Fixed

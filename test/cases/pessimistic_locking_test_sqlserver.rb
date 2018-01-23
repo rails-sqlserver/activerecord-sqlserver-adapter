@@ -52,6 +52,34 @@ class PessimisticLockingTestSQLServer < ActiveRecord::TestCase
       end
     end
 
+    describe 'joining tables' do
+
+      it 'joined tables use updlock by default' do
+        assert_sql %r|SELECT \[people\]\.\* FROM \[people\] WITH\(UPDLOCK\) INNER JOIN \[readers\] WITH\(UPDLOCK\)\s+ON \[readers\]\.\[person_id\] = \[people\]\.\[id\]| do
+          Person.lock(true).joins(:readers).load
+        end
+      end
+
+      it 'joined tables can use custom lock directive' do
+        assert_sql %r|SELECT \[people\]\.\* FROM \[people\] WITH\(NOLOCK\) INNER JOIN \[readers\] WITH\(NOLOCK\)\s+ON \[readers\]\.\[person_id\] = \[people\]\.\[id\]| do
+          Person.lock('WITH(NOLOCK)').joins(:readers).load
+        end
+      end
+
+      it 'left joined tables use updlock by default' do
+        assert_sql %r|SELECT \[people\]\.\* FROM \[people\] WITH\(UPDLOCK\) LEFT OUTER JOIN \[readers\] WITH\(UPDLOCK\)\s+ON \[readers\]\.\[person_id\] = \[people\]\.\[id\]| do
+          Person.lock(true).left_joins(:readers).load
+        end
+      end
+
+      it 'left joined tables can use custom lock directive' do
+        assert_sql %r|SELECT \[people\]\.\* FROM \[people\] WITH\(NOLOCK\) LEFT OUTER JOIN \[readers\] WITH\(NOLOCK\)\s+ON \[readers\]\.\[person_id\] = \[people\]\.\[id\]| do
+          Person.lock('WITH(NOLOCK)').left_joins(:readers).load
+        end
+      end
+
+    end
+
   end
 
   describe 'For paginated finds' do
