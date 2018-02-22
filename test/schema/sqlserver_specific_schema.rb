@@ -144,12 +144,20 @@ ActiveRecord::Schema.define do
 
   # Constraints
 
-  create_table(:sst_has_fks, force: true) { |t| t.column(:fk_id, :bigint, null: false) }
+  create_table(:sst_has_fks, force: true) do |t|
+    t.column(:fk_id, :bigint, null: false)
+    t.column(:fk_id2, :bigint)
+  end
+
   create_table(:sst_has_pks, force: true) { }
   execute <<-ADDFKSQL
     ALTER TABLE sst_has_fks
     ADD CONSTRAINT FK__sst_has_fks_id
     FOREIGN KEY ([fk_id])
+    REFERENCES [sst_has_pks] ([id]),
+
+    CONSTRAINT FK__sst_has_fks_id2
+    FOREIGN KEY ([fk_id2])
     REFERENCES [sst_has_pks] ([id])
   ADDFKSQL
 
