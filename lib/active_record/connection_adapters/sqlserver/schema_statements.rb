@@ -93,7 +93,7 @@ module ActiveRecord
           identifier = database_prefix_identifier(table_name)
           database = identifier.fully_qualified_database_quoted
           sql = %{
-            SELECT KCU.COLUMN_NAME AS [name]
+            SELECT #{lowercase_schema_reflection_sql('KCU.COLUMN_NAME')} AS [name]
             FROM #{database}.INFORMATION_SCHEMA.KEY_COLUMN_USAGE AS KCU
             LEFT OUTER JOIN #{database}.INFORMATION_SCHEMA.TABLE_CONSTRAINTS AS TC
               ON KCU.CONSTRAINT_NAME = TC.CONSTRAINT_NAME
