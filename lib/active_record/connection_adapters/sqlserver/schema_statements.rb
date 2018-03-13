@@ -495,7 +495,7 @@ module ActiveRecord
           @view_information ||= {}
           @view_information[table_name] ||= begin
             identifier = SQLServer::Utils.extract_identifiers(table_name)
-            view_info = select_one "SELECT * FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_NAME = #{quote(identifier.object)}", 'SCHEMA'
+            view_info = select_one "SELECT * FROM INFORMATION_SCHEMA.VIEWS WITH (NOLOCK) WHERE TABLE_NAME = #{quote(identifier.object)}", 'SCHEMA'
             if view_info
               view_info = view_info.with_indifferent_access
               if view_info[:VIEW_DEFINITION].blank? || view_info[:VIEW_DEFINITION].length == 4000
