@@ -260,7 +260,7 @@ module ActiveRecord
           scope = quoted_scope name, type: type
           table_name = lowercase_schema_reflection_sql 'TABLE_NAME'
           sql = "SELECT #{table_name}"
-          sql << ' FROM INFORMATION_SCHEMA.TABLES'
+          sql << ' FROM INFORMATION_SCHEMA.TABLES WITH (NOLOCK)'
           sql << ' WHERE TABLE_CATALOG = DB_NAME()'
           sql << " AND TABLE_SCHEMA = #{quote(scope[:schema])}"
           sql << " AND TABLE_NAME = #{quote(scope[:name])}" if scope[:name]
