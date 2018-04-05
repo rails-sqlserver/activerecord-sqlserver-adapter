@@ -798,6 +798,12 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       obj.save!
     end
 
+    it 'does not mark object as changed after save' do
+      obj.save!
+      obj.attributes
+      obj.changed?.must_equal false
+    end
+
   end
 
 end
