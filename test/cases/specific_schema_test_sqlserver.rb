@@ -167,4 +167,10 @@ class SpecificSchemaTestSQLServer < ActiveRecord::TestCase
     assert_equal 'field_2', connection.columns('test2.sst_schema_test_mulitple_schema').detect(&:is_primary?).name
   end
 
+  it 'returns ordered by both primary keys when no order is given' do
+    2.times { |i| SSTestDoublePk.create!(pk_1: 0, pk_2: i) }
+
+    assert_equal 0, SSTestDoublePk.find_by(pk_1: 0).pk_2
+  end
+
 end

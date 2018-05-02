@@ -170,11 +170,11 @@ module Arel
       def make_Fetch_Possible_And_Deterministic o
         return if o.limit.nil? && o.offset.nil?
         t = table_From_Statement o
-        pk = primary_Key_From_Table t
-        return unless pk
+        pks = primary_Keys_From_Table t
+        return unless pks.present?
         if o.orders.empty?
           # Prefer deterministic vs a simple `(SELECT NULL)` expr.
-          o.orders = [pk.asc]
+          o.orders = pks.map { |pk| pk.asc }
         end
       end
 
@@ -200,11 +200,15 @@ module Arel
         end
       end
 
-      def primary_Key_From_Table t
-        return unless t
-        column_name = @connection.schema_cache.primary_keys(t.name) ||
-          @connection.schema_cache.columns_hash(t.name).first.try(:second).try(:name)
-        column_name ? t[column_name] : nil
+      def primary_Keys_From_Table t
+        return [] unless t
+        column_names = Array.wrap(@connection.schema_cache.primary_keys(t.name))
+
+        if column_names.empty?
+          column_names << @connection.schema_cache.columns_hash(t.name).first.try(:second).try(:name)
+        end
+
+        column_names.compact.map { |column_name| t[column_name] }
       end
 
       def remote_server_table_name o

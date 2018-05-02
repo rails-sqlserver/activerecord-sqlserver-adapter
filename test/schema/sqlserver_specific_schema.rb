@@ -277,4 +277,12 @@ ActiveRecord::Schema.define do
     )
   SCHEMATESTMULTIPLESCHEMA
 
+  execute "IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'sst_double_pk' and TABLE_SCHEMA = 'test') DROP TABLE test.sst_double_pk"
+  execute <<-SCHEMADOUBLEPRIMARYKEY
+    CREATE TABLE test.sst_double_pk(
+      pk_1 int NOT NULL,
+      pk_2 int NOT NULL,
+      PRIMARY KEY (pk_1, pk_2)
+    )
+  SCHEMADOUBLEPRIMARYKEY
 end
