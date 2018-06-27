@@ -47,7 +47,7 @@ module ActiveRecord
                 column.gsub! '(-)', '' if column.ends_with?('(-)')
                 column
               end
-              indexes << IndexDefinition.new(table_name, name, unique, columns, nil, nil, where)
+              indexes << IndexDefinition.new(table_name, name, unique, columns, where: where)
             end
           end
         end
