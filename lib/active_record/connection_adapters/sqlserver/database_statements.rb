@@ -90,6 +90,27 @@ module ActiveRecord
 
         # === SQLServer Specific ======================================== #
 
+
+        def insert_fixtures_set(fixture_set, tables_to_delete = [])
+          fixture_inserts = fixture_set.map do |table_name, fixtures|
+            next if fixtures.empty?
+
+            build_fixture_sql(fixtures, table_name)
+          end.compact
+
+          table_deletes = tables_to_delete.map { |table| "DELETE FROM #{quote_table_name table}".dup }
+          sql_statements = table_deletes + fixture_inserts
+
+          disable_referential_integrity do
+            transaction(requires_new: true) do
+              sql_statements.each do |sql|
+                execute sql, "Fixtures Load"
+                yield if block_given?
+              end
+            end
+          end
+        end
+
         def execute_procedure(proc_name, *variables)
           vars = if variables.any? && variables.first.is_a?(Hash)
                    variables.first.map { |k, v| "@#{k} = #{quote(v)}" }
