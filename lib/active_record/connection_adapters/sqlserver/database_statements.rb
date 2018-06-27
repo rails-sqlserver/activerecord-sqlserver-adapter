@@ -237,6 +237,10 @@ module ActiveRecord
         def sp_executesql_types_and_parameters(binds)
           types, params = [], []
           binds.each_with_index do |attr, index|
+            if attr.is_a?(Arel::Nodes::BindParam)
+              attr = attr.value
+            end
+
             types << "@#{index} #{sp_executesql_sql_type(attr)}"
             params << sp_executesql_sql_param(attr)
           end
