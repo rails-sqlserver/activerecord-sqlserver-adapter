@@ -77,7 +77,7 @@ module ActiveRecord
 
         def case_sensitive_comparison(table, attribute, column, value)
           if column.collation && !column.case_sensitive?
-            table[attribute].eq(Arel::Nodes::Bin.new(Arel::Nodes::BindParam.new))
+            table[attribute].eq(Arel::Nodes::Bin.new(value))
           else
             super
           end
@@ -270,7 +270,7 @@ module ActiveRecord
 
         def sp_executesql_sql_type(attr)
           return attr.type.sqlserver_type if attr.type.respond_to?(:sqlserver_type)
-          case value = attr.value_for_database
+          case value = attr.try(:value_for_database) || attr.try(:value_before_type_cast)
           when Numeric
             value > 2_147_483_647 ? 'bigint'.freeze : 'int'.freeze
           else
@@ -279,12 +279,17 @@ module ActiveRecord
         end
 
         def sp_executesql_sql_param(attr)
-          case attr.value_for_database
+          value = attr.try(:value_for_database) || attr.try(:value_before_type_cast)
+          if value.is_a?(ActiveRecord::StatementCache::Substitute)
+            return quote('')
+          end
+
+          case value
           when Type::Binary::Data,
                ActiveRecord::Type::SQLServer::Data
-            quote(attr.value_for_database)
+            quote(value)
           else
-            quote(type_cast(attr.value_for_database))
+            quote(type_cast(value))
           end
         end
 
