@@ -18,6 +18,7 @@ module ActiveRecord
               end
             ]
 
+            relation = relation.unscope(:order)
             subquery = relation.arel.as(Arel.sql("subquery_for_count"))
             select_value = operation_over_aggregate_column(column_alias || Arel.star, "count", false)
 
@@ -31,8 +32,8 @@ end
 
 ActiveSupport.on_load(:active_record) do
   if ActiveRecord::VERSION::MAJOR == 5 &&
-     ActiveRecord::VERSION::MINOR == 1 &&
-     ActiveRecord::VERSION::TINY >= 4
+     ActiveRecord::VERSION::MINOR == 2 &&
+     ActiveRecord::VERSION::TINY >= 0
     mod = ActiveRecord::ConnectionAdapters::SQLServer::CoreExt::Calculations
     ActiveRecord::Relation.prepend(mod)
   end
