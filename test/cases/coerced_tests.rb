@@ -33,6 +33,7 @@ module ActiveRecord
   class AdapterTest < ActiveRecord::TestCase
     # I really dont think we can support legacy binds.
     coerce_tests! :test_select_all_with_legacy_binds
+    coerce_tests! :test_insert_update_delete_with_legacy_binds
 
     # As far as I can tell, SQL Server does not support null bytes in strings.
     coerce_tests! :test_update_prepared_statement
@@ -913,3 +914,85 @@ module ActiveRecord
   end
 end
 
+class UnsafeRawSqlTest < ActiveRecord::TestCase
+  coerce_tests! %r{always allows Arel}
+  test 'order: always allows Arel' do
+    ids_depr     = with_unsafe_raw_sql_deprecated { Post.order(Arel.sql("len(title)")).pluck(:title) }
+    ids_disabled = with_unsafe_raw_sql_disabled   { Post.order(Arel.sql("len(title)")).pluck(:title) }
+
+    assert_equal ids_depr, ids_disabled
+  end
+
+  test "pluck: always allows Arel" do
+    values_depr     = with_unsafe_raw_sql_deprecated { Post.includes(:comments).pluck(:title, Arel.sql("len(title)")) }
+    values_disabled = with_unsafe_raw_sql_disabled   { Post.includes(:comments).pluck(:title, Arel.sql("len(title)")) }
+
+    assert_equal values_depr, values_disabled
+  end
+
+
+  coerce_tests! %r{order: disallows invalid Array arguments}
+  test "order: disallows invalid Array arguments" do
+    with_unsafe_raw_sql_disabled do
+      assert_raises(ActiveRecord::UnknownAttributeReference) do
+        Post.order(["author_id", "len(title)"]).pluck(:id)
+      end
+    end
+  end
+
+  coerce_tests! %r{order: allows valid Array arguments}
+  test "order: allows valid Array arguments" do
+    ids_expected = Post.order(Arel.sql("author_id, len(title)")).pluck(:id)
+
+    ids_depr     = with_unsafe_raw_sql_deprecated { Post.order(["author_id", Arel.sql("len(title)")]).pluck(:id) }
+    ids_disabled = with_unsafe_raw_sql_disabled   { Post.order(["author_id", Arel.sql("len(title)")]).pluck(:id) }
+
+    assert_equal ids_expected, ids_depr
+    assert_equal ids_expected, ids_disabled
+  end
+
+  coerce_tests! %r{order: logs deprecation warning for unrecognized column}
+  test "order: logs deprecation warning for unrecognized column" do
+    with_unsafe_raw_sql_deprecated do
+      assert_deprecated(/Dangerous query method/) do
+        Post.order("len(title)")
+      end
+    end
+  end
+
+  coerce_tests! %r{pluck: disallows invalid column name}
+  test "pluck: disallows invalid column name" do
+     with_unsafe_raw_sql_disabled do
+       assert_raises(ActiveRecord::UnknownAttributeReference) do
+         Post.pluck("len(title)")
+       end
+     end
+   end
+
+   coerce_tests! %r{pluck: disallows invalid column name amongst valid names}
+   test "pluck: disallows invalid column name amongst valid names" do
+     with_unsafe_raw_sql_disabled do
+       assert_raises(ActiveRecord::UnknownAttributeReference) do
+         Post.pluck(:title, "len(title)")
+       end
+     end
+   end
+
+   coerce_tests! %r{pluck: disallows invalid column names with includes}
+   test "pluck: disallows invalid column names with includes" do
+     with_unsafe_raw_sql_disabled do
+       assert_raises(ActiveRecord::UnknownAttributeReference) do
+         Post.includes(:comments).pluck(:title, "len(title)")
+       end
+     end
+   end
+
+   coerce_tests! %r{pluck: logs deprecation warning}
+   test "pluck: logs deprecation warning" do
+     with_unsafe_raw_sql_deprecated do
+       assert_deprecated(/Dangerous query method/) do
+         Post.includes(:comments).pluck(:title, "len(title)")
+       end
+     end
+   end
+end
