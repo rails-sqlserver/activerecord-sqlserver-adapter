@@ -18,7 +18,7 @@ module ActiveRecord
               end
             ]
 
-            relation = relation.unscope(:order)
+            relation = relation.offset(0)
             subquery = relation.arel.as(Arel.sql("subquery_for_count"))
             select_value = operation_over_aggregate_column(column_alias || Arel.star, "count", false)
 
