@@ -335,7 +335,7 @@ module ActiveRecord
         end
 
         def exec_insert_requires_identity?(sql, pk, binds)
-          query_requires_identity_insert?(sql) if pk && binds.map(&:name).include?(pk)
+          query_requires_identity_insert?(sql)
         end
 
         def query_requires_identity_insert?(sql)
