@@ -72,7 +72,11 @@ class AttributeMethodsTest < ActiveRecord::TestCase
 end
 
 
-
+class NumericDataTest < ActiveRecord::TestCase
+  # We do not have do the DecimalWithoutScale type.
+  coerce_tests! :test_numeric_fields
+  coerce_tests! :test_numeric_fields_with_scale
+end
 
 class BasicsTest < ActiveRecord::TestCase
   coerce_tests! :test_column_names_are_escaped
@@ -81,9 +85,7 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal '[t]]]', conn.quote_column_name('t]')
   end
 
-  # We do not have do the DecimalWithoutScale type.
-  coerce_tests! :test_numeric_fields
-  coerce_tests! :test_numeric_fields_with_scale
+
 
   # Just like PostgreSQLAdapter does.
   coerce_tests! :test_respect_internal_encoding
@@ -314,7 +316,7 @@ class MigrationTest < ActiveRecord::TestCase
   end
 
   # For some reason our tests set Rails.@_env which breaks test env switching.
-  coerce_tests! :test_migration_sets_internal_metadata_even_when_fully_migrated
+  coerce_tests! :test_internal_metadata_stores_environment_when_other_data_exists
   coerce_tests! :test_internal_metadata_stores_environment
 end
 
@@ -643,7 +645,7 @@ end
 
 require 'models/task'
 class QueryCacheTest < ActiveRecord::TestCase
-  coerce_tests! :test_cache_does_not_wrap_string_results_in_arrays
+  coerce_tests! :test_cache_does_not_wrap_results_in_arrays
   def test_cache_does_not_wrap_string_results_in_arrays_coerced
     Task.cache do
       assert_kind_of Numeric, Task.connection.select_value("SELECT count(*) AS count_all FROM tasks")
