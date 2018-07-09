@@ -33,10 +33,6 @@ module ActiveRecord
           super(sql, name, binds).rows.first.first
         end
 
-        def supports_statement_cache?
-          true
-        end
-
         def begin_db_transaction
           do_execute 'BEGIN TRANSACTION'
         end
