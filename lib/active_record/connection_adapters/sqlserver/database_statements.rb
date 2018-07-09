@@ -276,9 +276,6 @@ module ActiveRecord
 
         def sp_executesql_sql_param(attr)
           value = attr.try(:value_for_database) || attr.try(:value_before_type_cast)
-          if value.is_a?(ActiveRecord::StatementCache::Substitute)
-            return quote('')
-          end
 
           case value
           when Type::Binary::Data,
