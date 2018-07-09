@@ -31,10 +31,6 @@ module ActiveRecord
 end
 
 ActiveSupport.on_load(:active_record) do
-  if ActiveRecord::VERSION::MAJOR == 5 &&
-     ActiveRecord::VERSION::MINOR == 2 &&
-     ActiveRecord::VERSION::TINY >= 0
-    mod = ActiveRecord::ConnectionAdapters::SQLServer::CoreExt::Calculations
-    ActiveRecord::Relation.prepend(mod)
-  end
+  mod = ActiveRecord::ConnectionAdapters::SQLServer::CoreExt::Calculations
+  ActiveRecord::Relation.prepend(mod)
 end
