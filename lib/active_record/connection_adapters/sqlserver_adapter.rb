@@ -34,7 +34,6 @@ module ActiveRecord
               SQLServer::Quoting,
               SQLServer::DatabaseStatements,
               SQLServer::Showplan,
-              SQLServer::SchemaDumper,
               SQLServer::SchemaStatements,
               SQLServer::DatabaseLimits,
               SQLServer::DatabaseTasks
