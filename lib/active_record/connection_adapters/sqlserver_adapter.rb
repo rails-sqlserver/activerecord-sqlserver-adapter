@@ -254,7 +254,7 @@ module ActiveRecord
 
       # === Abstract Adapter (Misc Support) =========================== #
 
-      def initialize_type_map(m)
+      def initialize_type_map(m = type_map)
         m.register_type              %r{.*},            SQLServer::Type::UnicodeString.new
         # Exact Numerics
         register_class_with_limit m, 'bigint(8)',         SQLServer::Type::BigInteger
