@@ -342,6 +342,7 @@ module ActiveRecord
     # a value of 'default_env' will still show tests failing. Just ignoring all
     # of them since we have no monkey in this circus.
     MergeAndResolveDefaultUrlConfigTest.coerce_all_tests! if defined?(MergeAndResolveDefaultUrlConfigTest)
+    ConnectionHandlerTest.coerce_all_tests! if defined?(ConnectionHandlerTest)
   end
 end
 
