@@ -9,20 +9,7 @@ module ActiveRecord
           private
 
           def build_count_subquery(relation, column_name, distinct)
-            relation.select_values = [
-              if column_name == :all
-                distinct ? table[Arel.star] : Arel.sql(FinderMethods::ONE_AS_ONE)
-              else
-                column_alias = Arel.sql("count_column")
-                aggregate_column(column_name).as(column_alias)
-              end
-            ]
-
-            relation = relation.offset(0)
-            subquery = relation.arel.as(Arel.sql("subquery_for_count"))
-            select_value = operation_over_aggregate_column(column_alias || Arel.star, "count", false)
-
-            Arel::SelectManager.new(subquery).project(select_value)
+            super(relation.unscope(:order), column_name, distinct)
           end
         end
       end
