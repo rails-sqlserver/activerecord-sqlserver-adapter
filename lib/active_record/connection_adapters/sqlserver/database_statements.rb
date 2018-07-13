@@ -254,9 +254,7 @@ module ActiveRecord
         def sp_executesql_types_and_parameters(binds)
           types, params = [], []
           binds.each_with_index do |attr, index|
-            if attr.is_a?(Arel::Nodes::BindParam)
-              attr = attr.value
-            end
+            attr = attr.value if attr.is_a?(Arel::Nodes::BindParam)
 
             types << "@#{index} #{sp_executesql_sql_type(attr)}"
             params << sp_executesql_sql_param(attr)
@@ -266,7 +264,7 @@ module ActiveRecord
 
         def sp_executesql_sql_type(attr)
           return attr.type.sqlserver_type if attr.type.respond_to?(:sqlserver_type)
-          case value = attr.try(:value_for_database) || attr.try(:value_before_type_cast)
+          case value = attr.value_for_database
           when Numeric
             value > 2_147_483_647 ? 'bigint'.freeze : 'int'.freeze
           else
@@ -275,9 +273,7 @@ module ActiveRecord
         end
 
         def sp_executesql_sql_param(attr)
-          value = attr.try(:value_for_database) || attr.try(:value_before_type_cast)
-
-          case value
+          case value = attr.value_for_database
           when Type::Binary::Data,
                ActiveRecord::Type::SQLServer::Data
             quote(value)
