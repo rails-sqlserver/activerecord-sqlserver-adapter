@@ -32,22 +32,33 @@ module ActiveRecord
           end
         end
 
-        def indexes(table_name, name = nil)
-          data = select("EXEC sp_helpindex #{quote(table_name)}", name) rescue []
+        def indexes(table_name)
+          data = select("EXEC sp_helpindex #{quote(table_name)}", "SCHEMA") rescue []
+
           data.reduce([]) do |indexes, index|
             index = index.with_indifferent_access
+
             if index[:index_description] =~ /primary key/
               indexes
             else
               name    = index[:index_name]
               unique  = index[:index_description] =~ /unique/
               where   = select_value("SELECT [filter_definition] FROM sys.indexes WHERE name = #{quote(name)}")
-              columns = index[:index_keys].split(',').map do |column|
+              orders  = {}
+              columns = []
+
+              index[:index_keys].split(',').each do |column|
                 column.strip!
-                column.gsub! '(-)', '' if column.ends_with?('(-)')
-                column
+
+                if column.ends_with?('(-)')
+                  column.gsub! '(-)', ''
+                  orders[column] = :desc
+                end
+
+                columns << column
               end
-              indexes << IndexDefinition.new(table_name, name, unique, columns, where: where)
+
+              indexes << IndexDefinition.new(table_name, name, unique, columns, where: where, orders: orders)
             end
           end
         end
