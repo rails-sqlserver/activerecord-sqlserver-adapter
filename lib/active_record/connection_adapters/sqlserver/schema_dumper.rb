@@ -1,7 +1,7 @@
 module ActiveRecord
   module ConnectionAdapters
     module SQLServer
-      module SchemaDumper
+      class SchemaDumper < ConnectionAdapters::SchemaDumper
 
         SQLSEVER_NO_LIMIT_TYPES = [
           'text',
@@ -24,7 +24,7 @@ module ActiveRecord
 
         def schema_collation(column)
           return unless column.collation
-          column.collation if column.collation != collation
+          column.collation if column.collation != @connection.collation
         end
 
         def default_primary_key?(column)

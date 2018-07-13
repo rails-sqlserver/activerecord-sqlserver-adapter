@@ -51,7 +51,7 @@ module ActiveRecord
       def structure_dump(filename, extra_flags)
         command = [
           "defncopy-ttds",
-          "-S #{Shellwords.escape(configuration['host'])}",
+          "-S #{Shellwords.escape(configuration['host'])}:#{Shellwords.escape(configuration['port'])}",
           "-D #{Shellwords.escape(configuration['database'])}",
           "-U #{Shellwords.escape(configuration['username'])}",
           "-P #{Shellwords.escape(configuration['password'])}",
