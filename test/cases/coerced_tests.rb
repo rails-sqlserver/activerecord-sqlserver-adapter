@@ -999,3 +999,14 @@ class UnsafeRawSqlTest < ActiveRecord::TestCase
      end
    end
 end
+
+
+class ReservedWordTest < ActiveRecord::TestCase
+  coerce_tests! :test_change_columns
+  def test_change_columns_coerced
+    assert_nothing_raised { @connection.change_column_default(:group, :order, "whatever") }
+    assert_nothing_raised { @connection.change_column("group", "order", :text) }
+    assert_nothing_raised { @connection.change_column_null("group", "order", true) }
+    assert_nothing_raised { @connection.rename_column(:group, :order, :values) }
+  end
+end
