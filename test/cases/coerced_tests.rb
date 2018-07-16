@@ -671,16 +671,16 @@ class RelationTest < ActiveRecord::TestCase
   # Use LEN vs LENGTH function.
   coerce_tests! :test_reverse_order_with_function
   def test_reverse_order_with_function_coerced
-    topics = Topic.order("LEN(title)").reverse_order
+    topics = Topic.order(Arel.sql("LEN(title)")).reverse_order
     assert_equal topics(:second).title, topics.first.title
   end
 
   # Use LEN vs LENGTH function.
   coerce_tests! :test_reverse_order_with_function_other_predicates
   def test_reverse_order_with_function_other_predicates_coerced
-    topics = Topic.order("author_name, LEN(title), id").reverse_order
+    topics = Topic.order(Arel.sql("author_name, LEN(title), id")).reverse_order
     assert_equal topics(:second).title, topics.first.title
-    topics = Topic.order("LEN(author_name), id, LEN(title)").reverse_order
+    topics = Topic.order(Arel.sql("LEN(author_name), id, LEN(title)")).reverse_order
     assert_equal topics(:fifth).title, topics.first.title
   end
 
