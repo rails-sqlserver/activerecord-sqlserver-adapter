@@ -8,7 +8,8 @@ module ActiveRecord
         def visit_TableDefinition(o)
           if o.as
             table_name = quote_table_name(o.temporary ? "##{o.name}" : o.name)
-            projections, source = @conn.to_sql(o.as).match(%r{SELECT\s+(.*)?\s+FROM\s+(.*)?}).captures
+            query = o.as.respond_to?(:to_sql) ? o.as.to_sql : o.as
+            projections, source = query.match(%r{SELECT\s+(.*)?\s+FROM\s+(.*)?}).captures
             select_into = "SELECT #{projections} INTO #{table_name} FROM #{source}"
           else
             o.instance_variable_set :@as, nil
