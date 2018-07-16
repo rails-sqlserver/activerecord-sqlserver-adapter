@@ -84,28 +84,22 @@ module ActiveRecord
         end
         private :can_perform_case_insensitive_comparison_for?
 
-        # === SQLServer Specific ======================================== #
+        def combine_multi_statements(total_sql)
+          total_sql
+        end
+        private :combine_multi_statements
 
-
-        def insert_fixtures_set(fixture_set, tables_to_delete = [])
-          fixture_inserts = fixture_set.map do |table_name, fixtures|
-            next if fixtures.empty?
-
-            build_fixture_sql(fixtures, table_name)
-          end.compact
-
-          table_deletes = tables_to_delete.map { |table| "DELETE FROM #{quote_table_name table}".dup }
-          sql_statements = table_deletes + fixture_inserts
-
-          disable_referential_integrity do
-            transaction(requires_new: true) do
-              sql_statements.each do |sql|
-                execute sql, "Fixtures Load"
-                yield if block_given?
-              end
-            end
+        def default_insert_value(column)
+          if column.is_identity?
+            table_name = quote(quote_table_name(column.table_name))
+            Arel.sql("IDENT_CURRENT(#{table_name}) + IDENT_INCR(#{table_name})")
+          else
+            super
           end
         end
+        private :default_insert_value
+
+        # === SQLServer Specific ======================================== #
 
         def execute_procedure(proc_name, *variables)
           vars = if variables.any? && variables.first.is_a?(Hash)
