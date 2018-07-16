@@ -1035,3 +1035,26 @@ class ReservedWordTest < ActiveRecord::TestCase
     assert_nothing_raised { @connection.rename_column(:group, :order, :values) }
   end
 end
+
+
+
+class OptimisticLockingTest < ActiveRecord::TestCase
+  # We do not allow updating identities, but we can test using a non-identity key
+  coerce_tests! :test_update_with_dirty_primary_key
+  def test_update_with_dirty_primary_key_coerced
+    assert_raises(ActiveRecord::RecordNotUnique) do
+      record = StringKeyObject.find('record1')
+      record.id = 'record2'
+      record.save!
+    end
+
+    record = StringKeyObject.find('record1')
+    record.id = 'record42'
+    record.save!
+
+    assert StringKeyObject.find('record42')
+    assert_raises(ActiveRecord::RecordNotFound) do
+      StringKeyObject.find('record1')
+    end
+  end
+end
