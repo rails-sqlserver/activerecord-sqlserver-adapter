@@ -176,6 +176,14 @@ class CalculationsTest < ActiveRecord::TestCase
     queries.first.must_match %r{ORDER BY \[accounts\]\.\[id\] ASC OFFSET @0 ROWS FETCH NEXT @1 ROWS ONLY.*@0 = 1, @1 = 1}
   end
 
+  # SQL Server needs an alias for the calculated column
+  coerce_tests! :test_distinct_count_all_with_custom_select_and_order
+  def test_distinct_count_all_with_custom_select_and_order_coerced
+    accounts = Account.distinct.select("credit_limit % 10 AS the_limit").order(Arel.sql("credit_limit % 10"))
+    assert_queries(1) { assert_equal 3, accounts.count(:all) }
+    assert_queries(1) { assert_equal 3, accounts.load.size }
+  end
+
   # Leave it up to users to format selects/functions so HAVING works correctly.
   coerce_tests! :test_having_with_strong_parameters
 end
@@ -189,6 +197,7 @@ module ActiveRecord
       coerce_tests! :test_create_table_with_bigint,
                     :test_create_table_with_defaults
     end
+
     class ChangeSchemaWithDependentObjectsTest < ActiveRecord::TestCase
       # In SQL Server you have to delete the tables yourself in the right order.
       coerce_tests! :test_create_table_with_force_cascade_drops_dependent_objects
@@ -700,6 +709,22 @@ class RelationTest < ActiveRecord::TestCase
   # However, this pull request on Rails core drops order on exists relation. https://github.com/rails/rails/pull/28699
   # so we are skipping all together.
   coerce_tests! :test_empty_complex_chained_relations
+
+  # Can't apply offset withour ORDER
+  coerce_tests! %r{using a custom table affects the wheres}
+  test 'using a custom table affects the wheres coerced' do
+    post = posts(:welcome)
+
+    assert_equal post, custom_post_relation.where!(title: post.title).order(:id).take
+  end
+
+  # Can't apply offset withour ORDER
+  coerce_tests! %r{using a custom table with joins affects the joins}
+  test 'using a custom table with joins affects the joins coerced' do
+    post = posts(:welcome)
+
+    assert_equal post, custom_post_relation.joins(:author).where!(title: post.title).order(:id).take
+  end
 
   # Use LEN() vs length() function.
   coerce_tests! :test_reverse_arel_assoc_order_with_function
