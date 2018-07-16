@@ -85,8 +85,6 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal '[t]]]', conn.quote_column_name('t]')
   end
 
-
-
   # Just like PostgreSQLAdapter does.
   coerce_tests! :test_respect_internal_encoding
 
@@ -114,6 +112,16 @@ class BasicsTest < ActiveRecord::TestCase
         end
       end
     end
+  end
+
+  # Need to escape `quoted_id` once it contains brackets
+  coerce_tests! %r{column names are quoted when using #from clause and model has ignored columns}
+  test "column names are quoted when using #from clause and model has ignored columns coerced" do
+    refute_empty Developer.ignored_columns
+    query = Developer.from("developers").to_sql
+    quoted_id = "#{Developer.quoted_table_name}.#{Developer.quoted_primary_key}"
+
+    assert_match(/SELECT #{Regexp.escape(quoted_id)}.* FROM developers/, query)
   end
 end
 
