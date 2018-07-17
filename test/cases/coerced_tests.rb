@@ -534,7 +534,7 @@ class InheritanceTest < ActiveRecord::TestCase
   coerce_tests! :test_eager_load_belongs_to_primary_key_quoting
   def test_eager_load_belongs_to_primary_key_quoting_coerced
     con = Account.connection
-    assert_sql(/\[companies\]\.\[id\] = 1/) do
+    assert_sql(/\[companies\]\.\[id\] = @0.* @0 = 1/) do
       Account.all.merge!(:includes => :firm).find(1)
     end
   end

@@ -246,7 +246,8 @@ module ActiveRecord
               s.gsub(/\s+(?:ASC|DESC)\b/i, '')
                .gsub(/\s+NULLS\s+(?:FIRST|LAST)\b/i, '')
             }.reject(&:blank?).map.with_index { |column, i| "#{column} AS alias_#{i}" }
-          [super, *order_columns].join(', ')
+
+          (order_columns << super).join(", ")
         end
 
         def update_table_definition(table_name, base)
