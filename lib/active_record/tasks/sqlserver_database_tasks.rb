@@ -53,7 +53,7 @@ module ActiveRecord
         server_arg += ":#{Shellwords.escape(configuration['port'])}" if configuration['port']
         command = [
           "defncopy-ttds",
-          host_parameter,
+          server_arg,
           "-D #{Shellwords.escape(configuration['database'])}",
           "-U #{Shellwords.escape(configuration['username'])}",
           "-P #{Shellwords.escape(configuration['password'])}",
