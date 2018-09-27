@@ -5,7 +5,7 @@ set -e
 
 FREETDS_VERSION=1.00.21
 
-wget https://fossies.org/linux/privat/freetds-FREETDS_VERSION.tar.gz
+wget ftp://ftp.freetds.org/pub/freetds/stable/freetds-$FREETDS_VERSION.tar.gz
 tar -xzf freetds-$FREETDS_VERSION.tar.gz
 cd freetds-$FREETDS_VERSION
 ./configure --prefix=/opt/local \
