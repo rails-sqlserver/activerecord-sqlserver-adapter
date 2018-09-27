@@ -39,7 +39,7 @@ module ActiveRecord
           end
 
           def fractional_precision
-            0.00333.to_d
+            BigDecimal('0.00333')
           end
 
           def fractional_scale
@@ -68,7 +68,7 @@ module ActiveRecord
           end
 
           def fractional_precision
-            0.0000001.to_d
+            BigDecimal('0.0000001')
           end
 
           def fractional_scale
