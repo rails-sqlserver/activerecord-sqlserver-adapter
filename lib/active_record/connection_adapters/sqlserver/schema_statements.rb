@@ -32,22 +32,33 @@ module ActiveRecord
           end
         end
 
-        def indexes(table_name, name = nil)
-          data = select("EXEC sp_helpindex #{quote(table_name)}", name) rescue []
+        def indexes(table_name)
+          data = select("EXEC sp_helpindex #{quote(table_name)}", "SCHEMA") rescue []
+
           data.reduce([]) do |indexes, index|
             index = index.with_indifferent_access
+
             if index[:index_description] =~ /primary key/
               indexes
             else
               name    = index[:index_name]
               unique  = index[:index_description] =~ /unique/
               where   = select_value("SELECT [filter_definition] FROM sys.indexes WHERE name = #{quote(name)}")
-              columns = index[:index_keys].split(',').map do |column|
+              orders  = {}
+              columns = []
+
+              index[:index_keys].split(',').each do |column|
                 column.strip!
-                column.gsub! '(-)', '' if column.ends_with?('(-)')
-                column
+
+                if column.ends_with?('(-)')
+                  column.gsub! '(-)', ''
+                  orders[column] = :desc
+                end
+
+                columns << column
               end
-              indexes << IndexDefinition.new(table_name, name, unique, columns, nil, nil, where)
+
+              indexes << IndexDefinition.new(table_name, name, unique, columns, where: where, orders: orders)
             end
           end
         end
@@ -235,7 +246,8 @@ module ActiveRecord
               s.gsub(/\s+(?:ASC|DESC)\b/i, '')
                .gsub(/\s+NULLS\s+(?:FIRST|LAST)\b/i, '')
             }.reject(&:blank?).map.with_index { |column, i| "#{column} AS alias_#{i}" }
-          [super, *order_columns].join(', ')
+
+          (order_columns << super).join(", ")
         end
 
         def update_table_definition(table_name, base)
@@ -252,6 +264,10 @@ module ActiveRecord
           sql = "ALTER TABLE #{table_id} ALTER COLUMN #{column_id} #{type_to_sql column.type, limit: column.limit, precision: column.precision, scale: column.scale}"
           sql << ' NOT NULL' if !allow_null.nil? && allow_null == false
           do_execute sql
+        end
+
+        def create_schema_dumper(options)
+          SQLServer::SchemaDumper.create(self, options)
         end
 
         private

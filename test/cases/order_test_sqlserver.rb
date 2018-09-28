@@ -44,13 +44,13 @@ class OrderTestSQLServer < ActiveRecord::TestCase
   it 'support quoted column' do
     order = "[title]"
     post1 = Post.create title: 'AAA Post', body: 'Test cased orders.'
-    assert_equal post1, Post.order(order).first
+    assert_equal post1, Post.order(Arel.sql(order)).first
   end
 
   it 'support quoted table and column' do
     order = "[posts].[title]"
     post1 = Post.create title: 'AAA Post', body: 'Test cased orders.'
-    assert_equal post1, Post.order(order).first
+    assert_equal post1, Post.order(Arel.sql(order)).first
   end
 
   it 'support primary: column, secondary: column' do
@@ -73,74 +73,74 @@ class OrderTestSQLServer < ActiveRecord::TestCase
     order = "(CASE WHEN [title] LIKE N'ZZZ%' THEN title ELSE '' END) DESC, body"
     post1 = Post.create title: 'ZZZ Post', body: 'Test cased orders.'
     post2 = Post.create title: 'ZZZ Post', body: 'ZZZ Test cased orders.'
-    assert_equal post1, Post.order(order).first
-    assert_equal post2, Post.order(order).second
+    assert_equal post1, Post.order(Arel.sql(order)).first
+    assert_equal post2, Post.order(Arel.sql(order)).second
   end
 
   it 'support primary: quoted table and column, secondary: case expresion' do
     order = "[posts].[body] DESC, (CASE WHEN [title] LIKE N'ZZZ%' THEN title ELSE '' END) DESC"
     post1 = Post.create title: 'ZZZ Post', body: 'ZZZ Test cased orders.'
     post2 = Post.create title: 'ZZY Post', body: 'ZZZ Test cased orders.'
-    assert_equal post1, Post.order(order).first
-    assert_equal post2, Post.order(order).second
+    assert_equal post1, Post.order(Arel.sql(order)).first
+    assert_equal post2, Post.order(Arel.sql(order)).second
   end
 
   it 'support inline function' do
     order = "LEN(title)"
     post1 = Post.create title: 'A', body: 'AAA Test cased orders.'
-    assert_equal post1, Post.order(order).first
+    assert_equal post1, Post.order(Arel.sql(order)).first
   end
 
   it 'support inline function with parameters' do
     order = "SUBSTRING(title, 1, 3)"
     post1 = Post.create title: 'AAA Post', body: 'Test cased orders.'
-    assert_equal post1, Post.order(order).first
+    assert_equal post1, Post.order(Arel.sql(order)).first
   end
 
   it 'support inline function with parameters DESC' do
     order = "SUBSTRING(title, 1, 3) DESC"
     post1 = Post.create title: 'ZZZ Post', body: 'Test cased orders.'
-    assert_equal post1, Post.order(order).first
+    assert_equal post1, Post.order(Arel.sql(order)).first
   end
 
   it 'support primary: inline function, secondary: column' do
     order = "LEN(title), body"
     post1 = Post.create title: 'A', body: 'AAA Test cased orders.'
     post2 = Post.create title: 'A', body: 'Test cased orders.'
-    assert_equal post1, Post.order(order).first
-    assert_equal post2, Post.order(order).second
+    assert_equal post1, Post.order(Arel.sql(order)).first
+    assert_equal post2, Post.order(Arel.sql(order)).second
   end
 
   it 'support primary: inline function, secondary: column with direction' do
     order = "LEN(title) ASC, body DESC"
     post1 = Post.create title: 'A', body: 'ZZZ Test cased orders.'
     post2 = Post.create title: 'A', body: 'Test cased orders.'
-    assert_equal post1, Post.order(order).first
-    assert_equal post2, Post.order(order).second
+    assert_equal post1, Post.order(Arel.sql(order)).first
+    assert_equal post2, Post.order(Arel.sql(order)).second
   end
 
   it 'support primary: column, secondary: inline function' do
     order = "body DESC, LEN(title)"
     post1 = Post.create title: 'Post', body: 'ZZZ Test cased orders.'
     post2 = Post.create title: 'Longer Post', body: 'ZZZ Test cased orders.'
-    assert_equal post1, Post.order(order).first
-    assert_equal post2, Post.order(order).second
+    assert_equal post1, Post.order(Arel.sql(order)).first
+    assert_equal post2, Post.order(Arel.sql(order)).second
   end
 
   it 'support primary: case expression, secondary: inline function' do
     order = "CASE WHEN [title] LIKE N'ZZZ%' THEN title ELSE '' END DESC, LEN(body) ASC"
     post1 = Post.create title: 'ZZZ Post', body: 'Z'
     post2 = Post.create title: 'ZZZ Post', body: 'Test cased orders.'
-    assert_equal post1, Post.order(order).first
-    assert_equal post2, Post.order(order).second
+    assert_equal post1, Post.order(Arel.sql(order)).first
+    assert_equal post2, Post.order(Arel.sql(order)).second
   end
 
   it 'support primary: inline function, secondary: case expression' do
     order = "LEN(body), CASE WHEN [title] LIKE N'ZZZ%' THEN title ELSE '' END DESC"
     post1 = Post.create title: 'ZZZ Post', body: 'Z'
     post2 = Post.create title: 'Post', body: 'Z'
-    assert_equal post1, Post.order(order).first
-    assert_equal post2, Post.order(order).second
+    assert_equal post1, Post.order(Arel.sql(order)).first
+    assert_equal post2, Post.order(Arel.sql(order)).second
   end
 
 

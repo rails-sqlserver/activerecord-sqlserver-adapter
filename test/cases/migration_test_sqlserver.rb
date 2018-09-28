@@ -20,7 +20,7 @@ class MigrationTestSQLServer < ActiveRecord::TestCase
     it 'not create a tables if error in migrations' do
       begin
         migrations_dir = File.join ARTest::SQLServer.migrations_root, 'transaction_table'
-        quietly { ActiveRecord::Migrator.up(migrations_dir) }
+        quietly { ActiveRecord::MigrationContext.new(migrations_dir).up }
       rescue Exception => e
         assert_match %r|this and all later migrations canceled|, e.message
       end
