@@ -13,3 +13,4 @@ test/profile/output/*
 coverage/*
 .flooignore
 .floo
+.byebug_history
