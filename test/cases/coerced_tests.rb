@@ -859,6 +859,10 @@ class ViewWithPrimaryKeyTest < ActiveRecord::TestCase
     assert_equal 'id', model.primary_key
   end
 end
+
+
+
+
 class ViewWithoutPrimaryKeyTest < ActiveRecord::TestCase
   # We have a few view tables. use includes vs equality.
   coerce_tests! :test_views
@@ -1063,6 +1067,27 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     assert StringKeyObject.find('record42')
     assert_raises(ActiveRecord::RecordNotFound) do
       StringKeyObject.find('record1')
+    end
+  end
+end
+
+
+
+module ActiveRecord
+  class RelationTest < ActiveRecord::TestCase
+    # The original Rails test does not do regular expression escaping of the table name "[author]". Without the
+    # escaping the test fails. Opened pull request https://github.com/rails/rails/pull/34073 so that the test is
+    # fixed in future versions of Rails.
+    coerce_tests! :test_relation_merging_with_merged_symbol_joins_is_aliased
+    def test_relation_merging_with_merged_symbol_joins_is_aliased_coerced
+      categorizations_with_authors = Categorization.joins(:author)
+      queries = capture_sql { Post.joins(:author, :categorizations).merge(Author.select(:id)).merge(categorizations_with_authors).to_a }
+
+      nb_inner_join = queries.sum { |sql| sql.scan(/INNER\s+JOIN/i).size }
+      assert_equal 3, nb_inner_join, "Wrong amount of INNER JOIN in query"
+
+      # using `\W` as the column separator
+      assert queries.any? { |sql| %r[INNER\s+JOIN\s+#{Regexp.escape(Author.quoted_table_name)}\s+\Wauthors_categorizations\W]i.match?(sql) }, "Should be aliasing the child INNER JOINs in query"
     end
   end
 end
