@@ -151,7 +151,25 @@ module ActiveRecord
 end
 
 
-
+module ActiveRecord
+  class InstrumentationTest < ActiveRecord::TestCase
+    # This fails randomly due to schema cache being lost?
+    coerce_tests! :test_payload_name_on_load
+    def test_payload_name_on_load_coerced
+      Book.create(name: "test book")
+      Book.first
+      subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |*args|
+        event = ActiveSupport::Notifications::Event.new(*args)
+        if event.payload[:sql].match "SELECT"
+          assert_equal "Book Load", event.payload[:name]
+        end
+      end
+      Book.first
+    ensure
+      ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber
+    end
+  end
+end
 
 class CalculationsTest < ActiveRecord::TestCase
   # This fails randomly due to schema cache being lost?
