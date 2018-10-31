@@ -36,7 +36,7 @@ module ActiveRecord
           end
           def RubyBigDecimal(r, i, opts=OPTS)
             if v = r.getBigDecimal(i)
-              BigDecimal.new(v.to_string)
+              BigDecimal(v.to_string)
             end
           end
           def RubyBlob(r, i, opts=OPTS)
