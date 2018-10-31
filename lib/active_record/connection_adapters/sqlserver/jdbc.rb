@@ -14,6 +14,16 @@ module ActiveRecord
       module Jdbc
         class DatabaseError < StandardError; end
 
+        NativeException = java.lang.Exception
+             
+        # Default database error classes
+        DATABASE_ERROR_CLASSES = [NativeException].freeze
+        if JRUBY_VERSION < '9.2'
+         # On JRuby <9.2, still include ::NativeException, as it is still needed in some cases
+         DATABASE_ERROR_CLASSES << ::NativeException
+        end
+        DATABASE_ERROR_CLASSES.freeze
+
         OPTS = {}.freeze
 
         # Make it accessing the java.sql hierarchy more ruby friendly.

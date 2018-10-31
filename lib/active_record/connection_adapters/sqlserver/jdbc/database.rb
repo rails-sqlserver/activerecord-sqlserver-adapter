@@ -139,7 +139,7 @@ module ActiveRecord
                 JavaSQL::DriverManager.setLoginTimeout(opts[:login_timeout]) if opts[:login_timeout]
                 raise StandardError, "skipping regular connection" if opts[:jdbc_properties]
                 JavaSQL::DriverManager.getConnection(*args)
-              rescue JavaSQL::SQLException, NativeException, StandardError => e
+              rescue JavaSQL::SQLException, *DATABASE_ERROR_CLASSES, StandardError => e
                 raise e unless driver
                 # If the DriverManager can't get the connection - use the connect
                 # method of the driver. (This happens under Tomcat for instance)
@@ -153,7 +153,7 @@ module ActiveRecord
                   c = driver.new.connect(args[0], props)
                   raise(Jdbc::DatabaseError, 'driver.new.connect returned nil: probably bad JDBC connection string') unless c
                   c
-                rescue JavaSQL::SQLException, NativeException, StandardError => e2
+                rescue JavaSQL::SQLException, *DATABASE_ERROR_CLASSES, StandardError => e2
                   if e2.respond_to?(:message=) && e2.message != e.message
                     e2.message = "#{e2.message}\n#{e.class.name}: #{e.message}"
                   end
@@ -211,7 +211,7 @@ module ActiveRecord
                 else
                   log_connection_yield(sql, conn){cps.executeUpdate}
               end
-            rescue NativeException, JavaSQL::SQLException => e
+            rescue *DATABASE_ERROR_CLASSES, JavaSQL::SQLException => e
               raise e
             ensure
               cps.close
@@ -349,7 +349,7 @@ module ActiveRecord
           def statement(conn)
             stmt = conn.createStatement
             yield stmt
-          rescue NativeException, JavaSQL::SQLException => e
+          rescue *DATABASE_ERROR_CLASSES, JavaSQL::SQLException => e
             raise e
           ensure
             stmt.close if stmt
