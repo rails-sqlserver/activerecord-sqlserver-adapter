@@ -2,27 +2,17 @@ sudo: required
 cache: bundler
 services:
   - docker
-env:
-  global:
-    - TINYTDS_VERSION=2.1.0
-    - ACTIVERECORD_UNITTEST_HOST=localhost
-    - ACTIVERECORD_UNITTEST_DATASERVER=localhost
-rvm:
-  - 2.2.5
-  - 2.3.1
-  - 2.4.0
 before_install:
-  - export PATH=/opt/local/bin:$PATH
-  - docker info
-  - sudo ./test/bin/setup.sh
-  - sudo ./test/bin/install-openssl.sh
-  - openssl version
-  - sudo ./test/bin/install-freetds.sh
-  - tsql -C
+  - sudo rm /usr/local/bin/docker-compose
+  - sudo curl -L "https://github.com/docker/compose/releases/download/1.22.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+  - sudo chmod +x /usr/local/bin/docker-compose
 install:
-  - export PATH=/opt/local/bin:$PATH
-  - gem install bundler -v 1.17.3
-  - bundle --version
-  - bundle install
+  - docker-compose build --build-arg TARGET_VERSION=$TARGET_VERSION
 script:
-  - bundle exec rake
+  - docker-compose run tests
+matrix:
+  include:
+    - env: TARGET_VERSION=2.3.8
+    - env: TARGET_VERSION=2.4.5
+    - env: TARGET_VERSION=2.5.3
+    - env: TARGET_VERSION=2.6.0
