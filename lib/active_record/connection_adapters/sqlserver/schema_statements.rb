@@ -276,7 +276,7 @@ module ActiveRecord
           scope = quoted_scope name, type: type
           table_name = lowercase_schema_reflection_sql 'TABLE_NAME'
           sql = "SELECT #{table_name}"
-          sql << ' FROM INFORMATION_SCHEMA.TABLES'
+          sql << ' FROM INFORMATION_SCHEMA.TABLES WITH (NOLOCK)'
           sql << ' WHERE TABLE_CATALOG = DB_NAME()'
           sql << " AND TABLE_SCHEMA = #{quote(scope[:schema])}"
           sql << " AND TABLE_NAME = #{quote(scope[:name])}" if scope[:name]
@@ -511,7 +511,7 @@ module ActiveRecord
           @view_information ||= {}
           @view_information[table_name] ||= begin
             identifier = SQLServer::Utils.extract_identifiers(table_name)
-            view_info = select_one "SELECT * FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_NAME = #{quote(identifier.object)}", 'SCHEMA'
+            view_info = select_one "SELECT * FROM INFORMATION_SCHEMA.VIEWS WITH (NOLOCK) WHERE TABLE_NAME = #{quote(identifier.object)}", 'SCHEMA'
             if view_info
               view_info = view_info.with_indifferent_access
               if view_info[:VIEW_DEFINITION].blank? || view_info[:VIEW_DEFINITION].length == 4000
