@@ -231,6 +231,11 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
       end
     end
 
+    it 'not disable referential integrity for the same table twice' do
+      tables = SSTestHasPk.connection.tables_with_referential_integrity
+      assert_equal tables.size, tables.uniq.size
+    end
+
   end
 
   describe 'database statements' do
