@@ -10,12 +10,16 @@ module ActiveRecord
           def apply_seconds_precision(value)
             return value if !value.respond_to?(fractional_property) || value.send(fractional_property).zero?
             value.change fractional_property => seconds_precision(value)
+
+            millis = seconds_precision(value).to_i
+            value = value.change fractional_property => millis % fractional_operator
+            value + millis / fractional_operator
           end
 
           def seconds_precision(value)
             return 0 if fractional_scale == 0
             seconds = value.send(fractional_property).to_d / fractional_operator.to_d
-            seconds = ((seconds * (1 / fractional_precision)).round / (1 / fractional_precision)).truncate(fractional_scale)
+            seconds = ((seconds / fractional_precision).round * fractional_precision).round(fractional_scale)
             (seconds * fractional_operator).round(0).to_i
           end
 
@@ -39,7 +43,7 @@ module ActiveRecord
           end
 
           def fractional_precision
-            BigDecimal('0.00333')
+            BigDecimal('0.003333')
           end
 
           def fractional_scale
