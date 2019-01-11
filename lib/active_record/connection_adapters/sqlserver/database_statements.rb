@@ -71,9 +71,11 @@ module ActiveRecord
         def release_savepoint(name = current_savepoint_name)
         end
 
-        def case_sensitive_comparison(table, attribute, column, value)
+        def case_sensitive_comparison(attribute, value)
+          column = column_for_attribute(attribute)
+
           if column.collation && !column.case_sensitive?
-            table[attribute].eq(Arel::Nodes::Bin.new(value))
+            attribute.eq(Arel::Nodes::Bin.new(value))
           else
             super
           end
