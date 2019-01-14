@@ -1145,3 +1145,13 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     end
   end
 end
+
+
+
+class RelationMergingTest < ActiveRecord::TestCase
+  coerce_tests! :test_merging_with_order_with_binds
+  def test_merging_with_order_with_binds_coerced
+    relation = Post.all.merge(Post.order([Arel.sql("title LIKE ?"), "%suffix"]))
+    assert_equal ["title LIKE N'%suffix'"], relation.order_values
+  end
+end
