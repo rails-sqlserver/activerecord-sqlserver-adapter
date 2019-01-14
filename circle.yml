@@ -18,10 +18,10 @@ dependencies:
     - openssl version
     - sudo ./test/bin/install-freetds.sh
     - tsql -C
-    - rvm-exec 2.2.10 bundle install
     - rvm-exec 2.3.8 bundle install
     - rvm-exec 2.4.5 bundle install
     - rvm-exec 2.5.3 bundle install
+    - rvm-exec 2.6.0 bundle install
 
 database:
   override:
@@ -32,7 +32,7 @@ database:
 
 test:
   override:
-    - rvm-exec 2.2.10 bundle exec rake test
     - rvm-exec 2.3.8 bundle exec rake test
     - rvm-exec 2.4.5 bundle exec rake test
     - rvm-exec 2.5.3 bundle exec rake test
+    - rvm-exec 2.6.0 bundle exec rake test
