@@ -930,8 +930,51 @@ class DateTimePrecisionTest < ActiveRecord::TestCase
       end
     end
   end
+
+  # datetime is rounded to increments of .000, .003, or .007 seconds
+  coerce_tests! :test_datetime_precision_is_truncated_on_assignment
+  def test_datetime_precision_is_truncated_on_assignment_coerced
+    @connection.create_table(:foos, force: true)
+    @connection.add_column :foos, :created_at,  :datetime, precision: 0
+    @connection.add_column :foos, :updated_at, :datetime, precision: 6
+
+    time = ::Time.now.change(nsec: 123456789)
+    foo = Foo.new(created_at: time, updated_at: time)
+
+    assert_equal 0, foo.created_at.nsec
+    assert_equal 123457000, foo.updated_at.nsec
+
+    foo.save!
+    foo.reload
+
+    assert_equal 0, foo.created_at.nsec
+    assert_equal 123457000, foo.updated_at.nsec
+  end
 end
 
+
+
+class TimePrecisionTest < ActiveRecord::TestCase
+  # datetime is rounded to increments of .000, .003, or .007 seconds
+  coerce_tests! :test_time_precision_is_truncated_on_assignment
+  def test_time_precision_is_truncated_on_assignment_coerced
+    @connection.create_table(:foos, force: true)
+    @connection.add_column :foos, :start,  :time, precision: 0
+    @connection.add_column :foos, :finish, :time, precision: 6
+
+    time = ::Time.now.change(nsec: 123456789)
+    foo = Foo.new(start: time, finish: time)
+
+    assert_equal 0, foo.start.nsec
+    assert_equal 123457000, foo.finish.nsec
+
+    foo.save!
+    foo.reload
+
+    assert_equal 0, foo.start.nsec
+    assert_equal 123457000, foo.finish.nsec
+  end
+end
 
 
 
