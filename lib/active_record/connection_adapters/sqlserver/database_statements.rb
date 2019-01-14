@@ -79,6 +79,29 @@ module ActiveRecord
           end
         end
 
+        # We should propose this change to Rails team
+        def insert_fixtures_set(fixture_set, tables_to_delete = [])
+          fixture_inserts = []
+
+          fixture_set.each do |table_name, fixtures|
+            fixtures.each_slice(insert_rows_length) do |batch|
+              fixture_inserts << build_fixture_sql(batch, table_name)
+            end
+          end
+
+          table_deletes = tables_to_delete.map { |table| "DELETE FROM #{quote_table_name table}".dup }
+          total_sql = Array.wrap(combine_multi_statements(table_deletes + fixture_inserts))
+
+          disable_referential_integrity do
+            transaction(requires_new: true) do
+              total_sql.each do |sql|
+                execute sql, "Fixtures Load"
+                yield if block_given?
+              end
+            end
+          end
+        end
+
         def can_perform_case_insensitive_comparison_for?(column)
           column.type == :string && (!column.collation || column.case_sensitive?)
         end
