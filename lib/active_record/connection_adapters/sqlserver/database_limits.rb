@@ -50,6 +50,10 @@ module ActiveRecord
         def bind_params_length
           2_098
         end
+
+        def insert_rows_length
+          1_000
+        end
       end
     end
   end
