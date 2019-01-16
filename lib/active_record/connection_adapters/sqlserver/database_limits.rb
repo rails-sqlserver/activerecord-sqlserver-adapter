@@ -31,7 +31,7 @@ module ActiveRecord
         end
 
         def in_clause_length
-          65_536
+          10_000
         end
 
         def sql_query_length
