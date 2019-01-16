@@ -1155,3 +1155,9 @@ class RelationMergingTest < ActiveRecord::TestCase
     assert_equal ["title LIKE N'%suffix'"], relation.order_values
   end
 end
+
+
+class EagerLoadingTooManyIdsTest < ActiveRecord::TestCase
+  # Temporarily coerce this test due to https://github.com/rails/rails/issues/34945
+  coerce_tests! :test_eager_loading_too_may_ids
+end
