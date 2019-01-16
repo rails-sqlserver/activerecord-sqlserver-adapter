@@ -2,7 +2,7 @@ version: "2.2"
 services:
   database:
     image: metaskills/mssql-server-linux-rails
-  tests:
+  ci:
     environment:
       - ACTIVERECORD_UNITTEST_HOST=database
     build: .

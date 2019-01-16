@@ -2,6 +2,9 @@ sudo: required
 cache: bundler
 services:
   - docker
+env:
+  global:
+    - COMPOSE_FILE: docker-compose.ci.yml
 before_install:
   - sudo rm /usr/local/bin/docker-compose
   - sudo curl -L "https://github.com/docker/compose/releases/download/1.22.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
@@ -9,7 +12,7 @@ before_install:
 install:
   - docker-compose build --build-arg TARGET_VERSION=$TARGET_VERSION
 script:
-  - docker-compose run tests
+  - docker-compose run ci
 matrix:
   include:
     - env: TARGET_VERSION=2.3.8
