@@ -135,6 +135,10 @@ module ActiveRecord
         false
       end
 
+      def supports_savepoints?
+        true
+      end
+
       def supports_in_memory_oltp?
         @version_year >= 2014
       end
