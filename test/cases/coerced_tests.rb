@@ -605,6 +605,7 @@ end
 
 
 
+require 'models/parrot'
 require 'models/topic'
 class PersistenceTest < ActiveRecord::TestCase
   # We can not UPDATE identity columns.

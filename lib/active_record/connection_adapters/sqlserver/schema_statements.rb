@@ -415,11 +415,15 @@ module ActiveRecord
             ci[:default_function] = begin
               default = ci[:default_value]
               if default.nil? && view_exists
-                default = select_value "
-                  SELECT c.COLUMN_DEFAULT
-                  FROM #{database}.INFORMATION_SCHEMA.COLUMNS c
-                  WHERE c.TABLE_NAME = '#{view_tblnm}'
-                  AND c.COLUMN_NAME = '#{views_real_column_name(table_name, ci[:name])}'".squish, 'SCHEMA'
+                default = uncached do
+                  select_value %{
+                    SELECT c.COLUMN_DEFAULT
+                    FROM #{database}.INFORMATION_SCHEMA.COLUMNS c
+                    WHERE
+                      c.TABLE_NAME = '#{view_tblnm}'
+                      AND c.COLUMN_NAME = '#{views_real_column_name(table_name, ci[:name])}'
+                  }.squish, 'SCHEMA'
+                end
               end
               case default
               when nil
@@ -438,7 +442,7 @@ module ActiveRecord
                        else ci[:type]
                        end
                 value = default.match(/\A\((.*)\)\Z/m)[1]
-                value = select_value "SELECT CAST(#{value} AS #{type}) AS value", 'SCHEMA'
+                value = uncached { select_value("SELECT CAST(#{value} AS #{type}) AS value3", 'SCHEMA') }
                 [value, nil]
               end
             end
