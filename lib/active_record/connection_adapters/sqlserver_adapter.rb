@@ -215,7 +215,7 @@ module ActiveRecord
       end
 
       def sqlserver_azure?
-        @sqlserver_azure ||= !!(select_value('SELECT @@version', 'SCHEMA') =~ /Azure/i)
+        !!(sqlserver_version =~ /Azure/i)
       end
 
       def database_prefix_remote_server?
@@ -438,16 +438,15 @@ module ActiveRecord
       end
 
       def version_year
-        return @version_year if defined?(@version_year)
-        @version_year = begin
-          vstring = _raw_select('SELECT @@version', fetch: :rows).first.first.to_s
-          return 2016 if vstring =~ /vNext/
-          /SQL Server (\d+)/.match(vstring).to_a.last.to_s.to_i
-        rescue Exception => e
-          2016
-        end
+        return 2016 if sqlserver_version =~ /vNext/
+        /SQL Server (\d+)/.match(sqlserver_version).to_a.last.to_s.to_i
+      rescue StandardError => e
+        2016
       end
 
+      def sqlserver_version
+        @sqlserver_version ||= _raw_select('SELECT @@version', fetch: :rows).first.first.to_s
+      end
     end
   end
 end
