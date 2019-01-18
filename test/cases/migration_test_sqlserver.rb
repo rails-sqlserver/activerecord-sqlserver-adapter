@@ -41,6 +41,8 @@ class MigrationTestSQLServer < ActiveRecord::TestCase
       lock_version_column = Person.columns_hash['lock_version']
       assert_equal :string, lock_version_column.type
       assert lock_version_column.default.nil?
+      assert_nothing_raised { connection.change_column 'people', 'lock_version', :integer }
+      Person.reset_column_information
     end
 
     it 'not drop the default contraint if just renaming' do
