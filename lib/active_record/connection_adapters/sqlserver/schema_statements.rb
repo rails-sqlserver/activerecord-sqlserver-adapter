@@ -220,7 +220,8 @@ module ActiveRecord
           case type.to_s
           when 'integer'
             case limit
-            when 1..2       then  'smallint'
+            when 1          then  'tinyint'
+            when 2          then  'smallint'
             when 3..4, nil  then  'integer'
             when 5..8       then  'bigint'
             else raise(ActiveRecordError, "No integer type has byte size #{limit}. Use a numeric with precision 0 instead.")
