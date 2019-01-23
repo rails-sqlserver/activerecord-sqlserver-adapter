@@ -2,6 +2,7 @@ require 'support/paths_sqlserver'
 require 'bundler/setup'
 Bundler.require :default, :development
 require 'pry'
+require 'support/core_ext/query_cache'
 require 'support/minitest_sqlserver'
 require 'support/test_in_memory_oltp'
 require 'cases/helper'
