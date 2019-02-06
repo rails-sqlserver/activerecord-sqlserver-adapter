@@ -2,7 +2,7 @@ require 'openssl'
 source 'https://rubygems.org'
 gemspec
 
-gem 'sqlite3'
+gem 'sqlite3', '~> 1.3.6'
 gem 'bcrypt'
 gem 'tzinfo-data', platforms: [:mingw, :mswin, :x64_mingw, :jruby]
 
