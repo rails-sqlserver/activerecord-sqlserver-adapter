@@ -258,7 +258,7 @@ module ActiveRecord
         def change_column_null(table_name, column_name, allow_null, default = nil)
           table_id = SQLServer::Utils.extract_identifiers(table_name)
           column_id = SQLServer::Utils.extract_identifiers(column_name)
-          column = detect_column_for! table_name, column_name
+          column = column_for(table_name, column_name)
           if !allow_null.nil? && allow_null == false && !default.nil?
             do_execute("UPDATE #{table_id} SET #{column_id}=#{quote(default)} WHERE #{column_id} IS NULL")
           end
@@ -490,13 +490,6 @@ module ActiveRecord
 
         def default_constraint_name(table_name, column_name)
           "DF_#{table_name}_#{column_name}"
-        end
-
-        def detect_column_for!(table_name, column_name)
-          unless column = schema_cache.columns(table_name).find { |c| c.name == column_name.to_s }
-            raise ActiveRecordError, "No such column: #{table_name}.#{column_name}"
-          end
-          column
         end
 
         def lowercase_schema_reflection_sql(node)
