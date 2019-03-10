@@ -26,6 +26,18 @@ class ShowplanTestSQLServer < ActiveRecord::TestCase
       plan.must_include "Clustered Index Scan", 'make sure we do not showplan the sp_executesql'
     end
 
+    it 'from array condition using index' do
+      plan = Car.where(id: [1, 2]).explain
+      plan.must_include " SELECT [cars].* FROM [cars] WHERE [cars].[id] IN (1, 2)"
+      plan.must_include "Clustered Index Seek", 'make sure we do not showplan the sp_executesql'
+    end
+
+    it 'from array condition' do
+      plan = Car.where(name: ['honda', 'zyke']).explain
+      plan.must_include " SELECT [cars].* FROM [cars] WHERE [cars].[name] IN (N'honda', N'zyke')"
+      plan.must_include "Clustered Index Scan", 'make sure we do not showplan the sp_executesql'
+    end
+
   end
 
   describe 'With SHOWPLAN_TEXT option' do
