@@ -5,12 +5,11 @@ module ActiveRecord
         module Explain
 
           SQLSERVER_STATEMENT_PREFIX = 'EXEC sp_executesql '.freeze
-          SQLSERVER_PARAM_MATCHER = /@\d+ = (.*)/
-          SQLSERVER_NATIONAL_STRING_MATCHER = /N'(.*)'/m
+          SQLSERVER_STATEMENT_REGEXP = /N'(.+)', N'(.+)', (.+)/
 
           def exec_explain(queries)
             unprepared_queries = queries.map do |(sql, binds)|
-              [unprepare_sqlserver_statement(sql), binds]
+              [unprepare_sqlserver_statement(sql, binds), binds]
             end
             super(unprepared_queries)
           end
@@ -19,22 +18,19 @@ module ActiveRecord
 
           # This is somewhat hacky, but it should reliably reformat our prepared sql statment
           # which uses sp_executesql to just the first argument, then unquote it. Likewise our
-          # `sp_executesql` method should substitude the @n args withe the quoted values.
-          def unprepare_sqlserver_statement(sql)
-            if sql.starts_with?(SQLSERVER_STATEMENT_PREFIX)
-              executesql = sql.from(SQLSERVER_STATEMENT_PREFIX.length)
-              args = executesql.split(', ')
-              unprepared_sql = args.shift.strip.match(SQLSERVER_NATIONAL_STRING_MATCHER)[1]
-              unprepared_sql = Utils.unquote_string(unprepared_sql)
-              args = args.from(args.length / 2)
-              args.each_with_index do |arg, index|
-                value = arg.match(SQLSERVER_PARAM_MATCHER)[1]
-                unprepared_sql.sub! "@#{index}", value
-              end
-              unprepared_sql
-            else
-              sql
+          # `sp_executesql` method should substitude the @n args with the quoted values.
+          def unprepare_sqlserver_statement(sql, binds)
+            return sql unless sql.starts_with?(SQLSERVER_STATEMENT_PREFIX)
+
+            executesql = sql.from(SQLSERVER_STATEMENT_PREFIX.length)
+            executesql = executesql.match(SQLSERVER_STATEMENT_REGEXP).to_a[1]
+
+            binds.each_with_index do |bind, index|
+              value = connection.quote(bind)
+              executesql = executesql.sub("@#{index}", value)
             end
+
+            executesql
           end
 
         end
