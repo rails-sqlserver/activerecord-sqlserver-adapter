@@ -1,3 +1,10 @@
+## v5.2.0.rc2
+
+#### Fixed
+
+- #681 change_column_null should not clear other column attributes. Fixes #582.
+- #684 Fix explain with array conditions. Fixes #673.
+
 ## v5.2.0.rc1
 
 #### Fixed
