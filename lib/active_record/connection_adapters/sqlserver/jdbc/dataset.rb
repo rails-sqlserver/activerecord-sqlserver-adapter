@@ -125,7 +125,7 @@ module ActiveRecord
 
           # Correctly return rows from the database and return them as hashes.
           def fetch_rows(sql, opts=OPTS, &block)
-            db.execute(sql){|result| process_result_set(result, opts, &block)}
+            db.execute(sql){|result| process_result_set(result, opts, &block) if result}
             self
           end
 

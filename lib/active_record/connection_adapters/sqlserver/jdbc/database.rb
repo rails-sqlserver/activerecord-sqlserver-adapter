@@ -179,7 +179,14 @@ module ActiveRecord
                 if size = fetch_size
                   stmt.setFetchSize(size)
                 end
-                yield log_connection_yield(sql, conn){stmt.executeQuery(sql)}
+                yield log_connection_yield(sql, conn){
+                  has_result_set = stmt.execute(sql)
+                  unless has_result_set
+                    while (uc = stmt.getUpdateCount) != -1; stmt.getMoreResults(); end
+                  end
+
+                  stmt.getResultSet()
+                }
               else
                 case opts[:type]
                   when :ddl
