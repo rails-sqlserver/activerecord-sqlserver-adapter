@@ -1,3 +1,7 @@
+## v5.2.0
+
+- #686 sql_for_insert set table name in case when pk is not nil
+
 ## v5.2.0.rc2
 
 #### Fixed
