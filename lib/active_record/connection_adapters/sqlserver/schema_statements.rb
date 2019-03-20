@@ -7,7 +7,7 @@ module ActiveRecord
           @native_database_types ||= initialize_native_database_types.freeze
         end
 
-        def create_table(table_name, comment: nil, **options)
+        def create_table(table_name, **options)
           res = super
           clear_cache!
           res
@@ -536,7 +536,7 @@ module ActiveRecord
         end
 
         def create_table_definition(*args)
-          SQLServer::TableDefinition.new(*args)
+          SQLServer::TableDefinition.new(self, *args)
         end
 
       end
