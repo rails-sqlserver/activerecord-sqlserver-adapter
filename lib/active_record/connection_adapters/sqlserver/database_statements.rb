@@ -232,7 +232,7 @@ module ActiveRecord
                   exclude_output_inserted = exclude_output_inserted_table_name?(table_name, sql)
                   if exclude_output_inserted
                     id_sql_type = exclude_output_inserted.is_a?(TrueClass) ? 'bigint' : exclude_output_inserted
-                    <<-SQL.strip_heredoc
+                    <<~SQL.squish
                       DECLARE @ssaIdInsertTable table (#{quoted_pk} #{id_sql_type});
                       #{sql.dup.insert sql.index(/ (DEFAULT )?VALUES/), " OUTPUT INSERTED.#{quoted_pk} INTO @ssaIdInsertTable"}
                       SELECT CAST(#{quoted_pk} AS #{id_sql_type}) FROM @ssaIdInsertTable

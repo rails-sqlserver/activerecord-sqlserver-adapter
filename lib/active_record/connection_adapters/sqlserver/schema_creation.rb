@@ -34,7 +34,7 @@ module ActiveRecord
         def action_sql(action, dependency)
           case dependency
           when :restrict
-            raise ArgumentError, <<-MSG.strip_heredoc
+            raise ArgumentError, <<~MSG.squish
               '#{dependency}' is not supported for :on_update or :on_delete.
               Supported values are: :nullify, :cascade
             MSG
