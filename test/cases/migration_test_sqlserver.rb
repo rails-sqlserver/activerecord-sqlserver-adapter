@@ -59,11 +59,11 @@ class MigrationTestSQLServer < ActiveRecord::TestCase
     end
     
     it 'change limit' do
-      assert_nothing_raised { change_column :people, :lock_version, :integer, limit: 8 }
+      assert_nothing_raised { connection.change_column :people, :lock_version, :integer, limit: 8 }
     end
     
     it 'change null and default' do
-      assert_nothing_raised { change_column :people, :title, :text, null: true, default: nil }
+      assert_nothing_raised { connection.change_column :people, :title, :text, null: true, default: nil }
     end
 
   end
