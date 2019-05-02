@@ -350,10 +350,14 @@ module ActiveRecord
               AND columns.TABLE_SCHEMA = #{identifier.schema.blank? ? 'schema_name()' : (prepared_statements ? '@1' : quote(identifier.schema))}
             ORDER BY columns.ordinal_position
           }.gsub(/[ \t\r\n]+/, ' ').strip
+
           binds = []
-          nv128 = SQLServer::Type::UnicodeVarchar.new limit: 128
-          binds << Relation::QueryAttribute.new('TABLE_NAME', identifier.object, nv128)
-          binds << Relation::QueryAttribute.new('TABLE_SCHEMA', identifier.schema, nv128) unless identifier.schema.blank?
+          if prepared_statements
+            nv128 = SQLServer::Type::UnicodeVarchar.new limit: 128
+            binds << Relation::QueryAttribute.new('TABLE_NAME', identifier.object, nv128)
+            binds << Relation::QueryAttribute.new('TABLE_SCHEMA', identifier.schema, nv128) unless identifier.schema.blank?
+          end
+
           results = sp_executesql(sql, 'SCHEMA', binds)
           results.map do |ci|
             ci = ci.symbolize_keys
