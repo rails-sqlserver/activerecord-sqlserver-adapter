@@ -7,11 +7,6 @@
 * [![Dependency Status](https://dependencyci.com/github/rails-sqlserver/activerecord-sqlserver-adapter/badge)](https://dependencyci.com/github/rails-sqlserver/activerecord-sqlserver-adapter) - Dependency Status
 * [![Gitter chat](https://img.shields.io/badge/%E2%8A%AA%20GITTER%20-JOIN%20CHAT%20%E2%86%92-brightgreen.svg?style=flat)](https://gitter.im/rails-sqlserver/activerecord-sqlserver-adapter) - Community
 
-## Supporting TinyTDS/Adapter
-
-Both TinyTDS and the Rails SQL Server Adapter are MIT-licensed open source projects. Its ongoing development is made possible thanks to the support by these awesome [backers](https://github.com/rails-sqlserver/tiny_tds/blob/master/BACKERS.md). If you'd like to join them, check out our [Patreon Campaign](https://www.patreon.com/metaskills).
-
-
 ## About The Adapter
 
 The SQL Server adapter for ActiveRecord v5.2 using SQL Server 2012 or higher.
