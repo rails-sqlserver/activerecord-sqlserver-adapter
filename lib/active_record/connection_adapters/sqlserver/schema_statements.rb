@@ -141,7 +141,13 @@ module ActiveRecord
           sql_commands = []
           indexes = []
           column_object = schema_cache.columns(table_name).find { |c| c.name.to_s == column_name.to_s }
-          if options_include_default?(options) || (column_object && column_object.type != type.to_sym)
+          without_constraints = options.key?(:default) || options.key?(:limit)
+          default = if !options.key?(:default) && column_object
+            column_object.default
+          else
+            options[:default]
+          end
+          if without_constraints || (column_object && column_object.type != type.to_sym)
             remove_default_constraint(table_name, column_name)
             indexes = indexes(table_name).select { |index| index.columns.include?(column_name.to_s) }
             remove_indexes(table_name, column_name)
@@ -149,10 +155,9 @@ module ActiveRecord
           sql_commands << "UPDATE #{quote_table_name(table_name)} SET #{quote_column_name(column_name)}=#{quote_default_expression(options[:default], column_object)} WHERE #{quote_column_name(column_name)} IS NULL" if !options[:null].nil? && options[:null] == false && !options[:default].nil?
           sql_commands << "ALTER TABLE #{quote_table_name(table_name)} ALTER COLUMN #{quote_column_name(column_name)} #{type_to_sql(type, limit: options[:limit], precision: options[:precision], scale: options[:scale])}"
           sql_commands.last << ' NOT NULL' if !options[:null].nil? && options[:null] == false
-          if options.key?(:default) && default_constraint_name(table_name, column_name).present?
-            change_column_default(table_name, column_name, options[:default])
-          elsif options_include_default?(options)
-            sql_commands << "ALTER TABLE #{quote_table_name(table_name)} ADD CONSTRAINT #{default_constraint_name(table_name, column_name)} DEFAULT #{quote_default_expression(options[:default], column_object)} FOR #{quote_column_name(column_name)}"
+          if without_constraints
+            default = quote_default_expression(default, column_object || column_for(table_name, column_name))
+            sql_commands << "ALTER TABLE #{quote_table_name(table_name)} ADD CONSTRAINT #{default_constraint_name(table_name, column_name)} DEFAULT #{default} FOR #{quote_column_name(column_name)}"
           end
           # Add any removed indexes back
           indexes.each do |index|
