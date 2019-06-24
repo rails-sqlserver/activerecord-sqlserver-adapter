@@ -1,4 +1,4 @@
-ARG TARGET_VERSION=2.5.3
+ARG TARGET_VERSION=2.6.3
 
 FROM wpolicarpo/activerecord-sqlserver-adapter:${TARGET_VERSION}
 
