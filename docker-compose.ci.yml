@@ -1,0 +1,11 @@
+version: "2.2"
+services:
+  database:
+    image: metaskills/mssql-server-linux-rails
+  ci:
+    environment:
+      - ACTIVERECORD_UNITTEST_HOST=database
+    build: .
+    command: wait-for database:1433 -- bundle exec rake test
+    depends_on:
+      - "database"

@@ -9,7 +9,9 @@ Gemfile.lock
 test/profile/output/*
 .rvmrc
 .rbenv-version
+.tool-versions
 .idea
 coverage/*
 .flooignore
 .floo
+.byebug_history
