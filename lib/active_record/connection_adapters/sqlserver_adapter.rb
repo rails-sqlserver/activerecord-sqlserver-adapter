@@ -170,6 +170,8 @@ module ActiveRecord
       def disconnect!
         super
         case @connection_options[:mode]
+        when :jdbc
+          @connection.disconnect rescue nil
         when :dblib
           @connection.close rescue nil
         end
@@ -192,7 +194,7 @@ module ActiveRecord
 
       def tables_with_referential_integrity
         schemas_and_tables = select_rows <<-SQL.strip_heredoc
-          SELECT DISTINCT s.name, o.name
+          SELECT DISTINCT s.name sc, o.name tab
           FROM sys.foreign_keys i
           INNER JOIN sys.objects o ON i.parent_object_id = o.OBJECT_ID
           INNER JOIN sys.schemas s ON o.schema_id = s.schema_id
@@ -357,6 +359,8 @@ module ActiveRecord
       def connect
         config = @connection_options
         @connection = case config[:mode]
+                      when :jdbc
+                        jdbc_connect(config)
                       when :dblib
                         dblib_connect(config)
                       end
@@ -368,6 +372,32 @@ module ActiveRecord
       def connection_errors
         @connection_errors ||= [].tap do |errors|
           errors << TinyTds::Error if defined?(TinyTds::Error)
+          errors << Java::ComMicrosoftSqlserverJdbc::SQLServerException if defined?(Java::ComMicrosoftSqlserverJdbc::SQLServerException)
+        end
+      end
+
+      def jdbc_connect(config)
+        url = config[:url] || "jdbc:sqlserver://#{config[:host]};database=#{config[:database]};applicationName=#{config_appname(config)}"
+
+        ::ActiveRecord::ConnectionAdapters::SQLServer::Jdbc::Database.connect(url,
+          port: config[:port],
+          user: config[:username],
+          password: config[:password],
+          login_timeout: config_login_timeout(config)
+        ).tap do |client|
+          if config[:azure]
+            client.run('SET ANSI_NULLS ON')
+            client.run('SET ANSI_NULL_DFLT_ON ON')
+            client.run('SET ANSI_PADDING ON')
+            client.run('SET ANSI_WARNINGS ON')
+          else
+            client.run('SET ANSI_DEFAULTS ON')
+          end
+          client.run('SET QUOTED_IDENTIFIER ON')
+          client.run('SET CURSOR_CLOSE_ON_COMMIT OFF')
+          client.run('SET IMPLICIT_TRANSACTIONS OFF')
+          client.run('SET TEXTSIZE 2147483647')
+          client.run('SET CONCAT_NULL_YIELDS_NULL ON')
         end
       end
 

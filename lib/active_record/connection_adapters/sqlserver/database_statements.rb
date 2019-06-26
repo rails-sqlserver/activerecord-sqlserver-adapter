@@ -18,19 +18,55 @@ module ActiveRecord
         def exec_insert(sql, name = nil, binds = [], pk = nil, _sequence_name = nil)
           if id_insert_table_name = exec_insert_requires_identity?(sql, pk, binds)
             with_identity_insert_enabled(id_insert_table_name) { super(sql, name, binds, pk) }
+          elsif @connection_options[:mode] == :jdbc
+            exec_insert_jdbc(sql, name, binds, pk, _sequence_name)
           else
             super(sql, name, binds, pk)
           end
         end
 
+        def exec_insert_jdbc(sql, name, binds, pk = nil, sequence_name = nil)
+          sql, binds = sql_for_insert(sql, pk, nil, sequence_name, binds)
+          if binds.blank? && sql.include?(IDENT_SELECT_QUERY)
+            raw_insert = sql.gsub(IDENT_SELECT_QUERY, '')
+            id = @connection.execute_insert(raw_insert)
+            ActiveRecord::Result.new([:Ident], [[id]])
+          elsif !sql.include?(' OUTPUT INSERTED.')
+            id = exec_jdbc_dml(sql, name, binds, {type: :insert})
+            ActiveRecord::Result.new(['id'], [[id]])
+          else
+            exec_query(sql, name, binds)
+          end
+        rescue Java::JavaSql::SQLException => e
+          raise translate_exception(e, e.message)
+        end
+
         def exec_delete(sql, name, binds)
           sql = sql.dup << '; SELECT @@ROWCOUNT AS AffectedRows'
-          super(sql, name, binds).rows.first.first
+          case @connection_options[:mode]
+            when :jdbc
+              exec_jdbc_dml(sql, name, binds)
+            when :dblib
+              super(sql, name, binds).rows.first.first
+          end
         end
 
         def exec_update(sql, name, binds)
           sql = sql.dup << '; SELECT @@ROWCOUNT AS AffectedRows'
-          super(sql, name, binds).rows.first.first
+          case @connection_options[:mode]
+            when :jdbc
+              exec_jdbc_dml(sql, name, binds)
+            when :dblib
+              super(sql, name, binds).rows.first.first
+          end
+        end
+
+        def exec_jdbc_dml(sql, name, binds, extra_jdbc_args={})
+          log(sql, name, binds) do
+            types, params = sp_executesql_types_and_parameters_jdbc(binds)
+            args = [sql, types.join(', ')] + params
+            @connection.call_sproc("sp_executesql", {args: args}.merge(extra_jdbc_args))
+          end
         end
 
         def begin_db_transaction
@@ -134,6 +170,21 @@ module ActiveRecord
           name = 'Execute Procedure'
           log(sql, name) do
             case @connection_options[:mode]
+            when :jdbc
+              result = begin
+                @connection.fetch(sql).all
+              rescue => e
+                case e.to_s
+                  when 'The statement did not return a result set.'
+                    []
+                  else
+                    raise ActiveRecord::StatementInvalid, e
+                end
+              end
+              result.each do |r|
+                yield(r.with_indifferent_access)
+              end if block_given? && result.present?
+              result ? result.map(&:with_indifferent_access) : []
             when :dblib
               result = @connection.execute(sql)
               options = { as: :hash, cache_rows: true, timezone: ActiveRecord::Base.default_timezone || :utc }
@@ -221,6 +272,7 @@ module ActiveRecord
 
         protected
 
+        IDENT_SELECT_QUERY = 'SELECT CAST(SCOPE_IDENTITY() AS bigint) AS Ident'.freeze
         def sql_for_insert(sql, pk, id_value, sequence_name, binds)
           if pk.nil?
             table_name = query_requires_identity_insert?(sql)
@@ -241,7 +293,7 @@ module ActiveRecord
                     sql.dup.insert sql.index(/ (DEFAULT )?VALUES/), " OUTPUT INSERTED.#{quoted_pk}"
                   end
                 else
-                  "#{sql}; SELECT CAST(SCOPE_IDENTITY() AS bigint) AS Ident"
+                  "#{sql}; #{IDENT_SELECT_QUERY}"
                 end
           super
         end
@@ -280,9 +332,19 @@ module ActiveRecord
           [types, params]
         end
 
+        def sp_executesql_types_and_parameters_jdbc(binds)
+          types, params = [], []
+          binds.each_with_index do |attr, index|
+            types << "@#{index} #{sp_executesql_sql_type(attr)}"
+            params << sp_executesql_sql_param_jdbc(attr)
+          end
+          [types, params]
+        end
+
         def sp_executesql_sql_type(attr)
           return attr.type.sqlserver_type if attr.type.respond_to?(:sqlserver_type)
-          case value = attr.value_for_database
+          value = attr.value_for_database
+          case value
           when Numeric
             value > 2_147_483_647 ? 'bigint'.freeze : 'int'.freeze
           else
@@ -297,6 +359,17 @@ module ActiveRecord
             quote(value)
           else
             quote(type_cast(value))
+          end
+        end
+
+        def sp_executesql_sql_param_jdbc(attr)
+          case attr.value_for_database
+            when Type::Binary::Data,
+                ActiveRecord::Type::SQLServer::Data
+              value = attr.value_for_database
+              value.respond_to?(:value) ? value.value : value.to_s
+            else
+              type_cast(attr.value_for_database)
           end
         end
 
@@ -317,6 +390,8 @@ module ActiveRecord
 
         def raw_connection_do(sql)
           case @connection_options[:mode]
+          when :jdbc
+            @connection.run(sql)
           when :dblib
             @connection.execute(sql).do
           end
@@ -379,6 +454,8 @@ module ActiveRecord
 
         def raw_connection_run(sql)
           case @connection_options[:mode]
+          when :jdbc
+            @connection.fetch(sql)
           when :dblib
             @connection.execute(sql)
           end
@@ -392,8 +469,36 @@ module ActiveRecord
 
         def handle_to_names_and_values(handle, options = {})
           case @connection_options[:mode]
+          when :jdbc
+            handle_to_names_and_values_jdbc(handle, options)
           when :dblib
             handle_to_names_and_values_dblib(handle, options)
+          end
+        end
+
+        def handle_to_names_and_values_jdbc(handle, options = {})
+          query_options = {}.tap do |qo|
+            qo[:as] = (options[:ar_result] || options[:fetch] == :rows) ? :array : :hash
+            qo[:database_timezone] = ActiveRecord::Base.default_timezone || :utc
+          end
+
+          results =
+            begin
+              handle.all(query_options)
+            rescue => e
+              case e.to_s
+                when 'Java::ComMicrosoftSqlserverJdbc::SQLServerException: The statement did not return a result set.'
+                  []
+                else
+                  raise ActiveRecord::StatementInvalid, e
+              end
+            end
+
+          if options[:ar_result]
+            columns = (results.present? ? handle.columns.map { |c| (lowercase_schema_reflection ? c.downcase : c).to_s } : []) rescue []
+            ActiveRecord::Result.new(columns, results)
+          else
+            results
           end
         end
 

@@ -17,6 +17,7 @@ class ExecuteProcedureTestSQLServer < ActiveRecord::TestCase
   end
 
   it 'allow multiple result sets to be returned' do
+    skip "does not work with jdbc adapter" if connection_jdbc?
     results1, results2 = ActiveRecord::Base.execute_procedure('sp_helpconstraint','accounts')
     assert_instance_of Array, results1
     assert results1.first.respond_to?(:keys)

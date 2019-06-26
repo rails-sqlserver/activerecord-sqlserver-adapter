@@ -102,3 +102,18 @@ By default, Bundler will download the Rails git repo and use the git tag that ma
 * Possibly change the SQL Server TCP/IP properties in "SQL Server Configuration Manager -> SQL Server Network Configuration -> Protocols for MSSQLSERVER", and ensure that TCP/IP is enabled and the appropriate entries on the "IP Addresses" tab are enabled.
 
 
+## Testing jdbc mode
+
+  export JRUBY_OPTS="--dev -X+O -J-Xmx2048m"
+  export ARCONN=jdbc
+  jruby -S bundle exec rake test:jdbc
+
+Attention Ensure your SQL-Server is up and running. Otherwise test fail with a non descriptive error, eg.:
+
+    $ bundle exec rake test:jdbc
+
+    Using jdbc
+
+    File does not exist: cases/helper
+
+    rake aborted!

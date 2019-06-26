@@ -2,7 +2,7 @@ ActiveRecord::Schema.define do
 
   # Exhaustive Data Types
 
-  execute File.read(ARTest::SQLServer.schema_datatypes_2012_file)
+  execute ERB.new(File.read(ARTest::SQLServer.schema_datatypes_2012_file)).result
 
   create_table :sst_datatypes_migration, force: true do |t|
     # Simple Rails conventions.

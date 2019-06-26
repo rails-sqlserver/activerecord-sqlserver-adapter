@@ -5,6 +5,8 @@ module ActiveRecord
       config.reverse_merge! mode: :dblib
       mode = config[:mode].to_s.downcase.underscore.to_sym
       case mode
+      when :jdbc
+        require 'active_record/connection_adapters/sqlserver/jdbc'
       when :dblib
         require 'tiny_tds'
       else

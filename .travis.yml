@@ -5,6 +5,15 @@ services:
 env:
   global:
     - COMPOSE_FILE: docker-compose.ci.yml
+    - TINYTDS_VERSION=1.3.0
+    - ACTIVERECORD_UNITTEST_HOST=localhost
+    - ACTIVERECORD_UNITTEST_DATASERVER=localhost
+    - JRUBY_OPTS="--dev -X+O -J-Xmx2048m"
+rvm:
+  - 2.2.5
+  - 2.3.1
+  - 2.4.0
+  - jruby
 before_install:
   - sudo rm /usr/local/bin/docker-compose
   - sudo curl -L "https://github.com/docker/compose/releases/download/1.22.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose

@@ -17,7 +17,7 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
     string = connection.inspect
     string.must_match %r{ActiveRecord::ConnectionAdapters::SQLServerAdapter}
     string.must_match %r{version\: \d.\d}
-    string.must_match %r{mode: dblib}
+    string.must_match %r{mode: dblib|mode: jdbc}
     string.must_match %r{azure: (true|false)}
     string.wont_match %r{host}
     string.wont_match %r{password}

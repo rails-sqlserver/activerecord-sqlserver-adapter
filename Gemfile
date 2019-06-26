@@ -2,7 +2,8 @@ require 'openssl'
 source 'https://rubygems.org'
 gemspec
 
-gem 'sqlite3', '~> 1.3.6'
+gem 'sqlite3', '~> 1.3.6', platforms: [:mri, :mswin, :mingw, :ruby]
+gem 'minitest', '< 5.3.4'
 gem 'bcrypt'
 gem 'tzinfo-data', platforms: [:mingw, :mswin, :x64_mingw, :jruby]
 
@@ -33,7 +34,7 @@ else
       ver
     end
   end
-  gem 'rails', git: "git://github.com/rails/rails.git", tag: "v#{version}"
+  gem 'rails', git: "https://github.com/rails/rails.git", tag: "v#{version}"
 end
 
 if ENV['AREL']
@@ -41,7 +42,9 @@ if ENV['AREL']
 end
 
 group :tinytds do
-  if ENV['TINYTDS_SOURCE']
+  if RUBY_ENGINE == 'jruby'
+    gem 'sqljdbc4', git: 'https://github.com/iaddict/sqljdbc4-java.git'
+  elsif ENV['TINYTDS_SOURCE']
     gem 'tiny_tds', path: ENV['TINYTDS_SOURCE']
   elsif ENV['TINYTDS_VERSION']
     gem 'tiny_tds', ENV['TINYTDS_VERSION']
@@ -51,7 +54,7 @@ group :tinytds do
 end
 
 group :development do
-  gem 'byebug'
+  gem 'byebug', platform: :mri
   gem 'mocha'
   gem 'minitest-spec-rails'
 end
@@ -60,3 +63,4 @@ group :guard do
   gem 'guard'
   gem 'guard-minitest'
 end
+
