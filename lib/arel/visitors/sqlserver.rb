@@ -22,6 +22,12 @@ module Arel
         collector << " #{ActiveRecord::ConnectionAdapters::SQLServerAdapter.cs_equality_operator} "
       end
 
+      def visit_Arel_Nodes_Concat(o, collector)
+        visit o.left, collector
+        collector << " + "
+        visit o.right, collector
+      end
+
       def visit_Arel_Nodes_UpdateStatement(o, a)
         if o.orders.any? && o.limit.nil?
           o.limit = Nodes::Limit.new(9_223_372_036_854_775_807)
