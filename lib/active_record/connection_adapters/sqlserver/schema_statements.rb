@@ -73,7 +73,6 @@ module ActiveRecord
               ci[:default_value],
               sql_type_metadata,
               ci[:null],
-              ci[:table_name],
               ci[:default_function],
               ci[:collation],
               nil,
@@ -82,12 +81,12 @@ module ActiveRecord
           end
         end
 
-        def new_column(name, default, sql_type_metadata, null, table_name, default_function = nil, collation = nil, comment = nil, sqlserver_options = {})
+        def new_column(name, default, sql_type_metadata, null, default_function = nil, collation = nil, comment = nil, sqlserver_options = {})
           SQLServerColumn.new(
             name,
             default,
             sql_type_metadata,
-            null, table_name,
+            null,
             default_function,
             collation,
             comment,
