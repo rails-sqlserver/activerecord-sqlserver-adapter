@@ -323,7 +323,7 @@ module ActiveRecord
 
       def translate_exception(e, message)
         case message
-        when /(cannot insert duplicate key .* with unique index) | (violation of unique key constraint)/i
+        when /(Cannot insert duplicate key .* with unique index) | (violation of unique key constraint)/i
           RecordNotUnique.new(message)
         when /conflicted with the foreign key constraint/i
           InvalidForeignKey.new(message)
