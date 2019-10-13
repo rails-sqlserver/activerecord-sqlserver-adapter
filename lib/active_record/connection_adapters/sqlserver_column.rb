@@ -2,9 +2,15 @@ module ActiveRecord
   module ConnectionAdapters
     class SQLServerColumn < Column
 
-      def initialize(name, default, sql_type_metadata = nil, null = true, table_name = nil, default_function = nil, collation = nil, comment = nil, sqlserver_options = {})
-        @sqlserver_options = sqlserver_options || {}
-        super(name, default, sql_type_metadata, null, table_name, default_function, collation, comment: comment)
+      def initialize(name, default, sql_type_metadata = nil, null = true, table_name = nil, default_function = nil, collation = nil, comment = nil, **)
+        @sqlserver_options = {}
+        @name = name.freeze
+        @sql_type_metadata = sql_type_metadata
+        @null = null
+        @default = default
+        @default_function = default_function
+        @collation = collation
+        @comment = comment
       end
 
       def is_identity?
