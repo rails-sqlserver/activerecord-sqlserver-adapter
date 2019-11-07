@@ -778,13 +778,6 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal topics(:second).title, topics.first.title
   end
 
-  coerce_tests! :test_pluck_with_from_includes_quoted_original_table_name
-  def test_pluck_with_from_includes_quoted_original_table_name_coerced
-    relations = Post.joins(:author).order(:id)
-    subquery = Post.from("#{Post.quoted_table_name} /*! USE INDEX (PRIMARY) */").includes(:author).order(:id)
-    assert_equal relations.pluck(:id), subquery.pluck(:id)
-  end
-
 end
 
 class ActiveRecord::RelationTest < ActiveRecord::TestCase
