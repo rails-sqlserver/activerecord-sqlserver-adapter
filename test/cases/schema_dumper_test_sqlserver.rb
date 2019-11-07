@@ -168,7 +168,7 @@ class SchemaDumperTestSQLServer < ActiveRecord::TestCase
       if expected.nil?
         _(actual).must_be_nil message
       elsif expected.is_a?(Array)
-        actual.must_include expected, message
+        _(actual).must_include expected, message
       elsif expected.is_a?(Float)
         _(actual).must_be_close_to expected, 0.001
       elsif expected.is_a?(Proc)
