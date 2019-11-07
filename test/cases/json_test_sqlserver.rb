@@ -12,20 +12,20 @@ class JsonTestSQLServer < ActiveRecord::TestCase
   end
 
   it 'can return and save JSON data' do
-    SSTestDatatypeMigrationJson.find(@o1.id).json_col.must_equal({ 'a' => 'a', 'b' => 'b', 'c' => 'c' })
+    _(SSTestDatatypeMigrationJson.find(@o1.id).json_col).must_equal({ 'a' => 'a', 'b' => 'b', 'c' => 'c' })
     @o1.json_col = { 'a' => 'a' }
-    @o1.json_col.must_equal({ 'a' => 'a' })
+    _(@o1.json_col).must_equal({ 'a' => 'a' })
     @o1.save!
-    @o1.reload.json_col.must_equal({ 'a' => 'a' })
+    _(@o1.reload.json_col).must_equal({ 'a' => 'a' })
   end
 
   it 'can use ISJSON function' do
-    SSTestDatatypeMigrationJson.where('ISJSON(json_col) > 0').count.must_equal 4
-    SSTestDatatypeMigrationJson.where('ISJSON(json_col) IS NULL').count.must_equal 1
+    _(SSTestDatatypeMigrationJson.where('ISJSON(json_col) > 0').count).must_equal 4
+    _(SSTestDatatypeMigrationJson.where('ISJSON(json_col) IS NULL').count).must_equal 1
   end
 
   it 'can use JSON_VALUE function' do
-    SSTestDatatypeMigrationJson.where("JSON_VALUE(json_col, '$.b') = 'b'").count.must_equal 2
+    _(SSTestDatatypeMigrationJson.where("JSON_VALUE(json_col, '$.b') = 'b'").count).must_equal 2
   end
 
 end

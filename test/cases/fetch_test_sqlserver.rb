@@ -36,11 +36,11 @@ class FetchTestSqlserver < ActiveRecord::TestCase
 
     it 'gauntlet' do
       Book.where(name:'Name-10').delete_all
-      Book.order(:name).limit(1).offset(1).map(&:name).must_equal ['Name-2']
-      Book.order(:name).limit(2).offset(2).map(&:name).must_equal ['Name-3', 'Name-4']
-      Book.order(:name).limit(2).offset(7).map(&:name).must_equal ['Name-8', 'Name-9']
-      Book.order(:name).limit(3).offset(7).map(&:name).must_equal ['Name-8', 'Name-9']
-      Book.order(:name).limit(3).offset(9).map(&:name).must_equal []
+      _(Book.order(:name).limit(1).offset(1).map(&:name)).must_equal ['Name-2']
+      _(Book.order(:name).limit(2).offset(2).map(&:name)).must_equal ['Name-3', 'Name-4']
+      _(Book.order(:name).limit(2).offset(7).map(&:name)).must_equal ['Name-8', 'Name-9']
+      _(Book.order(:name).limit(3).offset(7).map(&:name)).must_equal ['Name-8', 'Name-9']
+      _(Book.order(:name).limit(3).offset(9).map(&:name)).must_equal []
     end
 
   end
