@@ -152,8 +152,7 @@ module ActiveRecord
 
       def active?
         return false unless @connection
-        raw_connection_do 'SELECT 1'
-        true
+        raw_connection_do('SELECT 1') == 1
       rescue *connection_errors
         false
       end

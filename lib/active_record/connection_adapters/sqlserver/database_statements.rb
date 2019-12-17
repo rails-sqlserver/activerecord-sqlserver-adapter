@@ -281,7 +281,8 @@ module ActiveRecord
         def raw_connection_do(sql)
           case @connection_options[:mode]
           when :dblib
-            @connection.execute(sql).do
+            result = @connection.execute(sql)
+            result == false ? false : result.do
           end
         ensure
           @update_sql = false
