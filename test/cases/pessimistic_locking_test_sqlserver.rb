@@ -13,7 +13,7 @@ class PessimisticLockingTestSQLServer < ActiveRecord::TestCase
 
   it 'uses with updlock by default' do
     assert_sql %r|SELECT \[people\]\.\* FROM \[people\] WITH\(UPDLOCK\)| do
-      Person.lock(true).to_a.must_equal Person.all.to_a
+      _(Person.lock(true).to_a).must_equal Person.all.to_a
     end
   end
 
@@ -22,7 +22,7 @@ class PessimisticLockingTestSQLServer < ActiveRecord::TestCase
     it 'lock with simple find' do
       assert_nothing_raised do
         Person.transaction do
-          Person.lock(true).find(1).must_equal Person.find(1)
+          _(Person.lock(true).find(1)).must_equal Person.find(1)
         end
       end
     end
@@ -31,7 +31,7 @@ class PessimisticLockingTestSQLServer < ActiveRecord::TestCase
       assert_nothing_raised do
         Person.transaction do
           Person.lock(true).scoping do
-            Person.find(1).must_equal Person.find(1)
+            _(Person.find(1)).must_equal Person.find(1)
           end
         end
       end
@@ -41,7 +41,7 @@ class PessimisticLockingTestSQLServer < ActiveRecord::TestCase
        assert_nothing_raised do
         Person.transaction do
           person = Person.lock(true).includes(:readers).find(1)
-          person.must_equal Person.find(1)
+          _(person).must_equal Person.find(1)
         end
       end
     end
@@ -94,11 +94,11 @@ class PessimisticLockingTestSQLServer < ActiveRecord::TestCase
       loader_sql = /SELECT.*FROM \[people\] WITH\(UPDLOCK\).*WHERE \[people\]\.\[id\] IN/
       assert_sql(eager_ids_sql, loader_sql) do
         people = Person.lock(true).limit(5).offset(10).includes(:readers).references(:readers).to_a
-        people[0].first_name.must_equal 'Thing_10'
-        people[1].first_name.must_equal 'Thing_11'
-        people[2].first_name.must_equal 'Thing_12'
-        people[3].first_name.must_equal 'Thing_13'
-        people[4].first_name.must_equal 'Thing_14'
+        _(people[0].first_name).must_equal 'Thing_10'
+        _(people[1].first_name).must_equal 'Thing_11'
+        _(people[2].first_name).must_equal 'Thing_12'
+        _(people[3].first_name).must_equal 'Thing_13'
+        _(people[4].first_name).must_equal 'Thing_14'
       end
     end
 

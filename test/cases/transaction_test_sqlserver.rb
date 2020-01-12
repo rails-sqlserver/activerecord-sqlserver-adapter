@@ -34,22 +34,22 @@ class TransactionTestSQLServer < ActiveRecord::TestCase
   it 'can use an isolation level and reverts back to starting isolation level' do
     in_level = nil
     begin_level = connection.user_options_isolation_level
-    begin_level.must_match %r{read committed}i
+    _(begin_level).must_match %r{read committed}i
     Ship.transaction(isolation: :serializable) do
       Ship.create! name: 'Black Pearl'
       in_level = connection.user_options_isolation_level
     end
     after_level = connection.user_options_isolation_level
-    in_level.must_match %r{serializable}i
-    after_level.must_match %r{read committed}i
+    _(in_level).must_match %r{serializable}i
+    _(after_level).must_match %r{read committed}i
   end
 
   it 'can use an isolation level and reverts back to starting isolation level under exceptions' do
-    connection.user_options_isolation_level.must_match %r{read committed}i
-    lambda {
+    _(connection.user_options_isolation_level).must_match %r{read committed}i
+    _(lambda {
       Ship.transaction(isolation: :serializable) { Ship.create! }
-    }.must_raise(ActiveRecord::RecordInvalid)
-    connection.user_options_isolation_level.must_match %r{read committed}i
+    }).must_raise(ActiveRecord::RecordInvalid)
+    _(connection.user_options_isolation_level).must_match %r{read committed}i
   end
 
   describe 'when READ_COMMITTED_SNAPSHOT is set' do
@@ -64,7 +64,7 @@ class TransactionTestSQLServer < ActiveRecord::TestCase
     end
 
     it 'should use READ COMMITTED as an isolation level' do
-      connection.user_options_isolation_level.must_match "read committed snapshot"
+      _(connection.user_options_isolation_level).must_match "read committed snapshot"
 
       Ship.transaction(isolation: :serializable) do
         Ship.create! name: 'Black Pearl'
@@ -73,7 +73,7 @@ class TransactionTestSQLServer < ActiveRecord::TestCase
       # We're actually testing that the isolation level was correctly reset to
       # "READ COMMITTED", and that no exception was raised (it's reported back
       # by SQL Server as "read committed snapshot").
-      connection.user_options_isolation_level.must_match "read committed snapshot"
+      _(connection.user_options_isolation_level).must_match "read committed snapshot"
     end
   end
 

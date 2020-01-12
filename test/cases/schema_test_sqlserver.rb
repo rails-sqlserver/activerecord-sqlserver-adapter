@@ -5,7 +5,7 @@ class SchemaTestSQLServer < ActiveRecord::TestCase
   describe 'When table is dbo schema' do
 
     it 'find primary key for tables with odd schema' do
-      connection.primary_key('sst_natural_pk_data').must_equal 'legacy_id'
+      _(connection.primary_key('sst_natural_pk_data')).must_equal 'legacy_id'
     end
 
   end
@@ -18,7 +18,7 @@ class SchemaTestSQLServer < ActiveRecord::TestCase
     end
 
     it 'find primary key for tables with odd schema' do
-      connection.primary_key('test.sst_schema_natural_id').must_equal 'legacy_id'
+      _(connection.primary_key('test.sst_schema_natural_id')).must_equal 'legacy_id'
     end
 
     it "have only one identity column" do
