@@ -61,13 +61,14 @@ module ActiveRecord
         end
 
         def quoted_date(value)
-          if value.acts_like?(:date)
-            Type::Date.new.serialize(value)
-          else value.acts_like?(:time)
+          if value.acts_like?(:time)
             Type::DateTime.new.serialize(value)
+          elsif value.acts_like?(:date)
+            Type::Date.new.serialize(value)
+          else
+            value
           end
         end
-
 
         private
 
