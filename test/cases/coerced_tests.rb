@@ -265,7 +265,7 @@ module ActiveRecord
       def test_add_column_without_limit_coerced
         add_column :test_models, :description, :string, limit: nil
         TestModel.reset_column_information
-        TestModel.columns_hash["description"].limit.must_equal 4000
+        _(TestModel.columns_hash["description"].limit).must_equal 4000
       end
     end
   end
@@ -615,14 +615,14 @@ class PersistenceTest < ActiveRecord::TestCase
   coerce_tests! :test_update_all_doesnt_ignore_order
   def test_update_all_doesnt_ignore_order_coerced
     david, mary = authors(:david), authors(:mary)
-    david.id.must_equal 1
-    mary.id.must_equal 2
-    david.name.wont_equal mary.name
+    _(david.id).must_equal 1
+    _(mary.id).must_equal 2
+    _(david.name).wont_equal mary.name
     assert_sql(/UPDATE.*\(SELECT \[authors\].\[id\] FROM \[authors\].*ORDER BY \[authors\].\[id\]/i) do
       Author.where('[id] > 1').order(:id).update_all(name: 'Test')
     end
-    david.reload.name.must_equal 'David'
-    mary.reload.name.must_equal 'Test'
+    _(david.reload.name).must_equal 'David'
+    _(mary.reload.name).must_equal 'Test'
   end
 
   # We can not UPDATE identity columns.
