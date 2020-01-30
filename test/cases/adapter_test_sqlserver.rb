@@ -161,7 +161,6 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
     end
 
     it 'return an empty array when calling #identity_columns for a table_name with no identity' do
-      # binding.pry
       _(connection.send(:identity_columns, Subscriber.table_name)).must_equal []
     end
 
