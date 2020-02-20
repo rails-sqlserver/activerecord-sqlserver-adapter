@@ -33,7 +33,9 @@ else
       ver
     end
   end
-  gem 'rails', git: "git://github.com/rails/rails.git", tag: "v#{version}"
+  
+  gem 'rails', git: "git://github.com/rails/rails.git", tag: "v6.0.2.1"
+  # gem 'rails', git: "git://github.com/rails/rails.git", tag: "v#{version}"
 end
 
 if ENV['AREL']
@@ -41,13 +43,13 @@ if ENV['AREL']
 end
 
 group :tinytds do
-  if ENV['TINYTDS_SOURCE']
-    gem 'tiny_tds', path: ENV['TINYTDS_SOURCE']
-  elsif ENV['TINYTDS_VERSION']
-    gem 'tiny_tds', ENV['TINYTDS_VERSION']
-  else
-    gem 'tiny_tds'
-  end
+  #if ENV['TINYTDS_SOURCE']
+  #  gem 'tiny_tds', path: ENV['TINYTDS_SOURCE']
+  #elsif ENV['TINYTDS_VERSION']
+  #  gem 'tiny_tds', ENV['TINYTDS_VERSION']
+  #else
+    gem 'tiny_tds', git: 'https://github.com/nemesit/tiny_tds.git'
+  #end
 end
 
 group :development do

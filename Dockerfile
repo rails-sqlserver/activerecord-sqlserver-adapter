@@ -1,6 +1,6 @@
 ARG TARGET_VERSION=2.6.3
 
-FROM wpolicarpo/activerecord-sqlserver-adapter:${TARGET_VERSION}
+FROM nemesit/activerecord-sqlserver-adapter:${TARGET_VERSION}
 
 ENV WORKDIR /activerecord-sqlserver-adapter
 

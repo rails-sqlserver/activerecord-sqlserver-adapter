@@ -1,7 +1,7 @@
 version: "2.2"
 services:
   database:
-    image: metaskills/mssql-server-linux-rails
+    image: nemesit/mssql-server-linux-rails
   ci:
     environment:
       - ACTIVERECORD_UNITTEST_HOST=database
