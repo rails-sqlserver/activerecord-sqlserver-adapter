@@ -34,7 +34,7 @@ else
     end
   end
   
-  gem 'rails', git: "git://github.com/rails/rails.git", tag: "v6.0.2.1"
+  gem 'rails', git: "https://github.com/rails/rails.git", tag: "v6.0.2.1"
   # gem 'rails', git: "git://github.com/rails/rails.git", tag: "v#{version}"
 end
 
