@@ -2,6 +2,7 @@ require 'base64'
 require 'active_record'
 require 'arel_sqlserver'
 require 'active_record/connection_adapters/abstract_adapter'
+require 'active_record/connection_adapters/statement_pool'
 require 'active_record/connection_adapters/sqlserver/core_ext/active_record'
 require 'active_record/connection_adapters/sqlserver/core_ext/calculations'
 require 'active_record/connection_adapters/sqlserver/core_ext/explain'
@@ -446,6 +447,10 @@ module ActiveRecord
 
       def sqlserver_version
         @sqlserver_version ||= _raw_select('SELECT @@version', fetch: :rows).first.first.to_s
+      end
+
+      def build_statement_pool
+        ActiveRecord::ConnectionAdapters::StatementPool.new(self.class.type_cast_config_to_integer(@config[:statement_limit]))
       end
     end
   end

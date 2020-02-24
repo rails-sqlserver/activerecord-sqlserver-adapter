@@ -8,6 +8,14 @@ module Arel
       FETCH0 = " FETCH FIRST (SELECT 0) "
       ROWS_ONLY = " ROWS ONLY"
 
+      WHERE    = ' WHERE '
+      SPACE    = ' '
+      COMMA    = ', '
+      GROUP_BY = ' GROUP BY '
+      ORDER_BY = ' ORDER BY '
+      WINDOW   = ' WINDOW '
+      AND      = ' AND '
+      DISTINCT = 'DISTINCT'
 
       private
 
@@ -20,6 +28,12 @@ module Arel
       def visit_Arel_Nodes_Bin o, collector
         visit o.expr, collector
         collector << " #{ActiveRecord::ConnectionAdapters::SQLServerAdapter.cs_equality_operator} "
+      end
+
+      def visit_Arel_Nodes_Concat(o, collector)
+        visit o.left, collector
+        collector << " + "
+        visit o.right, collector
       end
 
       def visit_Arel_Nodes_UpdateStatement(o, a)
@@ -196,7 +210,7 @@ module Arel
         elsif Arel::Nodes::SqlLiteral === core.from
           Arel::Table.new(core.from)
         elsif Arel::Nodes::JoinSource === core.source
-          Arel::Nodes::SqlLiteral === core.source.left ? Arel::Table.new(core.source.left, @engine) : core.source.left
+          Arel::Nodes::SqlLiteral === core.source.left ? Arel::Table.new(core.source.left, @engine) : core.source.left.left
         end
       end
 
