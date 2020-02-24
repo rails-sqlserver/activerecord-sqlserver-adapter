@@ -2,6 +2,7 @@ require 'base64'
 require 'active_record'
 require 'arel_sqlserver'
 require 'active_record/connection_adapters/abstract_adapter'
+require 'active_record/connection_adapters/statement_pool'
 require 'active_record/connection_adapters/sqlserver/core_ext/active_record'
 require 'active_record/connection_adapters/sqlserver/core_ext/calculations'
 require 'active_record/connection_adapters/sqlserver/core_ext/explain'
@@ -52,9 +53,18 @@ module ActiveRecord
       self.use_output_inserted = true
       self.exclude_output_inserted_table_names = Concurrent::Map.new { false }
 
+      class StatementPool < ConnectionAdapters::StatementPool # :nodoc:
+        private
+
+        def dealloc(stmt)
+          # noop
+        end
+      end
+
       def initialize(connection, logger = nil, config = {})
         super(connection, logger, config)
         # Our Responsibility
+        @statements = StatementPool.new(self.class.type_cast_config_to_integer(config[:statement_limit]))
         @connection_options = config
         connect
         initialize_dateformatter
@@ -180,6 +190,7 @@ module ActiveRecord
 
       def clear_cache!
         @view_information = nil
+        @statements.clear
         super
       end
 
