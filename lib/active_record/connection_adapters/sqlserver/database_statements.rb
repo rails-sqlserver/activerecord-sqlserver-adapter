@@ -263,7 +263,7 @@ module ActiveRecord
         def sp_executesql(sql, name, binds, options = {})
           options[:ar_result] = true if options[:fetch] != :rows
 
-          unless options[:prepare] #without_prepared_statement?(binds)
+          unless options[:prepare]
             types, params = sp_executesql_types_and_parameters(binds)
           else
             cache = @statements[sql]
