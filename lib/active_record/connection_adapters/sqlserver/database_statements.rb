@@ -264,7 +264,6 @@ module ActiveRecord
           options[:ar_result] = true if options[:fetch] != :rows
 
           unless without_prepared_statement?(binds)
-            types, params = sp_executesql_types_and_parameters(binds)
             unless options[:prepare]
               types, params = sp_executesql_types_and_parameters(binds)
             else
@@ -290,8 +289,8 @@ module ActiveRecord
           binds.each_with_index do |attr, index|
             attr = attr.value if attr.is_a?(Arel::Nodes::BindParam)
 
-            types << "@#{index} #{sp_executesql_sql_type(attr)}"
-            params << sp_executesql_sql_param(attr) unless skip_types
+            types << "@#{index} #{sp_executesql_sql_type(attr)}" unless skip_types
+            params << sp_executesql_sql_param(attr)
           end
           [types, params]
         end
