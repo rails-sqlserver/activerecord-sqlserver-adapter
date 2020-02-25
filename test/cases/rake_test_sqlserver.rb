@@ -43,23 +43,23 @@ class SQLServerRakeCreateTest < SQLServerRakeTest
 
   it 'establishes connection to database after create ' do
     quietly { db_tasks.create configuration }
-    connection.current_database.must_equal(new_database)
+    _(connection.current_database).must_equal(new_database)
   end
 
   it 'creates database with default collation' do
     quietly { db_tasks.create configuration }
-    connection.collation.must_equal 'SQL_Latin1_General_CP1_CI_AS'
+    _(connection.collation).must_equal 'SQL_Latin1_General_CP1_CI_AS'
   end
 
   it 'creates database with given collation' do
     quietly { db_tasks.create configuration.merge('collation' => 'Latin1_General_CI_AS') }
-    connection.collation.must_equal 'Latin1_General_CI_AS'
+    _(connection.collation).must_equal 'Latin1_General_CI_AS'
   end
 
   it 'prints error message when database exists' do
     quietly { db_tasks.create configuration }
     message = capture(:stderr) { db_tasks.create configuration }
-    message.must_match %r{activerecord_unittest_tasks.*already exists}
+    _(message).must_match %r{activerecord_unittest_tasks.*already exists}
   end
 
 end
@@ -73,12 +73,12 @@ class SQLServerRakeDropTest < SQLServerRakeTest
       db_tasks.create configuration
       db_tasks.drop configuration
     end
-    connection.current_database.must_equal 'master'
+    _(connection.current_database).must_equal 'master'
   end
 
   it 'prints error message when database does not exist' do
     message = capture(:stderr) { db_tasks.drop configuration.merge('database' => 'doesnotexist') }
-    message.must_match %r{'doesnotexist' does not exist}
+    _(message).must_match %r{'doesnotexist' does not exist}
   end
 
 end
@@ -94,11 +94,11 @@ class SQLServerRakePurgeTest < SQLServerRakeTest
   end
 
   it 'clears active connections, drops database, and recreates with established connection' do
-    connection.current_database.must_equal(new_database)
-    connection.tables.must_include 'users'
+    _(connection.current_database).must_equal(new_database)
+    _(connection.tables).must_include 'users'
     quietly { db_tasks.purge(configuration) }
-    connection.current_database.must_equal(new_database)
-    connection.tables.wont_include 'users'
+    _(connection.current_database).must_equal(new_database)
+    _(connection.tables).wont_include 'users'
   end
 
 end
@@ -110,7 +110,7 @@ class SQLServerRakeCharsetTest < SQLServerRakeTest
   end
 
   it 'retrieves charset' do
-    db_tasks.charset(configuration).must_equal 'iso_1'
+    _(db_tasks.charset(configuration)).must_equal 'iso_1'
   end
 
 end
@@ -122,7 +122,7 @@ class SQLServerRakeCollationTest < SQLServerRakeTest
   end
 
   it 'retrieves collation' do
-    db_tasks.collation(configuration).must_equal 'SQL_Latin1_General_CP1_CI_AS'
+    _(db_tasks.collation(configuration)).must_equal 'SQL_Latin1_General_CP1_CI_AS'
   end
 
 end
@@ -149,21 +149,21 @@ class SQLServerRakeStructureDumpLoadTest < SQLServerRakeTest
   it 'dumps structure and accounts for defncopy oddities' do
     skip 'debug defncopy on windows later' if host_windows?
     quietly { db_tasks.structure_dump configuration, filename }
-    filedata.wont_match %r{\AUSE.*\z}
-    filedata.wont_match %r{\AGO.*\z}
-    filedata.must_match %r{email\s+nvarchar\(4000\)}
-    filedata.must_match %r{background1\s+nvarchar\(max\)}
-    filedata.must_match %r{background2\s+text\s+}
+    _(filedata).wont_match %r{\AUSE.*\z}
+    _(filedata).wont_match %r{\AGO.*\z}
+    _(filedata).must_match %r{email\s+nvarchar\(4000\)}
+    _(filedata).must_match %r{background1\s+nvarchar\(max\)}
+    _(filedata).must_match %r{background2\s+text\s+}
   end
 
   it 'can load dumped structure' do
     skip 'debug defncopy on windows later' if host_windows?
     quietly { db_tasks.structure_dump configuration, filename }
-    filedata.must_match %r{CREATE TABLE dbo\.users}
+    _(filedata).must_match %r{CREATE TABLE dbo\.users}
     db_tasks.purge(configuration)
-    connection.tables.wont_include 'users'
+    _(connection.tables).wont_include 'users'
     db_tasks.load_schema configuration, :sql, filename
-    connection.tables.must_include 'users'
+    _(connection.tables).must_include 'users'
   end
 
 end

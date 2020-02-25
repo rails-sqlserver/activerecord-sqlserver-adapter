@@ -11,8 +11,8 @@ class SpecificSchemaTestSQLServer < ActiveRecord::TestCase
 
   it 'models can use tinyint pk tables' do
     obj = SSTestTinyintPk.create! name: '1'
-    ['Fixnum', 'Integer'].must_include obj.id.class.name
-    SSTestTinyintPk.find(obj.id).must_equal obj
+    _(['Fixnum', 'Integer']).must_include obj.id.class.name
+    _(SSTestTinyintPk.find(obj.id)).must_equal obj
   end
 
   it 'be able to complex count tables with no primary key' do
@@ -58,17 +58,17 @@ class SpecificSchemaTestSQLServer < ActiveRecord::TestCase
 
   it 'default objects work' do
     obj = SSTestObjectDefault.create! name: 'MetaSkills'
-    obj.date.must_be_nil 'since this is set on insert'
-    obj.reload.date.must_be_instance_of Date
+    _(obj.date).must_be_nil 'since this is set on insert'
+    _(obj.reload.date).must_be_instance_of Date
   end
 
   it 'allows datetime2 as timestamps' do
-    SSTestBooking.columns_hash['created_at'].sql_type.must_equal 'datetime2(7)'
-    SSTestBooking.columns_hash['updated_at'].sql_type.must_equal 'datetime2(7)'
+    _(SSTestBooking.columns_hash['created_at'].sql_type).must_equal 'datetime2(7)'
+    _(SSTestBooking.columns_hash['updated_at'].sql_type).must_equal 'datetime2(7)'
     obj1 = SSTestBooking.new name: 'test1'
     obj1.save!
-    obj1.created_at.must_be_instance_of Time
-    obj1.updated_at.must_be_instance_of Time
+    _(obj1.created_at).must_be_instance_of Time
+    _(obj1.updated_at).must_be_instance_of Time
   end
 
   # Natural primary keys.
@@ -124,10 +124,10 @@ class SpecificSchemaTestSQLServer < ActiveRecord::TestCase
     o = SSTestDatatypeMigration.create!
     o.varchar_col = "O'Reilly"
     o.save!
-    o.reload.varchar_col.must_equal "O'Reilly"
+    _(o.reload.varchar_col).must_equal "O'Reilly"
     o.varchar_col = nil
     o.save!
-    o.reload.varchar_col.must_be_nil
+    _(o.reload.varchar_col).must_be_nil
   end
 
   # With column names that have spaces
@@ -156,7 +156,7 @@ class SpecificSchemaTestSQLServer < ActiveRecord::TestCase
   it 'returns a new id via connection newid_function' do
     acceptable_uuid = ActiveRecord::ConnectionAdapters::SQLServer::Type::Uuid::ACCEPTABLE_UUID
     db_uuid = ActiveRecord::Base.connection.newid_function
-    db_uuid.must_match(acceptable_uuid)
+    _(db_uuid).must_match(acceptable_uuid)
   end
 
   # with similar table definition in two schemas
