@@ -262,20 +262,36 @@ module ActiveRecord
 
         def sp_executesql(sql, name, binds, options = {})
           options[:ar_result] = true if options[:fetch] != :rows
+
           unless without_prepared_statement?(binds)
             types, params = sp_executesql_types_and_parameters(binds)
+            unless options[:prepare]
+              types, params = sp_executesql_types_and_parameters(binds)
+            else
+              cache = @statements[sql]
+
+              if cache
+                types  = cache[:types]
+                _, params = sp_executesql_types_and_parameters(binds, true)
+              else
+                types, params = sp_executesql_types_and_parameters(binds)
+                @statements[sql] = { types: types }
+              end
+            end
+
             sql = sp_executesql_sql(sql, types, params, name)
           end
+
           raw_select sql, name, binds, options
         end
 
-        def sp_executesql_types_and_parameters(binds)
+        def sp_executesql_types_and_parameters(binds, skip_types = false)
           types, params = [], []
           binds.each_with_index do |attr, index|
             attr = attr.value if attr.is_a?(Arel::Nodes::BindParam)
 
             types << "@#{index} #{sp_executesql_sql_type(attr)}"
-            params << sp_executesql_sql_param(attr)
+            params << sp_executesql_sql_param(attr) unless skip_types
           end
           [types, params]
         end
