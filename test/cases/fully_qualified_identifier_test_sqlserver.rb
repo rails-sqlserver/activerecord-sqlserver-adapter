@@ -49,7 +49,7 @@ class FullyQualifiedIdentifierTestSQLServer < ActiveRecord::TestCase
     it 'should use fully qualified table name in insert statement' do
       manager = Arel::InsertManager.new
       manager.into Arel::Table.new(:table)
-      manager.values = manager.create_values [Arel.sql('*')], %w{ a }
+      manager.values = manager.create_values [Arel.sql('*')] # 187870db2fcc58aa0da8bb3f26711664fd5ed611 kamipo:remove_arel_nodes_values
       expected_sql = "INSERT INTO [my.server].[db].[schema].[table] VALUES (*)"
       quietly { assert_equal expected_sql, manager.to_sql }
     end

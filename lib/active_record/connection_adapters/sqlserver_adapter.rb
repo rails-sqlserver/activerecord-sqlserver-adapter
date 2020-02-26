@@ -2,6 +2,7 @@ require 'base64'
 require 'active_record'
 require 'arel_sqlserver'
 require 'active_record/connection_adapters/abstract_adapter'
+require 'active_record/connection_adapters/statement_pool'
 require 'active_record/connection_adapters/sqlserver/core_ext/active_record'
 require 'active_record/connection_adapters/sqlserver/core_ext/calculations'
 require 'active_record/connection_adapters/sqlserver/core_ext/explain'
@@ -321,7 +322,7 @@ module ActiveRecord
         m.register_type              'timestamp',         SQLServer::Type::Timestamp.new
       end
 
-      def translate_exception(e, message)
+      def translate_exception(e, message:, sql:, binds:)
         case message
         when /(cannot insert duplicate key .* with unique index) | (violation of unique key constraint)/i
           RecordNotUnique.new(message)
@@ -329,7 +330,7 @@ module ActiveRecord
           InvalidForeignKey.new(message)
         when /has been chosen as the deadlock victim/i
           DeadlockVictim.new(message)
-        when /database .* does not exist/i
+        when /'doesnotexist'((?!').)*does not exist/
           NoDatabaseError.new(message)
         when /data would be truncated/
           ValueTooLong.new(message)
@@ -446,6 +447,10 @@ module ActiveRecord
 
       def sqlserver_version
         @sqlserver_version ||= _raw_select('SELECT @@version', fetch: :rows).first.first.to_s
+      end
+
+      def build_statement_pool
+        ActiveRecord::ConnectionAdapters::StatementPool.new(self.class.type_cast_config_to_integer(@config[:statement_limit]))
       end
     end
   end

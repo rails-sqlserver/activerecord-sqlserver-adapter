@@ -77,8 +77,10 @@ class SQLServerRakeDropTest < SQLServerRakeTest
   end
 
   it 'prints error message when database does not exist' do
-    message = capture(:stderr) { db_tasks.drop configuration.merge('database' => 'doesnotexist') }
-    _(message).must_match %r{'doesnotexist' does not exist}
+    message = capture(:stderr) { 
+      db_tasks.drop configuration.merge('database' => 'doesnotexist') 
+    }
+    _(message).must_match %r{'doesnotexist'((?!').)*does not exist}
   end
 
 end

@@ -19,7 +19,7 @@ module ActiveRecord
           if id_insert_table_name = exec_insert_requires_identity?(sql, pk, binds)
             with_identity_insert_enabled(id_insert_table_name) { super(sql, name, binds, pk) }
           else
-            super(sql, pk, binds)
+            super(sql, name, binds, pk)
           end
         end
 
@@ -28,7 +28,7 @@ module ActiveRecord
           super(sql, name, binds).rows.first.first
         end
 
-      def exec_update(sql, name, binds)
+        def exec_update(sql, name, binds)
           sql = sql.dup << '; SELECT @@ROWCOUNT AS AffectedRows'
           super(sql, name, binds).rows.first.first
         end
