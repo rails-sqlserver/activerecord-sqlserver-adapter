@@ -24,8 +24,8 @@ class MigrationTestSQLServer < ActiveRecord::TestCase
       rescue Exception => e
         assert_match %r|this and all later migrations canceled|, e.message
       end
-      connection.tables.wont_include @trans_test_table1
-      connection.tables.wont_include @trans_test_table2
+      _(connection.tables).wont_include @trans_test_table1
+      _(connection.tables).wont_include @trans_test_table2
     end
 
   end

@@ -25,11 +25,16 @@ module ActiveRecord
     let(:logger) { ActiveRecord::Base.logger }
 
     setup :ensure_clean_rails_env
+    setup :remove_backtrace_silencers
 
     private
 
     def ensure_clean_rails_env
       Rails.instance_variable_set(:@_env, nil) if defined?(::Rails)
+    end
+
+    def remove_backtrace_silencers
+      Rails.backtrace_cleaner.remove_silencers!
     end
 
     def host_windows?

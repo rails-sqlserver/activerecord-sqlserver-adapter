@@ -24,19 +24,19 @@ class ChangeColumnNullTestSqlServer < ActiveRecord::TestCase
 
   describe '#change_column_null' do
     it 'does not change the column limit' do
-      name_column.limit.must_equal 15
+      _(name_column.limit).must_equal 15
     end
 
     it 'does not change the column default' do
-      code_column.default.must_equal 'n/a'
+      _(code_column.default).must_equal 'n/a'
     end
 
     it 'does not change the column precision' do
-      value_column.precision.must_equal 32
+      _(value_column.precision).must_equal 32
     end
 
     it 'does not change the column scale' do
-      value_column.scale.must_equal 8
+      _(value_column.scale).must_equal 8
     end
   end
 end

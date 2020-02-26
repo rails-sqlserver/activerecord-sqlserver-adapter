@@ -58,18 +58,18 @@ class SchemaDumperTestSQLServer < ActiveRecord::TestCase
     columns = SSTestDatatypeMigration.columns_hash
     generate_schema_for_table 'sst_datatypes_migration'
     # Simple Rails conventions
-    columns['integer_col'].sql_type.must_equal      'int(4)'
-    columns['bigint_col'].sql_type.must_equal       'bigint(8)'
-    columns['boolean_col'].sql_type.must_equal      'bit'
-    columns['decimal_col'].sql_type.must_equal      'decimal(18,0)'
-    columns['float_col'].sql_type.must_equal        'float'
-    columns['string_col'].sql_type.must_equal       'nvarchar(4000)'
-    columns['text_col'].sql_type.must_equal         'nvarchar(max)'
-    columns['datetime_col'].sql_type.must_equal     'datetime'
-    columns['timestamp_col'].sql_type.must_equal    'datetime'
-    columns['time_col'].sql_type.must_equal         'time(7)'
-    columns['date_col'].sql_type.must_equal         'date'
-    columns['binary_col'].sql_type.must_equal       'varbinary(max)'
+    _(columns['integer_col'].sql_type).must_equal      'int(4)'
+    _(columns['bigint_col'].sql_type).must_equal       'bigint(8)'
+    _(columns['boolean_col'].sql_type).must_equal      'bit'
+    _(columns['decimal_col'].sql_type).must_equal      'decimal(18,0)'
+    _(columns['float_col'].sql_type).must_equal        'float'
+    _(columns['string_col'].sql_type).must_equal       'nvarchar(4000)'
+    _(columns['text_col'].sql_type).must_equal         'nvarchar(max)'
+    _(columns['datetime_col'].sql_type).must_equal     'datetime'
+    _(columns['timestamp_col'].sql_type).must_equal    'datetime'
+    _(columns['time_col'].sql_type).must_equal         'time(7)'
+    _(columns['date_col'].sql_type).must_equal         'date'
+    _(columns['binary_col'].sql_type).must_equal       'varbinary(max)'
     assert_line :integer_col,     type: 'integer',      limit: nil,          precision: nil,  scale: nil, default: nil
     assert_line :bigint_col,      type: 'bigint',       limit: nil,          precision: nil,  scale: nil, default: nil
     assert_line :boolean_col,     type: 'boolean',      limit: nil,          precision: nil,  scale: nil, default: nil
@@ -83,22 +83,22 @@ class SchemaDumperTestSQLServer < ActiveRecord::TestCase
     assert_line :date_col,        type: 'date',         limit: nil,          precision: nil,  scale: nil, default: nil
     assert_line :binary_col,      type: 'binary',       limit: nil,          precision: nil,  scale: nil, default: nil
     # Our type methods.
-    columns['real_col'].sql_type.must_equal         'real'
-    columns['money_col'].sql_type.must_equal        'money'
-    columns['smalldatetime_col'].sql_type.must_equal 'smalldatetime'
-    columns['datetime2_col'].sql_type.must_equal    'datetime2(7)'
-    columns['datetimeoffset'].sql_type.must_equal   'datetimeoffset(7)'
-    columns['smallmoney_col'].sql_type.must_equal   'smallmoney'
-    columns['char_col'].sql_type.must_equal         'char(1)'
-    columns['varchar_col'].sql_type.must_equal      'varchar(8000)'
-    columns['text_basic_col'].sql_type.must_equal   'text'
-    columns['nchar_col'].sql_type.must_equal        'nchar(1)'
-    columns['ntext_col'].sql_type.must_equal        'ntext'
-    columns['binary_basic_col'].sql_type.must_equal 'binary(1)'
-    columns['varbinary_col'].sql_type.must_equal    'varbinary(8000)'
-    columns['uuid_col'].sql_type.must_equal         'uniqueidentifier'
-    columns['sstimestamp_col'].sql_type.must_equal  'timestamp'
-    columns['json_col'].sql_type.must_equal         'nvarchar(max)'
+    _(columns['real_col'].sql_type).must_equal         'real'
+    _(columns['money_col'].sql_type).must_equal        'money'
+    _(columns['smalldatetime_col'].sql_type).must_equal 'smalldatetime'
+    _(columns['datetime2_col'].sql_type).must_equal    'datetime2(7)'
+    _(columns['datetimeoffset'].sql_type).must_equal   'datetimeoffset(7)'
+    _(columns['smallmoney_col'].sql_type).must_equal   'smallmoney'
+    _(columns['char_col'].sql_type).must_equal         'char(1)'
+    _(columns['varchar_col'].sql_type).must_equal      'varchar(8000)'
+    _(columns['text_basic_col'].sql_type).must_equal   'text'
+    _(columns['nchar_col'].sql_type).must_equal        'nchar(1)'
+    _(columns['ntext_col'].sql_type).must_equal        'ntext'
+    _(columns['binary_basic_col'].sql_type).must_equal 'binary(1)'
+    _(columns['varbinary_col'].sql_type).must_equal    'varbinary(8000)'
+    _(columns['uuid_col'].sql_type).must_equal         'uniqueidentifier'
+    _(columns['sstimestamp_col'].sql_type).must_equal  'timestamp'
+    _(columns['json_col'].sql_type).must_equal         'nvarchar(max)'
     assert_line :real_col,          type: 'real',           limit: nil,           precision: nil,   scale: nil,  default: nil
     assert_line :money_col,         type: 'money',          limit: nil,           precision: 19,    scale: 4,    default: nil
     assert_line :smalldatetime_col, type: 'smalldatetime',  limit: nil,           precision: nil,   scale: nil,  default: nil
@@ -129,7 +129,7 @@ class SchemaDumperTestSQLServer < ActiveRecord::TestCase
 
   it 'no id with model driven primary key' do
     output = generate_schema_for_table 'sst_no_pk_data'
-    output.must_match %r{create_table "sst_no_pk_data".*id:\sfalse.*do}
+    _(output).must_match %r{create_table "sst_no_pk_data".*id:\sfalse.*do}
     assert_line :name, type: 'string', limit: nil, default: nil, collation: nil
   end
 
@@ -165,15 +165,15 @@ class SchemaDumperTestSQLServer < ActiveRecord::TestCase
       expected = options[key]
       message  = "#{key.to_s.titleize} of #{expected.inspect} not found in:\n#{line}"
       if expected.nil?
-        actual.must_be_nil message
+        _(actual).must_be_nil message
       elsif expected.is_a?(Array)
         actual.must_include expected, message
       elsif expected.is_a?(Float)
-        actual.must_be_close_to expected, 0.001
+        _(actual).must_be_close_to expected, 0.001
       elsif expected.is_a?(Proc)
-        actual.call.must_equal(expected.call)
+        _(actual.call).must_equal(expected.call)
       else
-        actual.must_equal expected, message
+        _(actual).must_equal expected, message
       end
     end
   end
