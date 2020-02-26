@@ -5,7 +5,7 @@ This process is much easier than it has been before!
 
 ## MS SQL SERVER
 
-If you don't have easy access to MS SQL Server, you can download and run a Vagrant/VirtualBox virtual machine with MS SQL Server pre-installed. [Here's how](/DEVELOPING_WITH_VAGRANT.md).
+If you don't have easy access to MS SQL Server, you can download and run a Vagrant/VirtualBox virtual machine with MS SQL Server pre-installed. [Here's how](/docs/DEVELOPING_WITH_VAGRANT.md).
 
 ## TL;DR
 
