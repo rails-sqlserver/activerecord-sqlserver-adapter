@@ -192,14 +192,14 @@ class CalculationsTest < ActiveRecord::TestCase
   def test_limit_is_kept_coerced
     queries = capture_sql_ss { Account.limit(1).count }
     assert_equal 1, queries.length
-    queries.first.must_match %r{ORDER BY \[accounts\]\.\[id\] ASC OFFSET 0 ROWS FETCH NEXT @0 ROWS ONLY.*@0 = 1}
+    _(queries.first).must_match %r{ORDER BY \[accounts\]\.\[id\] ASC OFFSET 0 ROWS FETCH NEXT @0 ROWS ONLY.*@0 = 1}
   end
 
   coerce_tests! :test_limit_with_offset_is_kept
   def test_limit_with_offset_is_kept_coerced
     queries = capture_sql_ss { Account.limit(1).offset(1).count }
     assert_equal 1, queries.length
-    queries.first.must_match %r{ORDER BY \[accounts\]\.\[id\] ASC OFFSET @0 ROWS FETCH NEXT @1 ROWS ONLY.*@0 = 1, @1 = 1}
+    _(queries.first).must_match %r{ORDER BY \[accounts\]\.\[id\] ASC OFFSET @0 ROWS FETCH NEXT @1 ROWS ONLY.*@0 = 1, @1 = 1}
   end
 
   # SQL Server needs an alias for the calculated column
@@ -265,7 +265,7 @@ module ActiveRecord
       def test_add_column_without_limit_coerced
         add_column :test_models, :description, :string, limit: nil
         TestModel.reset_column_information
-        TestModel.columns_hash["description"].limit.must_equal 4000
+        _(TestModel.columns_hash["description"].limit).must_equal 4000
       end
     end
   end
@@ -276,7 +276,7 @@ end
 
 module ActiveRecord
   class Migration
-    class ColumnsTest
+    class ColumnsTest < ActiveRecord::TestCase
       # Our defaults are real 70000 integers vs '70000' strings.
       coerce_tests! :test_rename_column_preserves_default_value_not_null
       def test_rename_column_preserves_default_value_not_null_coerced
@@ -506,9 +506,8 @@ class FinderTest < ActiveRecord::TestCase
       end
     end
   end
+
 end
-
-
 
 
 module ActiveRecord
@@ -615,14 +614,14 @@ class PersistenceTest < ActiveRecord::TestCase
   coerce_tests! :test_update_all_doesnt_ignore_order
   def test_update_all_doesnt_ignore_order_coerced
     david, mary = authors(:david), authors(:mary)
-    david.id.must_equal 1
-    mary.id.must_equal 2
-    david.name.wont_equal mary.name
+    _(david.id).must_equal 1
+    _(mary.id).must_equal 2
+    _(david.name).wont_equal mary.name
     assert_sql(/UPDATE.*\(SELECT \[authors\].\[id\] FROM \[authors\].*ORDER BY \[authors\].\[id\]/i) do
       Author.where('[id] > 1').order(:id).update_all(name: 'Test')
     end
-    david.reload.name.must_equal 'David'
-    mary.reload.name.must_equal 'Test'
+    _(david.reload.name).must_equal 'David'
+    _(mary.reload.name).must_equal 'Test'
   end
 
   # We can not UPDATE identity columns.
