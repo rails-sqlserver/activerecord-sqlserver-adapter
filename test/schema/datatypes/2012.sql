@@ -35,6 +35,7 @@ CREATE TABLE [sst_datatypes] (
   [smalldatetime] [smalldatetime] NULL DEFAULT '1901-01-01T15:45:00.000Z',
   [time_7] [time](7) NULL DEFAULT '04:20:00.2883215',
   [time_2] [time](2) NULL,
+  [time_default] [time] NULL DEFAULT '15:03:42.0621978',
   -- Character Strings
   [char_10] [char](10) NULL DEFAULT '1234567890',
   [varchar_50] [varchar](50) NULL DEFAULT 'test varchar_50',

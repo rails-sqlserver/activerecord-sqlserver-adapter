@@ -4,6 +4,9 @@ module ActiveRecord
       module Type
         class Time < ActiveRecord::Type::Time
 
+          # Default fractional scale for 'time' (See https://docs.microsoft.com/en-us/sql/t-sql/data-types/time-transact-sql)
+          DEFAULT_FRACTIONAL_SCALE = 7
+
           include TimeValueFractional2
 
           def serialize(value)
@@ -42,7 +45,7 @@ module ActiveRecord
           end
 
           def fractional_scale
-            precision
+            precision || DEFAULT_FRACTIONAL_SCALE
           end
 
         end
