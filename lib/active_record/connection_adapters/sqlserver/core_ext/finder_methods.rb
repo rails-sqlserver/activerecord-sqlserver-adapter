@@ -9,11 +9,16 @@ module ActiveRecord
 
           private
 
-          # Same as original except we order by values in distinct select if present. Original removes ordering for PostgreSQL.
+          # Same as original except we order by values in distinct select if present.
           def construct_relation_for_exists(conditions)
             if distinct_value && offset_value
               relation = limit!(1)
-              relation = relation.order(*select_values) unless select_values.empty?
+
+              if select_values.present?
+                relation = relation.order(*select_values)
+              else
+                relation = relation.except(:order)
+              end
             else
               relation = except(:select, :distinct, :order)._select!(::ActiveRecord::FinderMethods::ONE_AS_ONE).limit!(1)
             end
