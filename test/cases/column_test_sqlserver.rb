@@ -349,7 +349,7 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
     end
 
     it 'datetime2' do
-      skip 'datetime2 not supported in this protocal version' unless connection_dblib_73?
+      skip 'datetime2 not supported in this protocol version' unless connection_dblib_73?
       col = column('datetime2_7')
       _(col.sql_type).must_equal           'datetime2(7)'
       _(col.type).must_equal               :datetime
@@ -414,7 +414,7 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
     end
 
     it 'datetimeoffset' do
-      skip 'datetimeoffset not supported in this protocal version' unless connection_dblib_73?
+      skip 'datetimeoffset not supported in this protocol version' unless connection_dblib_73?
       col = column('datetimeoffset_7')
       _(col.sql_type).must_equal           'datetimeoffset(7)'
       _(col.type).must_equal               :datetimeoffset
@@ -480,7 +480,7 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
     end
 
     it 'time(7)' do
-      skip 'time() not supported in this protocal version' unless connection_dblib_73?
+      skip 'time() not supported in this protocol version' unless connection_dblib_73?
       col = column('time_7')
       _(col.sql_type).must_equal           'time(7)'
       _(col.type).must_equal               :time
@@ -512,7 +512,7 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
     end
 
     it 'time(2)' do
-      skip 'time() not supported in this protocal version' unless connection_dblib_73?
+      skip 'time() not supported in this protocol version' unless connection_dblib_73?
       col = column('time_2')
       _(col.sql_type).must_equal           'time(2)'
       _(col.type).must_equal               :time
@@ -539,6 +539,38 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       _(obj.time_2).must_equal             Time.utc(2000, 01, 01, 15, 45, 00, 0), "Microseconds were <#{obj.time_2.usec}> vs <0>"
       obj.save! ; obj.reload
       _(obj.time_2).must_equal             Time.utc(2000, 01, 01, 15, 45, 00, 0), "Microseconds were <#{obj.time_2.usec}> vs <0>"
+    end
+
+    it 'time using default precision' do
+      skip 'time() not supported in this protocol version' unless connection_dblib_73?
+      col = column('time_default')
+      _(col.sql_type).must_equal           'time(7)'
+      _(col.type).must_equal               :time
+      _(col.null).must_equal               true
+      _(col.default).must_equal            Time.utc(1900, 01, 01, 15, 03, 42, Rational(62197800, 1000)), "Nanoseconds were <#{col.default.nsec}> vs <62197800>"
+      _(col.default_function).must_be_nil
+      type = connection.lookup_cast_type_from_column(col)
+      _(type).must_be_instance_of          Type::Time
+      _(type.limit).must_be_nil
+      _(type.precision).must_equal         7
+      _(type.scale).must_be_nil
+      # Time's #usec precision (low micro)
+      obj.time_default = Time.utc(2000, 01, 01, 15, 45, 00, 300)
+      _(obj.time_default).must_equal             Time.utc(2000, 01, 01, 15, 45, 00, 300), "Microseconds were <#{obj.time_default.usec}> vs <0>"
+      _(obj.time_default).must_equal             Time.utc(2000, 01, 01, 15, 45, 00, 300), "Nanoseconds were <#{obj.time_default.nsec}> vs <300>"
+      obj.save! ; obj.reload
+      _(obj.time_default).must_equal             Time.utc(2000, 01, 01, 15, 45, 00, 300), "Microseconds were <#{obj.time_default.usec}> vs <0>"
+      _(obj.time_default).must_equal             Time.utc(2000, 01, 01, 15, 45, 00, 300), "Nanoseconds were <#{obj.time_default.nsec}> vs <300>"
+      # Time's #usec precision (high micro)
+      obj.time_default = Time.utc(2000, 01, 01, 15, 45, 00, 234567)
+      _(obj.time_default).must_equal             Time.utc(2000, 01, 01, 15, 45, 00, 234567), "Microseconds were <#{obj.time_default.usec}> vs <234567>"
+      obj.save! ; obj.reload
+      _(obj.time_default).must_equal             Time.utc(2000, 01, 01, 15, 45, 00, 234567), "Microseconds were <#{obj.time_default.usec}> vs <234567>"
+      # Time's #usec precision (high nano rounded)
+      obj.time_default = Time.utc(2000, 01, 01, 15, 45, 00, Rational(288321545, 1000))
+      _(obj.time_default).must_equal             Time.utc(2000, 01, 01, 15, 45, 00, Rational(288321500, 1000)), "Nanoseconds were <#{obj.time_default.nsec}> vs <288321500>"
+      obj.save! ; obj.reload
+      _(obj.time_default).must_equal             Time.utc(2000, 01, 01, 15, 45, 00, Rational(288321500, 1000)), "Nanoseconds were <#{obj.time_default.nsec}> vs <288321500>"
     end
 
     # Character Strings
