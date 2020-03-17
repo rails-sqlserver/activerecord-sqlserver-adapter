@@ -376,7 +376,7 @@ module ActiveRecord
         TinyTds::Client.new(
           dataserver: config[:dataserver],
           host: config[:host],
-          port: config[:port],
+          port: config_port(config),
           username: config[:username],
           password: config[:password],
           database: config[:database],
@@ -385,8 +385,10 @@ module ActiveRecord
           login_timeout: config_login_timeout(config),
           timeout: config_timeout(config),
           encoding:  config_encoding(config),
-          azure: config[:azure],
-          contained: config[:contained]
+          azure: config_azure(config),
+          contained: config_contained(config),
+          use_utf16: config_use_utf16(config),
+          message_handler: config_message_handler(config)
         ).tap do |client|
           if config[:azure]
             client.execute('SET ANSI_NULLS ON').do
@@ -408,6 +410,10 @@ module ActiveRecord
         config[:appname] || configure_application_name || Rails.application.class.name.split('::').first rescue nil
       end
 
+      def config_port(config)
+        config[:port].present? ? config[:port].to_i : nil
+      end
+
       def config_login_timeout(config)
         config[:login_timeout].present? ? config[:login_timeout].to_i : nil
       end
@@ -418,6 +424,22 @@ module ActiveRecord
 
       def config_encoding(config)
         config[:encoding].present? ? config[:encoding] : nil
+      end
+
+      def config_azure(config)
+        config[:azure].present? ? !!ActiveModel::Type::Boolean.new.cast(config[:azure]) : nil
+      end
+
+      def config_contained(config)
+        config[:contained].present? ? !!ActiveModel::Type::Boolean.new.cast(config[:contained]) : nil
+      end
+
+      def config_use_utf16(config)
+        config[:use_utf16].present? ? !!ActiveModel::Type::Boolean.new.cast(config[:use_utf16]) : true
+      end
+
+      def config_message_handler(config)
+        config[:message_handler].present? ? config[:message_handler] : nil
       end
 
       def configure_connection ; end
