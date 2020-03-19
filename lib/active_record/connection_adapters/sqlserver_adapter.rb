@@ -41,6 +41,9 @@ module ActiveRecord
 
       ADAPTER_NAME = 'SQLServer'.freeze
 
+      # Default precision for 'time' (See https://docs.microsoft.com/en-us/sql/t-sql/data-types/time-transact-sql)
+      DEFAULT_TIME_PRECISION = 7
+
       attr_reader :spid
 
       cattr_accessor :cs_equality_operator, instance_accessor: false
@@ -297,8 +300,7 @@ module ActiveRecord
         end
         m.register_type              'smalldatetime',     SQLServer::Type::SmallDateTime.new
         m.register_type              %r{\Atime}i do |sql_type|
-          scale = extract_scale(sql_type)
-          precision = extract_precision(sql_type)
+          precision = extract_precision(sql_type) || DEFAULT_TIME_PRECISION
           SQLServer::Type::Time.new precision: precision
         end
         # Character Strings
