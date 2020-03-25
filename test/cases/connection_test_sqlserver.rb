@@ -36,7 +36,7 @@ class ConnectionTestSQLServer < ActiveRecord::TestCase
   describe 'Connection management' do
 
     it 'set spid on connect' do
-      ['Fixnum', 'Integer'].must_include connection.spid.class.name
+      _(['Fixnum', 'Integer']).must_include connection.spid.class.name
     end
 
     it 'reset spid on disconnect!' do
@@ -46,7 +46,7 @@ class ConnectionTestSQLServer < ActiveRecord::TestCase
 
     it 'reset the connection' do
       connection.disconnect!
-      connection.raw_connection.must_be_nil
+      _(connection.raw_connection).must_be_nil
     end
 
     it 'be able to disconnect and reconnect at will' do
