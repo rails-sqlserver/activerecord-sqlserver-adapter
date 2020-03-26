@@ -156,7 +156,7 @@ class SpecificSchemaTestSQLServer < ActiveRecord::TestCase
   it 'returns a new id via connection newid_function' do
     acceptable_uuid = ActiveRecord::ConnectionAdapters::SQLServer::Type::Uuid::ACCEPTABLE_UUID
     db_uuid = ActiveRecord::Base.connection.newid_function
-    _(db_uuid).must_match acceptable_uuid
+    _(db_uuid).must_match(acceptable_uuid)
   end
 
   # with similar table definition in two schemas

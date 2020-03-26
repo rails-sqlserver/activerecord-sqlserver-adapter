@@ -34,6 +34,7 @@ class SchemaDumperTestSQLServer < ActiveRecord::TestCase
     if connection_dblib_73?
     assert_line :time_7,            type: 'time',         limit: nil,           precision: 7,     scale: nil,  default: "04:20:00.2883215"
     assert_line :time_2,            type: 'time',         limit: nil,           precision: 2,     scale: nil,  default: nil
+    assert_line :time_default,      type: 'time',         limit: nil,           precision: 7,     scale: nil,  default: "15:03:42.0621978"
     end
     # Character Strings
     assert_line :char_10,           type: 'char',         limit: 10,            precision: nil,   scale: nil,  default: "1234567890",           collation: nil

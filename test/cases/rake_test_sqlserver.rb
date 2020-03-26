@@ -77,9 +77,7 @@ class SQLServerRakeDropTest < SQLServerRakeTest
   end
 
   it 'prints error message when database does not exist' do
-    message = capture(:stderr) { 
-      db_tasks.drop configuration.merge('database' => 'doesnotexist') 
-    }
+    message = capture(:stderr) { db_tasks.drop configuration.merge('database' => 'doesnotexist') }
     _(message).must_match %r{'doesnotexist'((?!').)*does not exist}
   end
 
@@ -96,10 +94,10 @@ class SQLServerRakePurgeTest < SQLServerRakeTest
   end
 
   it 'clears active connections, drops database, and recreates with established connection' do
-    _(connection.current_database).must_equal new_database
+    _(connection.current_database).must_equal(new_database)
     _(connection.tables).must_include 'users'
     quietly { db_tasks.purge(configuration) }
-    _(connection.current_database).must_equal new_database
+    _(connection.current_database).must_equal(new_database)
     _(connection.tables).wont_include 'users'
   end
 

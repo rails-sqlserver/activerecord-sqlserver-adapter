@@ -8,6 +8,8 @@ require 'active_record/connection_adapters/sqlserver/core_ext/calculations'
 require 'active_record/connection_adapters/sqlserver/core_ext/explain'
 require 'active_record/connection_adapters/sqlserver/core_ext/explain_subscriber'
 require 'active_record/connection_adapters/sqlserver/core_ext/attribute_methods'
+require 'active_record/connection_adapters/sqlserver/core_ext/finder_methods'
+require 'active_record/connection_adapters/sqlserver/core_ext/query_methods'
 require 'active_record/connection_adapters/sqlserver/version'
 require 'active_record/connection_adapters/sqlserver/type'
 require 'active_record/connection_adapters/sqlserver/database_limits'
@@ -40,6 +42,9 @@ module ActiveRecord
               SQLServer::DatabaseTasks
 
       ADAPTER_NAME = 'SQLServer'.freeze
+
+      # Default precision for 'time' (See https://docs.microsoft.com/en-us/sql/t-sql/data-types/time-transact-sql)
+      DEFAULT_TIME_PRECISION = 7
 
       attr_reader :spid
 
@@ -297,8 +302,7 @@ module ActiveRecord
         end
         m.register_type              'smalldatetime',     SQLServer::Type::SmallDateTime.new
         m.register_type              %r{\Atime}i do |sql_type|
-          scale = extract_scale(sql_type)
-          precision = extract_precision(sql_type)
+          precision = extract_precision(sql_type) || DEFAULT_TIME_PRECISION
           SQLServer::Type::Time.new precision: precision
         end
         # Character Strings

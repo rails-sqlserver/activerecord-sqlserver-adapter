@@ -46,7 +46,9 @@ class TransactionTestSQLServer < ActiveRecord::TestCase
 
   it 'can use an isolation level and reverts back to starting isolation level under exceptions' do
     _(connection.user_options_isolation_level).must_match %r{read committed}i
-    _(lambda { Ship.transaction(isolation: :serializable) { Ship.create! } }).must_raise(ActiveRecord::RecordInvalid)
+    _(lambda { 
+      Ship.transaction(isolation: :serializable) { Ship.create! } 
+    }).must_raise(ActiveRecord::RecordInvalid)
     _(connection.user_options_isolation_level).must_match %r{read committed}i
   end
 
