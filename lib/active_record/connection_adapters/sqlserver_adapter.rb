@@ -325,7 +325,7 @@ module ActiveRecord
         m.register_type              'timestamp',         SQLServer::Type::Timestamp.new
       end
 
-      def translate_exception(e, message)
+      def translate_exception(e, message:, sql:, binds:)
         case message
         when /(cannot insert duplicate key .* with unique index) | (violation of unique key constraint)/i
           RecordNotUnique.new(message)

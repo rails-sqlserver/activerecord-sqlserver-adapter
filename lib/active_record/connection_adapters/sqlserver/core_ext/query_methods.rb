@@ -9,7 +9,8 @@ module ActiveRecord
 
           private
 
-          # Copy of original from Rails master. This patch can be removed when adapter supports Rails 6.
+          # Copy of original from Rails master.
+          # This patch can be removed when adapter supports Rails version greater than 6.0.2.2
           def table_name_matches?(from)
             table_name = Regexp.escape(table.name)
             quoted_table_name = Regexp.escape(connection.quote_table_name(table.name))
