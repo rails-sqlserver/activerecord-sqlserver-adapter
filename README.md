@@ -3,7 +3,6 @@
 * [![TravisCI](https://travis-ci.org/rails-sqlserver/activerecord-sqlserver-adapter.svg?branch=master)](https://travis-ci.org/rails-sqlserver/activerecord-sqlserver-adapter) - TravisCI
 * [![Build Status](https://ci.appveyor.com/api/projects/status/mtgbx8f57vr7k2qa/branch/master?svg=true)](https://ci.appveyor.com/project/rails-sqlserver/activerecord-sqlserver-adapter/branch/master) - Appveyor
 * [![Gem Version](http://img.shields.io/gem/v/activerecord-sqlserver-adapter.svg)](https://rubygems.org/gems/activerecord-sqlserver-adapter) - Gem Version
-* [![Dependency Status](https://dependencyci.com/github/rails-sqlserver/activerecord-sqlserver-adapter/badge)](https://dependencyci.com/github/rails-sqlserver/activerecord-sqlserver-adapter) - Dependency Status
 * [![Gitter chat](https://img.shields.io/badge/%E2%8A%AA%20GITTER%20-JOIN%20CHAT%20%E2%86%92-brightgreen.svg?style=flat)](https://gitter.im/rails-sqlserver/activerecord-sqlserver-adapter) - Community
 
 ## About The Adapter
