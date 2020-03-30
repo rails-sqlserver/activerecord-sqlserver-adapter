@@ -1,4 +1,19 @@
+## v5.2.1
+
+#### Fixed
+
+- #691 Fix constraints bug
+- #700 SET SINGLE_USER before dropping the database
+- #733 Calculate should not remove ordering for MSSQL
+- #735 Order by selected items when using distinct exists
+- #737 Use default precision for 'time' column type
+- #744 Adapter does not use prepared statement cache
+- #743 Set default time precision when registering time type
+- #745 Quoted table names containing square brackets need to be regex escaped
+
 ## v5.2.0
+
+#### Fixed
 
 - #686 sql_for_insert set table name in case when pk is not nil
 
