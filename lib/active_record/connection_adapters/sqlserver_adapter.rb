@@ -256,6 +256,9 @@ module ActiveRecord
         result
       end
 
+      def get_database_version # :nodoc:
+        version_year
+      end
 
       protected
 
