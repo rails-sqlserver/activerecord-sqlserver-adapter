@@ -21,7 +21,7 @@ Building the virtual machine is this easy:
 
     host $ mkdir mssql # Or whatever name suits you
     host $ cd mssql
-    host $ vagrant jadesystems/rails-jade-18-04-mssql
+    host $ vagrant init jadesystems/rails-jade-18-04-mssql
     host $ vagrant up
 
 That's it.
