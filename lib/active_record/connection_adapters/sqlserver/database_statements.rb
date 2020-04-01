@@ -91,12 +91,12 @@ module ActiveRecord
             end
           end
 
-          table_deletes = tables_to_delete.map { |table| "DELETE FROM #{quote_table_name table}".dup }
-          total_sql = Array.wrap(combine_multi_statements(table_deletes + fixture_inserts))
+          table_deletes = tables_to_delete.map { |table| "DELETE FROM #{quote_table_name table}" }
+          total_sqls = Array.wrap(table_deletes + fixture_inserts)
 
           disable_referential_integrity do
             transaction(requires_new: true) do
-              total_sql.each do |sql|
+              total_sqls.each do |sql|
                 execute sql, "Fixtures Load"
                 yield if block_given?
               end
@@ -108,11 +108,6 @@ module ActiveRecord
           column.type == :string && (!column.collation || column.case_sensitive?)
         end
         private :can_perform_case_insensitive_comparison_for?
-
-        def combine_multi_statements(total_sql)
-          total_sql
-        end
-        private :combine_multi_statements
 
         def default_insert_value(column)
           if column.is_identity?
