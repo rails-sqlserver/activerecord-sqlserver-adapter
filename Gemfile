@@ -1,5 +1,10 @@
+# frozen_string_literal: true
+
 require 'openssl'
 source 'https://rubygems.org'
+
+git_source(:github) { |repo| "https://github.com/#{repo}.git" }
+
 gemspec
 
 gem 'sqlite3'
@@ -33,7 +38,7 @@ else
       ver
     end
   end
-  gem 'rails', git: "git://github.com/rails/rails.git", tag: "v#{version}"
+  gem 'rails', github: "rails/rails", tag: "v#{version}"
 end
 
 if ENV['AREL']
