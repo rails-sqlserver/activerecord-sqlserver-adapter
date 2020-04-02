@@ -51,6 +51,56 @@ module ActiveRecord
   end
 end
 
+module ActiveRecord
+  class AdapterTestWithoutTransaction < ActiveRecord::TestCase
+    # SQL Server does not allow truncation of tables that are referenced by foreign key
+    # constraints. So manually remove/add foreign keys in test.
+    coerce_tests! :test_truncate_tables, :test_truncate_tables_with_query_cache
+    def test_truncate_tables_coerced
+      # Remove foreign key constraint to allow truncation.
+      @connection.remove_foreign_key :authors, :author_addresses
+
+      assert_operator Post.count, :>, 0
+      assert_operator Author.count, :>, 0
+      assert_operator AuthorAddress.count, :>, 0
+
+      @connection.truncate_tables("author_addresses", "authors", "posts")
+
+      assert_equal 0, Post.count
+      assert_equal 0, Author.count
+      assert_equal 0, AuthorAddress.count
+    ensure
+      reset_fixtures("posts", "authors", "author_addresses")
+
+      # Restore foreign key constraint.
+      @connection.add_foreign_key :authors, :author_addresses
+    end
+
+    def test_truncate_tables_with_query_cache
+      # Remove foreign key constraint to allow truncation.
+      @connection.remove_foreign_key :authors, :author_addresses
+
+      @connection.enable_query_cache!
+
+      assert_operator Post.count, :>, 0
+      assert_operator Author.count, :>, 0
+      assert_operator AuthorAddress.count, :>, 0
+
+      @connection.truncate_tables("author_addresses", "authors", "posts")
+
+      assert_equal 0, Post.count
+      assert_equal 0, Author.count
+      assert_equal 0, AuthorAddress.count
+    ensure
+      reset_fixtures("posts", "authors", "author_addresses")
+      @connection.disable_query_cache!
+
+      # Restore foreign key constraint.
+      @connection.add_foreign_key :authors, :author_addresses
+    end
+  end
+end
+
 
 
 
@@ -1180,4 +1230,14 @@ end
 class EagerLoadingTooManyIdsTest < ActiveRecord::TestCase
   # Temporarily coerce this test due to https://github.com/rails/rails/issues/34945
   coerce_tests! :test_eager_loading_too_may_ids
+end
+
+
+module ActiveRecord
+  class DatabaseTasksTruncateAllTest < ActiveRecord::TestCase
+    # SQL Server does not allow truncation of tables that are referenced by foreign key
+    # constraints. As this test truncates all tables we would need to remove all foreign
+    # key constraints and then restore them afterwards to get this test to pass.
+    coerce_tests! :test_truncate_tables
+  end
 end
