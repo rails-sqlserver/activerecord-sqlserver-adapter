@@ -343,55 +343,9 @@ module ActiveRecord
           database    = identifier.fully_qualified_database_quoted
           view_exists = view_exists?(table_name)
           view_tblnm  = view_table_name(table_name) if view_exists
-          sql = %{
-            SELECT DISTINCT
-            #{lowercase_schema_reflection_sql('columns.TABLE_NAME')} AS table_name,
-            #{lowercase_schema_reflection_sql('columns.COLUMN_NAME')} AS name,
-            columns.DATA_TYPE AS type,
-            columns.COLUMN_DEFAULT AS default_value,
-            columns.NUMERIC_SCALE AS numeric_scale,
-            columns.NUMERIC_PRECISION AS numeric_precision,
-            columns.DATETIME_PRECISION AS datetime_precision,
-            columns.COLLATION_NAME AS [collation],
-            columns.ordinal_position,
-            CASE
-              WHEN columns.DATA_TYPE IN ('nchar','nvarchar','char','varchar') THEN columns.CHARACTER_MAXIMUM_LENGTH
-              ELSE COL_LENGTH('#{database}.'+columns.TABLE_SCHEMA+'.'+columns.TABLE_NAME, columns.COLUMN_NAME)
-            END AS [length],
-            CASE
-              WHEN columns.IS_NULLABLE = 'YES' THEN 1
-              ELSE NULL
-            END AS [is_nullable],
-            CASE
-              WHEN KCU.COLUMN_NAME IS NOT NULL AND TC.CONSTRAINT_TYPE = N'PRIMARY KEY' THEN 1
-              ELSE NULL
-            END AS [is_primary],
-            c.is_identity AS [is_identity]
-            FROM #{database}.INFORMATION_SCHEMA.COLUMNS columns
-            LEFT OUTER JOIN #{database}.INFORMATION_SCHEMA.TABLE_CONSTRAINTS AS TC
-              ON TC.TABLE_NAME = columns.TABLE_NAME
-              AND TC.TABLE_SCHEMA = columns.TABLE_SCHEMA
-              AND TC.CONSTRAINT_TYPE = N'PRIMARY KEY'
-            LEFT OUTER JOIN #{database}.INFORMATION_SCHEMA.KEY_COLUMN_USAGE AS KCU
-              ON KCU.COLUMN_NAME = columns.COLUMN_NAME
-              AND KCU.CONSTRAINT_NAME = TC.CONSTRAINT_NAME
-              AND KCU.CONSTRAINT_CATALOG = TC.CONSTRAINT_CATALOG
-              AND KCU.CONSTRAINT_SCHEMA = TC.CONSTRAINT_SCHEMA
-            INNER JOIN #{database}.sys.schemas AS s
-              ON s.name = columns.TABLE_SCHEMA
-              AND s.schema_id = s.schema_id
-            INNER JOIN #{database}.sys.objects AS o
-              ON s.schema_id = o.schema_id
-              AND o.is_ms_shipped = 0
-              AND o.type IN ('U', 'V')
-              AND o.name = columns.TABLE_NAME
-            INNER JOIN #{database}.sys.columns AS c
-              ON o.object_id = c.object_id
-              AND c.name = columns.COLUMN_NAME
-            WHERE columns.TABLE_NAME = #{prepared_statements ? '@0' : quote(identifier.object)}
-              AND columns.TABLE_SCHEMA = #{identifier.schema.blank? ? 'schema_name()' : (prepared_statements ? '@1' : quote(identifier.schema))}
-            ORDER BY columns.ordinal_position
-          }.gsub(/[ \t\r\n]+/, ' ').strip
+
+          sql = column_definitions_sql(database, identifier)
+
           binds = []
           nv128 = SQLServer::Type::UnicodeVarchar.new limit: 128
           binds << Relation::QueryAttribute.new('TABLE_NAME', identifier.object, nv128)
@@ -456,6 +410,73 @@ module ActiveRecord
             ci[:is_identity] = ci[:is_identity].to_i == 1 unless [TrueClass, FalseClass].include?(ci[:is_identity].class)
             ci
           end
+        end
+
+        def column_definitions_sql(database, identifier)
+          object_name = prepared_statements ? '@0' : quote(identifier.object)
+          schema_name = if identifier.schema.blank? 
+                          'schema_name()' 
+                        else
+                          prepared_statements ? '@1' : quote(identifier.schema)
+                        end
+
+          %{
+            SELECT
+              #{lowercase_schema_reflection_sql('o.name')} AS [table_name],
+              #{lowercase_schema_reflection_sql('c.name')} AS [name],
+              t.name AS [type],
+              d.definition AS [default_value],
+              CASE
+                WHEN t.name IN ('decimal', 'bigint', 'int', 'money', 'numeric', 'smallint', 'smallmoney', 'tinyint')
+                THEN c.scale
+              END AS [numeric_scale],
+              CASE
+                WHEN t.name IN ('decimal', 'bigint', 'int', 'money', 'numeric', 'smallint', 'smallmoney', 'tinyint', 'real', 'float')
+                THEN c.precision
+              END AS [numeric_precision],
+              CASE
+                WHEN t.name IN ('date', 'datetime', 'datetime2', 'datetimeoffset', 'smalldatetime', 'time')
+                THEN c.scale
+              END AS [datetime_precision],
+              c.collation_name  AS [collation],
+              ROW_NUMBER() OVER (ORDER BY c.column_id) AS [ordinal_position],
+              CASE
+                WHEN t.name IN ('nchar', 'nvarchar') AND c.max_length > 0
+                THEN c.max_length / 2
+                ELSE c.max_length
+              END AS [length],
+              CASE c.is_nullable
+                WHEN 1
+                THEN 1
+              END AS [is_nullable],
+              CASE
+                WHEN ic.object_id IS NOT NULL
+                THEN 1
+              END AS [is_primary],
+              c.is_identity AS [is_identity]
+            FROM #{database}.sys.columns c
+            INNER JOIN #{database}.sys.objects o
+              ON c.object_id = o.object_id
+            INNER JOIN #{database}.sys.schemas s
+              ON o.schema_id = s.schema_id
+            INNER JOIN #{database}.sys.types t
+              ON c.system_type_id = t.system_type_id
+              AND c.user_type_id = t.user_type_id
+            LEFT OUTER JOIN #{database}.sys.default_constraints d
+              ON c.object_id = d.parent_object_id
+              AND c.default_object_id = d.object_id
+            LEFT OUTER JOIN #{database}.sys.key_constraints k
+              ON c.object_id = k.parent_object_id
+            LEFT OUTER JOIN #{database}.sys.index_columns ic
+              ON k.parent_object_id = ic.object_id
+              AND k.unique_index_id = ic.index_id
+              AND c.column_id = ic.column_id
+            WHERE
+              o.name = #{object_name}
+              AND s.name = #{schema_name}
+            ORDER BY
+              c.column_id
+          }.gsub(/[ \t\r\n]+/, ' ').strip
         end
 
         def remove_check_constraints(table_name, column_name)
