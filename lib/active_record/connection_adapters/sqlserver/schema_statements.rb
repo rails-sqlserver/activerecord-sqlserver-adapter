@@ -66,14 +66,13 @@ module ActiveRecord
         def columns(table_name)
           return [] if table_name.blank?
           column_definitions(table_name).map do |ci|
-            sqlserver_options = ci.slice :ordinal_position, :is_primary, :is_identity
+            sqlserver_options = ci.slice :ordinal_position, :is_primary, :is_identity, :table_name
             sql_type_metadata = fetch_type_metadata ci[:type], sqlserver_options
             new_column(
               ci[:name],
               ci[:default_value],
               sql_type_metadata,
               ci[:null],
-              ci[:table_name],
               ci[:default_function],
               ci[:collation],
               nil,
@@ -82,16 +81,16 @@ module ActiveRecord
           end
         end
 
-        def new_column(name, default, sql_type_metadata, null, table_name, default_function = nil, collation = nil, comment = nil, sqlserver_options = {})
+        def new_column(name, default, sql_type_metadata, null, default_function = nil, collation = nil, comment = nil, sqlserver_options = {})
           SQLServerColumn.new(
             name,
             default,
             sql_type_metadata,
-            null, table_name,
+            null,
             default_function,
-            collation,
-            comment,
-            sqlserver_options
+            collation: collation,
+            comment: comment,
+            **sqlserver_options
           )
         end
 
