@@ -295,7 +295,7 @@ end
 
 module ActiveRecord
   class Migration
-    class ColumnsTest
+    class ColumnsTest < ActiveRecord::TestCase
       # Our defaults are real 70000 integers vs '70000' strings.
       coerce_tests! :test_rename_column_preserves_default_value_not_null
       def test_rename_column_preserves_default_value_not_null_coerced
@@ -525,9 +525,8 @@ class FinderTest < ActiveRecord::TestCase
       end
     end
   end
+
 end
-
-
 
 
 module ActiveRecord
@@ -778,6 +777,7 @@ class RelationTest < ActiveRecord::TestCase
     topics = Topic.order(Arel.sql("LEN(title)") => :asc).reverse_order
     assert_equal topics(:second).title, topics.first.title
   end
+
 end
 
 class ActiveRecord::RelationTest < ActiveRecord::TestCase
