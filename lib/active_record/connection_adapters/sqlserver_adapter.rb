@@ -144,6 +144,10 @@ module ActiveRecord
         true
       end
 
+      def supports_lazy_transactions?
+        true
+      end
+
       def supports_in_memory_oltp?
         @version_year >= 2014
       end
