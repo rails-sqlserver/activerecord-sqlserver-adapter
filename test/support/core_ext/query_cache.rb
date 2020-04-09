@@ -5,6 +5,7 @@ module SqlIgnoredCache
 
   IGNORED_SQL = [
     /INFORMATION_SCHEMA\.(TABLES|VIEWS|COLUMNS|KEY_COLUMN_USAGE)/im,
+    /sys.columns/i,
     /SELECT @@version/,
     /SELECT @@TRANCOUNT/,
     /(BEGIN|COMMIT|ROLLBACK|SAVE) TRANSACTION/,

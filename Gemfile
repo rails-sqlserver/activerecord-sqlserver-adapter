@@ -56,7 +56,7 @@ group :tinytds do
 end
 
 group :development do
-  gem 'byebug'
+  gem 'byebug', platform: [:mri, :mingw, :x64_mingw]
   gem 'mocha'
   gem 'minitest-spec-rails'
 end
