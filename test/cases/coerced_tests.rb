@@ -345,7 +345,7 @@ end
 
 module ActiveRecord
   class Migration
-    class ColumnsTest
+    class ColumnsTest < ActiveRecord::TestCase
       # Our defaults are real 70000 integers vs '70000' strings.
       coerce_tests! :test_rename_column_preserves_default_value_not_null
       def test_rename_column_preserves_default_value_not_null_coerced
