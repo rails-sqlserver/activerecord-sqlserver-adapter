@@ -756,6 +756,33 @@ class QueryCacheTest < ActiveRecord::TestCase
       assert_kind_of Numeric, Task.connection.select_value("SELECT count(*) AS count_all FROM tasks")
     end
   end
+
+
+  # Same as original test except that we expect one query to be performed to retrieve the table's primary key.
+  # When we generate the SQL for the `find` it includes ordering on the primary key. If we reset the column
+  # information then the primary key needs to be retrieved from the database again to generate the SQL causing the
+  # original test's `assert_no_queries` assertion to fail. Assert that the query was to get the primary key.
+  coerce_tests! :test_query_cached_even_when_types_are_reset
+  def test_query_cached_even_when_types_are_reset_coerced
+    Task.cache do
+      # Warm the cache
+      Task.find(1)
+
+      # Preload the type cache again (so we don't have those queries issued during our assertions)
+      Task.connection.send(:reload_type_map)
+
+      # Clear places where type information is cached
+      Task.reset_column_information
+      Task.initialize_find_by_cache
+      Task.define_attribute_methods
+
+      assert_queries(1, ignore_none: true) do
+        Task.find(1)
+      end
+
+      assert_includes ActiveRecord::SQLCounter.log_all.first , "TC.CONSTRAINT_TYPE = N''PRIMARY KEY''"
+    end
+  end
 end
 
 
