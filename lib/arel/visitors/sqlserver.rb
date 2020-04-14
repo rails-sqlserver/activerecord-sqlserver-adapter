@@ -153,7 +153,6 @@ module Arel
       def visit_Orders_And_Let_Fetch_Happen o, collector
         make_Fetch_Possible_And_Deterministic o
         unless o.orders.empty?
-          collector << " "
           collector << " ORDER BY "
           len = o.orders.length - 1
           o.orders.each_with_index { |x, i|
