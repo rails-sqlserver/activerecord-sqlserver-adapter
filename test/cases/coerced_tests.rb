@@ -672,17 +672,35 @@ end
 
 
 
-
+require 'models/topic'
 class PersistenceTest < ActiveRecord::TestCase
-  # We can not UPDATE identity columns.
+  # Rails test required updating a identity column.
   coerce_tests! :test_update_columns_changing_id
+
+  # Rails test required updating a identity column.
+  coerce_tests! :test_update
+  def test_update_coerced
+    topic = Topic.find(1)
+    assert_not_predicate topic, :approved?
+    assert_equal "The First Topic", topic.title
+
+    topic.update("approved" => true, "title" => "The First Topic Updated")
+    topic.reload
+    assert_predicate topic, :approved?
+    assert_equal "The First Topic Updated", topic.title
+
+    topic.update(approved: false, title: "The First Topic")
+    topic.reload
+    assert_not_predicate topic, :approved?
+    assert_equal "The First Topic", topic.title
+  end
 end
 
 
 
 require 'models/author'
 class UpdateAllTest < ActiveRecord::TestCase
-  # Previous test required updating a identity column.
+  # Rails test required updating a identity column.
   coerce_tests! :test_update_all_doesnt_ignore_order
   def test_update_all_doesnt_ignore_order_coerced
     david, mary = authors(:david), authors(:mary)
