@@ -422,6 +422,9 @@ class MigrationTest < ActiveRecord::TestCase
   # For some reason our tests set Rails.@_env which breaks test env switching.
   coerce_tests! :test_internal_metadata_stores_environment_when_other_data_exists
   coerce_tests! :test_internal_metadata_stores_environment
+
+  # SQL Server does not support 'CREATE TABLE IF NOT EXISTS [table_name]'.
+  coerce_tests! :test_create_table_with_if_not_exists_true
 end
 
 
