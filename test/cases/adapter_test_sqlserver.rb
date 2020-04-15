@@ -13,7 +13,7 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
   let(:basic_update_sql) { "UPDATE [customers] SET [address_street] = NULL WHERE [id] = 2" }
   let(:basic_select_sql) { "SELECT * FROM [customers] WHERE ([customers].[id] = 1)" }
 
-  it 'has basic and non-senstive information in the adpaters inspect method' do
+  it 'has basic and non-sensitive information in the adapters inspect method' do
     string = connection.inspect
     _(string).must_match %r{ActiveRecord::ConnectionAdapters::SQLServerAdapter}
     _(string).must_match %r{version\: \d.\d}
@@ -426,6 +426,49 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
       _(SSTMemory.columns_hash['id']).must_be :is_identity?
     else
       skip 'supports_in_memory_oltp? => false'
+    end
+  end
+
+  describe 'block writes to a database' do
+    def setup
+      @conn = ActiveRecord::Base.connection
+      @connection_handler = ActiveRecord::Base.connection_handler
+    end
+
+    def test_errors_when_an_insert_query_is_called_while_preventing_writes
+      assert_raises(ActiveRecord::ReadOnlyError) do
+        @connection_handler.while_preventing_writes do
+          @conn.insert("INSERT INTO [subscribers] ([nick]) VALUES ('aido')")
+        end
+      end
+    end
+
+    def test_errors_when_an_update_query_is_called_while_preventing_writes
+      @conn.insert("INSERT INTO [subscribers] ([nick]) VALUES ('aido')")
+
+      assert_raises(ActiveRecord::ReadOnlyError) do
+        @connection_handler.while_preventing_writes do
+          @conn.update("UPDATE [subscribers] SET [subscribers].[name] = 'Aidan' WHERE [subscribers].[nick] = 'aido'")
+        end
+      end
+    end
+
+    def test_errors_when_a_delete_query_is_called_while_preventing_writes
+      @conn.execute("INSERT INTO [subscribers] ([nick]) VALUES ('aido')")
+
+      assert_raises(ActiveRecord::ReadOnlyError) do
+        @connection_handler.while_preventing_writes do
+          @conn.execute("DELETE FROM [subscribers] WHERE [subscribers].[nick] = 'aido'")
+        end
+      end
+    end
+
+    def test_doesnt_error_when_a_select_query_is_called_while_preventing_writes
+      @conn.execute("INSERT INTO [subscribers] ([nick]) VALUES ('aido')")
+
+      @connection_handler.while_preventing_writes do
+        assert_equal 1, @conn.execute("SELECT * FROM [subscribers] WHERE [subscribers].[nick] = 'aido'")
+      end
     end
   end
 
