@@ -21,14 +21,14 @@ class ShowplanTestSQLServer < ActiveRecord::TestCase
 
     it 'from prepared statement' do
       plan = Car.where(name: ',').limit(1).explain
-      _(plan).must_include " SELECT  [cars].* FROM [cars] WHERE [cars].[name]"
+      _(plan).must_include "SELECT [cars].* FROM [cars] WHERE [cars].[name]"
       _(plan).must_include "TOP EXPRESSION", 'make sure we do not showplan the sp_executesql'
       _(plan).must_include "Clustered Index Scan", 'make sure we do not showplan the sp_executesql'
     end
 
     it 'from array condition using index' do
       plan = Car.where(id: [1, 2]).explain
-      _(plan).must_include " SELECT [cars].* FROM [cars] WHERE [cars].[id] IN (1, 2)"
+      _(plan).must_include "SELECT [cars].* FROM [cars] WHERE [cars].[id] IN (1, 2)"
       _(plan).must_include "Clustered Index Seek", 'make sure we do not showplan the sp_executesql'
     end
 
