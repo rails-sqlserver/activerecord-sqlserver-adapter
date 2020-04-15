@@ -673,12 +673,15 @@ end
 
 
 
-require 'models/parrot'
-require 'models/topic'
 class PersistenceTest < ActiveRecord::TestCase
   # We can not UPDATE identity columns.
   coerce_tests! :test_update_columns_changing_id
+end
 
+
+
+require 'models/author'
+class UpdateAllTest < ActiveRecord::TestCase
   # Previous test required updating a identity column.
   coerce_tests! :test_update_all_doesnt_ignore_order
   def test_update_all_doesnt_ignore_order_coerced
@@ -691,30 +694,6 @@ class PersistenceTest < ActiveRecord::TestCase
     end
     _(david.reload.name).must_equal 'David'
     _(mary.reload.name).must_equal 'Test'
-  end
-
-  # We can not UPDATE identity columns.
-  coerce_tests! :test_update_attributes
-  def test_update_attributes_coerced
-    topic = Topic.find(1)
-    assert !topic.approved?
-    assert_equal "The First Topic", topic.title
-    topic.update_attributes("approved" => true, "title" => "The First Topic Updated")
-    topic.reload
-    assert topic.approved?
-    assert_equal "The First Topic Updated", topic.title
-    topic.update_attributes(approved: false, title: "The First Topic")
-    topic.reload
-    assert !topic.approved?
-    assert_equal "The First Topic", topic.title
-    # SQLServer: Here is where it breaks down. No exceptions.
-    # assert_raise(ActiveRecord::RecordNotUnique, ActiveRecord::StatementInvalid) do
-    #   topic.update_attributes(id: 3, title: "Hm is it possible?")
-    # end
-    # assert_not_equal "Hm is it possible?", Topic.find(3).title
-    # topic.update_attributes(id: 1234)
-    # assert_nothing_raised { topic.reload }
-    # assert_equal topic.title, Topic.find(1234).title
   end
 end
 
