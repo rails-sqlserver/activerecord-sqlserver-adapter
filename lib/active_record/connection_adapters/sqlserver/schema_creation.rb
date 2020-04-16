@@ -10,8 +10,10 @@ module ActiveRecord
             table_name = quote_table_name(o.temporary ? "##{o.name}" : o.name)
             query = o.as.respond_to?(:to_sql) ? o.as.to_sql : o.as
             projections, source = query.match(%r{SELECT\s+(.*)?\s+FROM\s+(.*)?}).captures
-            select_into = "SELECT #{projections} INTO #{table_name} FROM #{source}"
+            "SELECT #{projections} INTO #{table_name} FROM #{source}"
           else
+            raise NotImplementedError.new("SQL Server does not support 'CREATE TABLE IF NOT EXISTS [table_name]'") if o.if_not_exists
+
             o.instance_variable_set :@as, nil
             super
           end

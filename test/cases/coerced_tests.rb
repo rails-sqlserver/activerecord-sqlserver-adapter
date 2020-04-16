@@ -425,6 +425,17 @@ class MigrationTest < ActiveRecord::TestCase
 
   # SQL Server does not support 'CREATE TABLE IF NOT EXISTS [table_name]'.
   coerce_tests! :test_create_table_with_if_not_exists_true
+  def test_create_table_with_if_not_exists_true_coerced
+    connection = Person.connection
+
+    assert_raise(NotImplementedError, "SQL Server does not support 'CREATE TABLE IF NOT EXISTS [table_name]'") do
+      connection.create_table :testings, if_not_exists: true do |t|
+        t.string :foo
+      end
+    end
+  ensure
+    connection.drop_table :testings, if_exists: true
+  end
 end
 
 
