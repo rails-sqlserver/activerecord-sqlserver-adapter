@@ -879,7 +879,7 @@ class RelationTest < ActiveRecord::TestCase
   # so we are skipping all together.
   coerce_tests! :test_empty_complex_chained_relations
 
-  # Can't apply offset withour ORDER
+  # Can't apply offset without ORDER
   coerce_tests! %r{using a custom table affects the wheres}
   test 'using a custom table affects the wheres coerced' do
     post = posts(:welcome)
@@ -887,7 +887,7 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal post, custom_post_relation.where!(title: post.title).order(:id).take
   end
 
-  # Can't apply offset withour ORDER
+  # Can't apply offset without ORDER
   coerce_tests! %r{using a custom table with joins affects the joins}
   test 'using a custom table with joins affects the joins coerced' do
     post = posts(:welcome)
@@ -1151,10 +1151,21 @@ end
 
 
 
+require "models/book"
 module ActiveRecord
   class StatementCacheTest < ActiveRecord::TestCase
     # Getting random failures.
     coerce_tests! :test_find_does_not_use_statement_cache_if_table_name_is_changed
+
+    # Need to remove index as SQL Server considers NULLs on a unique-index to be equal unlike PostgreSQL/MySQL/SQLite.
+    coerce_tests! :test_statement_cache_values_differ
+    def test_statement_cache_values_differ_coerced
+      Book.connection.remove_index(:books, column: [:author_id, :name])
+
+      original_test_statement_cache_values_differ
+    ensure
+      Book.connection.add_index(:books, [:author_id, :name], unique: true)
+    end
   end
 end
 
@@ -1262,5 +1273,49 @@ module ActiveRecord
     # constraints. As this test truncates all tables we would need to remove all foreign
     # key constraints and then restore them afterwards to get this test to pass.
     coerce_tests! :test_truncate_tables
+  end
+end
+
+
+require "models/book"
+class EnumTest < ActiveRecord::TestCase
+  # Need to remove index as SQL Server considers NULLs on a unique-index to be equal unlike PostgreSQL/MySQL/SQLite.
+  coerce_tests! %r{enums are distinct per class}
+  test "enums are distinct per class coerced" do
+    Book.connection.remove_index(:books, column: [:author_id, :name])
+
+    send(:'original_enums are distinct per class')
+  ensure
+    Book.connection.add_index(:books, [:author_id, :name], unique: true)
+  end
+
+  # Need to remove index as SQL Server considers NULLs on a unique-index to be equal unlike PostgreSQL/MySQL/SQLite.
+  coerce_tests! %r{creating new objects with enum scopes}
+  test "creating new objects with enum scopes coerced" do
+    Book.connection.remove_index(:books, column: [:author_id, :name])
+
+    send(:'original_creating new objects with enum scopes')
+  ensure
+    Book.connection.add_index(:books, [:author_id, :name], unique: true)
+  end
+
+  # Need to remove index as SQL Server considers NULLs on a unique-index to be equal unlike PostgreSQL/MySQL/SQLite.
+  coerce_tests! %r{enums are inheritable}
+  test "enums are inheritable coerced" do
+    Book.connection.remove_index(:books, column: [:author_id, :name])
+
+    send(:'original_enums are inheritable')
+  ensure
+    Book.connection.add_index(:books, [:author_id, :name], unique: true)
+  end
+
+  # Need to remove index as SQL Server considers NULLs on a unique-index to be equal unlike PostgreSQL/MySQL/SQLite.
+  coerce_tests! %r{declare multiple enums at a time}
+  test "declare multiple enums at a time coerced" do
+    Book.connection.remove_index(:books, column: [:author_id, :name])
+
+    send(:'original_declare multiple enums at a time')
+  ensure
+    Book.connection.add_index(:books, [:author_id, :name], unique: true)
   end
 end
