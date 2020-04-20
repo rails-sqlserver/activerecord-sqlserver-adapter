@@ -611,6 +611,47 @@ end
 class HasOneAssociationsTest < ActiveRecord::TestCase
   # We use OFFSET/FETCH vs TOP. So we always have an order.
   coerce_tests! :test_has_one_does_not_use_order_by
+
+  # Asserted SQL to get one row different from original test.
+  coerce_tests! :test_has_one
+  def test_has_one_coerced
+    firm = companies(:first_firm)
+    first_account = Account.find(1)
+    assert_sql(/FETCH NEXT @1 ROWS ONLY(.)*@1 = 1/) do
+      assert_equal first_account, firm.account
+      assert_equal first_account.credit_limit, firm.account.credit_limit
+    end
+  end
+end
+
+
+
+
+class HasOneThroughAssociationsTest < ActiveRecord::TestCase
+  # Asserted SQL to get one row different from original test.
+  coerce_tests! :test_has_one_through_executes_limited_query
+  def test_has_one_through_executes_limited_query_coerced
+    boring_club = clubs(:boring_club)
+    assert_sql(/FETCH NEXT @3 ROWS ONLY(.)*@3 = 1/) do
+      assert_equal boring_club, @member.general_club
+    end
+  end
+end
+
+
+
+
+class BelongsToAssociationsTest < ActiveRecord::TestCase
+  # Asserted SQL to get one row different from original test.
+  coerce_tests! :test_belongs_to
+  def test_belongs_to_coerced
+    client = Client.find(3)
+    first_firm = companies(:first_firm)
+    assert_sql(/FETCH NEXT @3 ROWS ONLY(.)*@3 = 1/) do
+      assert_equal first_firm, client.firm
+      assert_equal first_firm.name, client.firm.name
+    end
+  end
 end
 
 
