@@ -4,7 +4,7 @@ require 'cases/helper_sqlserver'
 
 require 'models/event'
 class UniquenessValidationTest < ActiveRecord::TestCase
-  # So sp_executesql swallows this exception. Run without prpared to see it.
+  # So sp_executesql swallows this exception. Run without prepared to see it.
   coerce_tests! :test_validate_uniqueness_with_limit
   def test_validate_uniqueness_with_limit_coerced
     connection.unprepared_statement do
@@ -14,7 +14,7 @@ class UniquenessValidationTest < ActiveRecord::TestCase
     end
   end
 
-  # So sp_executesql swallows this exception. Run without prpared to see it.
+  # So sp_executesql swallows this exception. Run without prepared to see it.
   coerce_tests! :test_validate_uniqueness_with_limit_and_utf8
   def test_validate_uniqueness_with_limit_and_utf8_coerced
     connection.unprepared_statement do
@@ -22,6 +22,15 @@ class UniquenessValidationTest < ActiveRecord::TestCase
         Event.create(title: "一二三四五六七八")
       end
     end
+  end
+
+  # Skip the test if database is case-insensitive.
+  coerce_tests! :test_validate_case_sensitive_uniqueness_by_default
+  def test_validate_case_sensitive_uniqueness_by_default_coerced
+    database_collation = connection.select_one("SELECT collation_name FROM sys.databases WHERE name = 'activerecord_unittest'").values.first
+    skip if database_collation.include?('_CI_')
+
+    original_test_validate_case_sensitive_uniqueness_by_default_coerced
   end
 end
 
