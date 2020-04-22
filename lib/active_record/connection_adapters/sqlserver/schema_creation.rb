@@ -6,15 +6,26 @@ module ActiveRecord
         private
 
         def visit_TableDefinition(o)
+          if_not_exists = o.if_not_exists
+
           if o.as
             table_name = quote_table_name(o.temporary ? "##{o.name}" : o.name)
             query = o.as.respond_to?(:to_sql) ? o.as.to_sql : o.as
             projections, source = query.match(%r{SELECT\s+(.*)?\s+FROM\s+(.*)?}).captures
-            select_into = "SELECT #{projections} INTO #{table_name} FROM #{source}"
+            sql = "SELECT #{projections} INTO #{table_name} FROM #{source}"
           else
             o.instance_variable_set :@as, nil
-            super
+            o.instance_variable_set :@if_not_exists, false
+            sql = super
           end
+
+          if if_not_exists
+            o.instance_variable_set :@if_not_exists, true
+            table_name = o.temporary ? "##{o.name}" : o.name
+            sql = "IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='#{table_name}' and xtype='U') #{sql}"
+          end
+
+          sql
         end
 
         def add_column_options!(sql, options)
