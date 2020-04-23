@@ -797,10 +797,11 @@ end
 
 require 'models/task'
 class QueryCacheTest < ActiveRecord::TestCase
+  # SQL Server adapter not in list of supported adapters in original test.
   coerce_tests! :test_cache_does_not_wrap_results_in_arrays
   def test_cache_does_not_wrap_results_in_arrays_coerced
     Task.cache do
-      assert_kind_of Numeric, Task.connection.select_value("SELECT count(*) AS count_all FROM tasks")
+      assert_equal 2, Task.connection.select_value("SELECT count(*) AS count_all FROM tasks")
     end
   end
 
