@@ -222,6 +222,7 @@ module ActiveRecord
     # SQL Server adapter does not use a statement cache as query plans are already reused using `EXEC sp_executesql`.
     coerce_tests! :test_statement_cache
     coerce_tests! :test_statement_cache_with_query_cache
+    coerce_tests! :test_statement_cache_with_find
     coerce_tests! :test_statement_cache_with_find_by
     coerce_tests! :test_statement_cache_with_in_clause
     coerce_tests! :test_statement_cache_with_sql_string_literal
