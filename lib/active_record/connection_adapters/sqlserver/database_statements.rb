@@ -136,6 +136,8 @@ module ActiveRecord
         # === SQLServer Specific ======================================== #
 
         def execute_procedure(proc_name, *variables)
+          materialize_transactions
+
           vars = if variables.any? && variables.first.is_a?(Hash)
                    variables.first.map { |k, v| "@#{k} = #{quote(v)}" }
                  else
@@ -268,6 +270,8 @@ module ActiveRecord
         # === SQLServer Specific (Executing) ============================ #
 
         def do_execute(sql, name = 'SQL')
+          materialize_transactions
+
           log(sql, name) { raw_connection_do(sql) }
         end
 
@@ -378,6 +382,8 @@ module ActiveRecord
         # === SQLServer Specific (Selecting) ============================ #
 
         def raw_select(sql, name = 'SQL', binds = [], options = {})
+          materialize_transactions
+
           log(sql, name, binds) { _raw_select(sql, options) }
         end
 
