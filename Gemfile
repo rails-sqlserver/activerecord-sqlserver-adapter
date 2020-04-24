@@ -8,6 +8,7 @@ git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 gemspec
 
 gem 'sqlite3'
+gem 'pg'
 gem 'bcrypt'
 gem 'tzinfo-data', platforms: [:mingw, :mswin, :x64_mingw, :jruby]
 
@@ -18,7 +19,7 @@ end
 if ENV['RAILS_SOURCE']
   gemspec path: ENV['RAILS_SOURCE']
 else
-  # Need to get rails source beacause the gem doesn't include tests
+  # Need to get rails source because the gem doesn't include tests
   version = ENV['RAILS_VERSION'] || begin
     require 'net/http'
     require 'yaml'
