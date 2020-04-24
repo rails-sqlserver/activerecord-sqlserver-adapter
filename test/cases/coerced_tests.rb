@@ -155,7 +155,7 @@ class BasicsTest < ActiveRecord::TestCase
     Time.use_zone("Eastern Time (US & Canada)") do
       topic = Topic.find(1)
       time = Time.zone.parse("2017-07-17 10:56")
-      topic.update_attributes!(written_on: time)
+      topic.update!(written_on: time)
       assert_equal(time, topic.written_on)
     end
   end
@@ -166,7 +166,7 @@ class BasicsTest < ActiveRecord::TestCase
         Time.use_zone("Eastern Time (US & Canada)") do
           topic = Topic.find(1)
           time = Time.zone.parse("2017-07-17 10:56")
-          topic.update_attributes!(written_on: time)
+          topic.update!(written_on: time)
           assert_equal(time, topic.written_on)
         end
       end
