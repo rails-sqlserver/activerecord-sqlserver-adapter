@@ -274,6 +274,8 @@ module ActiveRecord
         # === SQLServer Specific (Executing) ============================ #
 
         def do_execute(sql, name = 'SQL')
+          materialize_transactions
+
           log(sql, name) { raw_connection_do(sql) }
         end
 
