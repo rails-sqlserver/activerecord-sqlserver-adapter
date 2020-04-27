@@ -9,6 +9,7 @@ require 'active_record/connection_adapters/sqlserver/core_ext/explain_subscriber
 require 'active_record/connection_adapters/sqlserver/core_ext/attribute_methods'
 require 'active_record/connection_adapters/sqlserver/core_ext/finder_methods'
 require 'active_record/connection_adapters/sqlserver/core_ext/query_methods'
+require 'active_record/connection_adapters/sqlserver/core_ext/preloader'
 require 'active_record/connection_adapters/sqlserver/version'
 require 'active_record/connection_adapters/sqlserver/type'
 require 'active_record/connection_adapters/sqlserver/database_limits'
