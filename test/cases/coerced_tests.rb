@@ -64,7 +64,7 @@ module ActiveRecord
   class AdapterTestWithoutTransaction < ActiveRecord::TestCase
     # SQL Server does not allow truncation of tables that are referenced by foreign key
     # constraints. So manually remove/add foreign keys in test.
-    coerce_tests! :test_truncate_tables, :test_truncate_tables_with_query_cache
+    coerce_tests! :test_truncate_tables
     def test_truncate_tables_coerced
       # Remove foreign key constraint to allow truncation.
       @connection.remove_foreign_key :authors, :author_addresses
@@ -85,6 +85,9 @@ module ActiveRecord
       @connection.add_foreign_key :authors, :author_addresses
     end
 
+    # SQL Server does not allow truncation of tables that are referenced by foreign key
+    # constraints. So manually remove/add foreign keys in test.
+    coerce_tests! :test_truncate_tables_with_query_cache
     def test_truncate_tables_with_query_cache
       # Remove foreign key constraint to allow truncation.
       @connection.remove_foreign_key :authors, :author_addresses
