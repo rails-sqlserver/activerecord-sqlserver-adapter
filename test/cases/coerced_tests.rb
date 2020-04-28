@@ -919,24 +919,6 @@ class RelationTest < ActiveRecord::TestCase
 
 end
 
-class ActiveRecord::RelationTest < ActiveRecord::TestCase
-  coerce_tests! :test_relation_merging_with_merged_symbol_joins_is_aliased
-  def test_relation_merging_with_merged_symbol_joins_is_aliased__coerced
-    categorizations_with_authors = Categorization.joins(:author)
-    queries = capture_sql { Post.joins(:author, :categorizations).merge(Author.select(:id)).merge(categorizations_with_authors).to_a }
-
-    nb_inner_join = queries.sum { |sql| sql.scan(/INNER\s+JOIN/i).size }
-    assert_equal 3, nb_inner_join, "Wrong amount of INNER JOIN in query"
-
-    # using `\W` as the column separator
-    query_matches = queries.any? do |sql|
-      %r[INNER\s+JOIN\s+#{Regexp.escape(Author.quoted_table_name)}\s+\Wauthors_categorizations\W]i.match?(sql)
-    end
-
-    assert query_matches, "Should be aliasing the child INNER JOINs in query"
-  end
-end
-
 
 
 
