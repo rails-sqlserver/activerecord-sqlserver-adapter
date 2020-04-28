@@ -136,11 +136,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
 end
 
 
-class NumericDataTest < ActiveRecord::TestCase
-  # We do not have do the DecimalWithoutScale type.
-  coerce_tests! :test_numeric_fields
-  coerce_tests! :test_numeric_fields_with_scale
-end
+
 
 class BasicsTest < ActiveRecord::TestCase
   coerce_tests! :test_column_names_are_escaped
