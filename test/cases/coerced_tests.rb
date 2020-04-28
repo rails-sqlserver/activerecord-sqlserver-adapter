@@ -924,15 +924,25 @@ end
 
 require 'models/post'
 class SanitizeTest < ActiveRecord::TestCase
+  # Use nvarchar string (N'') in assert
   coerce_tests! :test_sanitize_sql_like_example_use_case
   def test_sanitize_sql_like_example_use_case_coerced
     searchable_post = Class.new(Post) do
-      def self.search(term)
-        where("title LIKE ?", sanitize_sql_like(term, '!'))
+      def self.search_as_method(term)
+        where("title LIKE ?", sanitize_sql_like(term, "!"))
       end
+
+      scope :search_as_scope, -> (term) {
+        where("title LIKE ?", sanitize_sql_like(term, "!"))
+      }
     end
-    assert_sql(/\(title LIKE N'20!% !_reduction!_!!'\)/) do
-      searchable_post.search("20% _reduction_!").to_a
+
+    assert_sql(/LIKE N'20!% !_reduction!_!!'/) do
+      searchable_post.search_as_method("20% _reduction_!").to_a
+    end
+
+    assert_sql(/LIKE N'20!% !_reduction!_!!'/) do
+      searchable_post.search_as_scope("20% _reduction_!").to_a
     end
   end
 end
