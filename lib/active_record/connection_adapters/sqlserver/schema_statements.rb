@@ -236,7 +236,7 @@ module ActiveRecord
               if (0..7) === precision
                 column_type_sql << "(#{precision})"
               else
-                raise(ActiveRecordError, "The dattime2 type has precision of #{precision}. The allowed range of precision is from 0 to 7")
+                raise(ActiveRecordError, "The datetime2 type has precision of #{precision}. The allowed range of precision is from 0 to 7")
               end
             end
             column_type_sql
