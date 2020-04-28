@@ -291,14 +291,30 @@ end
 module ActiveRecord
   class Migration
     class ChangeSchemaTest < ActiveRecord::TestCase
-       # We test these.
-      coerce_tests! :test_create_table_with_bigint,
-                    :test_create_table_with_defaults
-    end
+      # Integer.default is a number and not a string
+      coerce_tests! :test_create_table_with_defaults
+      def test_create_table_with_defaults_coerce
+        connection.create_table :testings do |t|
+          t.column :one, :string, default: "hello"
+          t.column :two, :boolean, default: true
+          t.column :three, :boolean, default: false
+          t.column :four, :integer, default: 1
+          t.column :five, :text, default: "hello"
+        end
 
-    class ChangeSchemaWithDependentObjectsTest < ActiveRecord::TestCase
-      # In SQL Server you have to delete the tables yourself in the right order.
-      coerce_tests! :test_create_table_with_force_cascade_drops_dependent_objects
+        columns = connection.columns(:testings)
+        one = columns.detect { |c| c.name == "one" }
+        two = columns.detect { |c| c.name == "two" }
+        three = columns.detect { |c| c.name == "three" }
+        four = columns.detect { |c| c.name == "four" }
+        five = columns.detect { |c| c.name == "five" }
+
+        assert_equal "hello", one.default
+        assert_equal true, connection.lookup_cast_type_from_column(two).deserialize(two.default)
+        assert_equal false, connection.lookup_cast_type_from_column(three).deserialize(three.default)
+        assert_equal 1, four.default
+        assert_equal "hello", five.default
+      end
     end
   end
 end
