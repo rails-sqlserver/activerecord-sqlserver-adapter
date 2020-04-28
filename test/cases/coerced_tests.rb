@@ -272,18 +272,20 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal BigDecimal('3.0').to_s, BigDecimal(value).to_s
   end
 
+  # Match SQL Server limit implementation
   coerce_tests! :test_limit_is_kept
   def test_limit_is_kept_coerced
     queries = capture_sql_ss { Account.limit(1).count }
     assert_equal 1, queries.length
-    _(queries.first).must_match %r{ORDER BY \[accounts\]\.\[id\] ASC OFFSET 0 ROWS FETCH NEXT @0 ROWS ONLY.*@0 = 1}
+    assert_match(/ORDER BY \[accounts\]\.\[id\] ASC OFFSET 0 ROWS FETCH NEXT @0 ROWS ONLY.*@0 = 1/, queries.first)
   end
 
+  # Match SQL Server limit implementation
   coerce_tests! :test_limit_with_offset_is_kept
   def test_limit_with_offset_is_kept_coerced
     queries = capture_sql_ss { Account.limit(1).offset(1).count }
     assert_equal 1, queries.length
-    _(queries.first).must_match %r{ORDER BY \[accounts\]\.\[id\] ASC OFFSET @0 ROWS FETCH NEXT @1 ROWS ONLY.*@0 = 1, @1 = 1}
+    assert_match(/ORDER BY \[accounts\]\.\[id\] ASC OFFSET @0 ROWS FETCH NEXT @1 ROWS ONLY.*@0 = 1, @1 = 1/, queries.first)
   end
 
   # SQL Server needs an alias for the calculated column
