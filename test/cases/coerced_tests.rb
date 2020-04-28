@@ -115,18 +115,20 @@ end
 
 require 'models/topic'
 class AttributeMethodsTest < ActiveRecord::TestCase
+  # Use IFF for boolean statement in SELECT
   coerce_tests! %r{typecast attribute from select to false}
   def test_typecast_attribute_from_select_to_false_coerced
     Topic.create(:title => 'Budget')
     topic = Topic.all.merge!(:select => "topics.*, IIF (1 = 2, 1, 0) as is_test").first
-    assert !topic.is_test?
+    assert_not_predicate topic, :is_test?
   end
 
+  # Use IFF for boolean statement in SELECT
   coerce_tests! %r{typecast attribute from select to true}
   def test_typecast_attribute_from_select_to_true_coerced
     Topic.create(:title => 'Budget')
     topic = Topic.all.merge!(:select => "topics.*, IIF (1 = 1, 1, 0) as is_test").first
-    assert topic.is_test?
+    assert_not_predicate topic, :is_test?
   end
 end
 
