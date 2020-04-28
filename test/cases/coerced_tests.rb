@@ -1163,6 +1163,19 @@ end
 
 
 
+module ActiveRecord
+  class CacheKeyTest < ActiveRecord::TestCase
+    # Like Mysql2 and PostgreSQL, SQL Server doesn't return a string value for updated_at. In the Rails tests
+    # the tests are skipped if adapter is Mysql2 or PostgreSQL.
+    coerce_tests! %r{cache_version is the same when it comes from the DB or from the user}
+    coerce_tests! %r{cache_version does NOT call updated_at when value is from the database}
+    coerce_tests! %r{cache_version does not truncate zeros when timestamp ends in zeros}
+  end
+end
+
+
+
+
 require "models/book"
 module ActiveRecord
   class StatementCacheTest < ActiveRecord::TestCase
