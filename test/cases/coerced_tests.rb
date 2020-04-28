@@ -134,7 +134,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   def test_typecast_attribute_from_select_to_true_coerced
     Topic.create(:title => 'Budget')
     topic = Topic.all.merge!(:select => "topics.*, IIF (1 = 1, 1, 0) as is_test").first
-    assert_not_predicate topic, :is_test?
+    assert_predicate topic, :is_test?
   end
 end
 
