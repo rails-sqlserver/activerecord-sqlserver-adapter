@@ -795,9 +795,15 @@ end
 
 
 class PrimaryKeysTest < ActiveRecord::TestCase
-  # Gonna trust Rails core for this. We end up with 2 querys vs 3 asserted
-  # but as far as I can tell, this is only one for us anyway.
+  # SQL Server does not have query for release_savepoint
   coerce_tests! :test_create_without_primary_key_no_extra_query
+  def test_create_without_primary_key_no_extra_query_coerced
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "dashboards"
+    end
+    klass.create! # warmup schema cache
+    assert_queries(2, ignore_none: true) { klass.create! }
+  end
 end
 
 
