@@ -1437,5 +1437,26 @@ class QueryCacheExpiryTest < ActiveRecord::TestCase
       Task.cache { Task.upsert_all([{ starting: Time.now }]) }
     end
   end
+end
 
+
+
+
+class LogSubscriberTest < ActiveRecord::TestCase
+  def test_vebose_query_logs_coerced
+    subscriber = ActiveSupport::Notifications.subscribe('sql.active_record') do |_name, _start, _finish, _id, payload|
+      puts payload[:sql]
+    end
+
+    ActiveRecord::Base.verbose_query_logs = true
+
+    logger = TestDebugLogSubscriber.new
+    logger.sql(Event.new(0, sql: "hi mom!"))
+    assert_equal 2, @logger.logged(:debug).size
+    assert_match(/↳/, @logger.logged(:debug).last)
+  ensure
+    ActiveRecord::Base.verbose_query_logs = false
+
+    ActiveSupport::Notifications.unsubscribe(subscriber)
+  end
 end
