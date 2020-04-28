@@ -60,6 +60,9 @@ module ActiveRecord
   end
 end
 
+
+
+
 module ActiveRecord
   class AdapterTestWithoutTransaction < ActiveRecord::TestCase
     # SQL Server does not allow truncation of tables that are referenced by foreign key
@@ -223,6 +226,8 @@ module ActiveRecord
 end
 
 
+
+
 module ActiveRecord
   class InstrumentationTest < ActiveRecord::TestCase
     # This fails randomly due to schema cache being lost?
@@ -242,6 +247,9 @@ module ActiveRecord
     end
   end
 end
+
+
+
 
 class CalculationsTest < ActiveRecord::TestCase
   # This fails randomly due to schema cache being lost?
@@ -290,6 +298,7 @@ end
 
 
 
+
 module ActiveRecord
   class Migration
     class ChangeSchemaTest < ActiveRecord::TestCase
@@ -323,10 +332,10 @@ end
 
 
 
+
 module ActiveRecord
   module ConnectionAdapters
     class QuoteARBaseTest < ActiveRecord::TestCase
-
       # Use our date format.
       coerce_tests! :test_quote_ar_object
       def test_quote_ar_object_coerced
@@ -340,10 +349,10 @@ module ActiveRecord
         value = DatetimePrimaryKey.new(id: @time)
         assert_equal "02-14-2017 12:34:56.79",  @connection.type_cast(value)
       end
-
     end
   end
 end
+
 
 
 
@@ -479,10 +488,12 @@ module ActiveRecord
     # Skip this test with /tmp/my_schema_cache.yml path on Windows.
     coerce_tests! :test_dump_schema_cache if RbConfig::CONFIG['host_os'] =~ /mswin|mingw/
   end
+
   class DatabaseTasksCreateAllTest < ActiveRecord::TestCase
     # We extend `local_database?` so that common VM IPs can be used.
     coerce_tests! :test_ignores_remote_databases, :test_warning_for_remote_databases
   end
+
   class DatabaseTasksDropAllTest < ActiveRecord::TestCase
     # We extend `local_database?` so that common VM IPs can be used.
     coerce_tests! :test_ignores_remote_databases, :test_warning_for_remote_databases
@@ -599,8 +610,9 @@ class FinderTest < ActiveRecord::TestCase
       end
     end
   end
-
 end
+
+
 
 
 module ActiveRecord
@@ -723,6 +735,7 @@ end
 
 
 
+
 require 'models/topic'
 class PersistenceTest < ActiveRecord::TestCase
   # Rails test required updating a identity column.
@@ -746,6 +759,7 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_equal "The First Topic", topic.title
   end
 end
+
 
 
 
@@ -812,7 +826,6 @@ class QueryCacheTest < ActiveRecord::TestCase
       assert_equal 2, Task.connection.select_value("SELECT count(*) AS count_all FROM tasks")
     end
   end
-
 
   # Same as original test except that we expect one query to be performed to retrieve the table's primary key.
   # When we generate the SQL for the `find` it includes ordering on the primary key. If we reset the column
@@ -910,7 +923,6 @@ class RelationTest < ActiveRecord::TestCase
     topics = Topic.order(Arel.sql("LEN(title)") => :asc).reverse_order
     assert_equal topics(:second).title, topics.first.title
   end
-
 end
 
 
@@ -969,6 +981,9 @@ class SchemaDumperTest < ActiveRecord::TestCase
     assert_match %r{precision: 3,[[:space:]]+scale: 2,[[:space:]]+default: 2\.78}, output
   end
 end
+
+
+
 
 class SchemaDumperDefaultsTest < ActiveRecord::TestCase
   # These date formats do not match ours. We got these covered in our dumper tests.
@@ -1041,6 +1056,10 @@ class ViewWithPrimaryKeyTest < ActiveRecord::TestCase
     assert_equal 'id', model.primary_key
   end
 end
+
+
+
+
 class ViewWithoutPrimaryKeyTest < ActiveRecord::TestCase
   # We have a few view tables. use includes vs equality.
   coerce_tests! :test_views
@@ -1100,6 +1119,7 @@ end
 
 
 
+
 class TimePrecisionTest < ActiveRecord::TestCase
   # datetime is rounded to increments of .000, .003, or .007 seconds
   coerce_tests! :test_time_precision_is_truncated_on_assignment
@@ -1121,6 +1141,7 @@ class TimePrecisionTest < ActiveRecord::TestCase
     assert_equal 123457000, foo.finish.nsec
   end
 end
+
 
 
 
@@ -1196,6 +1217,9 @@ module ActiveRecord
   end
 end
 
+
+
+
 class UnsafeRawSqlTest < ActiveRecord::TestCase
    # Use LEN() vs length() function.
   coerce_tests! %r{order: always allows Arel}
@@ -1226,8 +1250,9 @@ class UnsafeRawSqlTest < ActiveRecord::TestCase
     assert_equal ids_expected, ids_depr
     assert_equal ids_expected, ids_disabled
   end
-
 end
+
+
 
 
 class ReservedWordTest < ActiveRecord::TestCase
@@ -1239,6 +1264,7 @@ class ReservedWordTest < ActiveRecord::TestCase
     assert_nothing_raised { @connection.rename_column(:group, :order, :values) }
   end
 end
+
 
 
 
@@ -1265,6 +1291,7 @@ end
 
 
 
+
 class RelationMergingTest < ActiveRecord::TestCase
   # Use nvarchar string (N'') in assert
   coerce_tests! :test_merging_with_order_with_binds
@@ -1285,6 +1312,8 @@ module ActiveRecord
     coerce_tests! :test_truncate_tables
   end
 end
+
+
 
 
 require "models/book"
