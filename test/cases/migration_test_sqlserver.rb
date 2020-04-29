@@ -45,7 +45,7 @@ class MigrationTestSQLServer < ActiveRecord::TestCase
       Person.reset_column_information
     end
 
-    it 'not drop the default contraint if just renaming' do
+    it 'not drop the default constraint if just renaming' do
       find_default = lambda do
         connection.execute_procedure(:sp_helpconstraint, 'sst_string_defaults', 'nomsg').select do |row|
           row['constraint_type'] == "DEFAULT on column string_with_pretend_paren_three"
