@@ -1140,6 +1140,9 @@ class TimePrecisionTest < ActiveRecord::TestCase
     assert_equal 0, foo.start.nsec
     assert_equal 123457000, foo.finish.nsec
   end
+
+  # SQL Server uses default precision for time.
+  coerce_tests! :test_no_time_precision_isnt_truncated_on_assignment
 end
 
 
