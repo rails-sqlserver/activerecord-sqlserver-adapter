@@ -878,6 +878,27 @@ class RelationTest < ActiveRecord::TestCase
   # We have implicit ordering, via FETCH.
   coerce_tests! %r{doesn't have implicit ordering}
 
+  # We have implicit ordering, via FETCH.
+  coerce_tests! :test_reorder_with_take
+  def test_reorder_with_take_coerced
+    sql_log = capture_sql do
+      assert Post.order(:title).reorder(nil).take
+    end
+    assert sql_log.none? { |sql| /order by [posts].[title]/i.match?(sql) }, "ORDER BY title was used in the query: #{sql_log}"
+    assert sql_log.all?  { |sql| /order by \[posts\]\.\[id\]/i.match?(sql) }, "default ORDER BY ID was not used in the query: #{sql_log}"
+  end
+
+  # We have implicit ordering, via FETCH.
+  coerce_tests! :test_reorder_with_first
+  def test_reorder_with_first_coerced
+    sql_log = capture_sql do
+      assert Post.order(:title).reorder(nil).first
+    end
+    assert sql_log.none? { |sql| /order by [posts].[title]/i.match?(sql) }, "ORDER BY title was used in the query: #{sql_log}"
+    assert sql_log.all?  { |sql| /order by \[posts\]\.\[id\]/i.match?(sql) }, "default ORDER BY ID was not used in the query: #{sql_log}"
+  end
+
+
   # We are not doing order duplicate removal anymore.
   coerce_tests! :test_order_using_scoping
 
