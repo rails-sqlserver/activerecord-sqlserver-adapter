@@ -10,7 +10,7 @@
 ## How to reproduce
 <!-- See https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/wiki/How-to-report-a-bug -->
 
-# Details
+## Details
 
 - **Rails version**: `x.x.x`
 - **SQL Server adapter version**: `x.x.x`
