@@ -40,14 +40,14 @@ end
 require 'models/event'
 module ActiveRecord
   class AdapterTest < ActiveRecord::TestCase
-    # I really dont think we can support legacy binds.
+    # I really don`t think we can support legacy binds.
     coerce_tests! :test_select_all_with_legacy_binds
     coerce_tests! :test_insert_update_delete_with_legacy_binds
 
     # As far as I can tell, SQL Server does not support null bytes in strings.
     coerce_tests! :test_update_prepared_statement
 
-    # So sp_executesql swallows this exception. Run without prpared to see it.
+    # So sp_executesql swallows this exception. Run without prepared to see it.
     coerce_tests! :test_value_limit_violations_are_translated_to_specific_exception
     def test_value_limit_violations_are_translated_to_specific_exception_coerced
       connection.unprepared_statement do
@@ -60,11 +60,14 @@ module ActiveRecord
   end
 end
 
+
+
+
 module ActiveRecord
   class AdapterTestWithoutTransaction < ActiveRecord::TestCase
     # SQL Server does not allow truncation of tables that are referenced by foreign key
     # constraints. So manually remove/add foreign keys in test.
-    coerce_tests! :test_truncate_tables, :test_truncate_tables_with_query_cache
+    coerce_tests! :test_truncate_tables
     def test_truncate_tables_coerced
       # Remove foreign key constraint to allow truncation.
       @connection.remove_foreign_key :authors, :author_addresses
@@ -85,6 +88,9 @@ module ActiveRecord
       @connection.add_foreign_key :authors, :author_addresses
     end
 
+    # SQL Server does not allow truncation of tables that are referenced by foreign key
+    # constraints. So manually remove/add foreign keys in test.
+    coerce_tests! :test_truncate_tables_with_query_cache
     def test_truncate_tables_with_query_cache
       # Remove foreign key constraint to allow truncation.
       @connection.remove_foreign_key :authors, :author_addresses
@@ -115,29 +121,28 @@ end
 
 require 'models/topic'
 class AttributeMethodsTest < ActiveRecord::TestCase
+  # Use IFF for boolean statement in SELECT
   coerce_tests! %r{typecast attribute from select to false}
   def test_typecast_attribute_from_select_to_false_coerced
     Topic.create(:title => 'Budget')
     topic = Topic.all.merge!(:select => "topics.*, IIF (1 = 2, 1, 0) as is_test").first
-    assert !topic.is_test?
+    assert_not_predicate topic, :is_test?
   end
 
+  # Use IFF for boolean statement in SELECT
   coerce_tests! %r{typecast attribute from select to true}
   def test_typecast_attribute_from_select_to_true_coerced
     Topic.create(:title => 'Budget')
     topic = Topic.all.merge!(:select => "topics.*, IIF (1 = 1, 1, 0) as is_test").first
-    assert topic.is_test?
+    assert_predicate topic, :is_test?
   end
 end
 
 
-class NumericDataTest < ActiveRecord::TestCase
-  # We do not have do the DecimalWithoutScale type.
-  coerce_tests! :test_numeric_fields
-  coerce_tests! :test_numeric_fields_with_scale
-end
+
 
 class BasicsTest < ActiveRecord::TestCase
+  # Use square brackets as SQL Server escaped character
   coerce_tests! :test_column_names_are_escaped
   def test_column_names_are_escaped_coerced
     conn = ActiveRecord::Base.connection
@@ -172,16 +177,6 @@ class BasicsTest < ActiveRecord::TestCase
       end
     end
   end
-
-  # Need to escape `quoted_id` once it contains brackets
-  coerce_tests! %r{column names are quoted when using #from clause and model has ignored columns}
-  test "column names are quoted when using #from clause and model has ignored columns coerced" do
-    refute_empty Developer.ignored_columns
-    query = Developer.from("developers").to_sql
-    quoted_id = "#{Developer.quoted_table_name}.#{Developer.quoted_primary_key}"
-
-    assert_match(/SELECT #{Regexp.escape(quoted_id)}.* FROM developers/, query)
-  end
 end
 
 
@@ -191,6 +186,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   # Since @client.firm is a single first/top, and we use FETCH the order clause is used.
   coerce_tests! :test_belongs_to_does_not_use_order_by
 
+  # Square brackets around column name
   coerce_tests! :test_belongs_to_with_primary_key_joins_on_correct_column
   def test_belongs_to_with_primary_key_joins_on_correct_column_coerced
     sql = Client.joins(:firm_with_primary_key).to_sql
@@ -230,6 +226,8 @@ module ActiveRecord
 end
 
 
+
+
 module ActiveRecord
   class InstrumentationTest < ActiveRecord::TestCase
     # This fails randomly due to schema cache being lost?
@@ -250,6 +248,9 @@ module ActiveRecord
   end
 end
 
+
+
+
 class CalculationsTest < ActiveRecord::TestCase
   # This fails randomly due to schema cache being lost?
   coerce_tests! :test_offset_is_kept
@@ -267,18 +268,20 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal BigDecimal('3.0').to_s, BigDecimal(value).to_s
   end
 
+  # Match SQL Server limit implementation
   coerce_tests! :test_limit_is_kept
   def test_limit_is_kept_coerced
     queries = capture_sql_ss { Account.limit(1).count }
     assert_equal 1, queries.length
-    _(queries.first).must_match %r{ORDER BY \[accounts\]\.\[id\] ASC OFFSET 0 ROWS FETCH NEXT @0 ROWS ONLY.*@0 = 1}
+    assert_match(/ORDER BY \[accounts\]\.\[id\] ASC OFFSET 0 ROWS FETCH NEXT @0 ROWS ONLY.*@0 = 1/, queries.first)
   end
 
+  # Match SQL Server limit implementation
   coerce_tests! :test_limit_with_offset_is_kept
   def test_limit_with_offset_is_kept_coerced
     queries = capture_sql_ss { Account.limit(1).offset(1).count }
     assert_equal 1, queries.length
-    _(queries.first).must_match %r{ORDER BY \[accounts\]\.\[id\] ASC OFFSET @0 ROWS FETCH NEXT @1 ROWS ONLY.*@0 = 1, @1 = 1}
+    assert_match(/ORDER BY \[accounts\]\.\[id\] ASC OFFSET @0 ROWS FETCH NEXT @1 ROWS ONLY.*@0 = 1, @1 = 1/, queries.first)
   end
 
   # SQL Server needs an alias for the calculated column
@@ -295,27 +298,44 @@ end
 
 
 
+
 module ActiveRecord
   class Migration
     class ChangeSchemaTest < ActiveRecord::TestCase
-       # We test these.
-      coerce_tests! :test_create_table_with_bigint,
-                    :test_create_table_with_defaults
-    end
+      # Integer.default is a number and not a string
+      coerce_tests! :test_create_table_with_defaults
+      def test_create_table_with_defaults_coerce
+        connection.create_table :testings do |t|
+          t.column :one, :string, default: "hello"
+          t.column :two, :boolean, default: true
+          t.column :three, :boolean, default: false
+          t.column :four, :integer, default: 1
+          t.column :five, :text, default: "hello"
+        end
 
-    class ChangeSchemaWithDependentObjectsTest < ActiveRecord::TestCase
-      # In SQL Server you have to delete the tables yourself in the right order.
-      coerce_tests! :test_create_table_with_force_cascade_drops_dependent_objects
+        columns = connection.columns(:testings)
+        one = columns.detect { |c| c.name == "one" }
+        two = columns.detect { |c| c.name == "two" }
+        three = columns.detect { |c| c.name == "three" }
+        four = columns.detect { |c| c.name == "four" }
+        five = columns.detect { |c| c.name == "five" }
+
+        assert_equal "hello", one.default
+        assert_equal true, connection.lookup_cast_type_from_column(two).deserialize(two.default)
+        assert_equal false, connection.lookup_cast_type_from_column(three).deserialize(three.default)
+        assert_equal 1, four.default
+        assert_equal "hello", five.default
+      end
     end
   end
 end
 
 
 
+
 module ActiveRecord
   module ConnectionAdapters
     class QuoteARBaseTest < ActiveRecord::TestCase
-
       # Use our date format.
       coerce_tests! :test_quote_ar_object
       def test_quote_ar_object_coerced
@@ -329,10 +349,10 @@ module ActiveRecord
         value = DatetimePrimaryKey.new(id: @time)
         assert_equal "02-14-2017 12:34:56.79",  @connection.type_cast(value)
       end
-
     end
   end
 end
+
 
 
 
@@ -438,7 +458,7 @@ end
 
 
 class CoreTest < ActiveRecord::TestCase
-  # I think fixtures are useing the wrong time zone and the `:first`
+  # I think fixtures are using the wrong time zone and the `:first`
   # `topics`.`bonus_time` attribute of 2005-01-30t15:28:00.00+01:00 is
   # getting local EST time for me and set to "09:28:00.0000000".
   coerce_tests! :test_pretty_print_persisted
@@ -468,10 +488,12 @@ module ActiveRecord
     # Skip this test with /tmp/my_schema_cache.yml path on Windows.
     coerce_tests! :test_dump_schema_cache if RbConfig::CONFIG['host_os'] =~ /mswin|mingw/
   end
+
   class DatabaseTasksCreateAllTest < ActiveRecord::TestCase
     # We extend `local_database?` so that common VM IPs can be used.
     coerce_tests! :test_ignores_remote_databases, :test_warning_for_remote_databases
   end
+
   class DatabaseTasksDropAllTest < ActiveRecord::TestCase
     # We extend `local_database?` so that common VM IPs can be used.
     coerce_tests! :test_ignores_remote_databases, :test_warning_for_remote_databases
@@ -544,9 +566,11 @@ end
 
 require 'models/topic'
 class FinderTest < ActiveRecord::TestCase
+  # We have implicit ordering, via FETCH.
   coerce_tests! %r{doesn't have implicit ordering},
-                :test_find_doesnt_have_implicit_ordering # We have implicit ordering, via FETCH.
+                :test_find_doesnt_have_implicit_ordering
 
+  # Square brackets around column name
   coerce_tests! :test_exists_does_not_select_columns_without_alias
   def test_exists_does_not_select_columns_without_alias_coerced
     assert_sql(/SELECT\s+1 AS one FROM \[topics\].*OFFSET 0 ROWS FETCH NEXT @0 ROWS ONLY.*@0 = 1/i) do
@@ -554,6 +578,7 @@ class FinderTest < ActiveRecord::TestCase
     end
   end
 
+  # Assert SQL Server limit implementation
   coerce_tests! :test_take_and_first_and_last_with_integer_should_use_sql_limit
   def test_take_and_first_and_last_with_integer_should_use_sql_limit_coerced
     assert_sql(/OFFSET 0 ROWS FETCH NEXT @0 ROWS ONLY.* @0 = 3/) { Topic.take(3).entries }
@@ -585,8 +610,9 @@ class FinderTest < ActiveRecord::TestCase
       end
     end
   end
-
 end
+
+
 
 
 module ActiveRecord
@@ -660,6 +686,7 @@ end
 
 require 'models/company'
 class InheritanceTest < ActiveRecord::TestCase
+  # Rails test required inserting to a identity column.
   coerce_tests! :test_a_bad_type_column
   def test_a_bad_type_column_coerced
     Company.connection.with_identity_insert_enabled('companies') do
@@ -668,6 +695,7 @@ class InheritanceTest < ActiveRecord::TestCase
     assert_raise(ActiveRecord::SubclassNotFound) { Company.find(100) }
   end
 
+  # Use Square brackets around column name
   coerce_tests! :test_eager_load_belongs_to_primary_key_quoting
   def test_eager_load_belongs_to_primary_key_quoting_coerced
     con = Account.connection
@@ -688,26 +716,10 @@ end
 
 
 
-class NamedScopingTest < ActiveRecord::TestCase
-  # This works now because we add an `order(:id)` sort to break the order tie for deterministic results.
-  coerce_tests! :test_scopes_honor_current_scopes_from_when_defined
-  def test_scopes_honor_current_scopes_from_when_defined_coerced
-    assert !Post.ranked_by_comments.order(:id).limit_by(5).empty?
-    assert !authors(:david).posts.ranked_by_comments.order(:id).limit_by(5).empty?
-    assert_not_equal Post.ranked_by_comments.order(:id).limit_by(5), authors(:david).posts.ranked_by_comments.order(:id).limit_by(5)
-    assert_not_equal Post.order(:id).top(5), authors(:david).posts.order(:id).top(5)
-    # Oracle sometimes sorts differently if WHERE condition is changed
-    assert_equal authors(:david).posts.ranked_by_comments.limit_by(5).to_a.sort_by(&:id), authors(:david).posts.top(5).to_a.sort_by(&:id)
-    assert_equal Post.ranked_by_comments.limit_by(5), Post.top(5)
-  end
-end
-
-
-
-
 require 'models/developer'
 require 'models/computer'
 class NestedRelationScopingTest < ActiveRecord::TestCase
+  # Assert SQL Server limit implementation
   coerce_tests! :test_merge_options
   def test_merge_options_coerced
     Developer.where('salary = 80000').scoping do
@@ -720,6 +732,7 @@ class NestedRelationScopingTest < ActiveRecord::TestCase
     end
   end
 end
+
 
 
 
@@ -749,6 +762,7 @@ end
 
 
 
+
 require 'models/author'
 class UpdateAllTest < ActiveRecord::TestCase
   # Rails test required updating a identity column.
@@ -772,6 +786,7 @@ end
 require 'models/topic'
 module ActiveRecord
   class PredicateBuilderTest < ActiveRecord::TestCase
+    # Use Square brackets around column name
     coerce_tests! :test_registering_new_handlers
     def test_registering_new_handlers_coerced
       Topic.predicate_builder.register_handler(Regexp, proc do |column, value|
@@ -788,9 +803,15 @@ end
 
 
 class PrimaryKeysTest < ActiveRecord::TestCase
-  # Gonna trust Rails core for this. We end up with 2 querys vs 3 asserted
-  # but as far as I can tell, this is only one for us anyway.
+  # SQL Server does not have query for release_savepoint
   coerce_tests! :test_create_without_primary_key_no_extra_query
+  def test_create_without_primary_key_no_extra_query_coerced
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "dashboards"
+    end
+    klass.create! # warmup schema cache
+    assert_queries(2, ignore_none: true) { klass.create! }
+  end
 end
 
 
@@ -805,7 +826,6 @@ class QueryCacheTest < ActiveRecord::TestCase
       assert_equal 2, Task.connection.select_value("SELECT count(*) AS count_all FROM tasks")
     end
   end
-
 
   # Same as original test except that we expect one query to be performed to retrieve the table's primary key.
   # When we generate the SQL for the `find` it includes ordering on the primary key. If we reset the column
@@ -903,25 +923,6 @@ class RelationTest < ActiveRecord::TestCase
     topics = Topic.order(Arel.sql("LEN(title)") => :asc).reverse_order
     assert_equal topics(:second).title, topics.first.title
   end
-
-end
-
-class ActiveRecord::RelationTest < ActiveRecord::TestCase
-  coerce_tests! :test_relation_merging_with_merged_symbol_joins_is_aliased
-  def test_relation_merging_with_merged_symbol_joins_is_aliased__coerced
-    categorizations_with_authors = Categorization.joins(:author)
-    queries = capture_sql { Post.joins(:author, :categorizations).merge(Author.select(:id)).merge(categorizations_with_authors).to_a }
-
-    nb_inner_join = queries.sum { |sql| sql.scan(/INNER\s+JOIN/i).size }
-    assert_equal 3, nb_inner_join, "Wrong amount of INNER JOIN in query"
-
-    # using `\W` as the column separator
-    query_matches = queries.any? do |sql|
-      %r[INNER\s+JOIN\s+#{Regexp.escape(Author.quoted_table_name)}\s+\Wauthors_categorizations\W]i.match?(sql)
-    end
-
-    assert query_matches, "Should be aliasing the child INNER JOINs in query"
-  end
 end
 
 
@@ -929,15 +930,25 @@ end
 
 require 'models/post'
 class SanitizeTest < ActiveRecord::TestCase
+  # Use nvarchar string (N'') in assert
   coerce_tests! :test_sanitize_sql_like_example_use_case
   def test_sanitize_sql_like_example_use_case_coerced
     searchable_post = Class.new(Post) do
-      def self.search(term)
-        where("title LIKE ?", sanitize_sql_like(term, '!'))
+      def self.search_as_method(term)
+        where("title LIKE ?", sanitize_sql_like(term, "!"))
       end
+
+      scope :search_as_scope, -> (term) {
+        where("title LIKE ?", sanitize_sql_like(term, "!"))
+      }
     end
-    assert_sql(/\(title LIKE N'20!% !_reduction!_!!'\)/) do
-      searchable_post.search("20% _reduction_!").to_a
+
+    assert_sql(/LIKE N'20!% !_reduction!_!!'/) do
+      searchable_post.search_as_method("20% _reduction_!").to_a
+    end
+
+    assert_sql(/LIKE N'20!% !_reduction!_!!'/) do
+      searchable_post.search_as_scope("20% _reduction_!").to_a
     end
   end
 end
@@ -971,6 +982,9 @@ class SchemaDumperTest < ActiveRecord::TestCase
   end
 end
 
+
+
+
 class SchemaDumperDefaultsTest < ActiveRecord::TestCase
   # These date formats do not match ours. We got these covered in our dumper tests.
   coerce_tests! :test_schema_dump_defaults_with_universally_supported_types
@@ -989,6 +1003,7 @@ end
 
 require 'models/topic'
 class TransactionTest < ActiveRecord::TestCase
+  # SQL Server does not have query for release_savepoint
   coerce_tests! :test_releasing_named_savepoints
   def test_releasing_named_savepoints_coerced
     Topic.transaction do
@@ -1041,6 +1056,10 @@ class ViewWithPrimaryKeyTest < ActiveRecord::TestCase
     assert_equal 'id', model.primary_key
   end
 end
+
+
+
+
 class ViewWithoutPrimaryKeyTest < ActiveRecord::TestCase
   # We have a few view tables. use includes vs equality.
   coerce_tests! :test_views
@@ -1100,6 +1119,7 @@ end
 
 
 
+
 class TimePrecisionTest < ActiveRecord::TestCase
   # datetime is rounded to increments of .000, .003, or .007 seconds
   coerce_tests! :test_time_precision_is_truncated_on_assignment
@@ -1121,6 +1141,7 @@ class TimePrecisionTest < ActiveRecord::TestCase
     assert_equal 123457000, foo.finish.nsec
   end
 end
+
 
 
 
@@ -1196,9 +1217,11 @@ module ActiveRecord
   end
 end
 
-class UnsafeRawSqlTest < ActiveRecord::TestCase
-  # Coerce the originals as they use 'LENGTH' instead of SQL Servers 'LEN' function.
 
+
+
+class UnsafeRawSqlTest < ActiveRecord::TestCase
+   # Use LEN() vs length() function.
   coerce_tests! %r{order: always allows Arel}
   test 'order: always allows Arel' do
     ids_depr     = with_unsafe_raw_sql_deprecated { Post.order(Arel.sql("len(title)")).pluck(:title) }
@@ -1207,6 +1230,7 @@ class UnsafeRawSqlTest < ActiveRecord::TestCase
     assert_equal ids_depr, ids_disabled
   end
 
+  # Use LEN() vs length() function.
   coerce_tests! %r{pluck: always allows Arel}
   test "pluck: always allows Arel" do
     values_depr     = with_unsafe_raw_sql_deprecated { Post.includes(:comments).pluck(:title, Arel.sql("len(title)")) }
@@ -1215,6 +1239,7 @@ class UnsafeRawSqlTest < ActiveRecord::TestCase
     assert_equal values_depr, values_disabled
   end
 
+  # Use LEN() vs length() function.
   coerce_tests! %r{order: allows valid Array arguments}
   test "order: allows valid Array arguments" do
     ids_expected = Post.order(Arel.sql("author_id, len(title)")).pluck(:id)
@@ -1225,8 +1250,9 @@ class UnsafeRawSqlTest < ActiveRecord::TestCase
     assert_equal ids_expected, ids_depr
     assert_equal ids_expected, ids_disabled
   end
-
 end
+
+
 
 
 class ReservedWordTest < ActiveRecord::TestCase
@@ -1238,6 +1264,7 @@ class ReservedWordTest < ActiveRecord::TestCase
     assert_nothing_raised { @connection.rename_column(:group, :order, :values) }
   end
 end
+
 
 
 
@@ -1264,7 +1291,9 @@ end
 
 
 
+
 class RelationMergingTest < ActiveRecord::TestCase
+  # Use nvarchar string (N'') in assert
   coerce_tests! :test_merging_with_order_with_binds
   def test_merging_with_order_with_binds_coerced
     relation = Post.all.merge(Post.order([Arel.sql("title LIKE ?"), "%suffix"]))
@@ -1273,10 +1302,6 @@ class RelationMergingTest < ActiveRecord::TestCase
 end
 
 
-class EagerLoadingTooManyIdsTest < ActiveRecord::TestCase
-  # Temporarily coerce this test due to https://github.com/rails/rails/issues/34945
-  coerce_tests! :test_eager_loading_too_may_ids
-end
 
 
 module ActiveRecord
@@ -1287,6 +1312,8 @@ module ActiveRecord
     coerce_tests! :test_truncate_tables
   end
 end
+
+
 
 
 require "models/book"
