@@ -137,6 +137,17 @@ module ActiveRecord
         end
         private :default_insert_value
 
+        def build_insert_sql(insert) # :nodoc:
+          sql = +"INSERT #{insert.into}"
+
+          if returning = insert.send(:insert_all).returning
+            sql << " OUTPUT " << returning.map {|column| "INSERTED.#{quote_column_name(column)}" }.join(", ")
+          end
+
+          sql << " #{insert.values_list}"
+          sql
+        end
+
         # === SQLServer Specific ======================================== #
 
         def execute_procedure(proc_name, *variables)
@@ -243,10 +254,12 @@ module ActiveRecord
             table_name = query_requires_identity_insert?(sql)
             pk = primary_key(table_name)
           end
+
           sql = if pk && use_output_inserted? && !database_prefix_remote_server?
                   quoted_pk = SQLServer::Utils.extract_identifiers(pk).quoted
                   table_name ||= get_table_name(sql)
                   exclude_output_inserted = exclude_output_inserted_table_name?(table_name, sql)
+
                   if exclude_output_inserted
                     id_sql_type = exclude_output_inserted.is_a?(TrueClass) ? 'bigint' : exclude_output_inserted
                     <<~SQL.squish
