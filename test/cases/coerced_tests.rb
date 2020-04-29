@@ -1449,12 +1449,15 @@ class LogSubscriberTest < ActiveRecord::TestCase
     logger = TestDebugLogSubscriber.new
     logger.sql(Event.new(0, sql: "hi mom!"))
 
-    @logger.logged(:debug).each do |log|
-      Rails.logger.info "log=#{logs}"
+    @logger.logged(:debug).each_with_index do |log, i|
+      puts "#{i}: #{log}"
     end
 
     assert_equal 2, @logger.logged(:debug).size
     assert_match(/↳/, @logger.logged(:debug).last)
+
+    assert_equal "blah", @logger.logged(:debug)
+
   ensure
     ActiveRecord::Base.verbose_query_logs = false
   end
