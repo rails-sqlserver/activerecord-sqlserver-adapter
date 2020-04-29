@@ -1455,9 +1455,6 @@ class LogSubscriberTest < ActiveRecord::TestCase
 
     assert_equal 2, @logger.logged(:debug).size
     assert_match(/↳/, @logger.logged(:debug).last)
-
-    assert_equal "blah", @logger.logged(:debug)
-
   ensure
     ActiveRecord::Base.verbose_query_logs = false
   end
