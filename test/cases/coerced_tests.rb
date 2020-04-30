@@ -1407,3 +1407,39 @@ class EnumTest < ActiveRecord::TestCase
     Book.connection.add_index(:books, [:author_id, :name], unique: true)
   end
 end
+
+
+
+
+require 'models/task'
+class QueryCacheExpiryTest < ActiveRecord::TestCase
+
+  # SQL Server does not support skipping or upserting duplicates.
+  coerce_tests! :test_insert_all
+  def test_insert_all_coerced
+    assert_raises(ArgumentError, /does not support skipping duplicates/) do
+      Task.cache { Task.insert({ starting: Time.now }) }
+    end
+
+    assert_called(ActiveRecord::Base.connection, :clear_query_cache, times: 2) do
+      Task.cache { Task.insert_all!([{ starting: Time.now }]) }
+    end
+
+    assert_called(ActiveRecord::Base.connection, :clear_query_cache, times: 2) do
+      Task.cache { Task.insert!({ starting: Time.now }) }
+    end
+
+    assert_called(ActiveRecord::Base.connection, :clear_query_cache, times: 2) do
+      Task.cache { Task.insert_all!([{ starting: Time.now }]) }
+    end
+
+    assert_raises(ArgumentError, /does not support upsert/) do
+      Task.cache { Task.upsert({ starting: Time.now }) }
+    end
+
+    assert_raises(ArgumentError, /does not support upsert/) do
+      Task.cache { Task.upsert_all([{ starting: Time.now }]) }
+    end
+  end
+
+end

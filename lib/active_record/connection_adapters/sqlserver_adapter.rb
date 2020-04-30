@@ -159,6 +159,22 @@ module ActiveRecord
         @version_year >= 2014
       end
 
+      def supports_insert_returning?
+        true
+      end
+
+      def supports_insert_on_duplicate_skip?
+        false
+      end
+
+      def supports_insert_on_duplicate_update?
+        false
+      end
+
+      def supports_insert_conflict_target?
+        false
+      end
+
       def disable_referential_integrity
         tables = tables_with_referential_integrity
         tables.each { |t| do_execute "ALTER TABLE #{quote_table_name(t)} NOCHECK CONSTRAINT ALL" }
