@@ -65,6 +65,25 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
     assert_equal 'customers', connection.send(:get_table_name, basic_select_sql)
   end
 
+  it 'test bad connection' do
+    assert_raise ActiveRecord::NoDatabaseError do
+      config = ActiveRecord::Base.configurations['arunit'].merge(database: 'inexistent_activerecord_unittest')
+      ActiveRecord::Base.sqlserver_connection config
+    end
+  end
+
+  it 'test database exists returns false if database does not exist' do
+    config = ActiveRecord::Base.configurations['arunit'].merge(database: 'inexistent_activerecord_unittest')
+    assert_not ActiveRecord::ConnectionAdapters::SQLServerAdapter.database_exists?(config),
+                'expected database to not exist'
+  end
+
+  it 'test database exists returns true when the database exists' do
+    config = ActiveRecord::Base.configurations['arunit']
+    assert ActiveRecord::ConnectionAdapters::SQLServerAdapter.database_exists?(config),
+            "expected database #{config[:database]} to exist"
+  end
+
   describe 'with different language' do
 
     before do
