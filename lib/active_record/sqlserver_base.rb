@@ -11,6 +11,12 @@ module ActiveRecord
         raise ArgumentError, "Unknown connection mode in #{config.inspect}."
       end
       ConnectionAdapters::SQLServerAdapter.new(nil, nil, config.merge(mode: mode))
+    rescue TinyTds::Error => e
+      if e.message.match(/database .* does not exist/i)
+        raise ActiveRecord::NoDatabaseError
+      else
+        raise
+      end
     end
   end
 end
