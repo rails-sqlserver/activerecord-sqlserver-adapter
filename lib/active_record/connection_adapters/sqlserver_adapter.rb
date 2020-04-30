@@ -81,6 +81,12 @@ module ActiveRecord
         SQLServer::SchemaCreation.new self
       end
 
+      def self.database_exists?(config)
+        !!ActiveRecord::Base.sqlserver_connection(config)
+      rescue ActiveRecord::NoDatabaseError
+        false
+      end
+
       def supports_ddl_transactions?
         true
       end
