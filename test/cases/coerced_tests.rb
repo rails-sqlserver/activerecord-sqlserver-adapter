@@ -1407,6 +1407,7 @@ end
 
 
 
+
 require 'models/task'
 class QueryCacheExpiryTest < ActiveRecord::TestCase
 
@@ -1437,5 +1438,28 @@ class QueryCacheExpiryTest < ActiveRecord::TestCase
       Task.cache { Task.upsert_all([{ starting: Time.now }]) }
     end
   end
+end
 
+
+
+require 'models/citation'
+class EagerLoadingTooManyIdsTest < ActiveRecord::TestCase
+  # Original Rails test fails with SQL Server error message "The query processor ran out of internal resources and
+  # could not produce a query plan". This error goes away if you change database compatibility level to 110 (SQL 2012)
+  # (see https://www.mssqltips.com/sqlservertip/5279/sql-server-error-query-processor-ran-out-of-internal-resources-and-could-not-produce-a-query-plan/).
+  # However, you cannot change the compatibility level during a test. The purpose of the test is to ensure that an
+  # unprepared statement is used if the number of values exceeds the adapter's `bind_params_length`. The coerced test
+  # still does this as there will be 32,768 remaining citation records in the database and the `bind_params_length` of
+  # adapter is 2,098.
+  coerce_tests! :test_eager_loading_too_may_ids
+  def test_eager_loading_too_may_ids_coerced
+    # Remove excess records.
+    Citation.limit(32768).order(id: :desc).delete_all
+
+    # Perform test
+    citation_count = Citation.count
+    assert_sql(/WHERE \(\[citations\]\.\[id\] IN \(0, 1/) do
+      assert_equal citation_count, Citation.eager_load(:citations).offset(0).size
+    end
+  end
 end
