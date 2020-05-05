@@ -1458,7 +1458,7 @@ class EagerLoadingTooManyIdsTest < ActiveRecord::TestCase
 
     # Perform test
     citation_count = Citation.count
-    assert_sql(!%r{EXEC sp_executesql}) do
+    assert_sql(/WHERE \(\[citations\]\.\[id\] IN \(0, 1/) do
       assert_equal citation_count, Citation.eager_load(:citations).offset(0).size
     end
   end
