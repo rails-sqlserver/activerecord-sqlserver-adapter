@@ -1454,6 +1454,8 @@ class EagerLoadingTooManyIdsTest < ActiveRecord::TestCase
   def test_eager_loading_too_may_ids_coerced
     Citation.limit(32768).order(id: :desc).delete_all
 
-    original_test_eager_loading_too_may_ids
+    assert_sql(!%r{EXEC sp_executesql}) do
+      original_test_eager_loading_too_may_ids
+    end
   end
 end
