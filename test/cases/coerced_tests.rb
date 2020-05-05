@@ -1463,3 +1463,13 @@ class EagerLoadingTooManyIdsTest < ActiveRecord::TestCase
     end
   end
 end
+
+
+
+
+class LogSubscriberTest < ActiveRecord::TestCase
+  coerce_tests! :test_vebose_query_logs
+  def test_vebose_query_logs_coerced
+    original_test_vebose_query_logs
+  end
+end
