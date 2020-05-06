@@ -1468,6 +1468,7 @@ end
 
 
 class LogSubscriberTest < ActiveRecord::TestCase
+  # Call original test from coerced test. Fixes issue on CI with Rails installed as a gem.
   coerce_tests! :test_vebose_query_logs
   def test_vebose_query_logs_coerced
     original_test_vebose_query_logs
