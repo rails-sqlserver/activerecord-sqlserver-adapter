@@ -57,6 +57,13 @@ module ActiveRecord
         assert_not_nil error.cause
       end
     end
+
+    # Fix randomly failing test. The loading of the model's schema was affecting the test.
+    coerce_tests! :test_errors_when_an_insert_query_is_called_while_preventing_writes
+    def test_errors_when_an_insert_query_is_called_while_preventing_writes_coerced
+      Subscriber.send(:load_schema)
+      original_test_errors_when_an_insert_query_is_called_while_preventing_writes
+    end
   end
 end
 
@@ -253,20 +260,11 @@ end
 
 module ActiveRecord
   class InstrumentationTest < ActiveRecord::TestCase
-    # This fails randomly due to schema cache being lost?
+    # Fix randomly failing test. The loading of the model's schema was affecting the test.
     coerce_tests! :test_payload_name_on_load
     def test_payload_name_on_load_coerced
-      Book.create(name: "test book")
-      Book.first
-      subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |*args|
-        event = ActiveSupport::Notifications::Event.new(*args)
-        if event.payload[:sql].match "SELECT"
-          assert_equal "Book Load", event.payload[:name]
-        end
-      end
-      Book.first
-    ensure
-      ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber
+      Book.send(:load_schema)
+      original_test_payload_name_on_load
     end
   end
 end
@@ -275,13 +273,11 @@ end
 
 
 class CalculationsTest < ActiveRecord::TestCase
-  # This fails randomly due to schema cache being lost?
+  # Fix randomly failing test. The loading of the model's schema was affecting the test.
   coerce_tests! :test_offset_is_kept
   def test_offset_is_kept_coerced
-    Account.first
-    queries = assert_sql { Account.offset(1).count }
-    assert_equal 1, queries.length
-    assert_match(/OFFSET/, queries.first)
+    Account.send(:load_schema)
+    original_test_offset_is_kept
   end
 
   # Are decimal, not integer.
