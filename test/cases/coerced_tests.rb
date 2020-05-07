@@ -1470,3 +1470,15 @@ class LogSubscriberTest < ActiveRecord::TestCase
     original_test_vebose_query_logs
   end
 end
+
+
+
+
+class ActiveRecordSchemaTest < ActiveRecord::TestCase
+  # Workaround for randomly failing test.
+  coerce_tests! :test_has_primary_key
+  def test_has_primary_key_coerced
+    @schema_migration.reset_column_information
+    original_test_has_primary_key
+  end
+end
