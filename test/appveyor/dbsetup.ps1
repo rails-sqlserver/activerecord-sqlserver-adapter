@@ -5,15 +5,15 @@ Write-Output "Setting up..."
 
 Write-Output "Setting variables..."
 $serverName = $env:COMPUTERNAME
-$instances = @('SQL2012SP1', 'SQL2014')
+$instanceNames = @('SQL2014')
 $smo = 'Microsoft.SqlServer.Management.Smo.'
 $wmi = new-object ($smo + 'Wmi.ManagedComputer')
 
 Write-Output "Configure Instances..."
-foreach ($instance in $instances) {
-  Write-Output "Instance $instance ..."
+foreach ($instanceName in $instanceNames) {
+  Write-Output "Instance $instanceName ..."
   Write-Output "Enable TCP/IP and port 1433..."
-  $uri = "ManagedComputer[@Name='$serverName']/ServerInstance[@Name='$instance']/ServerProtocol[@Name='Tcp']"
+  $uri = "ManagedComputer[@Name='$serverName']/ServerInstance[@Name='$instanceName']/ServerProtocol[@Name='Tcp']"
   $tcp = $wmi.GetSmoObject($uri)
   $tcp.IsEnabled = $true
   foreach ($ipAddress in $Tcp.IPAddresses) {
