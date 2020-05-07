@@ -790,15 +790,16 @@ end
 require 'models/topic'
 module ActiveRecord
   class PredicateBuilderTest < ActiveRecord::TestCase
-    # Use Square brackets around column name
+    # Same as original test except string has `N` prefix to indicate unicode string.
     coerce_tests! :test_registering_new_handlers
     def test_registering_new_handlers_coerced
-      Topic.predicate_builder.register_handler(Regexp, proc do |column, value|
-        Arel::Nodes::InfixOperation.new('~', column, Arel.sql(value.source))
-      end)
-      assert_match %r{\[topics\].\[title\] ~ rails}i, Topic.where(title: /rails/).to_sql
-    ensure
-      Topic.reset_column_information
+      assert_match %r{#{Regexp.escape(topic_title)} ~ N'rails'}i, Topic.where(title: /rails/).to_sql
+    end
+
+    # Same as original test except string has `N` prefix to indicate unicode string.
+    coerce_tests! :test_registering_new_handlers_for_association
+    def test_registering_new_handlers_for_association_coerced
+      assert_match %r{#{Regexp.escape(topic_title)} ~ N'rails'}i, Reply.joins(:topic).where(topics: { title: /rails/ }).to_sql
     end
   end
 end
