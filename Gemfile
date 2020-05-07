@@ -1,8 +1,15 @@
+# frozen_string_literal: true
+
 require 'openssl'
 source 'https://rubygems.org'
+
+git_source(:github) { |repo| "https://github.com/#{repo}.git" }
+
 gemspec
 
-gem 'sqlite3', '~> 1.3.6'
+gem "sqlite3", "~> 1.4"
+gem "pg", ">= 0.18.0"
+
 gem 'bcrypt'
 gem 'tzinfo-data', platforms: [:mingw, :mswin, :x64_mingw, :jruby]
 
@@ -13,7 +20,7 @@ end
 if ENV['RAILS_SOURCE']
   gemspec path: ENV['RAILS_SOURCE']
 else
-  # Need to get rails source beacause the gem doesn't include tests
+  # Need to get rails source because the gem doesn't include tests
   version = ENV['RAILS_VERSION'] || begin
     require 'net/http'
     require 'yaml'
@@ -33,7 +40,7 @@ else
       ver
     end
   end
-  gem 'rails', git: "git://github.com/rails/rails.git", tag: "v#{version}"
+  gem 'rails', github: "rails/rails", tag: "v#{version}"
 end
 
 if ENV['AREL']

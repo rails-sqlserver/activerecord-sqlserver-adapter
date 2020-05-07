@@ -20,7 +20,7 @@ class MigrationTestSQLServer < ActiveRecord::TestCase
     it 'not create a tables if error in migrations' do
       begin
         migrations_dir = File.join ARTest::SQLServer.migrations_root, 'transaction_table'
-        quietly { ActiveRecord::MigrationContext.new(migrations_dir).up }
+        quietly { ActiveRecord::MigrationContext.new(migrations_dir, ActiveRecord::SchemaMigration).up }
       rescue Exception => e
         assert_match %r|this and all later migrations canceled|, e.message
       end
@@ -45,7 +45,7 @@ class MigrationTestSQLServer < ActiveRecord::TestCase
       Person.reset_column_information
     end
 
-    it 'not drop the default contraint if just renaming' do
+    it 'not drop the default constraint if just renaming' do
       find_default = lambda do
         connection.execute_procedure(:sp_helpconstraint, 'sst_string_defaults', 'nomsg').select do |row|
           row['constraint_type'] == "DEFAULT on column string_with_pretend_paren_three"

@@ -11,13 +11,13 @@ module ActiveRecord
 
           # Same as original except we order by values in distinct select if present.
           def construct_relation_for_exists(conditions)
-            if distinct_value && offset_value
-              relation = limit!(1)
+            conditions = sanitize_forbidden_attributes(conditions)
 
+            if distinct_value && offset_value
               if select_values.present?
-                relation = relation.order(*select_values)
+                relation = order(*select_values).limit!(1)
               else
-                relation = relation.except(:order)
+                relation = except(:order).limit!(1)
               end
             else
               relation = except(:select, :distinct, :order)._select!(::ActiveRecord::FinderMethods::ONE_AS_ONE).limit!(1)

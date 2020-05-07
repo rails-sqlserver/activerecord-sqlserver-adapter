@@ -2,8 +2,20 @@ module ActiveRecord
   module ConnectionAdapters
     module SQLServer
       module DatabaseStatements
+        READ_QUERY = ActiveRecord::ConnectionAdapters::AbstractAdapter.build_read_query_regexp(:begin, :commit, :dbcc, :explain, :save, :select, :set, :rollback) # :nodoc:
+        private_constant :READ_QUERY
+
+        def write_query?(sql) # :nodoc:
+          !READ_QUERY.match?(sql)
+        end
 
         def execute(sql, name = nil)
+          if preventing_writes? && write_query?(sql)
+            raise ActiveRecord::ReadOnlyError, "Write query attempted while in readonly mode: #{sql}"
+          end
+
+          materialize_transactions
+
           if id_insert_table_name = query_requires_identity_insert?(sql)
             with_identity_insert_enabled(id_insert_table_name) { do_execute(sql, name) }
           else
@@ -12,6 +24,12 @@ module ActiveRecord
         end
 
         def exec_query(sql, name = 'SQL', binds = [], prepare: false)
+          if preventing_writes? && write_query?(sql)
+            raise ActiveRecord::ReadOnlyError, "Write query attempted while in readonly mode: #{sql}"
+          end
+
+          materialize_transactions
+
           sp_executesql(sql, name, binds, prepare: prepare)
         end
 
@@ -71,9 +89,11 @@ module ActiveRecord
         def release_savepoint(name = current_savepoint_name)
         end
 
-        def case_sensitive_comparison(table, attribute, column, value)
+        def case_sensitive_comparison(attribute, value)
+          column = column_for_attribute(attribute)
+
           if column.collation && !column.case_sensitive?
-            table[attribute].eq(Arel::Nodes::Bin.new(value))
+            attribute.eq(Arel::Nodes::Bin.new(value))
           else
             super
           end
@@ -89,12 +109,12 @@ module ActiveRecord
             end
           end
 
-          table_deletes = tables_to_delete.map { |table| "DELETE FROM #{quote_table_name table}".dup }
-          total_sql = Array.wrap(combine_multi_statements(table_deletes + fixture_inserts))
+          table_deletes = tables_to_delete.map { |table| "DELETE FROM #{quote_table_name table}" }
+          total_sqls = Array.wrap(table_deletes + fixture_inserts)
 
           disable_referential_integrity do
             transaction(requires_new: true) do
-              total_sql.each do |sql|
+              total_sqls.each do |sql|
                 execute sql, "Fixtures Load"
                 yield if block_given?
               end
@@ -107,11 +127,6 @@ module ActiveRecord
         end
         private :can_perform_case_insensitive_comparison_for?
 
-        def combine_multi_statements(total_sql)
-          total_sql
-        end
-        private :combine_multi_statements
-
         def default_insert_value(column)
           if column.is_identity?
             table_name = quote(quote_table_name(column.table_name))
@@ -122,9 +137,22 @@ module ActiveRecord
         end
         private :default_insert_value
 
+        def build_insert_sql(insert) # :nodoc:
+          sql = +"INSERT #{insert.into}"
+
+          if returning = insert.send(:insert_all).returning
+            sql << " OUTPUT " << returning.map {|column| "INSERTED.#{quote_column_name(column)}" }.join(", ")
+          end
+
+          sql << " #{insert.values_list}"
+          sql
+        end
+
         # === SQLServer Specific ======================================== #
 
         def execute_procedure(proc_name, *variables)
+          materialize_transactions
+
           vars = if variables.any? && variables.first.is_a?(Hash)
                    variables.first.map { |k, v| "@#{k} = #{quote(v)}" }
                  else
@@ -221,18 +249,20 @@ module ActiveRecord
 
         protected
 
-        def sql_for_insert(sql, pk, id_value, sequence_name, binds)
+        def sql_for_insert(sql, pk, binds)
           if pk.nil?
             table_name = query_requires_identity_insert?(sql)
             pk = primary_key(table_name)
           end
+
           sql = if pk && use_output_inserted? && !database_prefix_remote_server?
                   quoted_pk = SQLServer::Utils.extract_identifiers(pk).quoted
                   table_name ||= get_table_name(sql)
                   exclude_output_inserted = exclude_output_inserted_table_name?(table_name, sql)
+
                   if exclude_output_inserted
                     id_sql_type = exclude_output_inserted.is_a?(TrueClass) ? 'bigint' : exclude_output_inserted
-                    <<-SQL.strip_heredoc
+                    <<~SQL.squish
                       DECLARE @ssaIdInsertTable table (#{quoted_pk} #{id_sql_type});
                       #{sql.dup.insert sql.index(/ (DEFAULT )?VALUES/), " OUTPUT INSERTED.#{quoted_pk} INTO @ssaIdInsertTable"}
                       SELECT CAST(#{quoted_pk} AS #{id_sql_type}) FROM @ssaIdInsertTable
@@ -257,6 +287,8 @@ module ActiveRecord
         # === SQLServer Specific (Executing) ============================ #
 
         def do_execute(sql, name = 'SQL')
+          materialize_transactions
+
           log(sql, name) { raw_connection_do(sql) }
         end
 

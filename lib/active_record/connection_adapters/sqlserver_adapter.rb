@@ -9,6 +9,7 @@ require 'active_record/connection_adapters/sqlserver/core_ext/explain_subscriber
 require 'active_record/connection_adapters/sqlserver/core_ext/attribute_methods'
 require 'active_record/connection_adapters/sqlserver/core_ext/finder_methods'
 require 'active_record/connection_adapters/sqlserver/core_ext/query_methods'
+require 'active_record/connection_adapters/sqlserver/core_ext/preloader'
 require 'active_record/connection_adapters/sqlserver/version'
 require 'active_record/connection_adapters/sqlserver/type'
 require 'active_record/connection_adapters/sqlserver/database_limits'
@@ -80,6 +81,12 @@ module ActiveRecord
         SQLServer::SchemaCreation.new self
       end
 
+      def self.database_exists?(config)
+        !!ActiveRecord::Base.sqlserver_connection(config)
+      rescue ActiveRecord::NoDatabaseError
+        false
+      end
+
       def supports_ddl_transactions?
         true
       end
@@ -144,8 +151,28 @@ module ActiveRecord
         true
       end
 
+      def supports_lazy_transactions?
+        true
+      end
+      
       def supports_in_memory_oltp?
         @version_year >= 2014
+      end
+
+      def supports_insert_returning?
+        true
+      end
+
+      def supports_insert_on_duplicate_skip?
+        false
+      end
+
+      def supports_insert_on_duplicate_update?
+        false
+      end
+
+      def supports_insert_conflict_target?
+        false
       end
 
       def disable_referential_integrity
@@ -196,7 +223,7 @@ module ActiveRecord
       # === Abstract Adapter (Misc Support) =========================== #
 
       def tables_with_referential_integrity
-        schemas_and_tables = select_rows <<-SQL.strip_heredoc
+        schemas_and_tables = select_rows <<~SQL.squish
           SELECT DISTINCT s.name, o.name
           FROM sys.foreign_keys i
           INNER JOIN sys.objects o ON i.parent_object_id = o.OBJECT_ID
@@ -256,6 +283,9 @@ module ActiveRecord
         result
       end
 
+      def get_database_version # :nodoc:
+        version_year
+      end
 
       protected
 
@@ -325,18 +355,18 @@ module ActiveRecord
         m.register_type              'timestamp',         SQLServer::Type::Timestamp.new
       end
 
-      def translate_exception(e, message)
+      def translate_exception(e, message:, sql:, binds:)
         case message
         when /(cannot insert duplicate key .* with unique index) | (violation of unique key constraint)/i
-          RecordNotUnique.new(message)
-        when /conflicted with the foreign key constraint/i
-          InvalidForeignKey.new(message)
+          RecordNotUnique.new(message, sql: sql, binds: binds)
+        when /(conflicted with the foreign key constraint) | (The DELETE statement conflicted with the REFERENCE constraint)/i
+          InvalidForeignKey.new(message, sql: sql, binds: binds)
         when /has been chosen as the deadlock victim/i
-          DeadlockVictim.new(message)
+          DeadlockVictim.new(message, sql: sql, binds: binds)
         when /database .* does not exist/i
-          NoDatabaseError.new(message)
+          NoDatabaseError.new(message, sql: sql, binds: binds)
         when /data would be truncated/
-          ValueTooLong.new(message)
+          ValueTooLong.new(message, sql: sql, binds: binds)
         when /Column '(.*)' is not the same data type as referencing column '(.*)' in foreign key/
           pk_id, fk_id = SQLServer::Utils.extract_identifiers($1), SQLServer::Utils.extract_identifiers($2)
           MismatchedForeignKey.new(
@@ -348,9 +378,9 @@ module ActiveRecord
             primary_key: pk_id.object
           )
         when /Cannot insert the value NULL into column.*does not allow nulls/
-          NotNullViolation.new(message)
+          NotNullViolation.new(message, sql: sql, binds: binds)
         when /Arithmetic overflow error/
-          RangeError.new(message)
+          RangeError.new(message, sql: sql, binds: binds)
         else
           super
         end

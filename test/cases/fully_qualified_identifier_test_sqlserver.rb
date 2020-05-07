@@ -42,14 +42,14 @@ class FullyQualifiedIdentifierTestSQLServer < ActiveRecord::TestCase
 
     it 'should not use fully qualified table name in order clause' do
       table = Arel::Table.new(:table)
-      expected_sql = "SELECT * FROM [my.server].[db].[schema].[table]  ORDER BY [table].[name]"
+      expected_sql = "SELECT * FROM [my.server].[db].[schema].[table] ORDER BY [table].[name]"
       assert_equal expected_sql, table.project(Arel.star).order(table[:name]).to_sql
     end
 
     it 'should use fully qualified table name in insert statement' do
       manager = Arel::InsertManager.new
       manager.into Arel::Table.new(:table)
-      manager.values = manager.create_values [Arel.sql('*')], %w{ a }
+      manager.values = manager.create_values [Arel.sql('*')]
       expected_sql = "INSERT INTO [my.server].[db].[schema].[table] VALUES (*)"
       quietly { assert_equal expected_sql, manager.to_sql }
     end
