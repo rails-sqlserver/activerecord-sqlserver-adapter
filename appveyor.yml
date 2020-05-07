@@ -33,7 +33,9 @@ environment:
   CI_AZURE_PASS:
     secure: cSQp8sk4urJYvq0utpsK+r7J+snJ2wpcdp8RdXJfB+w=
   matrix:
-    - ruby_version: "23-x64"
-    - ruby_version: "23"
-    - ruby_version: "22-x64"
-    - ruby_version: "22"
+    - ruby_version: "25-x64"
+    - ruby_version: "25"
+    - ruby_version: "26-x64"
+    - ruby_version: "26"
+    - ruby_version: "27-x64"
+    - ruby_version: "27"
