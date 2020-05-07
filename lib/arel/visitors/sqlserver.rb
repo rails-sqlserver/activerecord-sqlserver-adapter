@@ -58,6 +58,11 @@ module Arel
         end
       end
 
+      def visit_Arel_Nodes_Grouping(o, collector)
+        remove_invalid_ordering_from_select_statement(o.expr)
+        super
+      end
+
       def visit_Arel_Nodes_SelectStatement o, collector
         @select_statement = o
         distinct_One_As_One_Is_So_Not_Fetch o
@@ -127,14 +132,11 @@ module Arel
         visit o.right, collector
       end
 
-      # Need to remove ordering from subqueries unless TOP/OFFSET also used. Otherwise, SQLServer
-      # returns error "The ORDER BY clause is invalid in views, inline functions, derived tables,
-      # subqueries, and common table expressions, unless TOP, OFFSET or FOR XML is also specified."
       def collect_in_clause(left, right, collector)
         if Array === right
-          right.each { |node| remove_invalid_ordering_from_in_clause(node) }
+          right.each { |node| remove_invalid_ordering_from_select_statement(node) }
         else
-          remove_invalid_ordering_from_in_clause(right)
+          remove_invalid_ordering_from_select_statement(right)
         end
 
         super
@@ -231,7 +233,10 @@ module Arel
         ).quoted
       end
 
-      def remove_invalid_ordering_from_in_clause(node)
+      # Need to remove ordering from subqueries unless TOP/OFFSET also used. Otherwise, SQLServer
+      # returns error "The ORDER BY clause is invalid in views, inline functions, derived tables,
+      # subqueries, and common table expressions, unless TOP, OFFSET or FOR XML is also specified."
+      def remove_invalid_ordering_from_select_statement(node)
         return unless Arel::Nodes::SelectStatement === node
 
         node.orders = [] unless node.offset || node.limit
