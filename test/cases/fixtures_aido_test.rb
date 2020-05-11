@@ -60,7 +60,7 @@ class FixturesAidoTest < ActiveRecord::TestCase
     data.freeze
 
 
-    # binding.irb
+
 
     puts "*" * 20
     puts "test_binary_in_fixtures"
@@ -70,6 +70,14 @@ class FixturesAidoTest < ActiveRecord::TestCase
     puts "@flowers.data.length=#{@flowers.data.length}"
     puts "@binary_helper.data.length=#{@binary_helper.data.length}"
 
+    path = ASSETS_ROOT + "/flowers.jpg"
+    puts 'ASSETS_ROOT + "/flowers.jpg"=' + path
+
+
+    puts "File.read(path)=#{File.read(path)}"
+    puts "Base64.strict_encode64(File.read(path))=#{Base64.strict_encode64(File.read(path))}"
+
+    # binding.irb
 
     assert_equal data, @flowers.data
     assert_equal data, @binary_helper.data
