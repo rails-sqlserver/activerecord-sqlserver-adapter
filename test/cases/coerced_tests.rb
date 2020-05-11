@@ -589,14 +589,6 @@ class FinderTest < ActiveRecord::TestCase
   coerce_tests! %r{doesn't have implicit ordering},
                 :test_find_doesnt_have_implicit_ordering
 
-  # Square brackets around column name
-  coerce_tests! :test_exists_does_not_select_columns_without_alias
-  def test_exists_does_not_select_columns_without_alias_coerced
-    assert_sql(/SELECT\s+1 AS one FROM \[topics\].*OFFSET 0 ROWS FETCH NEXT @0 ROWS ONLY.*@0 = 1/i) do
-      Topic.exists?
-    end
-  end
-
   # Assert SQL Server limit implementation
   coerce_tests! :test_take_and_first_and_last_with_integer_should_use_sql_limit
   def test_take_and_first_and_last_with_integer_should_use_sql_limit_coerced
@@ -697,15 +689,6 @@ class InheritanceTest < ActiveRecord::TestCase
       Company.connection.insert "INSERT INTO companies (id, #{QUOTED_TYPE}, name) VALUES(100, 'bad_class!', 'Not happening')"
     end
     assert_raise(ActiveRecord::SubclassNotFound) { Company.find(100) }
-  end
-
-  # Use Square brackets around column name
-  coerce_tests! :test_eager_load_belongs_to_primary_key_quoting
-  def test_eager_load_belongs_to_primary_key_quoting_coerced
-    con = Account.connection
-    assert_sql(/\[companies\]\.\[id\] = @0.* @0 = 1/) do
-      Account.all.merge!(:includes => :firm).find(1)
-    end
   end
 end
 
