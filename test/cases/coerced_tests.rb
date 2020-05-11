@@ -503,6 +503,41 @@ end
 
 
 module ActiveRecord
+
+  module DatabaseTasksSetupper
+    def setup
+      @sqlserver_tasks = Array.new(
+          1,
+          Class.new do
+            def create; end
+            def drop; end
+            def purge; end
+            def charset; end
+            def collation; end
+            def structure_dump(*); end
+            def structure_load(*); end
+          end.new
+      )
+
+      $stdout, @original_stdout = StringIO.new, $stdout
+      $stderr, @original_stderr = StringIO.new, $stderr
+    end
+
+    # def teardown
+    #   $stdout, $stderr = @original_stdout, @original_stderr
+    # end
+
+    def with_stubbed_new
+      ActiveRecord::Tasks::SQLServerDatabaseTasks.stub(:new, @sqlserver_tasks) do
+        yield
+      end
+    end
+  end
+
+  ADAPTERS_TASKS = {
+      sqlserver: :sqlserver_tasks
+  }
+
   class DatabaseTasksDumpSchemaCacheTest < ActiveRecord::TestCase
     # Skip this test with /tmp/my_schema_cache.yml path on Windows.
     coerce_tests! :test_dump_schema_cache if RbConfig::CONFIG['host_os'] =~ /mswin|mingw/
