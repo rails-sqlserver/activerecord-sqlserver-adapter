@@ -1483,3 +1483,15 @@ class ActiveRecordSchemaTest < ActiveRecord::TestCase
     original_test_has_primary_key
   end
 end
+
+
+
+
+module ActiveRecord
+  module ConnectionAdapters
+    class ReaperTest < ActiveRecord::TestCase
+      # Coerce can be removed if Rails version > 6.0.3
+      coerce_tests! :test_connection_pool_starts_reaper_in_fork
+    end
+  end
+end
