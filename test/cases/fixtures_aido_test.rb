@@ -73,9 +73,12 @@ class FixturesAidoTest < ActiveRecord::TestCase
     path = ASSETS_ROOT + "/flowers.jpg"
     puts 'ASSETS_ROOT + "/flowers.jpg"=' + path
 
+    puts "File.file?(path)=#{File.file?(path)}"
 
-    puts "File.read(path)=#{File.read(path)}"
+
+    puts "File.read(path).length=#{File.read(path).length}"
     puts "Base64.strict_encode64(File.read(path))=#{Base64.strict_encode64(File.read(path))}"
+    puts "Base64.strict_encode64(File.read(path)).length=#{Base64.strict_encode64(File.read(path)).length}"
 
     # binding.irb
 
