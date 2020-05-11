@@ -77,7 +77,7 @@ class FixturesAidoTest < ActiveRecord::TestCase
 
 
     puts "File.read(path).length=#{File.read(path).length}"
-    puts "File.read(path, mode: "rb").length=#{File.read(path, mode: "rb").length}"
+    puts "File.read(path, mode: 'rb').length=#{File.read(path, mode: "rb").length}"
     puts "Base64.strict_encode64(File.read(path))=#{Base64.strict_encode64(File.read(path))}"
     puts "Base64.strict_encode64(File.read(path)).length=#{Base64.strict_encode64(File.read(path)).length}"
 
