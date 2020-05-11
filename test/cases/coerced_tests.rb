@@ -704,7 +704,6 @@ end
 
 
 require 'models/developer'
-require 'models/computer'
 class NestedRelationScopingTest < ActiveRecord::TestCase
   # Assert SQL Server limit implementation
   coerce_tests! :test_merge_options
