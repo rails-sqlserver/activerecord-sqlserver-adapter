@@ -1491,7 +1491,7 @@ module ActiveRecord
   module ConnectionAdapters
     class ReaperTest < ActiveRecord::TestCase
       # Coerce can be removed if Rails version > 6.0.3
-      coerce_tests! :test_connection_pool_starts_reaper_in_fork
+      coerce_tests! :test_connection_pool_starts_reaper_in_fork unless Process.respond_to?(:fork)
     end
   end
 end
