@@ -503,6 +503,130 @@ end
 
 
 module ActiveRecord
+  # The original module is hardcoded for PostgreSQL/SQLite/MySQL tests.
+  module DatabaseTasksSetupper
+    def setup
+      @sqlserver_tasks =
+          Class.new do
+            def create; end
+            def drop; end
+            def purge; end
+            def charset; end
+            def collation; end
+            def structure_dump(*); end
+            def structure_load(*); end
+          end.new
+
+      $stdout, @original_stdout = StringIO.new, $stdout
+      $stderr, @original_stderr = StringIO.new, $stderr
+    end
+
+    def with_stubbed_new
+      ActiveRecord::Tasks::SQLServerDatabaseTasks.stub(:new, @sqlserver_tasks) do
+        yield
+      end
+    end
+  end
+
+  class DatabaseTasksCreateTest < ActiveRecord::TestCase
+    # Coerce PostgreSQL/SQLite/MySQL tests.
+    coerce_all_tests!
+
+    def test_sqlserver_create
+      with_stubbed_new do
+        assert_called(eval("@sqlserver_tasks"), :create) do
+          ActiveRecord::Tasks::DatabaseTasks.create "adapter" => :sqlserver
+        end
+      end
+    end
+  end
+
+  class DatabaseTasksDropTest < ActiveRecord::TestCase
+    # Coerce PostgreSQL/SQLite/MySQL tests.
+    coerce_all_tests!
+
+    def test_sqlserver_drop
+      with_stubbed_new do
+        assert_called(eval("@sqlserver_tasks"), :drop) do
+          ActiveRecord::Tasks::DatabaseTasks.drop "adapter" => :sqlserver
+        end
+      end
+    end
+  end
+
+  class DatabaseTasksPurgeTest < ActiveRecord::TestCase
+    # Coerce PostgreSQL/SQLite/MySQL tests.
+    coerce_all_tests!
+
+    def test_sqlserver_purge
+      with_stubbed_new do
+        assert_called(eval("@sqlserver_tasks"), :purge) do
+          ActiveRecord::Tasks::DatabaseTasks.purge "adapter" => :sqlserver
+        end
+      end
+    end
+  end
+
+  class DatabaseTasksCharsetTest < ActiveRecord::TestCase
+    # Coerce PostgreSQL/SQLite/MySQL tests.
+    coerce_all_tests!
+
+    def test_sqlserver_charset
+      with_stubbed_new do
+        assert_called(eval("@sqlserver_tasks"), :charset) do
+          ActiveRecord::Tasks::DatabaseTasks.charset "adapter" => :sqlserver
+        end
+      end
+    end
+
+  end
+
+  class DatabaseTasksCollationTest < ActiveRecord::TestCase
+    # Coerce PostgreSQL/SQLite/MySQL tests.
+    coerce_all_tests!
+
+    def test_sqlserver_collation
+      with_stubbed_new do
+        assert_called(eval("@sqlserver_tasks"), :collation) do
+          ActiveRecord::Tasks::DatabaseTasks.collation "adapter" => :sqlserver
+        end
+      end
+    end
+  end
+
+  class DatabaseTasksStructureDumpTest < ActiveRecord::TestCase
+    # Coerce PostgreSQL/SQLite/MySQL tests.
+    coerce_all_tests!
+
+    def test_sqlserver_structure_dump
+      with_stubbed_new do
+        assert_called_with(
+            eval("@sqlserver_tasks"), :structure_dump,
+            ["awesome-file.sql", nil]
+        ) do
+          ActiveRecord::Tasks::DatabaseTasks.structure_dump({ "adapter" => :sqlserver }, "awesome-file.sql")
+        end
+      end
+    end
+  end
+
+  class DatabaseTasksStructureLoadTest < ActiveRecord::TestCase
+    # Coerce PostgreSQL/SQLite/MySQL tests.
+    coerce_all_tests!
+
+    def test_sqlserver_structure_load
+      with_stubbed_new do
+        assert_called_with(
+            eval("@sqlserver_tasks"),
+            :structure_load,
+            ["awesome-file.sql", nil]
+        ) do
+          ActiveRecord::Tasks::DatabaseTasks.structure_load({ "adapter" => :sqlserver }, "awesome-file.sql")
+        end
+      end
+    end
+  end
+
   class DatabaseTasksDumpSchemaCacheTest < ActiveRecord::TestCase
     # Skip this test with /tmp/my_schema_cache.yml path on Windows.
     coerce_tests! :test_dump_schema_cache if RbConfig::CONFIG['host_os'] =~ /mswin|mingw/
