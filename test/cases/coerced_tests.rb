@@ -1619,3 +1619,11 @@ module ActiveRecord
     end
   end
 end
+
+
+
+
+class FixturesTest < ActiveRecord::TestCase
+  # Skip test on Windows. Skip can be removed when Rails PR https://github.com/rails/rails/pull/39234 has been merged.
+  coerce_tests! :test_binary_in_fixtures if RbConfig::CONFIG['host_os'] =~ /mswin|mingw/
+end
