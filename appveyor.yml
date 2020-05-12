@@ -26,7 +26,7 @@ test_script:
   - powershell -File "%APPVEYOR_BUILD_FOLDER%\test\appveyor\dbsetup.ps1"
   - timeout /t 4 /nobreak > NUL
   - sqlcmd -S ".\SQL2014" -U sa -P Password12! -i %APPVEYOR_BUILD_FOLDER%\test\appveyor\dbsetup.sql
-  - bundle exec rake test ACTIVERECORD_UNITTEST_DATASERVER="localhost\SQL2014" TEST_FILES_AR="test/cases/reload_models_test.rb"
+  - bundle exec rake test ACTIVERECORD_UNITTEST_DATASERVER="localhost\SQL2014"
 
 environment:
   CI_AZURE_HOST:
