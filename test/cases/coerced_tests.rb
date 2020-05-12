@@ -61,7 +61,7 @@ module ActiveRecord
     # Fix randomly failing test. The loading of the model's schema was affecting the test.
     coerce_tests! :test_errors_when_an_insert_query_is_called_while_preventing_writes
     def test_errors_when_an_insert_query_is_called_while_preventing_writes_coerced
-      Subscriber.send(:load_schema)
+      Subscriber.send(:load_schema!)
       original_test_errors_when_an_insert_query_is_called_while_preventing_writes
     end
   end
@@ -263,7 +263,7 @@ module ActiveRecord
     # Fix randomly failing test. The loading of the model's schema was affecting the test.
     coerce_tests! :test_payload_name_on_load
     def test_payload_name_on_load_coerced
-      Book.send(:load_schema)
+      Book.send(:load_schema!)
       original_test_payload_name_on_load
     end
   end
@@ -276,7 +276,7 @@ class CalculationsTest < ActiveRecord::TestCase
   # Fix randomly failing test. The loading of the model's schema was affecting the test.
   coerce_tests! :test_offset_is_kept
   def test_offset_is_kept_coerced
-    Account.send(:load_schema)
+    Account.send(:load_schema!)
     original_test_offset_is_kept
   end
 
