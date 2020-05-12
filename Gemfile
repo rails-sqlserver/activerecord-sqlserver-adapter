@@ -40,7 +40,7 @@ else
       ver
     end
   end
-  gem 'rails', github: "rails/rails", tag: "v#{version}"
+  gem 'rails', github: "aidanharan/rails", branch: "isolation-debug"
 end
 
 if ENV['AREL']
