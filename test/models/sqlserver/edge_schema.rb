@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class SSTestEdgeSchema < ActiveRecord::Base
 
   self.table_name = 'sst_edge_schemas'

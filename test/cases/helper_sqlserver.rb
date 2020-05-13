@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'support/paths_sqlserver'
 require 'bundler/setup'
 Bundler.require :default, :development

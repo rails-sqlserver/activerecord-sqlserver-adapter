@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'cases/helper_sqlserver'
 require 'migrations/create_clients_and_change_column_null'
 
