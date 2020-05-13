@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module ConnectionAdapters
     module SQLServer
@@ -15,7 +17,7 @@ module ActiveRecord
           end
 
           def sqlserver_type
-            'smallmoney'.freeze
+            "smallmoney"
           end
 
         end

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module ConnectionAdapters
     module SQLServer
@@ -13,7 +15,7 @@ module ActiveRecord
           end
 
           def sqlserver_type
-            'uniqueidentifier'.freeze
+            "uniqueidentifier"
           end
 
           def serialize(value)

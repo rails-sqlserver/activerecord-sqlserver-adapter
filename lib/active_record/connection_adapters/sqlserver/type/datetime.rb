@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module ConnectionAdapters
     module SQLServer
@@ -7,16 +9,15 @@ module ActiveRecord
           include TimeValueFractional
 
           def sqlserver_type
-            'datetime'.freeze
+            "datetime"
           end
 
           def serialize(value)
             value = super
             return value unless value.acts_like?(:time)
-            datetime = value.to_s(:_sqlserver_datetime).tap do |v|
-              fraction = quote_fractional(value)
-              v << ".#{fraction}"
-            end
+            
+            datetime = "#{value.to_s(:_sqlserver_datetime)}.#{quote_fractional(value)}"
+
             Data.new datetime, self
           end
 
@@ -43,7 +44,7 @@ module ActiveRecord
           end
 
           def fast_string_to_time_format
-            "#{::Time::DATE_FORMATS[:_sqlserver_datetime]}.%N".freeze
+            "#{::Time::DATE_FORMATS[:_sqlserver_datetime]}.%N"
           end
         end
       end

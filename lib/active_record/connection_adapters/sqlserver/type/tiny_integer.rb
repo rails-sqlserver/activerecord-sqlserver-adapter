@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module ConnectionAdapters
     module SQLServer
@@ -5,7 +7,7 @@ module ActiveRecord
         class TinyInteger < Integer
 
           def sqlserver_type
-            'tinyint'.freeze
+            "tinyint"
           end
 
           private
