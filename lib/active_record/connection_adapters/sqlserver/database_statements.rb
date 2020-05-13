@@ -357,6 +357,7 @@ module ActiveRecord
               puts caller
               puts "sql=#{sql}"
               puts "@connection_options[:mode]=#{@connection_options[:mode]}"
+              raise TinyTds::Error, 'Execute returned false instead of results'
             end
 
             results.do
