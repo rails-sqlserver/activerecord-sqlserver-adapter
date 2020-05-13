@@ -67,5 +67,3 @@ group :guard do
   gem 'guard'
   gem 'guard-minitest'
 end
-
-gem 'devkit', platforms: [:mingw, :mswin, :x64_mingw]
