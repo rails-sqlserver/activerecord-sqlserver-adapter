@@ -350,7 +350,17 @@ module ActiveRecord
         def raw_connection_do(sql)
           case @connection_options[:mode]
           when :dblib
-            @connection.execute(sql).do
+            # @connection.execute(sql).do
+
+            result = @connection.execute(sql)
+            if result == false
+              puts "*" * 10
+              puts "DEBUG: raw_connection_do"
+              puts "sql=" + sql
+              puts "*" * 10
+            end
+
+            result.do
           end
         ensure
           @update_sql = false
