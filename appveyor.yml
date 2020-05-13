@@ -21,7 +21,7 @@ install:
   - bundle install
   - gem uninstall bcrypt
   - gem install bcrypt --platform=ruby
-  - gem uninstall tiny_tds
+  - gem uninstall tiny_tds --all --force --executables
   - gem install tiny_tds --platform=ruby
 
 test_script:
