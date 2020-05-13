@@ -18,7 +18,7 @@ install:
   - ps: Update-AppveyorBuild -Version "$(Get-Content $env:appveyor_build_folder\VERSION).$env:appveyor_build_number"
   - ruby --version
   - gem --version
-  - bundle install
+  - bundle install --include-dependencies
   - gem uninstall bcrypt
   - gem install bcrypt --platform=ruby
   - gem uninstall tiny_tds --all --force --executables
