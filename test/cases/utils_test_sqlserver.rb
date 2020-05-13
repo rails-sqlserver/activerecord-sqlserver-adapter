@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'cases/helper_sqlserver'
 
 class UtilsTestSQLServer < ActiveRecord::TestCase
