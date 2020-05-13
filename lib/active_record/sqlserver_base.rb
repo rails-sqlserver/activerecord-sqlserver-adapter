@@ -6,6 +6,7 @@ module ActiveRecord
       mode = config[:mode].to_s.downcase.underscore.to_sym
       case mode
       when :dblib
+        require 'devkit' if RbConfig::CONFIG['host_os'] =~ /mswin|mingw/
         require 'tiny_tds'
       else
         raise ArgumentError, "Unknown connection mode in #{config.inspect}."
