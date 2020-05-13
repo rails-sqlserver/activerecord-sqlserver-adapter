@@ -4,7 +4,7 @@ module ActiveRecord
       module Type
         class Varbinary < Binary
 
-          def initialize(*args)
+          def initialize(**args)
             super
             @limit = 8000 if @limit.to_i == 0
           end

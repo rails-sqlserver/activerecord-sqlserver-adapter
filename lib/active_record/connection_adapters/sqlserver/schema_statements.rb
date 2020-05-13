@@ -13,7 +13,7 @@ module ActiveRecord
           res
         end
 
-        def drop_table(table_name, options = {})
+        def drop_table(table_name, **options)
           # Mimic CASCADE option as best we can.
           if options[:force] == :cascade
             execute_procedure(:sp_fkeys, pktable_name: table_name).each do |fkdata|
@@ -555,8 +555,8 @@ module ActiveRecord
           match_data ? match_data[1] : column_name
         end
 
-        def create_table_definition(*args)
-          SQLServer::TableDefinition.new(self, *args)
+        def create_table_definition(*args, **options)
+          SQLServer::TableDefinition.new(self, *args, **options)
         end
 
       end
