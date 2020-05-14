@@ -17,6 +17,7 @@
 - [#820](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/820) Enable frozen strings for tests
 - [#821](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/821) Enable frozen strings - part 1
 - [#822](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/822) Enable frozen strings - part 2
+- [#823](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/823) Enable frozen strings - final
 
 #### Added
 

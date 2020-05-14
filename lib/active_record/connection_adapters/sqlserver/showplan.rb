@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'active_record/connection_adapters/sqlserver/showplan/printer_table'
 require 'active_record/connection_adapters/sqlserver/showplan/printer_xml'
 
