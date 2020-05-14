@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# encoding: UTF-8
 require 'cases/helper_sqlserver'
 require 'models/ship'
 require 'models/developer'
