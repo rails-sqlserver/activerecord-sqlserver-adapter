@@ -35,7 +35,9 @@ environment:
   CI_AZURE_PASS:
     secure: cSQp8sk4urJYvq0utpsK+r7J+snJ2wpcdp8RdXJfB+w=
   matrix:
+#    - ruby_version: "25"     # Fails because of "File does not exist: tiny_tds/tiny_tds" error (See https://github.com/rails-sqlserver/tiny_tds/issues/391).
     - ruby_version: "25-x64"
+#    - ruby_version: "26"     # Fails because of "File does not exist: tiny_tds/tiny_tds" error (See https://github.com/rails-sqlserver/tiny_tds/issues/391).
     - ruby_version: "26-x64"
-    - ruby_version: "27-x64"
-    - ruby_version: "27"
+#    - ruby_version: "27-x64" # Ruby version not installed on AppVeyor Windows instance.
+#    - ruby_version: "27"     # Ruby version not installed on AppVeyor Windows instance.
