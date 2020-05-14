@@ -21,6 +21,7 @@ install:
   - bundle install
   - gem uninstall bcrypt
   - gem install bcrypt --platform=ruby
+  - dir c:\
 
 test_script:
   - powershell -File "%APPVEYOR_BUILD_FOLDER%\test\appveyor\dbsetup.ps1"
