@@ -156,7 +156,7 @@ module ActiveRecord
       def supports_lazy_transactions?
         true
       end
-      
+
       def supports_in_memory_oltp?
         @version_year >= 2014
       end
@@ -369,6 +369,8 @@ module ActiveRecord
           NoDatabaseError.new(message, sql: sql, binds: binds)
         when /data would be truncated/
           ValueTooLong.new(message, sql: sql, binds: binds)
+        when /connection timed out/
+          StatementTimeout.new(message, sql: sql, binds: binds)
         when /Column '(.*)' is not the same data type as referencing column '(.*)' in foreign key/
           pk_id, fk_id = SQLServer::Utils.extract_identifiers($1), SQLServer::Utils.extract_identifiers($2)
           MismatchedForeignKey.new(
