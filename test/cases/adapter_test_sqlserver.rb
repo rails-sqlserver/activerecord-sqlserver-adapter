@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'cases/helper_sqlserver'
 require 'models/topic'
 require 'models/task'

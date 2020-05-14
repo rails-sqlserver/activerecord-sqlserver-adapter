@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'cases/helper_sqlserver'
 
 if ActiveRecord::Base.connection.supports_json?

@@ -15,9 +15,9 @@ Interested in older versions? We follow a rational versioning policy that tracks
 
 We support every data type supported by FreeTDS. All simplified Rails types in migrations will coorespond to a matching SQL Server national (unicode) data type. Always check the `initialize_native_database_types` [(here)](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/blob/master/lib/active_record/connection_adapters/sqlserver/schema_statements.rb) for an updated list.
 
-The following types (`date`, `datetime2`, `datetimeoffset`, `time`) all require TDS version 7.3 with TinyTDS. We recommend using FreeTDS 1.0 or higher which default to using `TDSVER` to "7.3". The adapter also sets TinyTDS's `tds_version` to this as well if non is specified.
+The following types (`date`, `datetime2`, `datetimeoffset`, `time`) all require TDS version `7.3` with TinyTDS. We recommend using FreeTDS 1.0 or higher which default to using `TDSVER` to `7.3`. The adapter also sets TinyTDS's `tds_version` to this as well if non is specified.
 
-The Rails v5 adapter supports ActiveRecord's `datetime_with_precision` setting. This means that passing `:precision` to a datetime column is supported. Using a pecision with the `:datetime` type will signal the adapter to use the `datetime2` type under the hood.
+The Rails v5 adapter supports ActiveRecord's `datetime_with_precision` setting. This means that passing `:precision` to a datetime column is supported. Using a precision with the `:datetime` type will signal the adapter to use the `datetime2` type under the hood.
 
 
 #### Identity Inserts with Triggers
@@ -80,9 +80,9 @@ end
 Every class that sub classes ActiveRecord::Base will now have an execute_procedure class method to use. This method takes the name of the stored procedure which can be a string or symbol and any number of variables to pass to the procedure. Arguments will automatically be quoted per the connection's standards as normal. For example:
 
 ```ruby
-Account.execute_procedure :update_totals, 'admin', nil, true
+Account.execute_procedure(:update_totals, 'admin', nil, true
 # Or with named parameters.
-Account.execute_procedure :update_totals, named: 'params'
+Account.execute_procedure(:update_totals, named: 'params')
 ```
 
 #### Explain Support (SHOWPLAN)
@@ -119,7 +119,7 @@ ActiveRecord::ConnectionAdapters::SQLServerAdapter.showplan_option = 'SHOWPLAN_X
 
 ## Installation
 
-The adapter has no strict gem dependencies outside of ActiveRecord. You will have to pick a connection mode, the default is dblib which uses the TinyTDS gem. Just bundle the gem and the adapter will use it.
+The adapter has no strict gem dependencies outside of `ActiveRecord`. You will have to pick a connection mode, the default is dblib which uses the `TinyTDS` gem. Just bundle the gem and the adapter will use it.
 
 ```ruby
 gem 'tiny_tds'
@@ -139,29 +139,9 @@ If you would like to contribute a feature or bugfix, thanks! To make sure your f
 
 Many many people have contributed. If you do not see your name here and it should be let us know. Also, many thanks go out to those that have pledged financial contributions.
 
-
-## Contributors
-
-Up-to-date list of contributors: http://github.com/rails-sqlserver/activerecord-sqlserver-adapter/contributors
-
-* metaskills (Ken Collins)
-* Annaswims (Annaswims)
-* wbond (Will Bond)
-* Thirdshift (Garrett Hart)
-* h-lame (Murray Steele)
-* vegantech
-* cjheath (Clifford Heath)
-* fryguy (Jason Frey)
-* jrafanie (Joe Rafaniello)
-* nerdrew (Andrew Ryan)
-* snowblink (Jonathan Lim)
-* koppen (Jakob Skjerning)
-* ebryn (Erik Bryn)
-* adzap (Adam Meehan)
-* neomindryan (Ryan Findley)
-* jeremydurham (Jeremy Durham)
-
+You can see an up-to-date list of contributors here: http://github.com/rails-sqlserver/activerecord-sqlserver-adapter/contributors
 
 ## License
 
-Copyright © 2008-2020. It is free software, and may be redistributed under the terms specified in the MIT-LICENSE file.
+Copyright © 2008-2020. It is free software, and may be redistributed under the terms specified in the [MIT-LICENSE](MIT-LICENSE) file.
+

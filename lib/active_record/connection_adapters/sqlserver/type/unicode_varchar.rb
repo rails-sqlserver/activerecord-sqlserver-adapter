@@ -4,7 +4,7 @@ module ActiveRecord
       module Type
         class UnicodeVarchar < UnicodeChar
 
-          def initialize(*args)
+          def initialize(**args)
             super
             @limit = 4000 if @limit.to_i == 0
           end

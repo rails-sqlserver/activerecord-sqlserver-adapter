@@ -4,7 +4,7 @@ module ActiveRecord
       module Type
         class Money < Decimal
 
-          def initialize(*args)
+          def initialize(**args)
             super
             @precision = 19
             @scale = 4

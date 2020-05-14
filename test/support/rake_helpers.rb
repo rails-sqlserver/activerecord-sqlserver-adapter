@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 
 SQLSERVER_HELPER = 'test/cases/helper_sqlserver.rb'
 SQLSERVER_COERCED = 'test/cases/coerced_tests.rb'

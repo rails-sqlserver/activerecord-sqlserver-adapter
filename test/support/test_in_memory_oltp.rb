@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 if ENV['IN_MEMORY_OLTP']
   require 'config'
   require 'active_record'
