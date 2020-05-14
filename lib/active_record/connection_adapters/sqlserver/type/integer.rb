@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module ConnectionAdapters
     module SQLServer
@@ -5,7 +7,7 @@ module ActiveRecord
         class Integer < ActiveRecord::Type::Integer
 
           def sqlserver_type
-            'int'.freeze
+            "int"
           end
 
         end

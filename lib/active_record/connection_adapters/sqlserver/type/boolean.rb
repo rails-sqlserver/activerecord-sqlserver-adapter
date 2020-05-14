@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module ConnectionAdapters
     module SQLServer
@@ -5,7 +7,7 @@ module ActiveRecord
         class Boolean < ActiveRecord::Type::Boolean
 
           def sqlserver_type
-            'bit'.freeze
+            "bit"
           end
 
         end

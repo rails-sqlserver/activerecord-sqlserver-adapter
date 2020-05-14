@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module ConnectionAdapters
     module SQLServer
@@ -5,8 +7,9 @@ module ActiveRecord
         class Decimal < ActiveRecord::Type::Decimal
 
           def sqlserver_type
-            'decimal'.tap do |type|
-              type << "(#{precision.to_i},#{scale.to_i})" if precision || scale
+            "decimal".yield_self do |type|
+              type += "(#{precision.to_i},#{scale.to_i})" if precision || scale
+              type
             end
           end
 

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module ConnectionAdapters
     module SQLServer
@@ -9,7 +11,7 @@ module ActiveRecord
           end
 
           def sqlserver_type
-            'smalldatetime'.freeze
+            "smalldatetime"
           end
 
           private

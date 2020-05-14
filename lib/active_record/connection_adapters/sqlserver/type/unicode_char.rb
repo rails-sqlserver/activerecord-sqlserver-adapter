@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module ConnectionAdapters
     module SQLServer
@@ -9,8 +11,9 @@ module ActiveRecord
           end
 
           def sqlserver_type
-            'nchar'.tap do |type|
-              type << "(#{limit})" if limit
+            'nchar'.yield_self do |type|
+              type += "(#{limit})" if limit
+              type
             end
           end
 

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module ConnectionAdapters
     module SQLServer
@@ -9,10 +11,9 @@ module ActiveRecord
           def serialize(value)
             value = super
             return value unless value.acts_like?(:time)
-            time = value.to_s(:_sqlserver_time).tap do |v|
-              fraction = quote_fractional(value)
-              v << ".#{fraction}"
-            end
+
+            time = "#{value.to_s(:_sqlserver_time)}.#{quote_fractional(value)}"
+            
             Data.new time, self
           end
 

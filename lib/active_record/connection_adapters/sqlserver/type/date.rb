@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module ConnectionAdapters
     module SQLServer
@@ -5,7 +7,7 @@ module ActiveRecord
         class Date < ActiveRecord::Type::Date
 
           def sqlserver_type
-            'date'.freeze
+            'date'
           end
 
           def serialize(value)
