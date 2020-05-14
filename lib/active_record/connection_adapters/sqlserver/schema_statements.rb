@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module ConnectionAdapters
     module SQLServer
@@ -152,8 +154,9 @@ module ActiveRecord
             remove_indexes(table_name, column_name)
           end
           sql_commands << "UPDATE #{quote_table_name(table_name)} SET #{quote_column_name(column_name)}=#{quote_default_expression(options[:default], column_object)} WHERE #{quote_column_name(column_name)} IS NULL" if !options[:null].nil? && options[:null] == false && !options[:default].nil?
-          sql_commands << "ALTER TABLE #{quote_table_name(table_name)} ALTER COLUMN #{quote_column_name(column_name)} #{type_to_sql(type, limit: options[:limit], precision: options[:precision], scale: options[:scale])}"
-          sql_commands.last << ' NOT NULL' if !options[:null].nil? && options[:null] == false
+          alter_command = "ALTER TABLE #{quote_table_name(table_name)} ALTER COLUMN #{quote_column_name(column_name)} #{type_to_sql(type, limit: options[:limit], precision: options[:precision], scale: options[:scale])}"
+          alter_command += ' NOT NULL' if !options[:null].nil? && options[:null] == false
+          sql_commands << alter_command
           if without_constraints
             default = quote_default_expression(default, column_object || column_for(table_name, column_name))
             sql_commands << "ALTER TABLE #{quote_table_name(table_name)} ADD CONSTRAINT #{default_constraint_name(table_name, column_name)} DEFAULT #{default} FOR #{quote_column_name(column_name)}"
@@ -267,7 +270,7 @@ module ActiveRecord
             do_execute("UPDATE #{table_id} SET #{column_id}=#{quote(default)} WHERE #{column_id} IS NULL")
           end
           sql = "ALTER TABLE #{table_id} ALTER COLUMN #{column_id} #{type_to_sql column.type, limit: column.limit, precision: column.precision, scale: column.scale}"
-          sql << ' NOT NULL' if !allow_null.nil? && allow_null == false
+          sql += ' NOT NULL' if !allow_null.nil? && allow_null == false
           do_execute sql
         end
 
@@ -281,12 +284,12 @@ module ActiveRecord
           scope = quoted_scope name, type: type
           table_name = lowercase_schema_reflection_sql 'TABLE_NAME'
           sql = "SELECT #{table_name}"
-          sql << ' FROM INFORMATION_SCHEMA.TABLES WITH (NOLOCK)'
-          sql << ' WHERE TABLE_CATALOG = DB_NAME()'
-          sql << " AND TABLE_SCHEMA = #{quote(scope[:schema])}"
-          sql << " AND TABLE_NAME = #{quote(scope[:name])}" if scope[:name]
-          sql << " AND TABLE_TYPE = #{quote(scope[:type])}" if scope[:type]
-          sql << " ORDER BY #{table_name}"
+          sql += ' FROM INFORMATION_SCHEMA.TABLES WITH (NOLOCK)'
+          sql += ' WHERE TABLE_CATALOG = DB_NAME()'
+          sql += " AND TABLE_SCHEMA = #{quote(scope[:schema])}"
+          sql += " AND TABLE_NAME = #{quote(scope[:name])}" if scope[:name]
+          sql += " AND TABLE_TYPE = #{quote(scope[:type])}" if scope[:type]
+          sql += " ORDER BY #{table_name}"
           sql
         end
 

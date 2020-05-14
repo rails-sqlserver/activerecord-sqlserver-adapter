@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'active_record/tasks/database_tasks'
 require 'shellwords'
 require 'ipaddr'

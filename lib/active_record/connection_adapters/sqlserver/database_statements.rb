@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module ConnectionAdapters
     module SQLServer
@@ -342,7 +344,7 @@ module ActiveRecord
             types = quote(types.join(', '))
             params = params.map.with_index{ |p, i| "@#{i} = #{p}" }.join(', ') # Only p is needed, but with @i helps explain regexp.
             sql = "EXEC sp_executesql #{quote(sql)}"
-            sql << ", #{types}, #{params}" unless params.empty?
+            sql += ", #{types}, #{params}" unless params.empty?
           end
           sql
         end

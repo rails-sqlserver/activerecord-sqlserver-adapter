@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'active_record/type'
 # Behaviors
 require 'active_record/connection_adapters/sqlserver/type/data'
