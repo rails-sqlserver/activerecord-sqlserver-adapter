@@ -2,7 +2,7 @@
 
 #### Fixed
 
-- [#690](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/690) Rails 6 support 
+- [#690](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/690) Rails 6 support
 - [#805](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/805) Rails 6: Fix database tasks tests for SQL Server
 - [#807](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/807) Rails 6: Skip binary fixtures test on Windows
 - [#809](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/809) Rails 6: Coerce reaper test using fork
@@ -19,6 +19,7 @@
 - [#821](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/821) Enable frozen strings - part 1
 - [#822](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/822) Enable frozen strings - part 2
 - [#823](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/823) Enable frozen strings - final
+- [#824](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/824) Tidy up Gemfile
 
 #### Added
 
