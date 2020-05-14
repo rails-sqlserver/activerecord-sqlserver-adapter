@@ -12,6 +12,7 @@
 
 #### Changed
 
+- [#716](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/716) Translate the connection timed out error
 - [#763](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/763) Refactor columns introspection query to make it faster
 - [#783](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/783) Update test matrix
 - [#820](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/820) Enable frozen strings for tests
