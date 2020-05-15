@@ -10,6 +10,7 @@
 - [#812](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/812) Rails 6: Coerce ReloadModelsTest test on Windows
 - [#818](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/818) Handle false return by TinyTDS if connection fails and fixed CI
 - [#819](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/819) Fix Ruby 2.7 kwargs warnings
+- [#825](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/825) Adjust error message when connection is dead
 
 #### Changed
 
