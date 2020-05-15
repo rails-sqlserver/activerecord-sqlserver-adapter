@@ -64,7 +64,6 @@ class ShowplanTestSQLServer < ActiveRecord::TestCase
 
   end
 
-
   private
 
   def with_showplan_option(option)

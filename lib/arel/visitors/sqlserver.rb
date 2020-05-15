@@ -9,7 +9,6 @@ module Arel
       FETCH0 = " FETCH FIRST (SELECT 0) "
       ROWS_ONLY = " ROWS ONLY"
 
-
       private
 
       # SQLServer ToSql/Visitor (Overides)

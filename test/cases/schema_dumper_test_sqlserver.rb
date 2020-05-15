@@ -135,7 +135,6 @@ class SchemaDumperTestSQLServer < ActiveRecord::TestCase
     assert_line :name, type: "string", limit: nil, default: nil, collation: nil
   end
 
-
   private
 
   def generate_schema_for_table(*table_names)
