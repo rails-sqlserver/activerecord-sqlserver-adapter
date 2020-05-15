@@ -7,7 +7,7 @@ module ActiveRecord
         class Date < ActiveRecord::Type::Date
 
           def sqlserver_type
-            'date'
+            "date"
           end
 
           def serialize(value)

@@ -45,28 +45,28 @@ ActiveRecord::Schema.define do
 
   # Edge Cases
 
-  if ENV['IN_MEMORY_OLTP'] && supports_in_memory_oltp?
-    create_table 'sst_memory', force: true, id: false,
-                 options: 'WITH (MEMORY_OPTIMIZED = ON, DURABILITY = SCHEMA_AND_DATA)' do |t|
+  if ENV["IN_MEMORY_OLTP"] && supports_in_memory_oltp?
+    create_table "sst_memory", force: true, id: false,
+                 options: "WITH (MEMORY_OPTIMIZED = ON, DURABILITY = SCHEMA_AND_DATA)" do |t|
       t.primary_key_nonclustered :id
       t.string :name
       t.timestamps
     end
   end
 
-  create_table 'sst_bookings', force: true do |t|
+  create_table "sst_bookings", force: true do |t|
     t.string :name
     t.datetime2 :created_at, null: false
     t.datetime2 :updated_at, null: false
   end
 
-  create_table 'sst_uuids', force: true, id: :uuid do |t|
+  create_table "sst_uuids", force: true, id: :uuid do |t|
     t.string :name
-    t.uuid   :other_uuid, default: 'NEWID()'
+    t.uuid   :other_uuid, default: "NEWID()"
     t.uuid   :uuid_nil_default, default: nil
   end
 
-  create_table 'sst_my$strange_table', force: true do |t|
+  create_table "sst_my$strange_table", force: true do |t|
     t.string :name
   end
 
@@ -79,7 +79,7 @@ ActiveRecord::Schema.define do
     t.string :name
   end
 
-  create_table 'sst_quoted-table', force: true do |t|
+  create_table "sst_quoted-table", force: true do |t|
   end
   execute "IF EXISTS (SELECT TABLE_NAME FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_NAME = 'sst_quoted-view1') DROP VIEW [sst_quoted-view1]"
   execute "CREATE VIEW [sst_quoted-view1] AS SELECT * FROM [sst_quoted-table]"
@@ -88,18 +88,18 @@ ActiveRecord::Schema.define do
 
   create_table :sst_string_defaults, force: true do |t|
     t.column :string_with_null_default, :string, default: nil
-    t.column :string_with_pretend_null_one, :string, default: 'null'
-    t.column :string_with_pretend_null_two, :string, default: '(null)'
-    t.column :string_with_pretend_null_three, :string, default: 'NULL'
-    t.column :string_with_pretend_null_four, :string, default: '(NULL)'
-    t.column :string_with_pretend_paren_three, :string, default: '(3)'
+    t.column :string_with_pretend_null_one, :string, default: "null"
+    t.column :string_with_pretend_null_two, :string, default: "(null)"
+    t.column :string_with_pretend_null_three, :string, default: "NULL"
+    t.column :string_with_pretend_null_four, :string, default: "(NULL)"
+    t.column :string_with_pretend_paren_three, :string, default: "(3)"
     t.column :string_with_multiline_default, :string, default: "Some long default with a\nnew line."
   end
 
   create_table :sst_edge_schemas, force: true do |t|
     t.string :description
-    t.column 'crazy]]quote', :string
-    t.column 'with spaces', :string
+    t.column "crazy]]quote", :string
+    t.column "with spaces", :string
   end
 
   execute "IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'sst_natural_pk_data') DROP TABLE sst_natural_pk_data"
@@ -132,7 +132,7 @@ ActiveRecord::Schema.define do
 
   execute "DROP DEFAULT [sst_getdateobject];" rescue nil
   execute "CREATE DEFAULT [sst_getdateobject] AS getdate();" rescue nil
-  create_table 'sst_defaultobjects', force: true do |t|
+  create_table "sst_defaultobjects", force: true do |t|
     t.string :name
     t.date   :date
   end

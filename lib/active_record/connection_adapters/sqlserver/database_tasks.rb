@@ -19,7 +19,7 @@ module ActiveRecord
         end
 
         def current_database
-          select_value 'SELECT DB_NAME()'
+          select_value "SELECT DB_NAME()"
         end
 
         def charset
@@ -41,7 +41,7 @@ module ActiveRecord
             v.present?
           }.slice(*keys).map { |k,v|
             "#{k.to_s.upcase} #{v}"
-          }.join(' ')
+          }.join(" ")
           options
         end
 
@@ -56,7 +56,7 @@ module ActiveRecord
             v.present?
           }.slice(*keys).map { |k,v|
             "#{k.to_s.upcase} = #{v}"
-          }.join(', ')
+          }.join(", ")
           edition_options = "( #{edition_options} )" if edition_options.present?
           edition_options
         end

@@ -10,7 +10,7 @@ module ActiveRecord
           if [:integer, :bigint].include?(type)
             options[:is_identity] = true unless options.key?(:default)
           elsif type == :uuid
-            options[:default] = options.fetch(:default, 'NEWID()')
+            options[:default] = options.fetch(:default, "NEWID()")
             options[:primary_key] = true
           end
           super

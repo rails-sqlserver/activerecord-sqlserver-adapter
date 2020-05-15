@@ -36,7 +36,7 @@ module ActiveRecord
           private
 
           def fast_string_to_time(string)
-            time = ActiveSupport::TimeZone['UTC'].strptime(string, fast_string_to_time_format)
+            time = ActiveSupport::TimeZone["UTC"].strptime(string, fast_string_to_time_format)
             new_time(time.year, time.month, time.day, time.hour,
                      time.min, time.sec, Rational(time.nsec, 1_000))
           rescue ArgumentError

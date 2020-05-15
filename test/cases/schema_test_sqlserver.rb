@@ -1,26 +1,26 @@
 # frozen_string_literal: true
 
-require 'cases/helper_sqlserver'
+require "cases/helper_sqlserver"
 
 class SchemaTestSQLServer < ActiveRecord::TestCase
 
-  describe 'When table is dbo schema' do
+  describe "When table is dbo schema" do
 
-    it 'find primary key for tables with odd schema' do
-      _(connection.primary_key('sst_natural_pk_data')).must_equal 'legacy_id'
+    it "find primary key for tables with odd schema" do
+      _(connection.primary_key("sst_natural_pk_data")).must_equal "legacy_id"
     end
 
   end
 
-  describe 'When table is in non-dbo schema' do
+  describe "When table is in non-dbo schema" do
 
-    it 'work with table exists' do
-      assert connection.data_source_exists?('test.sst_schema_natural_id')
-      assert connection.data_source_exists?('[test].[sst_schema_natural_id]')
+    it "work with table exists" do
+      assert connection.data_source_exists?("test.sst_schema_natural_id")
+      assert connection.data_source_exists?("[test].[sst_schema_natural_id]")
     end
 
-    it 'find primary key for tables with odd schema' do
-      _(connection.primary_key('test.sst_schema_natural_id')).must_equal 'legacy_id'
+    it "find primary key for tables with odd schema" do
+      _(connection.primary_key("test.sst_schema_natural_id")).must_equal "legacy_id"
     end
 
     it "have only one identity column" do
@@ -43,10 +43,10 @@ class SchemaTestSQLServer < ActiveRecord::TestCase
 
     it "return correct varchar and nvarchar column limit length when table is in non dbo schema" do
       columns = connection.columns("test.sst_schema_columns")
-      assert_equal 255, columns.find {|c| c.name == 'name'}.limit
-      assert_equal 1000, columns.find {|c| c.name == 'description'}.limit
-      assert_equal 255, columns.find {|c| c.name == 'n_name'}.limit
-      assert_equal 1000, columns.find {|c| c.name == 'n_description'}.limit
+      assert_equal 255, columns.find {|c| c.name == "name"}.limit
+      assert_equal 1000, columns.find {|c| c.name == "description"}.limit
+      assert_equal 255, columns.find {|c| c.name == "n_name"}.limit
+      assert_equal 1000, columns.find {|c| c.name == "n_description"}.limit
     end
 
   end

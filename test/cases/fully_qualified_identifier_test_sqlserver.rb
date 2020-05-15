@@ -1,12 +1,12 @@
 # frozen_string_literal: true
 
-require 'cases/helper_sqlserver'
+require "cases/helper_sqlserver"
 
 class FullyQualifiedIdentifierTestSQLServer < ActiveRecord::TestCase
 
-  describe 'local server' do
+  describe "local server" do
 
-    it 'should use table name in select projections' do
+    it "should use table name in select projections" do
       table = Arel::Table.new(:table)
       expected_sql = "SELECT [table].[name] FROM [table]"
       assert_equal expected_sql, table.project(table[:name]).to_sql
@@ -14,7 +14,7 @@ class FullyQualifiedIdentifierTestSQLServer < ActiveRecord::TestCase
 
   end
 
-  describe 'remote server' do
+  describe "remote server" do
 
     before do
       connection_options[:database_prefix] = "[my.server].db.schema."
@@ -24,39 +24,39 @@ class FullyQualifiedIdentifierTestSQLServer < ActiveRecord::TestCase
       connection_options.delete :database_prefix
     end
 
-    it 'should use fully qualified table name in select from clause' do
+    it "should use fully qualified table name in select from clause" do
       table = Arel::Table.new(:table)
       expected_sql = "SELECT * FROM [my.server].[db].[schema].[table]"
       assert_equal expected_sql, table.project(Arel.star).to_sql
     end
 
-    it 'should not use fully qualified table name in select projections' do
+    it "should not use fully qualified table name in select projections" do
       table = Arel::Table.new(:table)
       expected_sql = "SELECT [table].[name] FROM [my.server].[db].[schema].[table]"
       assert_equal expected_sql, table.project(table[:name]).to_sql
     end
 
-    it 'should not use fully qualified table name in where clause' do
+    it "should not use fully qualified table name in where clause" do
       table = Arel::Table.new(:table)
       expected_sql = "SELECT * FROM [my.server].[db].[schema].[table] WHERE [table].[id] = 42"
       quietly { assert_equal expected_sql, table.project(Arel.star).where(table[:id].eq(42)).to_sql }
     end
 
-    it 'should not use fully qualified table name in order clause' do
+    it "should not use fully qualified table name in order clause" do
       table = Arel::Table.new(:table)
       expected_sql = "SELECT * FROM [my.server].[db].[schema].[table] ORDER BY [table].[name]"
       assert_equal expected_sql, table.project(Arel.star).order(table[:name]).to_sql
     end
 
-    it 'should use fully qualified table name in insert statement' do
+    it "should use fully qualified table name in insert statement" do
       manager = Arel::InsertManager.new
       manager.into Arel::Table.new(:table)
-      manager.values = manager.create_values [Arel.sql('*')]
+      manager.values = manager.create_values [Arel.sql("*")]
       expected_sql = "INSERT INTO [my.server].[db].[schema].[table] VALUES (*)"
       quietly { assert_equal expected_sql, manager.to_sql }
     end
 
-    it 'should use fully qualified table name in update statement' do
+    it "should use fully qualified table name in update statement" do
       table = Arel::Table.new(:table)
       manager = Arel::UpdateManager.new
       manager.table(table).where(table[:id].eq(42))
@@ -65,7 +65,7 @@ class FullyQualifiedIdentifierTestSQLServer < ActiveRecord::TestCase
       quietly { assert_equal expected_sql, manager.to_sql }
     end
 
-    it 'should use fully qualified table name in delete statement' do
+    it "should use fully qualified table name in delete statement" do
       table = Arel::Table.new(:table)
       manager = Arel::DeleteManager.new
       manager.from(table).where(table[:id].eq(42))

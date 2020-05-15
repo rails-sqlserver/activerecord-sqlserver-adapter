@@ -61,3 +61,7 @@ group :guard do
   gem "guard-minitest"
   gem "terminal-notifier-guard" if RbConfig::CONFIG["host_os"] =~ /darwin/
 end
+
+group :rubocop do
+  gem "rubocop", require: false
+end

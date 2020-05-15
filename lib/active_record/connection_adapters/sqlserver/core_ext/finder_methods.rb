@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require 'active_record/relation'
-require 'active_record/version'
+require "active_record/relation"
+require "active_record/version"
 
 module ActiveRecord
   module ConnectionAdapters

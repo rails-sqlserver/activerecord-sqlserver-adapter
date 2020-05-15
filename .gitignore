@@ -3,6 +3,7 @@ debug.log
 .DS_Store
 pkg/
 doc/
+db/
 *.gem
 .bundle
 Gemfile.lock

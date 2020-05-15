@@ -11,7 +11,7 @@ module ActiveRecord
           end
 
           def sqlserver_type
-            'nchar'.yield_self do |type|
+            "nchar".yield_self do |type|
               type += "(#{limit})" if limit
               type
             end

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'active_record/connection_adapters/abstract/transaction'
+require "active_record/connection_adapters/abstract/transaction"
 
 module ActiveRecord
   module ConnectionAdapters
@@ -19,8 +19,8 @@ module ActiveRecord
         # When READ_COMMITTED_SNAPSHOT is set to ON,
         # user_options_isolation_level will be equal to 'read committed
         # snapshot' which is not a valid isolation level
-        if level.blank? || level == 'read committed snapshot'
-          'READ COMMITTED'
+        if level.blank? || level == "read committed snapshot"
+          "READ COMMITTED"
         else
           level.upcase
         end
