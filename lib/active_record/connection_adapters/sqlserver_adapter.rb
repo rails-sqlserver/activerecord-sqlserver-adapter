@@ -480,7 +480,7 @@ module ActiveRecord
         return 2016 if sqlserver_version =~ /vNext/
 
         /SQL Server (\d+)/.match(sqlserver_version).to_a.last.to_s.to_i
-      rescue StandardError => e
+      rescue StandardError
         2016
       end
 
