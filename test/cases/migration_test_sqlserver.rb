@@ -8,7 +8,7 @@ class MigrationTestSQLServer < ActiveRecord::TestCase
     before do
       @trans_test_table1 = "sqlserver_trans_table1"
       @trans_test_table2 = "sqlserver_trans_table2"
-      @trans_tables = [@trans_test_table1,@trans_test_table2]
+      @trans_tables = [@trans_test_table1, @trans_test_table2]
     end
 
     after do

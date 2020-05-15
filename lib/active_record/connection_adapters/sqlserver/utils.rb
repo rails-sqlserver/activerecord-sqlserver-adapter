@@ -54,7 +54,7 @@ module ActiveRecord
           end
 
           def quoted
-            parts.map{ |p| quote(p) if p }.join SEPARATOR
+            parts.map { |p| quote(p) if p }.join SEPARATOR
           end
 
           def quoted_raw

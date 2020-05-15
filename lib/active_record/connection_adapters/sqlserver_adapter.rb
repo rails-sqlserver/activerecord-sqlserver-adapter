@@ -293,7 +293,7 @@ module ActiveRecord
       # === Abstract Adapter (Misc Support) =========================== #
 
       def initialize_type_map(m = type_map)
-        m.register_type              %r{.*},            SQLServer::Type::UnicodeString.new
+        m.register_type              %r{.*}, SQLServer::Type::UnicodeString.new
         # Exact Numerics
         register_class_with_limit m, "bigint(8)",         SQLServer::Type::BigInteger
         m.alias_type                 "bigint",            "bigint(8)"
@@ -326,11 +326,11 @@ module ActiveRecord
             SQLServer::Type::DateTime.new
           end
         end
-        m.register_type              %r{\Adatetimeoffset}i do |sql_type|
+        m.register_type %r{\Adatetimeoffset}i do |sql_type|
           precision = extract_precision(sql_type)
           SQLServer::Type::DateTimeOffset.new precision: precision
         end
-        m.register_type              "smalldatetime",     SQLServer::Type::SmallDateTime.new
+        m.register_type              "smalldatetime", SQLServer::Type::SmallDateTime.new
         m.register_type              %r{\Atime}i do |sql_type|
           precision = extract_precision(sql_type) || DEFAULT_TIME_PRECISION
           SQLServer::Type::Time.new precision: precision
@@ -456,9 +456,9 @@ module ActiveRecord
         config[:encoding].present? ? config[:encoding] : nil
       end
 
-      def configure_connection ; end
+      def configure_connection; end
 
-      def configure_application_name ; end
+      def configure_application_name; end
 
       def initialize_dateformatter
         @database_dateformat = user_options_dateformat

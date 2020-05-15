@@ -31,7 +31,7 @@ class SchemaDumperTestSQLServer < ActiveRecord::TestCase
     assert_line :datetime2_3,       type: "datetime",     limit: nil,           precision: 3,     scale: nil,  default: nil
     assert_line :datetime2_1,       type: "datetime",     limit: nil,           precision: 1,     scale: nil,  default: nil
     end
-    assert_line :smalldatetime,     type: "smalldatetime",limit: nil,           precision: nil,   scale: nil,  default: "01-01-1901 15:45:00.0"
+    assert_line :smalldatetime, type: "smalldatetime", limit: nil, precision: nil, scale: nil, default: "01-01-1901 15:45:00.0"
     if connection_dblib_73?
       assert_line :time_7,            type: "time",         limit: nil,           precision: 7,     scale: nil,  default: "04:20:00.2883215"
     assert_line :time_2,            type: "time",         limit: nil,           precision: 2,     scale: nil,  default: nil
@@ -157,7 +157,7 @@ class SchemaDumperTestSQLServer < ActiveRecord::TestCase
     @schema_lines[column_name.to_s]
   end
 
-  def assert_line(column_name, options={})
+  def assert_line(column_name, options = {})
     line = line(column_name)
     assert line, "Count not find line with column name: #{column_name.inspect} in schema:\n#{schema}"
     [:type, :limit, :precision, :scale, :collation, :default].each do |key|

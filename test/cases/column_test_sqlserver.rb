@@ -13,8 +13,8 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
 
     Type = ActiveRecord::ConnectionAdapters::SQLServer::Type
 
-    def new_obj ; SSTestDatatype.new ; end
-    def column(name) ; SSTestDatatype.columns_hash[name] ; end
+    def new_obj; SSTestDatatype.new; end
+    def column(name); SSTestDatatype.columns_hash[name]; end
     def assert_obj_set_and_save(attribute, value)
       obj.send :"#{attribute}=", value
       _(obj.send(attribute)).must_equal value
@@ -101,7 +101,7 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       _(obj.bit).must_equal                true
       _(col.default_function).must_be_nil
       type = connection.lookup_cast_type_from_column(col)
-      _(type).must_be_instance_of          Type::Boolean
+      _(type).must_be_instance_of Type::Boolean
       _(type.limit).must_be_nil
       obj.bit = 0
       _(obj.bit).must_equal false
@@ -122,12 +122,12 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       _(obj.decimal_9_2).must_equal        BigDecimal("12345.01")
       _(col.default_function).must_be_nil
       type = connection.lookup_cast_type_from_column(col)
-      _(type).must_be_instance_of          Type::Decimal
+      _(type).must_be_instance_of Type::Decimal
       _(type.limit).must_be_nil
       _(type.precision).must_equal         9
       _(type.scale).must_equal             2
       obj.decimal_9_2 = "1234567.8901"
-      _(obj.decimal_9_2).must_equal        BigDecimal("1234567.89")
+      _(obj.decimal_9_2).must_equal BigDecimal("1234567.89")
       obj.save!
       _(obj.reload.decimal_9_2).must_equal BigDecimal("1234567.89")
     end
@@ -142,7 +142,7 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       _(type.precision).must_equal         16
       _(type.scale).must_equal             4
       obj.decimal_16_4 = "1234567.8901001"
-      _(obj.decimal_16_4).must_equal        BigDecimal("1234567.8901")
+      _(obj.decimal_16_4).must_equal BigDecimal("1234567.8901")
       obj.save!
       _(obj.reload.decimal_16_4).must_equal BigDecimal("1234567.8901")
     end
@@ -156,12 +156,12 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       _(obj.numeric_18_0).must_equal       BigDecimal("191")
       _(col.default_function).must_be_nil
       type = connection.lookup_cast_type_from_column(col)
-      _(type).must_be_instance_of          Type::Decimal
+      _(type).must_be_instance_of Type::Decimal
       _(type.limit).must_be_nil
       _(type.precision).must_equal         18
       _(type.scale).must_equal             0
       obj.numeric_18_0 = "192.1"
-      _(obj.numeric_18_0).must_equal        BigDecimal("192")
+      _(obj.numeric_18_0).must_equal BigDecimal("192")
       obj.save!
       _(obj.reload.numeric_18_0).must_equal BigDecimal("192")
     end
@@ -175,12 +175,12 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       _(obj.numeric_36_2).must_equal       BigDecimal("12345678901234567890.01")
       _(col.default_function).must_be_nil
       type = connection.lookup_cast_type_from_column(col)
-      _(type).must_be_instance_of          Type::Decimal
+      _(type).must_be_instance_of Type::Decimal
       _(type.limit).must_be_nil
       _(type.precision).must_equal         36
       _(type.scale).must_equal             2
       obj.numeric_36_2 = "192.123"
-      _(obj.numeric_36_2).must_equal        BigDecimal("192.12")
+      _(obj.numeric_36_2).must_equal BigDecimal("192.12")
       obj.save!
       _(obj.reload.numeric_36_2).must_equal BigDecimal("192.12")
     end
@@ -194,14 +194,14 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       _(obj.money).must_equal              BigDecimal("4.20")
       _(col.default_function).must_be_nil
       type = connection.lookup_cast_type_from_column(col)
-      _(type).must_be_instance_of          Type::Money
+      _(type).must_be_instance_of Type::Money
       _(type.limit).must_be_nil
       _(type.precision).must_equal         19
       _(type.scale).must_equal             4
       obj.money = "922337203685477.58061"
-      _(obj.money).must_equal              BigDecimal("922337203685477.5806")
+      _(obj.money).must_equal BigDecimal("922337203685477.5806")
       obj.save!
-      _(obj.reload.money).must_equal       BigDecimal("922337203685477.5806")
+      _(obj.reload.money).must_equal BigDecimal("922337203685477.5806")
     end
 
     it "smallmoney" do
@@ -213,12 +213,12 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       _(obj.smallmoney).must_equal         BigDecimal("4.20")
       _(col.default_function).must_be_nil
       type = connection.lookup_cast_type_from_column(col)
-      _(type).must_be_instance_of          Type::SmallMoney
+      _(type).must_be_instance_of Type::SmallMoney
       _(type.limit).must_be_nil
       _(type.precision).must_equal         10
       _(type.scale).must_equal             4
       obj.smallmoney = "214748.36461"
-      _(obj.smallmoney).must_equal        BigDecimal("214748.3646")
+      _(obj.smallmoney).must_equal BigDecimal("214748.3646")
       obj.save!
       _(obj.reload.smallmoney).must_equal BigDecimal("214748.3646")
     end
@@ -236,12 +236,12 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       _(obj.float).must_equal              123.00000001
       _(col.default_function).must_be_nil
       type = connection.lookup_cast_type_from_column(col)
-      _(type).must_be_instance_of          Type::Float
+      _(type).must_be_instance_of Type::Float
       _(type.limit).must_be_nil
       _(type.precision).must_be_nil
       _(type.scale).must_be_nil
       obj.float = "214748.36461"
-      _(obj.float).must_equal        214748.36461
+      _(obj.float).must_equal 214748.36461
       obj.save!
       _(obj.reload.float).must_equal 214748.36461
     end
@@ -255,14 +255,14 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       _(obj.real).must_be_close_to         123.45, 0.01
       _(col.default_function).must_be_nil
       type = connection.lookup_cast_type_from_column(col)
-      _(type).must_be_instance_of          Type::Real
+      _(type).must_be_instance_of Type::Real
       _(type.limit).must_be_nil
       _(type.precision).must_be_nil
       _(type.scale).must_be_nil
       obj.real = "214748.36461"
-      _(obj.real).must_be_close_to         214748.36461, 0.01
+      _(obj.real).must_be_close_to 214748.36461, 0.01
       obj.save!
-      _(obj.reload.real).must_be_close_to  214748.36461, 0.01
+      _(obj.reload.real).must_be_close_to 214748.36461, 0.01
     end
 
     # Date and Time
@@ -276,31 +276,31 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       _(obj.date).must_equal               Date.civil(0001, 1, 1)
       _(col.default_function).must_be_nil
       type = connection.lookup_cast_type_from_column(col)
-      _(type).must_be_instance_of          Type::Date
+      _(type).must_be_instance_of Type::Date
       _(type.limit).must_be_nil
       _(type.precision).must_be_nil
       _(type.scale).must_be_nil
       # Can cast strings. SQL Server format.
       obj.date = "04-01-0001"
-      _(obj.date).must_equal               Date.civil(0001, 4, 1)
+      _(obj.date).must_equal Date.civil(0001, 4, 1)
       obj.save!
-      _(obj.date).must_equal               Date.civil(0001, 4, 1)
+      _(obj.date).must_equal Date.civil(0001, 4, 1)
       obj.reload
-      _(obj.date).must_equal               Date.civil(0001, 4, 1)
+      _(obj.date).must_equal Date.civil(0001, 4, 1)
       # Can cast strings. ISO format.
       obj.date = "0001-04-01"
-      _(obj.date).must_equal               Date.civil(0001, 4, 1)
+      _(obj.date).must_equal Date.civil(0001, 4, 1)
       obj.save!
-      _(obj.date).must_equal               Date.civil(0001, 4, 1)
+      _(obj.date).must_equal Date.civil(0001, 4, 1)
       obj.reload
-      _(obj.date).must_equal               Date.civil(0001, 4, 1)
+      _(obj.date).must_equal Date.civil(0001, 4, 1)
       # Can keep and return assigned date.
       assert_obj_set_and_save :date, Date.civil(1972, 04, 14)
       # Can accept and cast time objects.
       obj.date = Time.utc(2010, 4, 14, 12, 34, 56, 3000)
       _(obj.date).must_equal               Date.civil(2010, 4, 14)
       obj.save!
-      _(obj.reload.date).must_equal        Date.civil(2010, 4, 14)
+      _(obj.reload.date).must_equal Date.civil(2010, 4, 14)
     end
 
     it "datetime" do
@@ -313,7 +313,7 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       _(obj.datetime).must_equal           time, "Microseconds were <#{obj.datetime.usec}> vs <123000>"
       _(col.default_function).must_be_nil
       type = connection.lookup_cast_type_from_column(col)
-      _(type).must_be_instance_of          Type::DateTime
+      _(type).must_be_instance_of Type::DateTime
       _(type.limit).must_be_nil
       _(type.precision).must_be_nil
       _(type.scale).must_be_nil
@@ -322,21 +322,21 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       # Can save to proper accuracy and return again.
       time = Time.utc 2010, 04, 01, 12, 34, 56, 3000
       obj.datetime = time
-      _(obj.datetime).must_equal           time, "Microseconds were <#{obj.datetime.usec}> vs <3000>"
+      _(obj.datetime).must_equal time, "Microseconds were <#{obj.datetime.usec}> vs <3000>"
       obj.save!
-      _(obj.datetime).must_equal           time, "Microseconds were <#{obj.datetime.usec}> vs <3000>"
+      _(obj.datetime).must_equal time, "Microseconds were <#{obj.datetime.usec}> vs <3000>"
       obj.reload
-      _(obj.datetime).must_equal           time, "Microseconds were <#{obj.datetime.usec}> vs <3000>"
+      _(obj.datetime).must_equal time, "Microseconds were <#{obj.datetime.usec}> vs <3000>"
       _(obj).must_equal obj.class.where(datetime: time).first
       # Will cast to true DB value on attribute write, save and return again.
-      time  = Time.utc 2010, 04, 01, 12, 34, 56, 234567
+      time = Time.utc 2010, 04, 01, 12, 34, 56, 234567
       time2 = Time.utc 2010, 04, 01, 12, 34, 56, 233000
       obj.datetime = time
-      _(obj.datetime).must_equal           time2, "Microseconds were <#{obj.datetime.usec}> vs <233000>"
+      _(obj.datetime).must_equal time2, "Microseconds were <#{obj.datetime.usec}> vs <233000>"
       obj.save!
-      _(obj.datetime).must_equal           time2, "Microseconds were <#{obj.datetime.usec}> vs <233000>"
+      _(obj.datetime).must_equal time2, "Microseconds were <#{obj.datetime.usec}> vs <233000>"
       obj.reload
-      _(obj.datetime).must_equal           time2, "Microseconds were <#{obj.datetime.usec}> vs <233000>"
+      _(obj.datetime).must_equal time2, "Microseconds were <#{obj.datetime.usec}> vs <233000>"
       _(obj).must_equal obj.class.where(datetime: time).first
       _(obj).must_equal obj.class.where(datetime: time2).first
       # Set and find nil.
@@ -358,30 +358,30 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       _(obj.datetime2_7).must_equal        time, "Nanoseconds were <#{obj.datetime2_7.nsec}> vs <999999900>"
       _(col.default_function).must_be_nil
       type = connection.lookup_cast_type_from_column(col)
-      _(type).must_be_instance_of          Type::DateTime2
+      _(type).must_be_instance_of Type::DateTime2
       _(type.limit).must_be_nil
-      _(type.precision).must_equal         7
+      _(type.precision).must_equal 7
       _(type.scale).must_be_nil
       obj.save!
       _(obj).must_equal obj.class.where(datetime2_7: time).first
       # Can save 100 nanosecond precisoins and return again.
-      time  = Time.utc 9999, 12, 31, 23, 59, 59, Rational(123456755, 1000)
+      time = Time.utc 9999, 12, 31, 23, 59, 59, Rational(123456755, 1000)
       time2 = Time.utc 9999, 12, 31, 23, 59, 59, Rational(123456800, 1000)
       obj.datetime2_7 = time
-      _(obj.datetime2_7).must_equal           time2, "Nanoseconds were <#{obj.datetime2_7.nsec}> vs <123456800>"
+      _(obj.datetime2_7).must_equal time2, "Nanoseconds were <#{obj.datetime2_7.nsec}> vs <123456800>"
       obj.save!
-      _(obj.datetime2_7).must_equal           time2, "Nanoseconds were <#{obj.datetime2_7.nsec}> vs <123456800>"
+      _(obj.datetime2_7).must_equal time2, "Nanoseconds were <#{obj.datetime2_7.nsec}> vs <123456800>"
       obj.reload
-      _(obj.datetime2_7).must_equal           time2, "Nanoseconds were <#{obj.datetime2_7.nsec}> vs <123456800>"
+      _(obj.datetime2_7).must_equal time2, "Nanoseconds were <#{obj.datetime2_7.nsec}> vs <123456800>"
       _(obj).must_equal obj.class.where(datetime2_7: time).first
       _(obj).must_equal obj.class.where(datetime2_7: time2).first
       # Can save small fraction nanosecond precisoins and return again.
-      time  = Time.utc 2008, 6, 21, 13, 30, 0, Rational(15020, 1000)
+      time = Time.utc 2008, 6, 21, 13, 30, 0, Rational(15020, 1000)
       time2 = Time.utc 2008, 6, 21, 13, 30, 0, Rational(15000, 1000)
       obj.datetime2_7 = time
-      _(obj.datetime2_7).must_equal           time2, "Nanoseconds were <#{obj.datetime2_7.nsec}> vs <15000>"
+      _(obj.datetime2_7).must_equal time2, "Nanoseconds were <#{obj.datetime2_7.nsec}> vs <15000>"
       obj.save!
-      _(obj.reload.datetime2_7).must_equal    time2, "Nanoseconds were <#{obj.datetime2_7.nsec}> vs <15000>"
+      _(obj.reload.datetime2_7).must_equal time2, "Nanoseconds were <#{obj.datetime2_7.nsec}> vs <15000>"
       _(obj).must_equal obj.class.where(datetime2_7: time).first
       _(obj).must_equal obj.class.where(datetime2_7: time2).first
       # datetime2_3
@@ -390,7 +390,7 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       _(connection.lookup_cast_type_from_column(col).precision).must_equal 3
       obj.datetime2_3 = time
       _(obj.datetime2_3).must_equal time.change(nsec: 123000000), "Nanoseconds were <#{obj.datetime2_3.nsec}> vs <123000000>"
-      obj.save! ; obj.reload
+      obj.save!; obj.reload
       _(obj.datetime2_3).must_equal time.change(nsec: 123000000), "Nanoseconds were <#{obj.datetime2_3.nsec}> vs <123000000>"
       _(obj).must_equal obj.class.where(datetime2_3: time).first
       # datetime2_1
@@ -398,7 +398,7 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       _(connection.lookup_cast_type_from_column(col).precision).must_equal 1
       obj.datetime2_1 = time
       _(obj.datetime2_1).must_equal time.change(nsec: 100000000), "Nanoseconds were <#{obj.datetime2_1.nsec}> vs <100000000>"
-      obj.save! ; obj.reload
+      obj.save!; obj.reload
       _(obj.datetime2_1).must_equal time.change(nsec: 100000000), "Nanoseconds were <#{obj.datetime2_1.nsec}> vs <100000000>"
       _(obj).must_equal obj.class.where(datetime2_1: time).first
       # datetime2_0
@@ -407,7 +407,7 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       time = Time.utc 2016, 4, 19, 16, 45, 40, 771036
       obj.datetime2_0 = time
       _(obj.datetime2_0).must_equal time.change(nsec: 0), "Nanoseconds were <#{obj.datetime2_0.nsec}> vs <0>"
-      obj.save! ; obj.reload
+      obj.save!; obj.reload
       _(obj.datetime2_0).must_equal time.change(nsec: 0), "Nanoseconds were <#{obj.datetime2_0.nsec}> vs <0>"
       _(obj).must_equal obj.class.where(datetime2_0: time).first
     end
@@ -422,17 +422,17 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       _(obj.datetimeoffset_7).must_equal   Time.new(1984, 01, 24, 04, 20, 00, -28800).change(nsec: 123456700), "Nanoseconds were <#{obj.datetimeoffset_7.nsec}> vs <999999900>"
       _(col.default_function).must_be_nil
       type = connection.lookup_cast_type_from_column(col)
-      _(type).must_be_instance_of          Type::DateTimeOffset
+      _(type).must_be_instance_of Type::DateTimeOffset
       _(type.limit).must_be_nil
-      _(type.precision).must_equal         7
+      _(type.precision).must_equal 7
       _(type.scale).must_be_nil
       # Can save 100 nanosecond precisoins and return again.
       obj.datetimeoffset_7 = Time.new(2010, 04, 01, 12, 34, 56, +18000).change(nsec: 123456755)
-      _(obj.datetimeoffset_7).must_equal   Time.new(2010, 04, 01, 12, 34, 56, +18000).change(nsec: 123456800), "Nanoseconds were <#{obj.datetimeoffset_7.nsec}> vs <123456800>"
+      _(obj.datetimeoffset_7).must_equal Time.new(2010, 04, 01, 12, 34, 56, +18000).change(nsec: 123456800), "Nanoseconds were <#{obj.datetimeoffset_7.nsec}> vs <123456800>"
       obj.save!
-      _(obj.datetimeoffset_7).must_equal   Time.new(2010, 04, 01, 12, 34, 56, +18000).change(nsec: 123456800), "Nanoseconds were <#{obj.datetimeoffset_7.nsec}> vs <123456800>"
+      _(obj.datetimeoffset_7).must_equal Time.new(2010, 04, 01, 12, 34, 56, +18000).change(nsec: 123456800), "Nanoseconds were <#{obj.datetimeoffset_7.nsec}> vs <123456800>"
       obj.reload
-      _(obj.datetimeoffset_7).must_equal   Time.new(2010, 04, 01, 12, 34, 56, +18000).change(nsec: 123456800), "Nanoseconds were <#{obj.datetimeoffset_7.nsec}> vs <123456800>"
+      _(obj.datetimeoffset_7).must_equal Time.new(2010, 04, 01, 12, 34, 56, +18000).change(nsec: 123456800), "Nanoseconds were <#{obj.datetimeoffset_7.nsec}> vs <123456800>"
       # Maintains the timezone
       time = ActiveSupport::TimeZone["America/Los_Angeles"].local 2010, 12, 31, 23, 59, 59, Rational(123456800, 1000)
       obj.datetimeoffset_7 = time
@@ -465,17 +465,17 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       _(obj.smalldatetime).must_equal      Time.utc(1901, 01, 01, 15, 45, 00, 000)
       _(col.default_function).must_be_nil
       type = connection.lookup_cast_type_from_column(col)
-      _(type).must_be_instance_of          Type::SmallDateTime
+      _(type).must_be_instance_of Type::SmallDateTime
       _(type.limit).must_be_nil
       _(type.precision).must_be_nil
       _(type.scale).must_be_nil
       # Will remove fractional seconds and return again.
       obj.smalldatetime = Time.utc(2078, 06, 05, 4, 20, 00, 3000)
-      _(obj.smalldatetime).must_equal      Time.utc(2078, 06, 05, 4, 20, 00, 0), "Microseconds were <#{obj.smalldatetime.usec}> vs <0>"
+      _(obj.smalldatetime).must_equal Time.utc(2078, 06, 05, 4, 20, 00, 0), "Microseconds were <#{obj.smalldatetime.usec}> vs <0>"
       obj.save!
-      _(obj.smalldatetime).must_equal      Time.utc(2078, 06, 05, 4, 20, 00, 0), "Microseconds were <#{obj.reload.smalldatetime.usec}> vs <0>"
+      _(obj.smalldatetime).must_equal Time.utc(2078, 06, 05, 4, 20, 00, 0), "Microseconds were <#{obj.reload.smalldatetime.usec}> vs <0>"
       obj.reload
-      _(obj.smalldatetime).must_equal      Time.utc(2078, 06, 05, 4, 20, 00, 0), "Microseconds were <#{obj.reload.smalldatetime.usec}> vs <0>"
+      _(obj.smalldatetime).must_equal Time.utc(2078, 06, 05, 4, 20, 00, 0), "Microseconds were <#{obj.reload.smalldatetime.usec}> vs <0>"
     end
 
     it "time(7)" do
@@ -487,27 +487,27 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       _(col.default).must_equal            Time.utc(1900, 01, 01, 04, 20, 00, Rational(288321500, 1000)), "Nanoseconds were <#{col.default.nsec}> vs <288321500>"
       _(col.default_function).must_be_nil
       type = connection.lookup_cast_type_from_column(col)
-      _(type).must_be_instance_of          Type::Time
+      _(type).must_be_instance_of Type::Time
       _(type.limit).must_be_nil
-      _(type.precision).must_equal         7
+      _(type.precision).must_equal 7
       _(type.scale).must_be_nil
       # Time's #usec precision (low micro)
       obj.time_7 = Time.utc(2000, 01, 01, 15, 45, 00, 300)
       _(obj.time_7).must_equal             Time.utc(2000, 01, 01, 15, 45, 00, 300), "Microseconds were <#{obj.time_7.usec}> vs <0>"
       _(obj.time_7).must_equal             Time.utc(2000, 01, 01, 15, 45, 00, 300), "Nanoseconds were <#{obj.time_7.nsec}> vs <300>"
-      obj.save! ; obj.reload
+      obj.save!; obj.reload
       _(obj.time_7).must_equal             Time.utc(2000, 01, 01, 15, 45, 00, 300), "Microseconds were <#{obj.time_7.usec}> vs <0>"
       _(obj.time_7).must_equal             Time.utc(2000, 01, 01, 15, 45, 00, 300), "Nanoseconds were <#{obj.time_7.nsec}> vs <300>"
       # Time's #usec precision (high micro)
       obj.time_7 = Time.utc(2000, 01, 01, 15, 45, 00, 234567)
-      _(obj.time_7).must_equal             Time.utc(2000, 01, 01, 15, 45, 00, 234567), "Microseconds were <#{obj.time_7.usec}> vs <234567>"
-      obj.save! ; obj.reload
-      _(obj.time_7).must_equal             Time.utc(2000, 01, 01, 15, 45, 00, 234567), "Microseconds were <#{obj.time_7.usec}> vs <234567>"
+      _(obj.time_7).must_equal Time.utc(2000, 01, 01, 15, 45, 00, 234567), "Microseconds were <#{obj.time_7.usec}> vs <234567>"
+      obj.save!; obj.reload
+      _(obj.time_7).must_equal Time.utc(2000, 01, 01, 15, 45, 00, 234567), "Microseconds were <#{obj.time_7.usec}> vs <234567>"
       # Time's #usec precision (high nano rounded)
       obj.time_7 = Time.utc(2000, 01, 01, 15, 45, 00, Rational(288321545, 1000))
-      _(obj.time_7).must_equal             Time.utc(2000, 01, 01, 15, 45, 00, Rational(288321500, 1000)), "Nanoseconds were <#{obj.time_7.nsec}> vs <288321500>"
-      obj.save! ; obj.reload
-      _(obj.time_7).must_equal             Time.utc(2000, 01, 01, 15, 45, 00, Rational(288321500, 1000)), "Nanoseconds were <#{obj.time_7.nsec}> vs <288321500>"
+      _(obj.time_7).must_equal Time.utc(2000, 01, 01, 15, 45, 00, Rational(288321500, 1000)), "Nanoseconds were <#{obj.time_7.nsec}> vs <288321500>"
+      obj.save!; obj.reload
+      _(obj.time_7).must_equal Time.utc(2000, 01, 01, 15, 45, 00, Rational(288321500, 1000)), "Nanoseconds were <#{obj.time_7.nsec}> vs <288321500>"
     end
 
     it "time(2)" do
@@ -519,25 +519,25 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       _(col.default).must_be_nil
       _(col.default_function).must_be_nil
       type = connection.lookup_cast_type_from_column(col)
-      _(type).must_be_instance_of          Type::Time
+      _(type).must_be_instance_of Type::Time
       _(type.limit).must_be_nil
-      _(type.precision).must_equal         2
+      _(type.precision).must_equal 2
       _(type.scale).must_be_nil
       # Always uses TinyTDS/Windows 2000-01-01 convention too.
       obj.time_2 = Time.utc(2015, 01, 10, 15, 45, 00, 0)
-      _(obj.time_2).must_equal             Time.utc(2000, 01, 01, 15, 45, 00, 0)
-      obj.save! ; obj.reload
-      _(obj.time_2).must_equal             Time.utc(2000, 01, 01, 15, 45, 00, 0)
+      _(obj.time_2).must_equal Time.utc(2000, 01, 01, 15, 45, 00, 0)
+      obj.save!; obj.reload
+      _(obj.time_2).must_equal Time.utc(2000, 01, 01, 15, 45, 00, 0)
       # Time's #usec precision (barely in 2 precision equal to 0.03 seconds)
       obj.time_2 = Time.utc(2000, 01, 01, 15, 45, 00, 30000)
-      _(obj.time_2).must_equal             Time.utc(2000, 01, 01, 15, 45, 00, 30000), "Microseconds were <#{obj.time_2.usec}> vs <30000>"
-      obj.save! ; obj.reload
-      _(obj.time_2).must_equal             Time.utc(2000, 01, 01, 15, 45, 00, 30000), "Microseconds were <#{obj.time_2.usec}> vs <30000>"
+      _(obj.time_2).must_equal Time.utc(2000, 01, 01, 15, 45, 00, 30000), "Microseconds were <#{obj.time_2.usec}> vs <30000>"
+      obj.save!; obj.reload
+      _(obj.time_2).must_equal Time.utc(2000, 01, 01, 15, 45, 00, 30000), "Microseconds were <#{obj.time_2.usec}> vs <30000>"
       # Time's #usec precision (below 2 precision)
       obj.time_2 = Time.utc(2000, 01, 01, 15, 45, 00, 4000)
-      _(obj.time_2).must_equal             Time.utc(2000, 01, 01, 15, 45, 00, 0), "Microseconds were <#{obj.time_2.usec}> vs <0>"
-      obj.save! ; obj.reload
-      _(obj.time_2).must_equal             Time.utc(2000, 01, 01, 15, 45, 00, 0), "Microseconds were <#{obj.time_2.usec}> vs <0>"
+      _(obj.time_2).must_equal Time.utc(2000, 01, 01, 15, 45, 00, 0), "Microseconds were <#{obj.time_2.usec}> vs <0>"
+      obj.save!; obj.reload
+      _(obj.time_2).must_equal Time.utc(2000, 01, 01, 15, 45, 00, 0), "Microseconds were <#{obj.time_2.usec}> vs <0>"
     end
 
     it "time using default precision" do
@@ -549,27 +549,27 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       _(col.default).must_equal            Time.utc(1900, 01, 01, 15, 03, 42, Rational(62197800, 1000)), "Nanoseconds were <#{col.default.nsec}> vs <62197800>"
       _(col.default_function).must_be_nil
       type = connection.lookup_cast_type_from_column(col)
-      _(type).must_be_instance_of          Type::Time
+      _(type).must_be_instance_of Type::Time
       _(type.limit).must_be_nil
-      _(type.precision).must_equal         7
+      _(type.precision).must_equal 7
       _(type.scale).must_be_nil
       # Time's #usec precision (low micro)
       obj.time_default = Time.utc(2000, 01, 01, 15, 45, 00, 300)
       _(obj.time_default).must_equal             Time.utc(2000, 01, 01, 15, 45, 00, 300), "Microseconds were <#{obj.time_default.usec}> vs <0>"
       _(obj.time_default).must_equal             Time.utc(2000, 01, 01, 15, 45, 00, 300), "Nanoseconds were <#{obj.time_default.nsec}> vs <300>"
-      obj.save! ; obj.reload
+      obj.save!; obj.reload
       _(obj.time_default).must_equal             Time.utc(2000, 01, 01, 15, 45, 00, 300), "Microseconds were <#{obj.time_default.usec}> vs <0>"
       _(obj.time_default).must_equal             Time.utc(2000, 01, 01, 15, 45, 00, 300), "Nanoseconds were <#{obj.time_default.nsec}> vs <300>"
       # Time's #usec precision (high micro)
       obj.time_default = Time.utc(2000, 01, 01, 15, 45, 00, 234567)
-      _(obj.time_default).must_equal             Time.utc(2000, 01, 01, 15, 45, 00, 234567), "Microseconds were <#{obj.time_default.usec}> vs <234567>"
-      obj.save! ; obj.reload
-      _(obj.time_default).must_equal             Time.utc(2000, 01, 01, 15, 45, 00, 234567), "Microseconds were <#{obj.time_default.usec}> vs <234567>"
+      _(obj.time_default).must_equal Time.utc(2000, 01, 01, 15, 45, 00, 234567), "Microseconds were <#{obj.time_default.usec}> vs <234567>"
+      obj.save!; obj.reload
+      _(obj.time_default).must_equal Time.utc(2000, 01, 01, 15, 45, 00, 234567), "Microseconds were <#{obj.time_default.usec}> vs <234567>"
       # Time's #usec precision (high nano rounded)
       obj.time_default = Time.utc(2000, 01, 01, 15, 45, 00, Rational(288321545, 1000))
-      _(obj.time_default).must_equal             Time.utc(2000, 01, 01, 15, 45, 00, Rational(288321500, 1000)), "Nanoseconds were <#{obj.time_default.nsec}> vs <288321500>"
-      obj.save! ; obj.reload
-      _(obj.time_default).must_equal             Time.utc(2000, 01, 01, 15, 45, 00, Rational(288321500, 1000)), "Nanoseconds were <#{obj.time_default.nsec}> vs <288321500>"
+      _(obj.time_default).must_equal Time.utc(2000, 01, 01, 15, 45, 00, Rational(288321500, 1000)), "Nanoseconds were <#{obj.time_default.nsec}> vs <288321500>"
+      obj.save!; obj.reload
+      _(obj.time_default).must_equal Time.utc(2000, 01, 01, 15, 45, 00, Rational(288321500, 1000)), "Nanoseconds were <#{obj.time_default.nsec}> vs <288321500>"
     end
 
     # Character Strings
@@ -589,9 +589,9 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       _(type.scale).must_be_nil
       # Basic set and save.
       obj.char_10 = "012345"
-      _(obj.char_10.strip).must_equal         "012345"
+      _(obj.char_10.strip).must_equal "012345"
       obj.save!
-      _(obj.reload.char_10.strip).must_equal  "012345"
+      _(obj.reload.char_10.strip).must_equal "012345"
     end
 
     it "varchar(50)" do
@@ -662,9 +662,9 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       _(type.scale).must_be_nil
       # Basic set and save.
       obj.nchar_10 = "五六"
-      _(obj.nchar_10.strip).must_equal         "五六"
+      _(obj.nchar_10.strip).must_equal "五六"
       obj.save!
-      _(obj.reload.nchar_10.strip).must_equal  "五六"
+      _(obj.reload.nchar_10.strip).must_equal "五六"
     end
 
     it "nvarchar(50)" do
@@ -790,21 +790,21 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       _(col.type).must_equal               :uuid
       _(col.null).must_equal               true
       _(col.default).must_be_nil
-      _(col.default_function).must_equal   "newid()"
+      _(col.default_function).must_equal "newid()"
       type = connection.lookup_cast_type_from_column(col)
-      _(type).must_be_instance_of          Type::Uuid
+      _(type).must_be_instance_of Type::Uuid
       _(type.limit).must_be_nil
       _(type.precision).must_be_nil
       _(type.scale).must_be_nil
       # Basic set and save.
       obj.uniqueidentifier = "this will not qualify as valid"
       _(obj.uniqueidentifier).must_be_nil
-      obj.save! ; obj.reload
-      _(obj.uniqueidentifier).must_match   Type::Uuid::ACCEPTABLE_UUID
+      obj.save!; obj.reload
+      _(obj.uniqueidentifier).must_match Type::Uuid::ACCEPTABLE_UUID
       obj.uniqueidentifier = "6F9619FF-8B86-D011-B42D-00C04FC964FF"
-      _(obj.uniqueidentifier).must_equal   "6F9619FF-8B86-D011-B42D-00C04FC964FF"
-      obj.save! ; obj.reload
-      _(obj.uniqueidentifier).must_equal   "6F9619FF-8B86-D011-B42D-00C04FC964FF"
+      _(obj.uniqueidentifier).must_equal "6F9619FF-8B86-D011-B42D-00C04FC964FF"
+      obj.save!; obj.reload
+      _(obj.uniqueidentifier).must_equal "6F9619FF-8B86-D011-B42D-00C04FC964FF"
     end
 
     it "timestamp" do
@@ -815,14 +815,14 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       _(col.default).must_be_nil
       _(col.default_function).must_be_nil
       type = connection.lookup_cast_type_from_column(col)
-      _(type).must_be_instance_of          Type::Timestamp
+      _(type).must_be_instance_of Type::Timestamp
       _(type.limit).must_be_nil
       _(type.precision).must_be_nil
       _(type.scale).must_be_nil
       # Basic read.
       _(obj.timestamp).must_be_nil
-      obj.save! ; obj.reload
-      _(obj.timestamp).must_match   %r|\000|
+      obj.save!; obj.reload
+      _(obj.timestamp).must_match %r|\000|
       obj.timestamp
       # Can set another attribute
       obj.uniqueidentifier = "6F9619FF-8B86-D011-B42D-00C04FC964FF"

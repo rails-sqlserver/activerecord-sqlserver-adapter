@@ -83,7 +83,7 @@ ActiveRecord::Schema.define do
   execute "IF EXISTS (SELECT TABLE_NAME FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_NAME = 'sst_quoted-view1') DROP VIEW [sst_quoted-view1]"
   execute "CREATE VIEW [sst_quoted-view1] AS SELECT * FROM [sst_quoted-table]"
   execute "IF EXISTS (SELECT TABLE_NAME FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_NAME = 'sst_quoted-view2') DROP VIEW [sst_quoted-view2]"
-  execute "CREATE VIEW [sst_quoted-view2] AS \n /*#{'x'*4000}}*/ \n SELECT * FROM [sst_quoted-table]"
+  execute "CREATE VIEW [sst_quoted-view2] AS \n /*#{'x' * 4000}}*/ \n SELECT * FROM [sst_quoted-table]"
 
   create_table :sst_string_defaults, force: true do |t|
     t.column :string_with_null_default, :string, default: nil
@@ -150,7 +150,7 @@ ActiveRecord::Schema.define do
     t.column(:fk_id2, :bigint)
   end
 
-  create_table(:sst_has_pks, force: true) { }
+  create_table(:sst_has_pks, force: true) {}
   execute <<-ADDFKSQL
     ALTER TABLE sst_has_fks
     ADD CONSTRAINT FK__sst_has_fks_id
@@ -182,7 +182,7 @@ ActiveRecord::Schema.define do
   execute <<-STRINGDEFAULTSBIGVIEW
     CREATE VIEW sst_string_defaults_big_view AS
       SELECT id, string_with_pretend_null_one as pretend_null
-      /*#{'x'*4000}}*/
+      /*#{'x' * 4000}}*/
       FROM sst_string_defaults
   STRINGDEFAULTSBIGVIEW
 
@@ -227,7 +227,7 @@ ActiveRecord::Schema.define do
   # Another schema.
 
   create_table :sst_schema_columns, force: true do |t|
-    t.column :field1 , :integer
+    t.column :field1, :integer
   end
 
   execute "IF NOT EXISTS(SELECT * FROM sys.schemas WHERE name = 'test') EXEC sp_executesql N'CREATE SCHEMA test'"
