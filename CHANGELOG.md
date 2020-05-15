@@ -8,6 +8,7 @@
 - [#809](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/809) Rails 6: Coerce reaper test using fork
 - [#810](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/810) Rails 6: Fix randomly failing tests due to schema load
 - [#812](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/812) Rails 6: Coerce ReloadModelsTest test on Windows
+- [#818](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/818) Handle false return by TinyTDS if connection fails and fixed CI
 - [#819](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/819) Fix Ruby 2.7 kwargs warnings
 
 #### Changed
