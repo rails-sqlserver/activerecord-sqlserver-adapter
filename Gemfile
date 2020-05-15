@@ -40,6 +40,7 @@ else
   gem "rails", github: "rails/rails", tag: "v#{version}"
 end
 
+# rubocop:disable Bundler/DuplicatedGem
 group :tinytds do
   if ENV["TINYTDS_SOURCE"]
     gem "tiny_tds", path: ENV["TINYTDS_SOURCE"]
@@ -49,11 +50,12 @@ group :tinytds do
     gem "tiny_tds"
   end
 end
+# rubocop:enable Bundler/DuplicatedGem
 
 group :development do
-  gem "pry-byebug", platform: [:mri, :mingw, :x64_mingw]
-  gem "mocha"
   gem "minitest-spec-rails"
+  gem "mocha"
+  gem "pry-byebug", platform: [:mri, :mingw, :x64_mingw]
 end
 
 group :guard do
