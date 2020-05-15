@@ -16,7 +16,7 @@ module ActiveRecord
           end
 
           def sqlserver_type
-            'varchar'.yield_self do |type|
+            "varchar".yield_self do |type|
               type += "(#{limit})" if limit
               type
             end

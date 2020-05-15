@@ -38,7 +38,7 @@ module Arel
       end
 
       def visit_Arel_Nodes_Lock o, collector
-        o.expr = Arel.sql('WITH(UPDLOCK)') if o.expr.to_s =~ /FOR UPDATE/
+        o.expr = Arel.sql("WITH(UPDLOCK)") if o.expr.to_s =~ /FOR UPDATE/
         collector << " "
         visit o.expr, collector
       end
@@ -109,7 +109,7 @@ module Arel
         end
         if o.right.any?
           collector << " " if o.left
-          collector = inject_join o.right, collector, ' '
+          collector = inject_join o.right, collector, " "
         end
         collector
       end

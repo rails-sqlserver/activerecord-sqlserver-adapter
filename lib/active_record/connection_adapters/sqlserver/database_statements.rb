@@ -25,7 +25,7 @@ module ActiveRecord
           end
         end
 
-        def exec_query(sql, name = 'SQL', binds = [], prepare: false)
+        def exec_query(sql, name = "SQL", binds = [], prepare: false)
           if preventing_writes? && write_query?(sql)
             raise ActiveRecord::ReadOnlyError, "Write query attempted while in readonly mode: #{sql}"
           end
@@ -44,17 +44,17 @@ module ActiveRecord
         end
 
         def exec_delete(sql, name, binds)
-          sql = sql.dup << '; SELECT @@ROWCOUNT AS AffectedRows'
+          sql = sql.dup << "; SELECT @@ROWCOUNT AS AffectedRows"
           super(sql, name, binds).rows.first.first
         end
 
         def exec_update(sql, name, binds)
-          sql = sql.dup << '; SELECT @@ROWCOUNT AS AffectedRows'
+          sql = sql.dup << "; SELECT @@ROWCOUNT AS AffectedRows"
           super(sql, name, binds).rows.first.first
         end
 
         def begin_db_transaction
-          do_execute 'BEGIN TRANSACTION'
+          do_execute "BEGIN TRANSACTION"
         end
 
         def transaction_isolation_levels
@@ -71,11 +71,11 @@ module ActiveRecord
         end
 
         def commit_db_transaction
-          do_execute 'COMMIT TRANSACTION'
+          do_execute "COMMIT TRANSACTION"
         end
 
         def exec_rollback_db_transaction
-          do_execute 'IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION'
+          do_execute "IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION"
         end
 
         include Savepoints
@@ -159,9 +159,9 @@ module ActiveRecord
                    variables.first.map { |k, v| "@#{k} = #{quote(v)}" }
                  else
                    variables.map { |v| quote(v) }
-                 end.join(', ')
+                 end.join(", ")
           sql = "EXEC #{proc_name} #{vars}".strip
-          name = 'Execute Procedure'
+          name = "Execute Procedure"
           log(sql, name) do
             case @connection_options[:mode]
             when :dblib
@@ -192,14 +192,14 @@ module ActiveRecord
 
         def user_options
           return {} if sqlserver_azure?
-          rows = select_rows('DBCC USEROPTIONS WITH NO_INFOMSGS', 'SCHEMA')
+          rows = select_rows("DBCC USEROPTIONS WITH NO_INFOMSGS", "SCHEMA")
           rows = rows.first if rows.size == 2 && rows.last.empty?
           rows.reduce(HashWithIndifferentAccess.new) do |values, row|
             if row.instance_of? Hash
-              set_option = row.values[0].gsub(/\s+/, '_')
+              set_option = row.values[0].gsub(/\s+/, "_")
               user_value = row.values[1]
             elsif  row.instance_of? Array
-              set_option = row[0].gsub(/\s+/, '_')
+              set_option = row[0].gsub(/\s+/, "_")
               user_value = row[1]
             end
             values[set_option] = user_value
@@ -209,9 +209,9 @@ module ActiveRecord
 
         def user_options_dateformat
           if sqlserver_azure?
-            select_value 'SELECT [dateformat] FROM [sys].[syslanguages] WHERE [langid] = @@LANGID', 'SCHEMA'
+            select_value "SELECT [dateformat] FROM [sys].[syslanguages] WHERE [langid] = @@LANGID", "SCHEMA"
           else
-            user_options['dateformat']
+            user_options["dateformat"]
           end
         end
 
@@ -226,26 +226,26 @@ module ActiveRecord
                     WHEN 5 THEN 'SNAPSHOT' END AS [isolation_level]
                     FROM [sys].[dm_exec_sessions]
                     WHERE [session_id] = @@SPID).squish
-            select_value sql, 'SCHEMA'
+            select_value sql, "SCHEMA"
           else
-            user_options['isolation_level']
+            user_options["isolation_level"]
           end
         end
 
         def user_options_language
           if sqlserver_azure?
-            select_value 'SELECT @@LANGUAGE AS [language]', 'SCHEMA'
+            select_value "SELECT @@LANGUAGE AS [language]", "SCHEMA"
           else
-            user_options['language']
+            user_options["language"]
           end
         end
 
         def newid_function
-          select_value 'SELECT NEWID()'
+          select_value "SELECT NEWID()"
         end
 
         def newsequentialid_function
-          select_value 'SELECT NEWSEQUENTIALID()'
+          select_value "SELECT NEWSEQUENTIALID()"
         end
 
 
@@ -263,7 +263,7 @@ module ActiveRecord
                   exclude_output_inserted = exclude_output_inserted_table_name?(table_name, sql)
 
                   if exclude_output_inserted
-                    id_sql_type = exclude_output_inserted.is_a?(TrueClass) ? 'bigint' : exclude_output_inserted
+                    id_sql_type = exclude_output_inserted.is_a?(TrueClass) ? "bigint" : exclude_output_inserted
                     <<~SQL.squish
                       DECLARE @ssaIdInsertTable table (#{quoted_pk} #{id_sql_type});
                       #{sql.dup.insert sql.index(/ (DEFAULT )?VALUES/), " OUTPUT INSERTED.#{quoted_pk} INTO @ssaIdInsertTable"}
@@ -288,7 +288,7 @@ module ActiveRecord
 
         # === SQLServer Specific (Executing) ============================ #
 
-        def do_execute(sql, name = 'SQL')
+        def do_execute(sql, name = "SQL")
           materialize_transactions
 
           log(sql, name) { raw_connection_do(sql) }
@@ -318,9 +318,9 @@ module ActiveRecord
           return attr.type.sqlserver_type if attr.type.respond_to?(:sqlserver_type)
           case value = attr.value_for_database
           when Numeric
-            value > 2_147_483_647 ? 'bigint'.freeze : 'int'.freeze
+            value > 2_147_483_647 ? "bigint".freeze : "int".freeze
           else
-            'nvarchar(max)'.freeze
+            "nvarchar(max)".freeze
           end
         end
 
@@ -335,14 +335,14 @@ module ActiveRecord
         end
 
         def sp_executesql_sql(sql, types, params, name)
-          if name == 'EXPLAIN'
+          if name == "EXPLAIN"
             params.each.with_index do |param, index|
               substitute_at_finder = /(@#{index})(?=(?:[^']|'[^']*')*$)/ # Finds unquoted @n values.
               sql = sql.sub substitute_at_finder, param.to_s
             end
           else
-            types = quote(types.join(', '))
-            params = params.map.with_index{ |p, i| "@#{i} = #{p}" }.join(', ') # Only p is needed, but with @i helps explain regexp.
+            types = quote(types.join(", "))
+            params = params.map.with_index{ |p, i| "@#{i} = #{p}" }.join(", ") # Only p is needed, but with @i helps explain regexp.
             sql = "EXEC sp_executesql #{quote(sql)}"
             sql += ", #{types}, #{params}" unless params.empty?
           end
@@ -357,7 +357,7 @@ module ActiveRecord
             # TinyTDS returns false instead of raising an exception if connection fails.
             # Getting around this by raising an exception ourselves while this PR
             # https://github.com/rails-sqlserver/tiny_tds/pull/469 is not released.
-            raise TinyTds::Error, 'failed to execute statement' if result.is_a?(FalseClass)
+            raise TinyTds::Error, "failed to execute statement" if result.is_a?(FalseClass)
 
             result.do
           end
@@ -407,7 +407,7 @@ module ActiveRecord
 
         # === SQLServer Specific (Selecting) ============================ #
 
-        def raw_select(sql, name = 'SQL', binds = [], options = {})
+        def raw_select(sql, name = "SQL", binds = [], options = {})
           log(sql, name, binds) { _raw_select(sql, options) }
         end
 

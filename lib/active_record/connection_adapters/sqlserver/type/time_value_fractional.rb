@@ -25,7 +25,7 @@ module ActiveRecord
             return 0 if fractional_scale == 0
             frac_seconds = seconds_precision(value)
             seconds = (frac_seconds.to_f / fractional_operator.to_f).round(fractional_scale)
-            seconds.to_d.to_s.split('.').last.to(fractional_scale-1)
+            seconds.to_d.to_s.split(".").last.to(fractional_scale-1)
           end
 
           def fractional_property
@@ -82,7 +82,7 @@ module ActiveRecord
           end
 
           def fractional_scale_max
-            ('9' * fractional_scale) + ('0' * (fractional_digits - fractional_scale))
+            ("9" * fractional_scale) + ("0" * (fractional_digits - fractional_scale))
           end
 
         end

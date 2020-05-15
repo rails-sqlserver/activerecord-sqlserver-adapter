@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'active_record/attribute_methods'
+require "active_record/attribute_methods"
 
 module ActiveRecord
   module ConnectionAdapters

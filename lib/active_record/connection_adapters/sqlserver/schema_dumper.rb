@@ -6,11 +6,11 @@ module ActiveRecord
       class SchemaDumper < ConnectionAdapters::SchemaDumper
 
         SQLSEVER_NO_LIMIT_TYPES = [
-          'text',
-          'ntext',
-          'varchar(max)',
-          'nvarchar(max)',
-          'varbinary(max)'
+          "text",
+          "ntext",
+          "varchar(max)",
+          "nvarchar(max)",
+          "varbinary(max)"
         ].freeze
 
         private

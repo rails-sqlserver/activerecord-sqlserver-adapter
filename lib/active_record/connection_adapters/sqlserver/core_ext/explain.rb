@@ -6,7 +6,7 @@ module ActiveRecord
       module CoreExt
         module Explain
 
-          SQLSERVER_STATEMENT_PREFIX = 'EXEC sp_executesql '
+          SQLSERVER_STATEMENT_PREFIX = "EXEC sp_executesql "
           SQLSERVER_STATEMENT_REGEXP = /N'(.+)', N'(.+)', (.+)/
 
           def exec_explain(queries)

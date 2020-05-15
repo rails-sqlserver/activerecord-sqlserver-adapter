@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require 'cases/helper_sqlserver'
-require 'migrations/create_clients_and_change_column_null'
+require "cases/helper_sqlserver"
+require "migrations/create_clients_and_change_column_null"
 
 class ChangeColumnNullTestSqlServer < ActiveRecord::TestCase
   before do
@@ -19,25 +19,25 @@ class ChangeColumnNullTestSqlServer < ActiveRecord::TestCase
     table.find { |column| column.name == name }
   end
 
-  let(:clients_table) { connection.columns('clients') }
-  let(:name_column) { find_column(clients_table, 'name') }
-  let(:code_column) { find_column(clients_table, 'code') }
-  let(:value_column) { find_column(clients_table, 'value') }
+  let(:clients_table) { connection.columns("clients") }
+  let(:name_column) { find_column(clients_table, "name") }
+  let(:code_column) { find_column(clients_table, "code") }
+  let(:value_column) { find_column(clients_table, "value") }
 
-  describe '#change_column_null' do
-    it 'does not change the column limit' do
+  describe "#change_column_null" do
+    it "does not change the column limit" do
       _(name_column.limit).must_equal 15
     end
 
-    it 'does not change the column default' do
-      _(code_column.default).must_equal 'n/a'
+    it "does not change the column default" do
+      _(code_column.default).must_equal "n/a"
     end
 
-    it 'does not change the column precision' do
+    it "does not change the column precision" do
       _(value_column.precision).must_equal 32
     end
 
-    it 'does not change the column scale' do
+    it "does not change the column scale" do
       _(value_column.scale).must_equal 8
     end
   end

@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
-require 'cases/helper_sqlserver'
+require "cases/helper_sqlserver"
 
 
 
-require 'models/event'
+require "models/event"
 class UniquenessValidationTest < ActiveRecord::TestCase
   # So sp_executesql swallows this exception. Run without prepared to see it.
   coerce_tests! :test_validate_uniqueness_with_limit
@@ -30,7 +30,7 @@ class UniquenessValidationTest < ActiveRecord::TestCase
   coerce_tests! :test_validate_case_sensitive_uniqueness_by_default
   def test_validate_case_sensitive_uniqueness_by_default_coerced
     database_collation = connection.select_one("SELECT collation_name FROM sys.databases WHERE name = 'activerecord_unittest'").values.first
-    skip if database_collation.include?('_CI_')
+    skip if database_collation.include?("_CI_")
 
     original_test_validate_case_sensitive_uniqueness_by_default_coerced
   end
@@ -39,7 +39,7 @@ end
 
 
 
-require 'models/event'
+require "models/event"
 module ActiveRecord
   class AdapterTest < ActiveRecord::TestCase
     # I really don`t think we can support legacy binds.
@@ -54,7 +54,7 @@ module ActiveRecord
     def test_value_limit_violations_are_translated_to_specific_exception_coerced
       connection.unprepared_statement do
         error = assert_raises(ActiveRecord::ValueTooLong) do
-          Event.create(title: 'abcdefgh')
+          Event.create(title: "abcdefgh")
         end
         assert_not_nil error.cause
       end
@@ -128,12 +128,12 @@ end
 
 
 
-require 'models/topic'
+require "models/topic"
 class AttributeMethodsTest < ActiveRecord::TestCase
   # Use IFF for boolean statement in SELECT
   coerce_tests! %r{typecast attribute from select to false}
   def test_typecast_attribute_from_select_to_false_coerced
-    Topic.create(:title => 'Budget')
+    Topic.create(:title => "Budget")
     topic = Topic.all.merge!(:select => "topics.*, IIF (1 = 2, 1, 0) as is_test").first
     assert_not_predicate topic, :is_test?
   end
@@ -141,7 +141,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   # Use IFF for boolean statement in SELECT
   coerce_tests! %r{typecast attribute from select to true}
   def test_typecast_attribute_from_select_to_true_coerced
-    Topic.create(:title => 'Budget')
+    Topic.create(:title => "Budget")
     topic = Topic.all.merge!(:select => "topics.*, IIF (1 = 1, 1, 0) as is_test").first
     assert_predicate topic, :is_test?
   end
@@ -155,7 +155,7 @@ class BasicsTest < ActiveRecord::TestCase
   coerce_tests! :test_column_names_are_escaped
   def test_column_names_are_escaped_coerced
     conn = ActiveRecord::Base.connection
-    assert_equal '[t]]]', conn.quote_column_name('t]')
+    assert_equal "[t]]]", conn.quote_column_name("t]")
   end
 
   # Just like PostgreSQLAdapter does.
@@ -175,7 +175,7 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_update_date_time_attributes_with_default_timezone_local
-    with_env_tz 'America/New_York' do
+    with_env_tz "America/New_York" do
       with_timezone_config default: :local do
         Time.use_zone("Eastern Time (US & Canada)") do
           topic = Topic.find(1)
@@ -286,7 +286,7 @@ class CalculationsTest < ActiveRecord::TestCase
   coerce_tests! :test_should_return_decimal_average_of_integer_field
   def test_should_return_decimal_average_of_integer_field_coerced
     value = Account.average(:id)
-    assert_equal BigDecimal('3.0').to_s, BigDecimal(value).to_s
+    assert_equal BigDecimal("3.0").to_s, BigDecimal(value).to_s
   end
 
   # Match SQL Server limit implementation
@@ -400,7 +400,7 @@ module ActiveRecord
       # Our defaults are real 70000 integers vs '70000' strings.
       coerce_tests! :test_rename_column_preserves_default_value_not_null
       def test_rename_column_preserves_default_value_not_null_coerced
-        add_column 'test_models', 'salary', :integer, :default => 70000
+        add_column "test_models", "salary", :integer, :default => 70000
         default_before = connection.columns("test_models").find { |c| c.name == "salary" }.default
         assert_equal 70000, default_before
         rename_column "test_models", "salary", "annual_salary"
@@ -416,9 +416,9 @@ module ActiveRecord
         add_column "test_models", :hat_size, :integer
         add_column "test_models", :hat_style, :string, :limit => 100
         add_index "test_models", ["hat_style", "hat_size"], :unique => true
-        assert_equal 1, connection.indexes('test_models').size
+        assert_equal 1, connection.indexes("test_models").size
         remove_column("test_models", "hat_size")
-        assert_equal [], connection.indexes('test_models').map(&:name)
+        assert_equal [], connection.indexes("test_models").map(&:name)
       end
 
       # Choose `StatementInvalid` vs `ActiveRecordError`.
@@ -459,7 +459,7 @@ class MigrationTest < ActiveRecord::TestCase
     assert_not_nil b.my_house_population
     assert_not_nil b.value_of_e
     assert_kind_of BigDecimal, b.world_population
-    assert_equal '6000000000.0', b.world_population.to_s
+    assert_equal "6000000000.0", b.world_population.to_s
     assert_kind_of Integer, b.my_house_population
     assert_equal 3, b.my_house_population
     assert_kind_of BigDecimal, b.bank_balance
@@ -631,7 +631,7 @@ module ActiveRecord
 
   class DatabaseTasksDumpSchemaCacheTest < ActiveRecord::TestCase
     # Skip this test with /tmp/my_schema_cache.yml path on Windows.
-    coerce_tests! :test_dump_schema_cache if RbConfig::CONFIG['host_os'] =~ /mswin|mingw/
+    coerce_tests! :test_dump_schema_cache if RbConfig::CONFIG["host_os"] =~ /mswin|mingw/
   end
 
   class DatabaseTasksCreateAllTest < ActiveRecord::TestCase
@@ -664,8 +664,8 @@ end
 
 
 
-require 'models/post'
-require 'models/subscriber'
+require "models/post"
+require "models/subscriber"
 class EachTest < ActiveRecord::TestCase
   # Quoting in tests does not cope with bracket quoting.
   coerce_tests! :test_find_in_batches_should_quote_batch_order
@@ -709,7 +709,7 @@ end
 
 
 
-require 'models/topic'
+require "models/topic"
 class FinderTest < ActiveRecord::TestCase
   # We have implicit ordering, via FETCH.
   coerce_tests! %r{doesn't have implicit ordering},
@@ -737,7 +737,7 @@ class FinderTest < ActiveRecord::TestCase
   # Can not use array condition due to not finding right type and hence fractional second quoting.
   coerce_tests! :test_condition_utc_time_interpolation_with_default_timezone_local
   def test_condition_utc_time_interpolation_with_default_timezone_local_coerced
-    with_env_tz 'America/New_York' do
+    with_env_tz "America/New_York" do
       with_timezone_config default: :local do
         topic = Topic.first
         assert_equal topic, Topic.where(written_on: topic.written_on.getutc).first
@@ -748,7 +748,7 @@ class FinderTest < ActiveRecord::TestCase
   # Can not use array condition due to not finding right type and hence fractional second quoting.
   coerce_tests! :test_condition_local_time_interpolation_with_default_timezone_utc
   def test_condition_local_time_interpolation_with_default_timezone_utc_coerced
-    with_env_tz 'America/New_York' do
+    with_env_tz "America/New_York" do
       with_timezone_config default: :utc do
         topic = Topic.first
         assert_equal topic, Topic.where(written_on: topic.written_on.getlocal).first
@@ -814,12 +814,12 @@ end
 
 
 
-require 'models/company'
+require "models/company"
 class InheritanceTest < ActiveRecord::TestCase
   # Rails test required inserting to a identity column.
   coerce_tests! :test_a_bad_type_column
   def test_a_bad_type_column_coerced
-    Company.connection.with_identity_insert_enabled('companies') do
+    Company.connection.with_identity_insert_enabled("companies") do
       Company.connection.insert "INSERT INTO companies (id, #{QUOTED_TYPE}, name) VALUES(100, 'bad_class!', 'Not happening')"
     end
     assert_raise(ActiveRecord::SubclassNotFound) { Company.find(100) }
@@ -846,18 +846,18 @@ end
 
 
 
-require 'models/developer'
-require 'models/computer'
+require "models/developer"
+require "models/computer"
 class NestedRelationScopingTest < ActiveRecord::TestCase
   # Assert SQL Server limit implementation
   coerce_tests! :test_merge_options
   def test_merge_options_coerced
-    Developer.where('salary = 80000').scoping do
+    Developer.where("salary = 80000").scoping do
       Developer.limit(10).scoping do
         devs = Developer.all
         sql = devs.to_sql
-        assert_match '(salary = 80000)', sql
-        assert_match 'FETCH NEXT 10 ROWS ONLY', sql
+        assert_match "(salary = 80000)", sql
+        assert_match "FETCH NEXT 10 ROWS ONLY", sql
       end
     end
   end
@@ -866,7 +866,7 @@ end
 
 
 
-require 'models/topic'
+require "models/topic"
 class PersistenceTest < ActiveRecord::TestCase
   # Rails test required updating a identity column.
   coerce_tests! :test_update_columns_changing_id
@@ -893,7 +893,7 @@ end
 
 
 
-require 'models/author'
+require "models/author"
 class UpdateAllTest < ActiveRecord::TestCase
   # Rails test required updating a identity column.
   coerce_tests! :test_update_all_doesnt_ignore_order
@@ -903,17 +903,17 @@ class UpdateAllTest < ActiveRecord::TestCase
     _(mary.id).must_equal 2
     _(david.name).wont_equal mary.name
     assert_sql(/UPDATE.*\(SELECT \[authors\].\[id\] FROM \[authors\].*ORDER BY \[authors\].\[id\]/i) do
-      Author.where('[id] > 1').order(:id).update_all(name: 'Test')
+      Author.where("[id] > 1").order(:id).update_all(name: "Test")
     end
-    _(david.reload.name).must_equal 'David'
-    _(mary.reload.name).must_equal 'Test'
+    _(david.reload.name).must_equal "David"
+    _(mary.reload.name).must_equal "Test"
   end
 end
 
 
 
 
-require 'models/topic'
+require "models/topic"
 module ActiveRecord
   class PredicateBuilderTest < ActiveRecord::TestCase
     # Same as original test except string has `N` prefix to indicate unicode string.
@@ -948,7 +948,7 @@ end
 
 
 
-require 'models/task'
+require "models/task"
 class QueryCacheTest < ActiveRecord::TestCase
   # SQL Server adapter not in list of supported adapters in original test.
   coerce_tests! :test_cache_does_not_wrap_results_in_arrays
@@ -988,7 +988,7 @@ end
 
 
 
-require 'models/post'
+require "models/post"
 class RelationTest < ActiveRecord::TestCase
   # Use LEN vs LENGTH function.
   coerce_tests! :test_reverse_order_with_function
@@ -1055,7 +1055,7 @@ class RelationTest < ActiveRecord::TestCase
 
   # Can't apply offset without ORDER
   coerce_tests! %r{using a custom table affects the wheres}
-  test 'using a custom table affects the wheres coerced' do
+  test "using a custom table affects the wheres coerced" do
     post = posts(:welcome)
 
     assert_equal post, custom_post_relation.where!(title: post.title).order(:id).take
@@ -1063,7 +1063,7 @@ class RelationTest < ActiveRecord::TestCase
 
   # Can't apply offset without ORDER
   coerce_tests! %r{using a custom table with joins affects the joins}
-  test 'using a custom table with joins affects the joins coerced' do
+  test "using a custom table with joins affects the joins coerced" do
     post = posts(:welcome)
 
     assert_equal post, custom_post_relation.joins(:author).where!(title: post.title).order(:id).take
@@ -1080,7 +1080,7 @@ end
 
 
 
-require 'models/post'
+require "models/post"
 class SanitizeTest < ActiveRecord::TestCase
   # Use nvarchar string (N'') in assert
   coerce_tests! :test_sanitize_sql_like_example_use_case
@@ -1153,7 +1153,7 @@ end
 
 
 
-require 'models/topic'
+require "models/topic"
 class TransactionTest < ActiveRecord::TestCase
   # SQL Server does not have query for release_savepoint
   coerce_tests! :test_releasing_named_savepoints
@@ -1170,7 +1170,7 @@ end
 
 
 
-require 'models/tag'
+require "models/tag"
 class TransactionIsolationTest < ActiveRecord::TestCase
   # SQL Server will lock the table for counts even when both
   # connections are `READ COMMITTED`. So we bypass with `READPAST`.
@@ -1180,7 +1180,7 @@ class TransactionIsolationTest < ActiveRecord::TestCase
       assert_equal 0, Tag.count
       Tag2.transaction do
         Tag2.create
-        assert_equal 0, Tag.lock('WITH(READPAST)').count
+        assert_equal 0, Tag.lock("WITH(READPAST)").count
       end
     end
     assert_equal 1, Tag.count
@@ -1193,7 +1193,7 @@ end
 
 
 
-require 'models/book'
+require "models/book"
 class ViewWithPrimaryKeyTest < ActiveRecord::TestCase
   # We have a few view tables. use includes vs equality.
   coerce_tests! :test_views
@@ -1205,7 +1205,7 @@ class ViewWithPrimaryKeyTest < ActiveRecord::TestCase
   coerce_tests! :test_does_not_assume_id_column_as_primary_key
   def test_does_not_assume_id_column_as_primary_key_coerced
     model = Class.new(ActiveRecord::Base) { self.table_name = "ebooks" }
-    assert_equal 'id', model.primary_key
+    assert_equal "id", model.primary_key
   end
 end
 
@@ -1223,11 +1223,11 @@ end
 
 
 
-require 'models/author'
+require "models/author"
 class YamlSerializationTest < ActiveRecord::TestCase
   coerce_tests! :test_types_of_virtual_columns_are_not_changed_on_round_trip
   def test_types_of_virtual_columns_are_not_changed_on_round_trip_coerced
-    author = Author.select('authors.*, 5 as posts_count').first
+    author = Author.select("authors.*, 5 as posts_count").first
     dumped = YAML.load(YAML.dump(author))
     assert_equal 5, author.posts_count
     assert_equal 5, dumped.posts_count
@@ -1379,7 +1379,7 @@ module ActiveRecord
       private
       # We need to give the full path for this to work.
       def schema_dump_path
-        File.join ARTest::SQLServer.root_activerecord, 'test/assets/schema_dump_5_1.yml'
+        File.join ARTest::SQLServer.root_activerecord, "test/assets/schema_dump_5_1.yml"
       end
     end
   end
@@ -1391,7 +1391,7 @@ end
 class UnsafeRawSqlTest < ActiveRecord::TestCase
    # Use LEN() vs length() function.
   coerce_tests! %r{order: always allows Arel}
-  test 'order: always allows Arel' do
+  test "order: always allows Arel" do
     ids_depr     = with_unsafe_raw_sql_deprecated { Post.order(Arel.sql("len(title)")).pluck(:title) }
     ids_disabled = with_unsafe_raw_sql_disabled   { Post.order(Arel.sql("len(title)")).pluck(:title) }
 
@@ -1441,18 +1441,18 @@ class OptimisticLockingTest < ActiveRecord::TestCase
   coerce_tests! :test_update_with_dirty_primary_key
   def test_update_with_dirty_primary_key_coerced
     assert_raises(ActiveRecord::RecordNotUnique) do
-      record = StringKeyObject.find('record1')
-      record.id = 'record2'
+      record = StringKeyObject.find("record1")
+      record.id = "record2"
       record.save!
     end
 
-    record = StringKeyObject.find('record1')
-    record.id = 'record42'
+    record = StringKeyObject.find("record1")
+    record.id = "record42"
     record.save!
 
-    assert StringKeyObject.find('record42')
+    assert StringKeyObject.find("record42")
     assert_raises(ActiveRecord::RecordNotFound) do
-      StringKeyObject.find('record1')
+      StringKeyObject.find("record1")
     end
   end
 end
@@ -1531,7 +1531,7 @@ end
 
 
 
-require 'models/task'
+require "models/task"
 class QueryCacheExpiryTest < ActiveRecord::TestCase
 
   # SQL Server does not support skipping or upserting duplicates.
@@ -1565,7 +1565,7 @@ end
 
 
 
-require 'models/citation'
+require "models/citation"
 class EagerLoadingTooManyIdsTest < ActiveRecord::TestCase
   # Original Rails test fails with SQL Server error message "The query processor ran out of internal resources and
   # could not produce a query plan". This error goes away if you change database compatibility level to 110 (SQL 2012)
@@ -1627,7 +1627,7 @@ end
 
 class FixturesTest < ActiveRecord::TestCase
   # Skip test on Windows. Skip can be removed when Rails PR https://github.com/rails/rails/pull/39234 has been merged.
-  coerce_tests! :test_binary_in_fixtures if RbConfig::CONFIG['host_os'] =~ /mswin|mingw/
+  coerce_tests! :test_binary_in_fixtures if RbConfig::CONFIG["host_os"] =~ /mswin|mingw/
 end
 
 
@@ -1636,5 +1636,5 @@ end
 class ReloadModelsTest < ActiveRecord::TestCase
   # Skip test on Windows. The number of arguements passed to `IO.popen` in
   # `activesupport/lib/active_support/testing/isolation.rb` exceeds what Windows can handle.
-  coerce_tests! :test_has_one_with_reload if RbConfig::CONFIG['host_os'] =~ /mswin|mingw/
+  coerce_tests! :test_has_one_with_reload if RbConfig::CONFIG["host_os"] =~ /mswin|mingw/
 end

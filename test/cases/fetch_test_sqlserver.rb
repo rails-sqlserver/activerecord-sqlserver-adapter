@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require 'cases/helper_sqlserver'
-require 'models/book'
+require "cases/helper_sqlserver"
+require "models/book"
 
 class FetchTestSqlserver < ActiveRecord::TestCase
 
@@ -9,14 +9,14 @@ class FetchTestSqlserver < ActiveRecord::TestCase
 
   before { create_10_books }
 
-  it 'work with fully qualified table and columns in select' do
-    books = Book.select('books.id, books.name').limit(3).offset(5)
+  it "work with fully qualified table and columns in select" do
+    books = Book.select("books.id, books.name").limit(3).offset(5)
     assert_equal Book.all[5,3].map(&:id), books.map(&:id)
   end
 
-  describe 'count' do
+  describe "count" do
 
-    it 'gauntlet' do
+    it "gauntlet" do
       books[0].destroy
       books[1].destroy
       books[2].destroy
@@ -34,14 +34,14 @@ class FetchTestSqlserver < ActiveRecord::TestCase
 
   end
 
-  describe 'order' do
+  describe "order" do
 
-    it 'gauntlet' do
-      Book.where(name:'Name-10').delete_all
-      _(Book.order(:name).limit(1).offset(1).map(&:name)).must_equal ['Name-2']
-      _(Book.order(:name).limit(2).offset(2).map(&:name)).must_equal ['Name-3', 'Name-4']
-      _(Book.order(:name).limit(2).offset(7).map(&:name)).must_equal ['Name-8', 'Name-9']
-      _(Book.order(:name).limit(3).offset(7).map(&:name)).must_equal ['Name-8', 'Name-9']
+    it "gauntlet" do
+      Book.where(name:"Name-10").delete_all
+      _(Book.order(:name).limit(1).offset(1).map(&:name)).must_equal ["Name-2"]
+      _(Book.order(:name).limit(2).offset(2).map(&:name)).must_equal ["Name-3", "Name-4"]
+      _(Book.order(:name).limit(2).offset(7).map(&:name)).must_equal ["Name-8", "Name-9"]
+      _(Book.order(:name).limit(3).offset(7).map(&:name)).must_equal ["Name-8", "Name-9"]
       _(Book.order(:name).limit(3).offset(9).map(&:name)).must_equal []
     end
 

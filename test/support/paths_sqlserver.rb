@@ -6,27 +6,27 @@ module ARTest
     extend self
 
     def root_sqlserver
-      File.expand_path File.join(File.dirname(__FILE__), '..', '..')
+      File.expand_path File.join(File.dirname(__FILE__), "..", "..")
     end
 
     def test_root_sqlserver
-      File.join root_sqlserver, 'test'
+      File.join root_sqlserver, "test"
     end
 
     def root_activerecord
-      File.join Gem.loaded_specs['rails'].full_gem_path, 'activerecord'
+      File.join Gem.loaded_specs["rails"].full_gem_path, "activerecord"
     end
 
     def root_activerecord_lib
-      File.join root_activerecord, 'lib'
+      File.join root_activerecord, "lib"
     end
 
     def root_activerecord_test
-      File.join root_activerecord, 'test'
+      File.join root_activerecord, "test"
     end
 
     def test_load_paths
-      ['lib', 'test', root_activerecord_lib, root_activerecord_test]
+      ["lib", "test", root_activerecord_lib, root_activerecord_test]
     end
 
     def add_to_load_paths!
@@ -34,15 +34,15 @@ module ARTest
     end
 
     def migrations_root
-      File.join test_root_sqlserver, 'migrations'
+      File.join test_root_sqlserver, "migrations"
     end
 
     def arconfig_file
-      File.join test_root_sqlserver, 'config.yml'
+      File.join test_root_sqlserver, "config.yml"
     end
 
     def arconfig_file_env!
-      ENV['ARCONFIG'] = arconfig_file
+      ENV["ARCONFIG"] = arconfig_file
     end
 
   end
