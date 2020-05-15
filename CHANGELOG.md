@@ -1,3 +1,15 @@
+## v6.0.0.rc2 (unreleased)
+
+#### Fixed
+
+- [#826](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/826) Rubocop: Enable Style/StringLiterals cop
+- [#827](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/827) Rubocop: Enable Layout/EmptyLinesAroundClassBody cop
+- [#828](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/828) Rubocop: Enable Layout/EmptyLines cop
+- [#829](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/829) Rubocop: Enable Layout/Layout/EmptyLinesAround* cops
+- [#830](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/830) Rubocop: Enable Layout/IndentationWidth and Layout/TrailingWhitespace cops
+- [#831](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/831) Rubocop: Enable Spacing cops
+- [#832](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/832) Rubocop: Enable Bundler cops
+
 ## v6.0.0.rc1
 
 #### Fixed
