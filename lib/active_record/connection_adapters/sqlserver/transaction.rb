@@ -13,6 +13,7 @@ module ActiveRecord
 
       def current_isolation_level
         return unless sqlserver?
+
         level = connection.user_options_isolation_level
         # When READ_COMMITTED_SNAPSHOT is set to ON,
         # user_options_isolation_level will be equal to 'read committed

@@ -65,7 +65,7 @@ module ActiveRecord
           if value.acts_like?(:date)
             Type::Date.new.serialize(value)
           else value.acts_like?(:time)
-            Type::DateTime.new.serialize(value)
+               Type::DateTime.new.serialize(value)
           end
         end
 

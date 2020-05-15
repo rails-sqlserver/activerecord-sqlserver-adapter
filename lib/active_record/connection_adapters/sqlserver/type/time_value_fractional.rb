@@ -9,11 +9,13 @@ module ActiveRecord
 
           def apply_seconds_precision(value)
             return value if !value.respond_to?(fractional_property) || value.send(fractional_property).zero?
+
             value.change fractional_property => seconds_precision(value)
           end
 
           def seconds_precision(value)
             return 0 if fractional_scale == 0
+
             seconds = value.send(fractional_property).to_f / fractional_operator.to_f
             seconds = ((seconds * (1 / fractional_precision)).round / (1 / fractional_precision)).round(fractional_scale)
             (seconds * fractional_operator).round(0).to_i
@@ -21,6 +23,7 @@ module ActiveRecord
 
           def quote_fractional(value)
             return 0 if fractional_scale == 0
+
             frac_seconds = seconds_precision(value)
             seconds = (frac_seconds.to_f / fractional_operator.to_f).round(fractional_scale)
             seconds.to_d.to_s.split(".").last.to(fractional_scale - 1)

@@ -11,6 +11,7 @@ module ActiveRecord
 
           def serialize(value)
             return unless value.present?
+
             date = super(value).to_s(:_sqlserver_dateformat)
             Data.new date, self
           end

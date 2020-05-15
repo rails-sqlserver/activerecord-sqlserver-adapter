@@ -28,14 +28,14 @@ class SchemaDumperTestSQLServer < ActiveRecord::TestCase
     assert_line :datetime,          type: "datetime",     limit: nil,           precision: nil,   scale: nil,  default: "01-01-1753 00:00:00.123"
     if connection_dblib_73?
       assert_line :datetime2_7,       type: "datetime",     limit: nil,           precision: 7,     scale: nil,  default: "12-31-9999 23:59:59.9999999"
-    assert_line :datetime2_3,       type: "datetime",     limit: nil,           precision: 3,     scale: nil,  default: nil
-    assert_line :datetime2_1,       type: "datetime",     limit: nil,           precision: 1,     scale: nil,  default: nil
+      assert_line :datetime2_3,       type: "datetime",     limit: nil,           precision: 3,     scale: nil,  default: nil
+      assert_line :datetime2_1,       type: "datetime",     limit: nil,           precision: 1,     scale: nil,  default: nil
     end
     assert_line :smalldatetime, type: "smalldatetime", limit: nil, precision: nil, scale: nil, default: "01-01-1901 15:45:00.0"
     if connection_dblib_73?
       assert_line :time_7,            type: "time",         limit: nil,           precision: 7,     scale: nil,  default: "04:20:00.2883215"
-    assert_line :time_2,            type: "time",         limit: nil,           precision: 2,     scale: nil,  default: nil
-    assert_line :time_default,      type: "time",         limit: nil,           precision: 7,     scale: nil,  default: "15:03:42.0621978"
+      assert_line :time_2,            type: "time",         limit: nil,           precision: 2,     scale: nil,  default: nil
+      assert_line :time_default,      type: "time",         limit: nil,           precision: 7,     scale: nil,  default: "15:03:42.0621978"
     end
     # Character Strings
     assert_line :char_10,           type: "char",         limit: 10,            precision: nil,   scale: nil,  default: "1234567890",           collation: nil
@@ -148,6 +148,7 @@ class SchemaDumperTestSQLServer < ActiveRecord::TestCase
     type_matcher = /\A\s+t\.\w+\s+"(.*?)"[,\n]/
     @generated_schema.each_line do |line|
       next unless line =~ type_matcher
+
       @schema_lines[Regexp.last_match[1]] = SchemaLine.new(line)
     end
     @generated_schema
@@ -162,6 +163,7 @@ class SchemaDumperTestSQLServer < ActiveRecord::TestCase
     assert line, "Count not find line with column name: #{column_name.inspect} in schema:\n#{schema}"
     [:type, :limit, :precision, :scale, :collation, :default].each do |key|
       next unless options.key?(key)
+
       actual   = key == :type ? line.send(:type_method) : line.send(key)
       expected = options[key]
       message  = "#{key.to_s.titleize} of #{expected.inspect} not found in:\n#{line}"
@@ -229,4 +231,3 @@ class SchemaDumperTestSQLServer < ActiveRecord::TestCase
     end
   end
 end
-

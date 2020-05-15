@@ -76,13 +76,13 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
   it "test database exists returns false if database does not exist" do
     config = ActiveRecord::Base.configurations["arunit"].merge(database: "inexistent_activerecord_unittest")
     assert_not ActiveRecord::ConnectionAdapters::SQLServerAdapter.database_exists?(config),
-                "expected database to not exist"
+               "expected database to not exist"
   end
 
   it "test database exists returns true when the database exists" do
     config = ActiveRecord::Base.configurations["arunit"]
     assert ActiveRecord::ConnectionAdapters::SQLServerAdapter.database_exists?(config),
-            "expected database #{config[:database]} to exist"
+           "expected database #{config[:database]} to exist"
   end
 
   describe "with different language" do
@@ -343,8 +343,8 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
       assert_equal columns.size, SSTestCustomersView.columns.size
       columns.each do |colname|
         assert_instance_of ActiveRecord::ConnectionAdapters::SQLServerColumn,
-          SSTestCustomersView.columns_hash[colname],
-          "Column name #{colname.inspect} was not found in these columns #{SSTestCustomersView.columns.map(&:name).inspect}"
+                           SSTestCustomersView.columns_hash[colname],
+                           "Column name #{colname.inspect} was not found in these columns #{SSTestCustomersView.columns.map(&:name).inspect}"
       end
     end
 
@@ -370,8 +370,8 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
       assert_equal columns.size, SSTestStringDefaultsView.columns.size
       columns.each do |colname|
         assert_instance_of ActiveRecord::ConnectionAdapters::SQLServerColumn,
-          SSTestStringDefaultsView.columns_hash[colname],
-          "Column name #{colname.inspect} was not found in these columns #{SSTestStringDefaultsView.columns.map(&:name).inspect}"
+                           SSTestStringDefaultsView.columns_hash[colname],
+                           "Column name #{colname.inspect} was not found in these columns #{SSTestStringDefaultsView.columns.map(&:name).inspect}"
       end
     end
 
@@ -383,7 +383,7 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
 
     it "find default values" do
       assert_equal "null", SSTestStringDefaultsView.new.pretend_null,
-        SSTestStringDefaultsView.columns_hash["pretend_null"].inspect
+                   SSTestStringDefaultsView.columns_hash["pretend_null"].inspect
     end
 
     it "respond true to data_source_exists?" do
@@ -398,7 +398,7 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
 
     it "using alternate view defintion still be able to find real default" do
       assert_equal "null", SSTestStringDefaultsBigView.new.pretend_null,
-        SSTestStringDefaultsBigView.columns_hash["pretend_null"].inspect
+                   SSTestStringDefaultsBigView.columns_hash["pretend_null"].inspect
     end
   end
 
@@ -474,4 +474,3 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
     end
   end
 end
-

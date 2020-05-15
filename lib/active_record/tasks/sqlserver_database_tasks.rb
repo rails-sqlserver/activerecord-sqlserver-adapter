@@ -64,6 +64,7 @@ module ActiveRecord
         view_args = connection.views.map { |v| Shellwords.escape(v) }
         command.concat(view_args)
         raise "Error dumping database" unless Kernel.system(command.join(" "))
+
         dump = File.read(filename)
         dump.gsub!(/^USE .*$\nGO\n/, "")                      # Strip db USE statements
         dump.gsub!(/^GO\n/, "")                               # Strip db GO statements
@@ -110,11 +111,13 @@ module ActiveRecord
 
         def configuration_host_ip(configuration)
           return nil unless configuration["host"]
+
           Socket::getaddrinfo(configuration["host"], "echo", Socket::AF_INET)[0][3]
         end
 
         def local_ipaddr?(host_ip)
           return false unless host_ip
+
           LOCAL_IPADDR.any? { |ip| ip.include?(host_ip) }
         end
       end

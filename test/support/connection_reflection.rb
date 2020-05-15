@@ -21,6 +21,7 @@ module ARTest
 
       def connection_dblib_73?
         return false unless connection_dblib?
+
         rc = connection.raw_connection
         rc.respond_to?(:tds_73?) && rc.tds_73?
       end

@@ -75,6 +75,7 @@ module ActiveRecord
           def parse_raw_name
             @parts = []
             return if raw_name.blank?
+
             scanner = StringScanner.new(raw_name)
             matched = scanner.exist?(QUOTED_CHECKER) ? scanner.scan_until(QUOTED_SCANNER) : scanner.scan_until(UNQUOTED_SCANNER)
             while matched

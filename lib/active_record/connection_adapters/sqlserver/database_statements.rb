@@ -186,12 +186,14 @@ module ActiveRecord
 
         def use_database(database = nil)
           return if sqlserver_azure?
+
           name = SQLServer::Utils.extract_identifiers(database || @connection_options[:database]).quoted
           do_execute "USE #{name}" unless name.blank?
         end
 
         def user_options
           return {} if sqlserver_azure?
+
           rows = select_rows("DBCC USEROPTIONS WITH NO_INFOMSGS", "SCHEMA")
           rows = rows.first if rows.size == 2 && rows.last.empty?
           rows.reduce(HashWithIndifferentAccess.new) do |values, row|
@@ -315,6 +317,7 @@ module ActiveRecord
 
         def sp_executesql_sql_type(attr)
           return attr.type.sqlserver_type if attr.type.respond_to?(:sqlserver_type)
+
           case value = attr.value_for_database
           when Numeric
             value > 2_147_483_647 ? "bigint".freeze : "int".freeze
@@ -376,8 +379,10 @@ module ActiveRecord
 
         def exclude_output_inserted_table_name?(table_name, sql)
           return false unless exclude_output_inserted_table_names?
+
           table_name ||= get_table_name(sql)
           return false unless table_name
+
           self.class.exclude_output_inserted_table_names[table_name]
         end
 
