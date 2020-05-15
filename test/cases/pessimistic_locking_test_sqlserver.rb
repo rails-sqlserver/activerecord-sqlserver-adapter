@@ -38,12 +38,12 @@ class PessimisticLockingTestSQLServer < ActiveRecord::TestCase
     end
 
     it "lock with eager find" do
-       assert_nothing_raised do
-        Person.transaction do
-          person = Person.lock(true).includes(:readers).find(1)
-          _(person).must_equal Person.find(1)
-        end
-      end
+      assert_nothing_raised do
+       Person.transaction do
+         person = Person.lock(true).includes(:readers).find(1)
+         _(person).must_equal Person.find(1)
+       end
+     end
     end
 
     it "can add a custom lock directive" do

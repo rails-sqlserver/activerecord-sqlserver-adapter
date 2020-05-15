@@ -14,7 +14,7 @@ module ActiveRecord
           def serialize(value)
             value = super
             return value unless value.acts_like?(:time)
-            
+
             datetime = "#{value.to_s(:_sqlserver_datetime)}.#{quote_fractional(value)}"
 
             Data.new datetime, self
