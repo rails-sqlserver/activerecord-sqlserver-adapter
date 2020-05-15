@@ -619,7 +619,7 @@ class EachTest < ActiveRecord::TestCase
   # Quoting in tests does not cope with bracket quoting.
   coerce_tests! :test_find_in_batches_should_quote_batch_order
   def test_find_in_batches_should_quote_batch_order_coerced
-    c = Post.connection
+    Post.connection
     assert_sql(/ORDER BY \[posts\]\.\[id\]/) do
       Post.find_in_batches(:batch_size => 1) do |batch|
         assert_kind_of Array, batch
@@ -631,7 +631,7 @@ class EachTest < ActiveRecord::TestCase
   # Quoting in tests does not cope with bracket quoting.
   coerce_tests! :test_in_batches_should_quote_batch_order
   def test_in_batches_should_quote_batch_order_coerced
-    c = Post.connection
+    Post.connection
     assert_sql(/ORDER BY \[posts\]\.\[id\]/) do
       Post.in_batches(of: 1) do |relation|
         assert_kind_of ActiveRecord::Relation, relation
@@ -758,7 +758,7 @@ class InheritanceTest < ActiveRecord::TestCase
   # Use Square brackets around column name
   coerce_tests! :test_eager_load_belongs_to_primary_key_quoting
   def test_eager_load_belongs_to_primary_key_quoting_coerced
-    con = Account.connection
+    Account.connection
     assert_sql(/\[companies\]\.\[id\] = @0.* @0 = 1/) do
       Account.all.merge!(:includes => :firm).find(1)
     end

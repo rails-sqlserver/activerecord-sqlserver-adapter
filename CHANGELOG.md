@@ -11,6 +11,7 @@
 - [#831](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/831) Rubocop: Enable Spacing cops
 - [#832](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/832) Rubocop: Enable Bundler cops
 - [#833](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/833) Rubocop: Enable Layout/* cops
+- [#834](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/834) Rubocop: Enable Lint/UselessAssignment cop
 
 ## v6.0.0.rc1
 

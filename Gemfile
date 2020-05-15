@@ -22,7 +22,7 @@ else
 
     spec = eval(File.read("activerecord-sqlserver-adapter.gemspec"))
     ver  = spec.dependencies.detect { |d| d.name == "activerecord" }.requirement.requirements.first.last.version
-    major, minor, tiny, pre = ver.split(".")
+    major, minor, _tiny, pre = ver.split(".")
 
     if pre
       ver
@@ -32,7 +32,7 @@ else
       http.use_ssl = true
       http.verify_mode = OpenSSL::SSL::VERIFY_NONE
       YAML.load(http.request(Net::HTTP::Get.new(uri.request_uri)).body).find do |data|
-        a, b, c = data["number"].split(".")
+        a, b, = data["number"].split(".")
         !data["prerelease"] && major == a && (minor.nil? || minor == b)
       end["number"]
     end

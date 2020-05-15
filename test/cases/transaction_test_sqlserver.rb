@@ -26,7 +26,7 @@ class TransactionTestSQLServer < ActiveRecord::TestCase
           raise "HELL"
         end
       end
-    rescue Exception => e
+    rescue Exception
       assert_no_ships
     end
   end

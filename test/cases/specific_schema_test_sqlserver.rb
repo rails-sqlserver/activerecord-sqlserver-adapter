@@ -23,13 +23,16 @@ class SpecificSchemaTestSQLServer < ActiveRecord::TestCase
   end
 
   it "quote table names properly even when they are views" do
-    obj = SSTestQuotedTable.create!
+    SSTestQuotedTable.create!
     assert_nothing_raised { assert SSTestQuotedTable.first }
-    obj = SSTestQuotedTableUser.create!
+
+    SSTestQuotedTableUser.create!
     assert_nothing_raised { assert SSTestQuotedTableUser.first }
-    obj = SSTestQuotedView1.create!
+
+    SSTestQuotedView1.create!
     assert_nothing_raised { assert SSTestQuotedView1.first }
-    obj = SSTestQuotedView2.create!
+
+    SSTestQuotedView2.create!
     assert_nothing_raised { assert SSTestQuotedView2.first }
   end
 
