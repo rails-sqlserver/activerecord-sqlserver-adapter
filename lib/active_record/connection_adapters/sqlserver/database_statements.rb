@@ -352,7 +352,12 @@ module ActiveRecord
         def raw_connection_do(sql)
           case @connection_options[:mode]
           when :dblib
-            @connection.execute(sql).do
+            result = @connection.execute(sql)
+            # If connection fails then TinyTDS returns false instead of an exception (see https://github.com/rails-sqlserver/tiny_tds/issues/464)
+            if result == false
+              raise TinyTds::Error, 'TinyTDS execute returned false instead of results'
+            end
+            result.do
           end
         ensure
           @update_sql = false
