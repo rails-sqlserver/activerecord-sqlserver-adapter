@@ -21,7 +21,7 @@ else
     require "yaml"
 
     spec = eval(File.read("activerecord-sqlserver-adapter.gemspec"))
-    ver  = spec.dependencies.detect{ |d|d.name == "activerecord" }.requirement.requirements.first.last.version
+    ver  = spec.dependencies.detect { |d| d.name == "activerecord" }.requirement.requirements.first.last.version
     major, minor, tiny, pre = ver.split(".")
 
     if pre

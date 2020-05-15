@@ -3,7 +3,7 @@
 require "cases/helper_sqlserver"
 
 class SQLServerTriggerTest < ActiveRecord::TestCase
-  after  { exclude_output_inserted_table_names.clear }
+  after { exclude_output_inserted_table_names.clear }
 
   let(:exclude_output_inserted_table_names) do
     ActiveRecord::ConnectionAdapters::SQLServerAdapter.exclude_output_inserted_table_names

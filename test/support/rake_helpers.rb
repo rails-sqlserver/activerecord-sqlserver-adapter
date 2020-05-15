@@ -23,7 +23,7 @@ end
 
 def ar_cases
   @ar_cases ||= begin
-    Dir.glob("#{ARTest::SQLServer.root_activerecord}/test/cases/**/*_test.rb").reject{ |x| x =~ /\/adapters\// }.sort
+    Dir.glob("#{ARTest::SQLServer.root_activerecord}/test/cases/**/*_test.rb").reject { |x| x =~ /\/adapters\// }.sort
   end
 end
 

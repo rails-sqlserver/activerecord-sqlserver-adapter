@@ -248,7 +248,7 @@ module ActiveRecord
         end
 
         def columns_for_distinct(columns, orders)
-          order_columns = orders.reject(&:blank?).map{ |s|
+          order_columns = orders.reject(&:blank?).map { |s|
               s = s.to_sql unless s.is_a?(String)
               s.gsub(/\s+(?:ASC|DESC)\b/i, "")
                .gsub(/\s+NULLS\s+(?:FIRST|LAST)\b/i, "")

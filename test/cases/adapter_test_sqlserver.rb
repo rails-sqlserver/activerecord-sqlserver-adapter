@@ -54,10 +54,10 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
   end
 
   it "return true to insert sql query for inserts only" do
-    assert connection.send(:insert_sql?,"INSERT...")
+    assert connection.send(:insert_sql?, "INSERT...")
     assert connection.send(:insert_sql?, "EXEC sp_executesql N'INSERT INTO [fk_test_has_fks] ([fk_id]) VALUES (@0); SELECT CAST(SCOPE_IDENTITY() AS bigint) AS Ident', N'@0 int', @0 = 0")
-    assert !connection.send(:insert_sql?,"UPDATE...")
-    assert !connection.send(:insert_sql?,"SELECT...")
+    assert !connection.send(:insert_sql?, "UPDATE...")
+    assert !connection.send(:insert_sql?, "SELECT...")
   end
 
   it "return unquoted table name object from basic INSERT UPDATE and SELECT statements" do
@@ -155,17 +155,17 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
     end
 
     it "return quoted table_name to #query_requires_identity_insert? when INSERT sql contains id column" do
-      assert_equal "funny_jokes", connection.send(:query_requires_identity_insert?,@identity_insert_sql)
-      assert_equal "funny_jokes", connection.send(:query_requires_identity_insert?,@identity_insert_sql_unquoted)
-      assert_equal "funny_jokes", connection.send(:query_requires_identity_insert?,@identity_insert_sql_unordered)
-      assert_equal "funny_jokes", connection.send(:query_requires_identity_insert?,@identity_insert_sql_sp)
-      assert_equal "funny_jokes", connection.send(:query_requires_identity_insert?,@identity_insert_sql_unquoted_sp)
-      assert_equal "funny_jokes", connection.send(:query_requires_identity_insert?,@identity_insert_sql_unordered_sp)
+      assert_equal "funny_jokes", connection.send(:query_requires_identity_insert?, @identity_insert_sql)
+      assert_equal "funny_jokes", connection.send(:query_requires_identity_insert?, @identity_insert_sql_unquoted)
+      assert_equal "funny_jokes", connection.send(:query_requires_identity_insert?, @identity_insert_sql_unordered)
+      assert_equal "funny_jokes", connection.send(:query_requires_identity_insert?, @identity_insert_sql_sp)
+      assert_equal "funny_jokes", connection.send(:query_requires_identity_insert?, @identity_insert_sql_unquoted_sp)
+      assert_equal "funny_jokes", connection.send(:query_requires_identity_insert?, @identity_insert_sql_unordered_sp)
     end
 
     it "return false to #query_requires_identity_insert? for normal SQL" do
       [basic_insert_sql, basic_update_sql, basic_select_sql].each do |sql|
-        assert !connection.send(:query_requires_identity_insert?,sql), "SQL was #{sql}"
+        assert !connection.send(:query_requires_identity_insert?, sql), "SQL was #{sql}"
       end
     end
 
@@ -227,7 +227,7 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
     end
 
     it "NOT ALLOW by default the deletion of a referenced parent" do
-      SSTestHasPk.connection.disable_referential_integrity { }
+      SSTestHasPk.connection.disable_referential_integrity {}
       assert_raise(ActiveRecord::StatementInvalid) { @parent.destroy }
     end
 
@@ -237,7 +237,7 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
 
     it "again NOT ALLOW deletion of referenced parent after #disable_referential_integrity block" do
       assert_raise(ActiveRecord::StatementInvalid) do
-        SSTestHasPk.connection.disable_referential_integrity { }
+        SSTestHasPk.connection.disable_referential_integrity {}
         @parent.destroy
       end
     end
@@ -318,27 +318,27 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
     end
 
     it "not contain system views" do
-      systables = ["sysconstraints","syssegments"]
+      systables = ["sysconstraints", "syssegments"]
       systables.each do |systable|
         assert !connection.views.include?(systable), "This systable #{systable} should not be in the views array."
       end
     end
 
     it "allow the connection#view_information method to return meta data on the view" do
-      view_info = connection.send(:view_information,"sst_customers_view")
+      view_info = connection.send(:view_information, "sst_customers_view")
       assert_equal("sst_customers_view", view_info["TABLE_NAME"])
       assert_match(/CREATE VIEW sst_customers_view/, view_info["VIEW_DEFINITION"])
     end
 
     it "allow the connection#view_table_name method to return true table_name for the view" do
-      assert_equal "customers", connection.send(:view_table_name,"sst_customers_view")
-      assert_equal "topics", connection.send(:view_table_name,"topics"), "No view here, the same table name should come back."
+      assert_equal "customers", connection.send(:view_table_name, "sst_customers_view")
+      assert_equal "topics", connection.send(:view_table_name, "topics"), "No view here, the same table name should come back."
     end
 
     # With same column names
 
     it "have matching column objects" do
-      columns = ["id","name","balance"]
+      columns = ["id", "name", "balance"]
       assert !SSTestCustomersView.columns.blank?
       assert_equal columns.size, SSTestCustomersView.columns.size
       columns.each do |colname|
@@ -365,7 +365,7 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
     # With aliased column names
 
     it "have matching column objects" do
-      columns = ["id","pretend_null"]
+      columns = ["id", "pretend_null"]
       assert !SSTestStringDefaultsView.columns.blank?
       assert_equal columns.size, SSTestStringDefaultsView.columns.size
       columns.each do |colname|

@@ -329,14 +329,14 @@ module ActiveRecord
       coerce_tests! :test_quote_ar_object
       def test_quote_ar_object_coerced
         value = DatetimePrimaryKey.new(id: @time)
-        assert_equal "'02-14-2017 12:34:56.79'",  @connection.quote(value)
+        assert_equal "'02-14-2017 12:34:56.79'", @connection.quote(value)
       end
 
       # Use our date format.
       coerce_tests! :test_type_cast_ar_object
       def test_type_cast_ar_object_coerced
         value = DatetimePrimaryKey.new(id: @time)
-        assert_equal "02-14-2017 12:34:56.79",  @connection.type_cast(value)
+        assert_equal "02-14-2017 12:34:56.79", @connection.type_cast(value)
       end
     end
   end
@@ -883,7 +883,7 @@ class QueryCacheTest < ActiveRecord::TestCase
         Task.find(1)
       end
 
-      assert_includes ActiveRecord::SQLCounter.log_all.first , "TC.CONSTRAINT_TYPE = N''PRIMARY KEY''"
+      assert_includes ActiveRecord::SQLCounter.log_all.first, "TC.CONSTRAINT_TYPE = N''PRIMARY KEY''"
     end
   end
 end
@@ -986,7 +986,7 @@ class SanitizeTest < ActiveRecord::TestCase
         where("title LIKE ?", sanitize_sql_like(term, "!"))
       end
 
-      scope :search_as_scope, -> (term) {
+      scope :search_as_scope, ->(term) {
         where("title LIKE ?", sanitize_sql_like(term, "!"))
       }
     end
@@ -1121,7 +1121,7 @@ class DateTimePrecisionTest < ActiveRecord::TestCase
   coerce_tests! :test_datetime_precision_is_truncated_on_assignment
   def test_datetime_precision_is_truncated_on_assignment_coerced
     @connection.create_table(:foos, force: true)
-    @connection.add_column :foos, :created_at,  :datetime, precision: 0
+    @connection.add_column :foos, :created_at, :datetime, precision: 0
     @connection.add_column :foos, :updated_at, :datetime, precision: 6
 
     time = ::Time.now.change(nsec: 123456789)

@@ -143,7 +143,7 @@ module ActiveRecord
           sql = +"INSERT #{insert.into}"
 
           if returning = insert.send(:insert_all).returning
-            sql << " OUTPUT " << returning.map {|column| "INSERTED.#{quote_column_name(column)}" }.join(", ")
+            sql << " OUTPUT " << returning.map { |column| "INSERTED.#{quote_column_name(column)}" }.join(", ")
           end
 
           sql << " #{insert.values_list}"
@@ -198,7 +198,7 @@ module ActiveRecord
             if row.instance_of? Hash
               set_option = row.values[0].gsub(/\s+/, "_")
               user_value = row.values[1]
-            elsif  row.instance_of? Array
+            elsif row.instance_of? Array
               set_option = row[0].gsub(/\s+/, "_")
               user_value = row[1]
             end
@@ -341,7 +341,7 @@ module ActiveRecord
             end
           else
             types = quote(types.join(", "))
-            params = params.map.with_index{ |p, i| "@#{i} = #{p}" }.join(", ") # Only p is needed, but with @i helps explain regexp.
+            params = params.map.with_index { |p, i| "@#{i} = #{p}" }.join(", ") # Only p is needed, but with @i helps explain regexp.
             sql = "EXEC sp_executesql #{quote(sql)}"
             sql += ", #{types}, #{params}" unless params.empty?
           end

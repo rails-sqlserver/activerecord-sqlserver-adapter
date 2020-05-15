@@ -22,7 +22,7 @@ class SchemaTestSQLServer < ActiveRecord::TestCase
     it "have only one identity column" do
       columns = connection.columns("test.sst_schema_identity")
       assert_equal 2, columns.size
-      assert_equal 1, columns.select{ |c| c.is_identity? }.size
+      assert_equal 1, columns.select { |c| c.is_identity? }.size
     end
 
     it "read only column properties for table in specific schema" do
@@ -32,17 +32,17 @@ class SchemaTestSQLServer < ActiveRecord::TestCase
       assert_equal 7, test_columns.size
       assert_equal 2, dbo_columns.size
       assert_equal 2, columns.size
-      assert_equal 1, test_columns.select{ |c| c.is_identity? }.size
-      assert_equal 1, dbo_columns.select{ |c| c.is_identity? }.size
-      assert_equal 1, columns.select{ |c| c.is_identity? }.size
+      assert_equal 1, test_columns.select { |c| c.is_identity? }.size
+      assert_equal 1, dbo_columns.select { |c| c.is_identity? }.size
+      assert_equal 1, columns.select { |c| c.is_identity? }.size
     end
 
     it "return correct varchar and nvarchar column limit length when table is in non dbo schema" do
       columns = connection.columns("test.sst_schema_columns")
-      assert_equal 255, columns.find {|c| c.name == "name"}.limit
-      assert_equal 1000, columns.find {|c| c.name == "description"}.limit
-      assert_equal 255, columns.find {|c| c.name == "n_name"}.limit
-      assert_equal 1000, columns.find {|c| c.name == "n_description"}.limit
+      assert_equal 255, columns.find { |c| c.name == "name" }.limit
+      assert_equal 1000, columns.find { |c| c.name == "description" }.limit
+      assert_equal 255, columns.find { |c| c.name == "n_name" }.limit
+      assert_equal 1000, columns.find { |c| c.name == "n_description" }.limit
     end
   end
 end

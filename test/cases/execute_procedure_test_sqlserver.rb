@@ -18,7 +18,7 @@ class ExecuteProcedureTestSQLServer < ActiveRecord::TestCase
   end
 
   it "allow multiple result sets to be returned" do
-    results1, results2 = ActiveRecord::Base.execute_procedure("sp_helpconstraint","accounts")
+    results1, results2 = ActiveRecord::Base.execute_procedure("sp_helpconstraint", "accounts")
     assert_instance_of Array, results1
     assert results1.first.respond_to?(:keys)
     assert results1.first["Object Name"]

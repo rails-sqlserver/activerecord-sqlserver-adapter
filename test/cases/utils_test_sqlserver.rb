@@ -18,7 +18,7 @@ class UtilsTestSQLServer < ActiveRecord::TestCase
   describe ".extract_identifiers constructor and thus SQLServer::Utils::Name value object" do
     let(:valid_names) { valid_names_unquoted + valid_names_quoted }
 
-    let(:valid_names_unquoted) {[
+    let(:valid_names_unquoted) { [
       "server.database.schema.object",
       "server.database..object",
       "server..schema.object",
@@ -29,7 +29,7 @@ class UtilsTestSQLServer < ActiveRecord::TestCase
       "object"
     ]}
 
-    let(:valid_names_quoted) {[
+    let(:valid_names_quoted) { [
       "[server].[database].[schema].[object]",
       "[server].[database]..[object]",
       "[server]..[schema].[object]",

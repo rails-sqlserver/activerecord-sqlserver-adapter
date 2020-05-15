@@ -145,11 +145,11 @@ class SpecificSchemaTestSQLServer < ActiveRecord::TestCase
     SSTestEdgeSchema.create! description: "A"
     SSTestEdgeSchema.create! description: "B"
     SSTestEdgeSchema.create! description: "C"
-    assert_equal ["A","B","C"], SSTestEdgeSchema.order("description").map(&:description)
-    assert_equal ["A","B","C"], SSTestEdgeSchema.order("description asc").map(&:description)
-    assert_equal ["A","B","C"], SSTestEdgeSchema.order("description ASC").map(&:description)
-    assert_equal ["C","B","A"], SSTestEdgeSchema.order("description desc").map(&:description)
-    assert_equal ["C","B","A"], SSTestEdgeSchema.order("description DESC").map(&:description)
+    assert_equal ["A", "B", "C"], SSTestEdgeSchema.order("description").map(&:description)
+    assert_equal ["A", "B", "C"], SSTestEdgeSchema.order("description asc").map(&:description)
+    assert_equal ["A", "B", "C"], SSTestEdgeSchema.order("description ASC").map(&:description)
+    assert_equal ["C", "B", "A"], SSTestEdgeSchema.order("description desc").map(&:description)
+    assert_equal ["C", "B", "A"], SSTestEdgeSchema.order("description DESC").map(&:description)
   end
 
   # For uniqueidentifier model helpers

@@ -16,7 +16,7 @@ module ActiveRecord
               if operation.to_s.downcase == "count"
                 unless distinct_value || distinct_select?(column_name || select_for_count)
                   relation.distinct!
-                  relation.select_values = [ klass.primary_key || table[Arel.star] ]
+                  relation.select_values = [klass.primary_key || table[Arel.star]]
                 end
               end
 

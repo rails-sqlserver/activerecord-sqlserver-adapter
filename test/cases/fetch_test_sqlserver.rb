@@ -10,7 +10,7 @@ class FetchTestSqlserver < ActiveRecord::TestCase
 
   it "work with fully qualified table and columns in select" do
     books = Book.select("books.id, books.name").limit(3).offset(5)
-    assert_equal Book.all[5,3].map(&:id), books.map(&:id)
+    assert_equal Book.all[5, 3].map(&:id), books.map(&:id)
   end
 
   describe "count" do
@@ -33,7 +33,7 @@ class FetchTestSqlserver < ActiveRecord::TestCase
 
   describe "order" do
     it "gauntlet" do
-      Book.where(name:"Name-10").delete_all
+      Book.where(name: "Name-10").delete_all
       _(Book.order(:name).limit(1).offset(1).map(&:name)).must_equal ["Name-2"]
       _(Book.order(:name).limit(2).offset(2).map(&:name)).must_equal ["Name-3", "Name-4"]
       _(Book.order(:name).limit(2).offset(7).map(&:name)).must_equal ["Name-8", "Name-9"]

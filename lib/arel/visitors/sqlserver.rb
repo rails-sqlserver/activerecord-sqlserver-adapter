@@ -14,7 +14,7 @@ module Arel
       # SQLServer ToSql/Visitor (Overides)
 
       def visit_Arel_Nodes_BindParam o, collector
-        collector.add_bind(o.value) { |i| "@#{i-1}" }
+        collector.add_bind(o.value) { |i| "@#{i - 1}" }
       end
 
       def visit_Arel_Nodes_Bin o, collector
@@ -70,7 +70,7 @@ module Arel
           collector = visit o.with, collector
           collector << " "
         end
-        collector = o.cores.inject(collector) { |c,x|
+        collector = o.cores.inject(collector) { |c, x|
           visit_Arel_Nodes_SelectCore(x, c)
         }
         collector = visit_Orders_And_Let_Fetch_Happen o, collector
