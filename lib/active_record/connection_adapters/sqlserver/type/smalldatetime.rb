@@ -1,15 +1,16 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module ConnectionAdapters
     module SQLServer
       module Type
         class SmallDateTime < DateTime
-
           def type
             :smalldatetime
           end
 
           def sqlserver_type
-            'smalldatetime'.freeze
+            "smalldatetime"
           end
 
           private
@@ -21,7 +22,6 @@ module ActiveRecord
           def apply_seconds_precision(value)
             value.change usec: 0 if value
           end
-
         end
       end
     end

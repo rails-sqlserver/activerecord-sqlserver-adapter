@@ -1,11 +1,31 @@
-require 'active_record/relation'
-require 'active_record/version'
+# frozen_string_literal: true
+
+require "active_record/relation"
+require "active_record/version"
 
 module ActiveRecord
   module ConnectionAdapters
     module SQLServer
       module CoreExt
         module Calculations
+          # Same as original except we don't perform PostgreSQL hack that removes ordering.
+          def calculate(operation, column_name)
+            if has_include?(column_name)
+              relation = apply_join_dependency
+
+              if operation.to_s.downcase == "count"
+                unless distinct_value || distinct_select?(column_name || select_for_count)
+                  relation.distinct!
+                  relation.select_values = [klass.primary_key || table[Arel.star]]
+                end
+              end
+
+              relation.calculate(operation, column_name)
+            else
+              perform_calculation(operation, column_name)
+            end
+          end
+
           private
 
           def build_count_subquery(relation, column_name, distinct)

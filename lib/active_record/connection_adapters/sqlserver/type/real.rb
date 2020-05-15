@@ -1,17 +1,17 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module ConnectionAdapters
     module SQLServer
       module Type
         class Real < Float
-
           def type
             :real
           end
 
           def sqlserver_type
-            'real'.freeze
+            "real"
           end
-
         end
       end
     end

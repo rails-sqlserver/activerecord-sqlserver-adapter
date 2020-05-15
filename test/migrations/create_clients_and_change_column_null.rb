@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class CreateClientsAndChangeColumnNull < ActiveRecord::Migration[5.2]
   def up
     create_table :clients do |t|
@@ -9,7 +11,7 @@ class CreateClientsAndChangeColumnNull < ActiveRecord::Migration[5.2]
     end
 
     change_column :clients, :name, :string, limit: 15
-    change_column :clients, :code, :string, default: 'n/a'
+    change_column :clients, :code, :string, default: "n/a"
     change_column :clients, :value, :decimal, precision: 32, scale: 8
 
     change_column_null :clients, :name, false

@@ -1,35 +1,39 @@
-require 'base64'
-require 'active_record'
-require 'arel_sqlserver'
-require 'active_record/connection_adapters/abstract_adapter'
-require 'active_record/connection_adapters/sqlserver/core_ext/active_record'
-require 'active_record/connection_adapters/sqlserver/core_ext/calculations'
-require 'active_record/connection_adapters/sqlserver/core_ext/explain'
-require 'active_record/connection_adapters/sqlserver/core_ext/explain_subscriber'
-require 'active_record/connection_adapters/sqlserver/core_ext/attribute_methods'
-require 'active_record/connection_adapters/sqlserver/version'
-require 'active_record/connection_adapters/sqlserver/type'
-require 'active_record/connection_adapters/sqlserver/database_limits'
-require 'active_record/connection_adapters/sqlserver/database_statements'
-require 'active_record/connection_adapters/sqlserver/database_tasks'
-require 'active_record/connection_adapters/sqlserver/transaction'
-require 'active_record/connection_adapters/sqlserver/errors'
-require 'active_record/connection_adapters/sqlserver/schema_creation'
-require 'active_record/connection_adapters/sqlserver/schema_dumper'
-require 'active_record/connection_adapters/sqlserver/schema_statements'
-require 'active_record/connection_adapters/sqlserver/sql_type_metadata'
-require 'active_record/connection_adapters/sqlserver/showplan'
-require 'active_record/connection_adapters/sqlserver/table_definition'
-require 'active_record/connection_adapters/sqlserver/quoting'
-require 'active_record/connection_adapters/sqlserver/utils'
-require 'active_record/sqlserver_base'
-require 'active_record/connection_adapters/sqlserver_column'
-require 'active_record/tasks/sqlserver_database_tasks'
+# frozen_string_literal: true
+
+require "base64"
+require "active_record"
+require "arel_sqlserver"
+require "active_record/connection_adapters/abstract_adapter"
+require "active_record/connection_adapters/sqlserver/core_ext/active_record"
+require "active_record/connection_adapters/sqlserver/core_ext/calculations"
+require "active_record/connection_adapters/sqlserver/core_ext/explain"
+require "active_record/connection_adapters/sqlserver/core_ext/explain_subscriber"
+require "active_record/connection_adapters/sqlserver/core_ext/attribute_methods"
+require "active_record/connection_adapters/sqlserver/core_ext/finder_methods"
+require "active_record/connection_adapters/sqlserver/core_ext/query_methods"
+require "active_record/connection_adapters/sqlserver/core_ext/preloader"
+require "active_record/connection_adapters/sqlserver/version"
+require "active_record/connection_adapters/sqlserver/type"
+require "active_record/connection_adapters/sqlserver/database_limits"
+require "active_record/connection_adapters/sqlserver/database_statements"
+require "active_record/connection_adapters/sqlserver/database_tasks"
+require "active_record/connection_adapters/sqlserver/transaction"
+require "active_record/connection_adapters/sqlserver/errors"
+require "active_record/connection_adapters/sqlserver/schema_creation"
+require "active_record/connection_adapters/sqlserver/schema_dumper"
+require "active_record/connection_adapters/sqlserver/schema_statements"
+require "active_record/connection_adapters/sqlserver/sql_type_metadata"
+require "active_record/connection_adapters/sqlserver/showplan"
+require "active_record/connection_adapters/sqlserver/table_definition"
+require "active_record/connection_adapters/sqlserver/quoting"
+require "active_record/connection_adapters/sqlserver/utils"
+require "active_record/sqlserver_base"
+require "active_record/connection_adapters/sqlserver_column"
+require "active_record/tasks/sqlserver_database_tasks"
 
 module ActiveRecord
   module ConnectionAdapters
     class SQLServerAdapter < AbstractAdapter
-
       include SQLServer::Version,
               SQLServer::Quoting,
               SQLServer::DatabaseStatements,
@@ -38,7 +42,10 @@ module ActiveRecord
               SQLServer::DatabaseLimits,
               SQLServer::DatabaseTasks
 
-      ADAPTER_NAME = 'SQLServer'.freeze
+      ADAPTER_NAME = "SQLServer".freeze
+
+      # Default precision for 'time' (See https://docs.microsoft.com/en-us/sql/t-sql/data-types/time-transact-sql)
+      DEFAULT_TIME_PRECISION = 7
 
       attr_reader :spid
 
@@ -48,7 +55,7 @@ module ActiveRecord
       cattr_accessor :showplan_option, instance_accessor: false
       cattr_accessor :lowercase_schema_reflection
 
-      self.cs_equality_operator = 'COLLATE Latin1_General_CS_AS_WS'
+      self.cs_equality_operator = "COLLATE Latin1_General_CS_AS_WS"
       self.use_output_inserted = true
       self.exclude_output_inserted_table_names = Concurrent::Map.new { false }
 
@@ -73,6 +80,12 @@ module ActiveRecord
 
       def schema_creation
         SQLServer::SchemaCreation.new self
+      end
+
+      def self.database_exists?(config)
+        !!ActiveRecord::Base.sqlserver_connection(config)
+      rescue ActiveRecord::NoDatabaseError
+        false
       end
 
       def supports_ddl_transactions?
@@ -139,8 +152,28 @@ module ActiveRecord
         true
       end
 
+      def supports_lazy_transactions?
+        true
+      end
+
       def supports_in_memory_oltp?
         @version_year >= 2014
+      end
+
+      def supports_insert_returning?
+        true
+      end
+
+      def supports_insert_on_duplicate_skip?
+        false
+      end
+
+      def supports_insert_on_duplicate_update?
+        false
+      end
+
+      def supports_insert_conflict_target?
+        false
       end
 
       def disable_referential_integrity
@@ -155,7 +188,8 @@ module ActiveRecord
 
       def active?
         return false unless @connection
-        raw_connection_do 'SELECT 1'
+
+        raw_connection_do "SELECT 1"
         true
       rescue *connection_errors
         false
@@ -185,13 +219,13 @@ module ActiveRecord
 
       def reset!
         reset_transaction
-        do_execute 'IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION'
+        do_execute "IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION"
       end
 
       # === Abstract Adapter (Misc Support) =========================== #
 
       def tables_with_referential_integrity
-        schemas_and_tables = select_rows <<-SQL.strip_heredoc
+        schemas_and_tables = select_rows <<~SQL.squish
           SELECT DISTINCT s.name, o.name
           FROM sys.foreign_keys i
           INNER JOIN sys.objects o ON i.parent_object_id = o.OBJECT_ID
@@ -220,6 +254,7 @@ module ActiveRecord
 
       def database_prefix_remote_server?
         return false if database_prefix.blank?
+
         name = SQLServer::Utils.extract_identifiers(database_prefix)
         name.fully_qualified? && name.object.blank?
       end
@@ -251,37 +286,40 @@ module ActiveRecord
         result
       end
 
+      def get_database_version # :nodoc:
+        version_year
+      end
 
       protected
 
       # === Abstract Adapter (Misc Support) =========================== #
 
       def initialize_type_map(m = type_map)
-        m.register_type              %r{.*},            SQLServer::Type::UnicodeString.new
+        m.register_type              %r{.*}, SQLServer::Type::UnicodeString.new
         # Exact Numerics
-        register_class_with_limit m, 'bigint(8)',         SQLServer::Type::BigInteger
-        m.alias_type                 'bigint',            'bigint(8)'
-        register_class_with_limit m, 'int(4)',            SQLServer::Type::Integer
-        m.alias_type                 'integer',           'int(4)'
-        m.alias_type                 'int',               'int(4)'
-        register_class_with_limit m, 'smallint(2)',       SQLServer::Type::SmallInteger
-        m.alias_type                 'smallint',          'smallint(2)'
-        register_class_with_limit m, 'tinyint(1)',        SQLServer::Type::TinyInteger
-        m.alias_type                 'tinyint',           'tinyint(1)'
-        m.register_type              'bit',               SQLServer::Type::Boolean.new
+        register_class_with_limit m, "bigint(8)",         SQLServer::Type::BigInteger
+        m.alias_type                 "bigint",            "bigint(8)"
+        register_class_with_limit m, "int(4)",            SQLServer::Type::Integer
+        m.alias_type                 "integer",           "int(4)"
+        m.alias_type                 "int",               "int(4)"
+        register_class_with_limit m, "smallint(2)",       SQLServer::Type::SmallInteger
+        m.alias_type                 "smallint",          "smallint(2)"
+        register_class_with_limit m, "tinyint(1)",        SQLServer::Type::TinyInteger
+        m.alias_type                 "tinyint",           "tinyint(1)"
+        m.register_type              "bit",               SQLServer::Type::Boolean.new
         m.register_type              %r{\Adecimal}i do |sql_type|
           scale = extract_scale(sql_type)
           precision = extract_precision(sql_type)
           SQLServer::Type::Decimal.new precision: precision, scale: scale
         end
-        m.alias_type                 %r{\Anumeric}i,      'decimal'
-        m.register_type              'money',             SQLServer::Type::Money.new
-        m.register_type              'smallmoney',        SQLServer::Type::SmallMoney.new
+        m.alias_type                 %r{\Anumeric}i,      "decimal"
+        m.register_type              "money",             SQLServer::Type::Money.new
+        m.register_type              "smallmoney",        SQLServer::Type::SmallMoney.new
         # Approximate Numerics
-        m.register_type              'float',             SQLServer::Type::Float.new
-        m.register_type              'real',              SQLServer::Type::Real.new
+        m.register_type              "float",             SQLServer::Type::Float.new
+        m.register_type              "real",              SQLServer::Type::Real.new
         # Date and Time
-        m.register_type              'date',              SQLServer::Type::Date.new
+        m.register_type              "date",              SQLServer::Type::Date.new
         m.register_type              %r{\Adatetime} do |sql_type|
           precision = extract_precision(sql_type)
           if precision
@@ -290,49 +328,50 @@ module ActiveRecord
             SQLServer::Type::DateTime.new
           end
         end
-        m.register_type              %r{\Adatetimeoffset}i do |sql_type|
+        m.register_type %r{\Adatetimeoffset}i do |sql_type|
           precision = extract_precision(sql_type)
           SQLServer::Type::DateTimeOffset.new precision: precision
         end
-        m.register_type              'smalldatetime',     SQLServer::Type::SmallDateTime.new
+        m.register_type              "smalldatetime", SQLServer::Type::SmallDateTime.new
         m.register_type              %r{\Atime}i do |sql_type|
-          scale = extract_scale(sql_type)
-          precision = extract_precision(sql_type)
+          precision = extract_precision(sql_type) || DEFAULT_TIME_PRECISION
           SQLServer::Type::Time.new precision: precision
         end
         # Character Strings
         register_class_with_limit m, %r{\Achar}i,         SQLServer::Type::Char
         register_class_with_limit m, %r{\Avarchar}i,      SQLServer::Type::Varchar
-        m.register_type              'varchar(max)',      SQLServer::Type::VarcharMax.new
-        m.register_type              'text',              SQLServer::Type::Text.new
+        m.register_type              "varchar(max)",      SQLServer::Type::VarcharMax.new
+        m.register_type              "text",              SQLServer::Type::Text.new
         # Unicode Character Strings
         register_class_with_limit m, %r{\Anchar}i,        SQLServer::Type::UnicodeChar
         register_class_with_limit m, %r{\Anvarchar}i,     SQLServer::Type::UnicodeVarchar
-        m.alias_type                 'string',            'nvarchar(4000)'
-        m.register_type              'nvarchar(max)',     SQLServer::Type::UnicodeVarcharMax.new
-        m.register_type              'nvarchar(max)',     SQLServer::Type::UnicodeVarcharMax.new
-        m.register_type              'ntext',             SQLServer::Type::UnicodeText.new
+        m.alias_type                 "string",            "nvarchar(4000)"
+        m.register_type              "nvarchar(max)",     SQLServer::Type::UnicodeVarcharMax.new
+        m.register_type              "nvarchar(max)",     SQLServer::Type::UnicodeVarcharMax.new
+        m.register_type              "ntext",             SQLServer::Type::UnicodeText.new
         # Binary Strings
         register_class_with_limit m, %r{\Abinary}i,       SQLServer::Type::Binary
         register_class_with_limit m, %r{\Avarbinary}i,    SQLServer::Type::Varbinary
-        m.register_type              'varbinary(max)',    SQLServer::Type::VarbinaryMax.new
+        m.register_type              "varbinary(max)",    SQLServer::Type::VarbinaryMax.new
         # Other Data Types
-        m.register_type              'uniqueidentifier',  SQLServer::Type::Uuid.new
-        m.register_type              'timestamp',         SQLServer::Type::Timestamp.new
+        m.register_type              "uniqueidentifier",  SQLServer::Type::Uuid.new
+        m.register_type              "timestamp",         SQLServer::Type::Timestamp.new
       end
 
-      def translate_exception(e, message)
+      def translate_exception(e, message:, sql:, binds:)
         case message
         when /(cannot insert duplicate key .* with unique index) | (violation of unique key constraint)/i
-          RecordNotUnique.new(message)
-        when /conflicted with the foreign key constraint/i
-          InvalidForeignKey.new(message)
+          RecordNotUnique.new(message, sql: sql, binds: binds)
+        when /(conflicted with the foreign key constraint) | (The DELETE statement conflicted with the REFERENCE constraint)/i
+          InvalidForeignKey.new(message, sql: sql, binds: binds)
         when /has been chosen as the deadlock victim/i
-          DeadlockVictim.new(message)
+          DeadlockVictim.new(message, sql: sql, binds: binds)
         when /database .* does not exist/i
-          NoDatabaseError.new(message)
+          NoDatabaseError.new(message, sql: sql, binds: binds)
         when /data would be truncated/
-          ValueTooLong.new(message)
+          ValueTooLong.new(message, sql: sql, binds: binds)
+        when /connection timed out/
+          StatementTimeout.new(message, sql: sql, binds: binds)
         when /Column '(.*)' is not the same data type as referencing column '(.*)' in foreign key/
           pk_id, fk_id = SQLServer::Utils.extract_identifiers($1), SQLServer::Utils.extract_identifiers($2)
           MismatchedForeignKey.new(
@@ -344,9 +383,9 @@ module ActiveRecord
             primary_key: pk_id.object
           )
         when /Cannot insert the value NULL into column.*does not allow nulls/
-          NotNullViolation.new(message)
+          NotNullViolation.new(message, sql: sql, binds: binds)
         when /Arithmetic overflow error/
-          RangeError.new(message)
+          RangeError.new(message, sql: sql, binds: binds)
         else
           super
         end
@@ -360,7 +399,7 @@ module ActiveRecord
                       when :dblib
                         dblib_connect(config)
                       end
-        @spid = _raw_select('SELECT @@SPID', fetch: :rows).first.first
+        @spid = _raw_select("SELECT @@SPID", fetch: :rows).first.first
         @version_year = version_year
         configure_connection
       end
@@ -379,32 +418,32 @@ module ActiveRecord
           username: config[:username],
           password: config[:password],
           database: config[:database],
-          tds_version: config[:tds_version] || '7.3',
+          tds_version: config[:tds_version] || "7.3",
           appname: config_appname(config),
           login_timeout: config_login_timeout(config),
           timeout: config_timeout(config),
-          encoding:  config_encoding(config),
+          encoding: config_encoding(config),
           azure: config[:azure],
           contained: config[:contained]
         ).tap do |client|
           if config[:azure]
-            client.execute('SET ANSI_NULLS ON').do
-            client.execute('SET ANSI_NULL_DFLT_ON ON').do
-            client.execute('SET ANSI_PADDING ON').do
-            client.execute('SET ANSI_WARNINGS ON').do
+            client.execute("SET ANSI_NULLS ON").do
+            client.execute("SET ANSI_NULL_DFLT_ON ON").do
+            client.execute("SET ANSI_PADDING ON").do
+            client.execute("SET ANSI_WARNINGS ON").do
           else
-            client.execute('SET ANSI_DEFAULTS ON').do
+            client.execute("SET ANSI_DEFAULTS ON").do
           end
-          client.execute('SET QUOTED_IDENTIFIER ON').do
-          client.execute('SET CURSOR_CLOSE_ON_COMMIT OFF').do
-          client.execute('SET IMPLICIT_TRANSACTIONS OFF').do
-          client.execute('SET TEXTSIZE 2147483647').do
-          client.execute('SET CONCAT_NULL_YIELDS_NULL ON').do
+          client.execute("SET QUOTED_IDENTIFIER ON").do
+          client.execute("SET CURSOR_CLOSE_ON_COMMIT OFF").do
+          client.execute("SET IMPLICIT_TRANSACTIONS OFF").do
+          client.execute("SET TEXTSIZE 2147483647").do
+          client.execute("SET CONCAT_NULL_YIELDS_NULL ON").do
         end
       end
 
       def config_appname(config)
-        config[:appname] || configure_application_name || Rails.application.class.name.split('::').first rescue nil
+        config[:appname] || configure_application_name || Rails.application.class.name.split("::").first rescue nil
       end
 
       def config_login_timeout(config)
@@ -419,18 +458,18 @@ module ActiveRecord
         config[:encoding].present? ? config[:encoding] : nil
       end
 
-      def configure_connection ; end
+      def configure_connection; end
 
-      def configure_application_name ; end
+      def configure_application_name; end
 
       def initialize_dateformatter
         @database_dateformat = user_options_dateformat
         a, b, c = @database_dateformat.each_char.to_a
-        [a, b, c].each { |f| f.upcase! if f == 'y' }
+        [a, b, c].each { |f| f.upcase! if f == "y" }
         dateformat = "%#{a}-%#{b}-%#{c}"
         ::Date::DATE_FORMATS[:_sqlserver_dateformat]     = dateformat
         ::Time::DATE_FORMATS[:_sqlserver_dateformat]     = dateformat
-        ::Time::DATE_FORMATS[:_sqlserver_time]           = '%H:%M:%S'
+        ::Time::DATE_FORMATS[:_sqlserver_time]           = "%H:%M:%S"
         ::Time::DATE_FORMATS[:_sqlserver_datetime]       = "#{dateformat} %H:%M:%S"
         ::Time::DATE_FORMATS[:_sqlserver_datetimeoffset] = lambda { |time|
           time.strftime "#{dateformat} %H:%M:%S.%9N #{time.formatted_offset}"
@@ -439,13 +478,14 @@ module ActiveRecord
 
       def version_year
         return 2016 if sqlserver_version =~ /vNext/
+
         /SQL Server (\d+)/.match(sqlserver_version).to_a.last.to_s.to_i
       rescue StandardError => e
         2016
       end
 
       def sqlserver_version
-        @sqlserver_version ||= _raw_select('SELECT @@version', fetch: :rows).first.first.to_s
+        @sqlserver_version ||= _raw_select("SELECT @@version", fetch: :rows).first.first.to_s
       end
     end
   end

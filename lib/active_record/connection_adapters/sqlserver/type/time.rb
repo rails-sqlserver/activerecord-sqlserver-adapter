@@ -1,18 +1,18 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module ConnectionAdapters
     module SQLServer
       module Type
         class Time < ActiveRecord::Type::Time
-
           include TimeValueFractional2
 
           def serialize(value)
             value = super
             return value unless value.acts_like?(:time)
-            time = value.to_s(:_sqlserver_time).tap do |v|
-              fraction = quote_fractional(value)
-              v << ".#{fraction}"
-            end
+
+            time = "#{value.to_s(:_sqlserver_time)}.#{quote_fractional(value)}"
+
             Data.new time, self
           end
 
@@ -37,6 +37,7 @@ module ActiveRecord
           def cast_value(value)
             value = super
             return if value.blank?
+
             value = value.change year: 2000, month: 01, day: 01
             apply_seconds_precision(value)
           end
@@ -44,7 +45,6 @@ module ActiveRecord
           def fractional_scale
             precision
           end
-
         end
       end
     end

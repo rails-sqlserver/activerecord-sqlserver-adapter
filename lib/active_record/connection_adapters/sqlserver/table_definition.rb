@@ -1,101 +1,100 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module ConnectionAdapters
     module SQLServer
-
       module ColumnMethods
-
         def primary_key(name, type = :primary_key, **options)
           if [:integer, :bigint].include?(type)
             options[:is_identity] = true unless options.key?(:default)
           elsif type == :uuid
-            options[:default] = options.fetch(:default, 'NEWID()')
+            options[:default] = options.fetch(:default, "NEWID()")
             options[:primary_key] = true
           end
           super
         end
 
-        def primary_key_nonclustered(*args, **options)
-          args.each { |name| column(name, :primary_key_nonclustered, options) }
+        def primary_key_nonclustered(*names, **options)
+          names.each { |name| column(name, :primary_key_nonclustered, **options) }
         end
 
-        def real(*args, **options)
-          args.each { |name| column(name, :real, options) }
+        def real(*names, **options)
+          names.each { |name| column(name, :real, **options) }
         end
 
-        def money(*args, **options)
-          args.each { |name| column(name, :money, options) }
+        def money(*names, **options)
+          names.each { |name| column(name, :money, **options) }
         end
 
-        def smalldatetime(*args, **options)
-          args.each { |name| column(name, :smalldatetime, options) }
+        def smalldatetime(*names, **options)
+          names.each { |name| column(name, :smalldatetime, **options) }
         end
 
-        def datetime(*args, **options)
-          args.each do |name|
+        def datetime(*names, **options)
+          names.each do |name|
             if options[:precision]
-              datetime2(name, options)
+              datetime2(name, **options)
             else
-              column(name, :datetime, options)
+              column(name, :datetime, **options)
             end
           end
         end
 
-        def datetime2(*args, **options)
-          args.each { |name| column(name, :datetime2, options) }
+        def datetime2(*names, **options)
+          names.each { |name| column(name, :datetime2, **options) }
         end
 
-        def datetimeoffset(*args, **options)
-          args.each { |name| column(name, :datetimeoffset, options) }
+        def datetimeoffset(*names, **options)
+          names.each { |name| column(name, :datetimeoffset, **options) }
         end
 
-        def smallmoney(*args, **options)
-          args.each { |name| column(name, :smallmoney, options) }
+        def smallmoney(*names, **options)
+          names.each { |name| column(name, :smallmoney, **options) }
         end
 
-        def char(*args, **options)
-          args.each { |name| column(name, :char, options) }
+        def char(*names, **options)
+          names.each { |name| column(name, :char, **options) }
         end
 
-        def varchar(*args, **options)
-          args.each { |name| column(name, :varchar, options) }
+        def varchar(*names, **options)
+          names.each { |name| column(name, :varchar, **options) }
         end
 
-        def varchar_max(*args, **options)
-          args.each { |name| column(name, :varchar_max, options) }
+        def varchar_max(*names, **options)
+          names.each { |name| column(name, :varchar_max, **options) }
         end
 
-        def text_basic(*args, **options)
-          args.each { |name| column(name, :text_basic, options) }
+        def text_basic(*names, **options)
+          names.each { |name| column(name, :text_basic, **options) }
         end
 
-        def nchar(*args, **options)
-          args.each { |name| column(name, :nchar, options) }
+        def nchar(*names, **options)
+          names.each { |name| column(name, :nchar, **options) }
         end
 
-        def ntext(*args, **options)
-          args.each { |name| column(name, :ntext, options) }
+        def ntext(*names, **options)
+          names.each { |name| column(name, :ntext, **options) }
         end
 
-        def binary_basic(*args, **options)
-          args.each { |name| column(name, :binary_basic, options) }
+        def binary_basic(*names, **options)
+          names.each { |name| column(name, :binary_basic, **options) }
         end
 
-        def varbinary(*args, **options)
-          args.each { |name| column(name, :varbinary, options) }
+        def varbinary(*names, **options)
+          names.each { |name| column(name, :varbinary, **options) }
         end
 
-        def uuid(*args, **options)
-          args.each { |name| column(name, :uniqueidentifier, options) }
+        def uuid(*names, **options)
+          names.each { |name| column(name, :uniqueidentifier, **options) }
         end
 
-        def ss_timestamp(*args, **options)
-          args.each { |name| column(name, :ss_timestamp, options) }
+        def ss_timestamp(*names, **options)
+          names.each { |name| column(name, :ss_timestamp, **options) }
         end
 
-        def json(*args, **options)
-          args.each { |name| column(name, :text, options) }
+        def json(*names, **options)
+          names.each { |name| column(name, :text, **options) }
         end
-
       end
 
       class TableDefinition < ActiveRecord::ConnectionAdapters::TableDefinition

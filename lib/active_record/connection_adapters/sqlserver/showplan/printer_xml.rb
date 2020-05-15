@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module ConnectionAdapters
     module SQLServer
@@ -10,7 +12,7 @@ module ActiveRecord
           def pp
             xml = @result.rows.first.first
             if defined?(Nokogiri)
-              Nokogiri::XML(xml).to_xml indent: 2, encoding: 'UTF-8'
+              Nokogiri::XML(xml).to_xml indent: 2, encoding: "UTF-8"
             else
               xml
             end

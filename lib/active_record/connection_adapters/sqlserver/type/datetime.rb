@@ -1,22 +1,22 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module ConnectionAdapters
     module SQLServer
       module Type
         class DateTime < ActiveRecord::Type::DateTime
-
           include TimeValueFractional
 
           def sqlserver_type
-            'datetime'.freeze
+            "datetime"
           end
 
           def serialize(value)
             value = super
             return value unless value.acts_like?(:time)
-            datetime = value.to_s(:_sqlserver_datetime).tap do |v|
-              fraction = quote_fractional(value)
-              v << ".#{fraction}"
-            end
+
+            datetime = "#{value.to_s(:_sqlserver_datetime)}.#{quote_fractional(value)}"
+
             Data.new datetime, self
           end
 
@@ -35,7 +35,7 @@ module ActiveRecord
           private
 
           def fast_string_to_time(string)
-            time = ActiveSupport::TimeZone['UTC'].strptime(string, fast_string_to_time_format)
+            time = ActiveSupport::TimeZone["UTC"].strptime(string, fast_string_to_time_format)
             new_time(time.year, time.month, time.day, time.hour,
                      time.min, time.sec, Rational(time.nsec, 1_000))
           rescue ArgumentError
@@ -43,7 +43,7 @@ module ActiveRecord
           end
 
           def fast_string_to_time_format
-            "#{::Time::DATE_FORMATS[:_sqlserver_datetime]}.%N".freeze
+            "#{::Time::DATE_FORMATS[:_sqlserver_datetime]}.%N"
           end
         end
       end

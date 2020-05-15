@@ -1,10 +1,13 @@
-require 'active_record/connection_adapters/sqlserver_adapter'
+# frozen_string_literal: true
+
+require "active_record/connection_adapters/sqlserver_adapter"
 
 module SqlIgnoredCache
   extend ActiveSupport::Concern
 
   IGNORED_SQL = [
     /INFORMATION_SCHEMA\.(TABLES|VIEWS|COLUMNS|KEY_COLUMN_USAGE)/im,
+    /sys.columns/i,
     /SELECT @@version/,
     /SELECT @@TRANCOUNT/,
     /(BEGIN|COMMIT|ROLLBACK|SAVE) TRANSACTION/,

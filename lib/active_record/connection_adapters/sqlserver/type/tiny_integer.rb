@@ -1,11 +1,12 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module ConnectionAdapters
     module SQLServer
       module Type
         class TinyInteger < Integer
-
           def sqlserver_type
-            'tinyint'.freeze
+            "tinyint"
           end
 
           private
@@ -17,7 +18,6 @@ module ActiveRecord
           def min_value
             0
           end
-
         end
       end
     end

@@ -1,7 +1,8 @@
+# frozen_string_literal: true
+
 module ARTest
   module SQLServer
     module ConnectionReflection
-
       extend ActiveSupport::Concern
 
       included { extend ConnectionReflection }
@@ -20,6 +21,7 @@ module ARTest
 
       def connection_dblib_73?
         return false unless connection_dblib?
+
         rc = connection.raw_connection
         rc.respond_to?(:tds_73?) && rc.tds_73?
       end
@@ -27,7 +29,6 @@ module ARTest
       def connection_sqlserver_azure?
         connection.sqlserver_azure?
       end
-
     end
   end
 end

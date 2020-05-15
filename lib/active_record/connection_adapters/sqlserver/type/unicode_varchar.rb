@@ -1,10 +1,11 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module ConnectionAdapters
     module SQLServer
       module Type
         class UnicodeVarchar < UnicodeChar
-
-          def initialize(*args)
+          def initialize(**args)
             super
             @limit = 4000 if @limit.to_i == 0
           end
@@ -14,11 +15,11 @@ module ActiveRecord
           end
 
           def sqlserver_type
-            'nvarchar'.tap do |type|
-              type << "(#{limit})" if limit
+            "nvarchar".yield_self do |type|
+              type += "(#{limit})" if limit
+              type
             end
           end
-
         end
       end
     end

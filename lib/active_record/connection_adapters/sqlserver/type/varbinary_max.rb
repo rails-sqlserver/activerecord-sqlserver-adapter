@@ -1,10 +1,11 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module ConnectionAdapters
     module SQLServer
       module Type
         class VarbinaryMax < Varbinary
-
-          def initialize(*args)
+          def initialize(**args)
             super
             @limit = 2_147_483_647
           end
@@ -14,9 +15,8 @@ module ActiveRecord
           end
 
           def sqlserver_type
-            'varbinary(max)'.freeze
+            "varbinary(max)"
           end
-
         end
       end
     end

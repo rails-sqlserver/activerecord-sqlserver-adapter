@@ -1,8 +1,9 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module ConnectionAdapters
     module SQLServer
       module DatabaseTasks
-
         def create_database(database, options = {})
           name = SQLServer::Utils.extract_identifiers(database)
           db_options = create_database_options(options)
@@ -17,7 +18,7 @@ module ActiveRecord
         end
 
         def current_database
-          select_value 'SELECT DB_NAME()'
+          select_value "SELECT DB_NAME()"
         end
 
         def charset
@@ -30,20 +31,20 @@ module ActiveRecord
 
         private
 
-        def create_database_options(options={})
+        def create_database_options(options = {})
           keys  = [:collate]
           copts = @connection_options
           options = {
             collate: copts[:collation]
           }.merge(options.symbolize_keys).select { |_, v|
             v.present?
-          }.slice(*keys).map { |k,v|
+          }.slice(*keys).map { |k, v|
             "#{k.to_s.upcase} #{v}"
-          }.join(' ')
+          }.join(" ")
           options
         end
 
-        def create_database_edition_options(options={})
+        def create_database_edition_options(options = {})
           keys  = [:maxsize, :edition, :service_objective]
           copts = @connection_options
           edition_options = {
@@ -52,17 +53,13 @@ module ActiveRecord
             service_objective: copts[:azure_service_objective]
           }.merge(options.symbolize_keys).select { |_, v|
             v.present?
-          }.slice(*keys).map { |k,v|
+          }.slice(*keys).map { |k, v|
             "#{k.to_s.upcase} = #{v}"
-          }.join(', ')
+          }.join(", ")
           edition_options = "( #{edition_options} )" if edition_options.present?
           edition_options
         end
-
       end
     end
   end
 end
-
-
-

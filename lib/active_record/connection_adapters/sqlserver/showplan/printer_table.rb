@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module ConnectionAdapters
     module SQLServer
@@ -41,7 +43,7 @@ module ActiveRecord
           end
 
           def build_separator
-            '+' + @widths.map { |w| '-' * (w + (cell_padding * 2)) }.join('+') + '+'
+            "+" + @widths.map { |w| "-" * (w + (cell_padding * 2)) }.join("+") + "+"
           end
 
           def build_cells(items)
@@ -54,7 +56,7 @@ module ActiveRecord
 
           def cast_item(item)
             case item
-            when NilClass then 'NULL'
+            when NilClass then "NULL"
             when Float then item.to_s.to(9)
             else item.to_s.truncate(max_column_width)
             end

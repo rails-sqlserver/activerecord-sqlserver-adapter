@@ -1,10 +1,11 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module ConnectionAdapters
     module SQLServer
       module Type
         class Money < Decimal
-
-          def initialize(*args)
+          def initialize(**args)
             super
             @precision = 19
             @scale = 4
@@ -15,9 +16,8 @@ module ActiveRecord
           end
 
           def sqlserver_type
-            'money'.freeze
+            "money"
           end
-
         end
       end
     end

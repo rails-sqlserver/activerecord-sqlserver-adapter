@@ -1,15 +1,17 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module ConnectionAdapters
     module SQLServer
       module Type
         class Date < ActiveRecord::Type::Date
-
           def sqlserver_type
-            'date'.freeze
+            "date"
           end
 
           def serialize(value)
             return unless value.present?
+
             date = super(value).to_s(:_sqlserver_dateformat)
             Data.new date, self
           end
@@ -37,7 +39,6 @@ module ActiveRecord
           def fast_string_to_date_format
             ::Date::DATE_FORMATS[:_sqlserver_dateformat]
           end
-
         end
       end
     end

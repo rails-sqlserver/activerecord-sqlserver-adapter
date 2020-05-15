@@ -1,25 +1,31 @@
+# frozen_string_literal: true
+
 module Arel
   module Visitors
     class SQLServer < Arel::Visitors::ToSql
-
       OFFSET = " OFFSET "
       ROWS = " ROWS"
       FETCH = " FETCH NEXT "
       FETCH0 = " FETCH FIRST (SELECT 0) "
       ROWS_ONLY = " ROWS ONLY"
 
-
       private
 
       # SQLServer ToSql/Visitor (Overides)
 
       def visit_Arel_Nodes_BindParam o, collector
-        collector.add_bind(o.value) { |i| "@#{i-1}" }
+        collector.add_bind(o.value) { |i| "@#{i - 1}" }
       end
 
       def visit_Arel_Nodes_Bin o, collector
         visit o.expr, collector
         collector << " #{ActiveRecord::ConnectionAdapters::SQLServerAdapter.cs_equality_operator} "
+      end
+
+      def visit_Arel_Nodes_Concat(o, collector)
+        visit o.left, collector
+        collector << " + "
+        visit o.right, collector
       end
 
       def visit_Arel_Nodes_UpdateStatement(o, a)
@@ -30,8 +36,8 @@ module Arel
       end
 
       def visit_Arel_Nodes_Lock o, collector
-        o.expr = Arel.sql('WITH(UPDLOCK)') if o.expr.to_s =~ /FOR UPDATE/
-        collector << SPACE
+        o.expr = Arel.sql("WITH(UPDLOCK)") if o.expr.to_s =~ /FOR UPDATE/
+        collector << " "
         visit o.expr, collector
       end
 
@@ -52,14 +58,19 @@ module Arel
         end
       end
 
+      def visit_Arel_Nodes_Grouping(o, collector)
+        remove_invalid_ordering_from_select_statement(o.expr)
+        super
+      end
+
       def visit_Arel_Nodes_SelectStatement o, collector
         @select_statement = o
         distinct_One_As_One_Is_So_Not_Fetch o
         if o.with
           collector = visit o.with, collector
-          collector << SPACE
+          collector << " "
         end
-        collector = o.cores.inject(collector) { |c,x|
+        collector = o.cores.inject(collector) { |c, x|
           visit_Arel_Nodes_SelectCore(x, c)
         }
         collector = visit_Orders_And_Let_Fetch_Happen o, collector
@@ -79,8 +90,8 @@ module Arel
           else
             quote_table_name(o.name)
           end
-        rescue Exception => e
-          quote_table_name(o.name)
+                     rescue Exception => e
+                       quote_table_name(o.name)
         end
         if o.table_alias
           collector << "#{table_name} #{quote_table_name o.table_alias}"
@@ -95,8 +106,8 @@ module Arel
           collector = visit_Arel_Nodes_SelectStatement_SQLServer_Lock collector
         end
         if o.right.any?
-          collector << SPACE if o.left
-          collector = inject_join o.right, collector, ' '
+          collector << " " if o.left
+          collector = inject_join o.right, collector, " "
         end
         collector
       end
@@ -106,7 +117,7 @@ module Arel
         collector = visit o.left, collector
         collector = visit_Arel_Nodes_SelectStatement_SQLServer_Lock collector, space: true
         if o.right
-          collector << SPACE
+          collector << " "
           visit(o.right, collector)
         else
           collector
@@ -117,8 +128,18 @@ module Arel
         collector << "LEFT OUTER JOIN "
         collector = visit o.left, collector
         collector = visit_Arel_Nodes_SelectStatement_SQLServer_Lock collector, space: true
-        collector << SPACE
+        collector << " "
         visit o.right, collector
+      end
+
+      def collect_in_clause(left, right, collector)
+        if Array === right
+          right.each { |node| remove_invalid_ordering_from_select_statement(node) }
+        else
+          remove_invalid_ordering_from_select_statement(right)
+        end
+
+        super
       end
 
       # SQLServer ToSql/Visitor (Additions)
@@ -126,7 +147,7 @@ module Arel
       def visit_Arel_Nodes_SelectStatement_SQLServer_Lock collector, options = {}
         if select_statement_lock?
           collector = visit @select_statement.lock, collector
-          collector << SPACE if options[:space]
+          collector << " " if options[:space]
         end
         collector
       end
@@ -134,12 +155,11 @@ module Arel
       def visit_Orders_And_Let_Fetch_Happen o, collector
         make_Fetch_Possible_And_Deterministic o
         unless o.orders.empty?
-          collector << SPACE
-          collector << ORDER_BY
+          collector << " ORDER BY "
           len = o.orders.length - 1
           o.orders.each_with_index { |x, i|
             collector = visit(x, collector)
-            collector << COMMA unless len == i
+            collector << ", " unless len == i
           }
         end
         collector
@@ -156,6 +176,7 @@ module Arel
 
       def node_value(node)
         return nil unless node
+
         case node.expr
         when NilClass then nil
         when Numeric then node.expr
@@ -169,9 +190,11 @@ module Arel
 
       def make_Fetch_Possible_And_Deterministic o
         return if o.limit.nil? && o.offset.nil?
+
         t = table_From_Statement o
         pk = primary_Key_From_Table t
         return unless pk
+
         if o.orders.empty?
           # Prefer deterministic vs a simple `(SELECT NULL)` expr.
           o.orders = [pk.asc]
@@ -196,14 +219,15 @@ module Arel
         elsif Arel::Nodes::SqlLiteral === core.from
           Arel::Table.new(core.from)
         elsif Arel::Nodes::JoinSource === core.source
-          Arel::Nodes::SqlLiteral === core.source.left ? Arel::Table.new(core.source.left, @engine) : core.source.left
+          Arel::Nodes::SqlLiteral === core.source.left ? Arel::Table.new(core.source.left, @engine) : core.source.left.left
         end
       end
 
       def primary_Key_From_Table t
         return unless t
+
         column_name = @connection.schema_cache.primary_keys(t.name) ||
-          @connection.schema_cache.columns_hash(t.name).first.try(:second).try(:name)
+                      @connection.schema_cache.columns_hash(t.name).first.try(:second).try(:name)
         column_name ? t[column_name] : nil
       end
 
@@ -213,6 +237,14 @@ module Arel
         ).quoted
       end
 
+      # Need to remove ordering from subqueries unless TOP/OFFSET also used. Otherwise, SQLServer
+      # returns error "The ORDER BY clause is invalid in views, inline functions, derived tables,
+      # subqueries, and common table expressions, unless TOP, OFFSET or FOR XML is also specified."
+      def remove_invalid_ordering_from_select_statement(node)
+        return unless Arel::Nodes::SelectStatement === node
+
+        node.orders = [] unless node.offset || node.limit
+      end
     end
   end
 end

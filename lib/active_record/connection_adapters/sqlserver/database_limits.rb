@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module ConnectionAdapters
     module SQLServer
@@ -9,10 +11,12 @@ module ActiveRecord
         def column_name_length
           128
         end
+        deprecate :column_name_length
 
         def table_name_length
           128
         end
+        deprecate :table_name_length
 
         def index_name_length
           128
@@ -21,14 +25,17 @@ module ActiveRecord
         def columns_per_table
           1024
         end
+        deprecate :columns_per_table
 
         def indexes_per_table
           999
         end
+        deprecate :indexes_per_table
 
         def columns_per_multicolumn_index
           16
         end
+        deprecate :columns_per_multicolumn_index
 
         def in_clause_length
           10_000
@@ -37,10 +44,12 @@ module ActiveRecord
         def sql_query_length
           65_536 * 4_096
         end
+        deprecate :sql_query_length
 
         def joins_per_query
           256
         end
+        deprecate :joins_per_query
 
         private
 

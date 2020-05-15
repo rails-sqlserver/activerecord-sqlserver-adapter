@@ -1,17 +1,17 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module ConnectionAdapters
     module SQLServer
       module Type
         class Text < VarcharMax
-
           def type
             :text_basic
           end
 
           def sqlserver_type
-            'text'.freeze
+            "text"
           end
-
         end
       end
     end
