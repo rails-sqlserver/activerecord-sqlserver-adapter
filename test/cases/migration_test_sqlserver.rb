@@ -4,7 +4,6 @@ require "cases/helper_sqlserver"
 require "models/person"
 
 class MigrationTestSQLServer < ActiveRecord::TestCase
-
   describe "For transactions" do
 
     before do
@@ -69,5 +68,4 @@ class MigrationTestSQLServer < ActiveRecord::TestCase
     end
 
   end
-
 end

@@ -4,7 +4,6 @@ require "cases/helper_sqlserver"
 require "models/post"
 
 class OrderTestSQLServer < ActiveRecord::TestCase
-
   fixtures :posts
 
   it "not mangel complex order clauses" do
@@ -144,6 +143,4 @@ class OrderTestSQLServer < ActiveRecord::TestCase
     assert_equal post1, Post.order(Arel.sql(order)).first
     assert_equal post2, Post.order(Arel.sql(order)).second
   end
-
-
 end

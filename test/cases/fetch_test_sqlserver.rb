@@ -4,7 +4,6 @@ require "cases/helper_sqlserver"
 require "models/book"
 
 class FetchTestSqlserver < ActiveRecord::TestCase
-
   let(:books) { @books }
 
   before { create_10_books }
@@ -54,6 +53,5 @@ class FetchTestSqlserver < ActiveRecord::TestCase
     Book.delete_all
     @books = (1..10).map { |i| Book.create! name: "Name-#{i}" }
   end
-
 end
 

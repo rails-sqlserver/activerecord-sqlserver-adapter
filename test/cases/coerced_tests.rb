@@ -580,7 +580,6 @@ module ActiveRecord
         end
       end
     end
-
   end
 
   class DatabaseTasksCollationTest < ActiveRecord::TestCase
@@ -1533,7 +1532,6 @@ end
 
 require "models/task"
 class QueryCacheExpiryTest < ActiveRecord::TestCase
-
   # SQL Server does not support skipping or upserting duplicates.
   coerce_tests! :test_insert_all
   def test_insert_all_coerced

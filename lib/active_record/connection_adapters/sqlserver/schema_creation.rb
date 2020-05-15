@@ -4,7 +4,6 @@ module ActiveRecord
   module ConnectionAdapters
     module SQLServer
       class SchemaCreation < AbstractAdapter::SchemaCreation
-
         private
 
         def visit_TableDefinition(o)
@@ -63,7 +62,6 @@ module ActiveRecord
         def options_primary_key_with_nil_default?(options)
           options[:primary_key] && options.include?(:default) && options[:default].nil?
         end
-
       end
     end
   end

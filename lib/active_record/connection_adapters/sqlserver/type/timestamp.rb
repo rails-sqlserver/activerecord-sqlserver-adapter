@@ -5,7 +5,6 @@ module ActiveRecord
     module SQLServer
       module Type
         class Timestamp < Binary
-
           def type
             :ss_timestamp
           end
@@ -13,7 +12,6 @@ module ActiveRecord
           def sqlserver_type
             "timestamp"
           end
-
         end
       end
     end

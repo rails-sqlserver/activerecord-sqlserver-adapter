@@ -3,7 +3,6 @@
 require "cases/helper_sqlserver"
 
 class UtilsTestSQLServer < ActiveRecord::TestCase
-
   it ".quote_string" do
     _(SQLServer::Utils.quote_string("I'll store this in C:\\Users")).must_equal "I''ll store this in C:\\Users"
   end
@@ -127,5 +126,4 @@ class UtilsTestSQLServer < ActiveRecord::TestCase
   def extract_identifiers(name)
     SQLServer::Utils.extract_identifiers(name)
   end
-
 end

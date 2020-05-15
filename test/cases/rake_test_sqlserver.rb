@@ -3,7 +3,6 @@
 require "cases/helper_sqlserver"
 
 class SQLServerRakeTest < ActiveRecord::TestCase
-
   self.use_transactional_tests = false
 
   cattr_accessor :azure_skip
@@ -36,11 +35,9 @@ class SQLServerRakeTest < ActiveRecord::TestCase
       connection.drop_database(new_database) rescue nil
     end
   end
-
 end
 
 class SQLServerRakeCreateTest < SQLServerRakeTest
-
   self.azure_skip = false
 
   it "establishes connection to database after create " do
@@ -63,11 +60,9 @@ class SQLServerRakeCreateTest < SQLServerRakeTest
     message = capture(:stderr) { db_tasks.create configuration }
     _(message).must_match %r{activerecord_unittest_tasks.*already exists}
   end
-
 end
 
 class SQLServerRakeDropTest < SQLServerRakeTest
-
   self.azure_skip = false
 
   it "drops database and uses master" do
@@ -82,11 +77,9 @@ class SQLServerRakeDropTest < SQLServerRakeTest
     message = capture(:stderr) { db_tasks.drop configuration.merge("database" => "doesnotexist") }
     _(message).must_match %r{'doesnotexist' does not exist}
   end
-
 end
 
 class SQLServerRakePurgeTest < SQLServerRakeTest
-
   before do
     quietly { db_tasks.create(configuration) }
     connection.create_table :users, force: true do |t|
@@ -102,11 +95,9 @@ class SQLServerRakePurgeTest < SQLServerRakeTest
     _(connection.current_database).must_equal(new_database)
     _(connection.tables).wont_include "users"
   end
-
 end
 
 class SQLServerRakeCharsetTest < SQLServerRakeTest
-
   before do
     quietly { db_tasks.create(configuration) }
   end
@@ -114,11 +105,9 @@ class SQLServerRakeCharsetTest < SQLServerRakeTest
   it "retrieves charset" do
     _(db_tasks.charset(configuration)).must_equal "iso_1"
   end
-
 end
 
 class SQLServerRakeCollationTest < SQLServerRakeTest
-
   before do
     quietly { db_tasks.create(configuration) }
   end
@@ -126,11 +115,9 @@ class SQLServerRakeCollationTest < SQLServerRakeTest
   it "retrieves collation" do
     _(db_tasks.collation(configuration)).must_equal "SQL_Latin1_General_CP1_CI_AS"
   end
-
 end
 
 class SQLServerRakeStructureDumpLoadTest < SQLServerRakeTest
-
   let(:filename) { File.join ARTest::SQLServer.migrations_root, "structure.sql" }
   let(:filedata) { File.read(filename) }
 
@@ -167,5 +154,4 @@ class SQLServerRakeStructureDumpLoadTest < SQLServerRakeTest
     db_tasks.load_schema configuration, :sql, filename
     _(connection.tables).must_include "users"
   end
-
 end

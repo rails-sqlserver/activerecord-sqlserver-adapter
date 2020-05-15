@@ -5,11 +5,9 @@ module ActiveRecord
     module SQLServer
       module Type
         class SmallInteger < Integer
-
           def sqlserver_type
             "smallint"
           end
-
         end
       end
     end

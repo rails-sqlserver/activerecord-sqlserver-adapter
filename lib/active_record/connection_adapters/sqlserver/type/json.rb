@@ -5,7 +5,6 @@ module ActiveRecord
     module SQLServer
       module Type
         class Json < ActiveRecord::Type::Json
-
         end
       end
     end

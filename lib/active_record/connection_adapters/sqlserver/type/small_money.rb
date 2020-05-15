@@ -5,7 +5,6 @@ module ActiveRecord
     module SQLServer
       module Type
         class SmallMoney < Money
-
           def initialize(**args)
             super
             @precision = 10
@@ -19,7 +18,6 @@ module ActiveRecord
           def sqlserver_type
             "smallmoney"
           end
-
         end
       end
     end

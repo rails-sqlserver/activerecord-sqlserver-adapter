@@ -4,7 +4,6 @@ require "cases/helper_sqlserver"
 require "models/car"
 
 class ShowplanTestSQLServer < ActiveRecord::TestCase
-
   fixtures :cars
 
   describe "Unprepare previously prepared SQL" do
@@ -75,5 +74,4 @@ class ShowplanTestSQLServer < ActiveRecord::TestCase
   ensure
     ActiveRecord::ConnectionAdapters::SQLServerAdapter.showplan_option = old_option
   end
-
 end

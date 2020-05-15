@@ -3,7 +3,6 @@
 require "cases/helper_sqlserver"
 
 class ColumnTestSQLServer < ActiveRecord::TestCase
-
   it "#table_name" do
     assert SSTestDatatype.columns.all? { |c| c.table_name == "sst_datatypes" }
     assert SSTestCustomersView.columns.all? { |c| c.table_name == "customers" }
@@ -838,5 +837,4 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
     end
 
   end
-
 end

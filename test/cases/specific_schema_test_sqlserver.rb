@@ -3,7 +3,6 @@
 require "cases/helper_sqlserver"
 
 class SpecificSchemaTestSQLServer < ActiveRecord::TestCase
-
   after { SSTestEdgeSchema.delete_all }
 
   it "handle dollar symbols" do
@@ -168,5 +167,4 @@ class SpecificSchemaTestSQLServer < ActiveRecord::TestCase
     assert_equal "field_1", connection.columns("test.sst_schema_test_mulitple_schema").detect(&:is_primary?).name
     assert_equal "field_2", connection.columns("test2.sst_schema_test_mulitple_schema").detect(&:is_primary?).name
   end
-
 end

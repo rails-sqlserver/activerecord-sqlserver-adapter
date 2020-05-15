@@ -5,7 +5,6 @@ module ActiveRecord
     module SQLServer
       module Type
         class Date < ActiveRecord::Type::Date
-
           def sqlserver_type
             "date"
           end
@@ -39,7 +38,6 @@ module ActiveRecord
           def fast_string_to_date_format
             ::Date::DATE_FORMATS[:_sqlserver_dateformat]
           end
-
         end
       end
     end

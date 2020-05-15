@@ -16,7 +16,6 @@ require "mocha/minitest"
 
 module ActiveRecord
   class TestCase < ActiveSupport::TestCase
-
     SQLServer = ActiveRecord::ConnectionAdapters::SQLServer
 
     include ARTest::SQLServer::CoerceableTest,
@@ -50,7 +49,6 @@ module ActiveRecord
     ensure
       klass.use_output_inserted = true
     end
-
   end
 end
 

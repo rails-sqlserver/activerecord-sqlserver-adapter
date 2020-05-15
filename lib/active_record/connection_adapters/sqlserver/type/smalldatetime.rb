@@ -5,7 +5,6 @@ module ActiveRecord
     module SQLServer
       module Type
         class SmallDateTime < DateTime
-
           def type
             :smalldatetime
           end
@@ -23,7 +22,6 @@ module ActiveRecord
           def apply_seconds_precision(value)
             value.change usec: 0 if value
           end
-
         end
       end
     end

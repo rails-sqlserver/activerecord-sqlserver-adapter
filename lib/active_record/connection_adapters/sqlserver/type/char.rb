@@ -5,7 +5,6 @@ module ActiveRecord
     module SQLServer
       module Type
         class Char < String
-
           def type
             :char
           end
@@ -27,7 +26,6 @@ module ActiveRecord
             return value.quoted_id if value.respond_to?(:quoted_id)
             Utils.quote_string_single(value)
           end
-
         end
       end
     end

@@ -3,7 +3,6 @@
 require "cases/helper_sqlserver"
 
 class ExecuteProcedureTestSQLServer < ActiveRecord::TestCase
-
   it "execute a simple procedure" do
     tables = ActiveRecord::Base.execute_procedure :sp_tables
     assert_instance_of Array, tables
@@ -42,5 +41,4 @@ class ExecuteProcedureTestSQLServer < ActiveRecord::TestCase
     date_base = connection.select_value("select GETUTCDATE()")
     assert_equal date_base.change(usec: 0), date_proc.change(usec: 0)
   end
-
 end

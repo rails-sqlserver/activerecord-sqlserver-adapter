@@ -5,7 +5,6 @@ module ActiveRecord
     module SQLServer
       module Type
         class Uuid < String
-
           ACCEPTABLE_UUID = %r{\A\{?([a-fA-F0-9]{4}-?){8}\}?\z}x
 
           alias_method :serialize, :deserialize
@@ -30,7 +29,6 @@ module ActiveRecord
           def quoted(value)
             Utils.quote_string_single(value) if value
           end
-
         end
       end
     end

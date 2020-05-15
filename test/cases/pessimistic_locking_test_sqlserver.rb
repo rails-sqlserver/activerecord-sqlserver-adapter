@@ -5,7 +5,6 @@ require "models/person"
 require "models/reader"
 
 class PessimisticLockingTestSQLServer < ActiveRecord::TestCase
-
   fixtures :people, :readers
 
   before do
@@ -105,5 +104,4 @@ class PessimisticLockingTestSQLServer < ActiveRecord::TestCase
     end
 
   end
-
 end

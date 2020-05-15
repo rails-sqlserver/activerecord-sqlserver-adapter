@@ -5,7 +5,6 @@ require "models/ship"
 require "models/developer"
 
 class TransactionTestSQLServer < ActiveRecord::TestCase
-
   self.use_transactional_tests = false
 
   before { delete_ships }
@@ -88,5 +87,4 @@ class TransactionTestSQLServer < ActiveRecord::TestCase
   def assert_no_ships
     assert Ship.count.zero?, "Expected Ship to have no models but it did have:\n#{Ship.all.inspect}"
   end
-
 end

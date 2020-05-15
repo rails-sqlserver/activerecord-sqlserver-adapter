@@ -3,7 +3,6 @@
 require "cases/helper_sqlserver"
 
 class SchemaDumperTestSQLServer < ActiveRecord::TestCase
-
   before { all_tables }
 
   let(:all_tables)   { ActiveRecord::Base.connection.tables }
@@ -182,7 +181,6 @@ class SchemaDumperTestSQLServer < ActiveRecord::TestCase
   end
 
   class SchemaLine
-
     LINE_PARSER = %r{t\.(\w+)\s+"(.*?)"[,\s+](.*)}
 
     attr_reader :line,
@@ -230,8 +228,6 @@ class SchemaDumperTestSQLServer < ActiveRecord::TestCase
     rescue SyntaxError
       {}
     end
-
   end
-
 end
 

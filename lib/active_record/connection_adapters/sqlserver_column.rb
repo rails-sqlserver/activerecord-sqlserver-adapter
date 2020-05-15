@@ -3,7 +3,6 @@
 module ActiveRecord
   module ConnectionAdapters
     class SQLServerColumn < Column
-
       def initialize(name, default, sql_type_metadata = nil, null = true, default_function = nil, collation: nil, comment: nil, **sqlserver_options)
         @sqlserver_options = sqlserver_options
         super
@@ -28,7 +27,6 @@ module ActiveRecord
       def case_sensitive?
         collation && collation.match(/_CS/)
       end
-
     end
   end
 end
