@@ -12,7 +12,7 @@ module ActiveRecord
             return value unless value.acts_like?(:time)
 
             time = "#{value.to_s(:_sqlserver_time)}.#{quote_fractional(value)}"
-            
+
             Data.new time, self
           end
 

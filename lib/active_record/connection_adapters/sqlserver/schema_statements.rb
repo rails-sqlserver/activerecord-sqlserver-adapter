@@ -143,7 +143,7 @@ module ActiveRecord
           column_object = schema_cache.columns(table_name).find { |c| c.name.to_s == column_name.to_s }
           without_constraints = options.key?(:default) || options.key?(:limit)
           default = if !options.key?(:default) && column_object
-            column_object.default
+                      column_object.default
           else
             options[:default]
           end
@@ -415,8 +415,8 @@ module ActiveRecord
 
         def column_definitions_sql(database, identifier)
           object_name = prepared_statements ? "@0" : quote(identifier.object)
-          schema_name = if identifier.schema.blank? 
-                          "schema_name()" 
+          schema_name = if identifier.schema.blank?
+                          "schema_name()"
                         else
                           prepared_statements ? "@1" : quote(identifier.schema)
                         end
@@ -506,7 +506,7 @@ module ActiveRecord
 
         def get_table_name(sql)
           tn = if sql =~ /^\s*(INSERT|EXEC sp_executesql N'INSERT)(\s+INTO)?\s+([^\(\s]+)\s*|^\s*update\s+([^\(\s]+)\s*/i
-            Regexp.last_match[3] || Regexp.last_match[4]
+                 Regexp.last_match[3] || Regexp.last_match[4]
           elsif sql =~ /FROM\s+([^\(\s]+)\s*/i
             Regexp.last_match[1]
           else
