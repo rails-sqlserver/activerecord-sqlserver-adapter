@@ -3,7 +3,6 @@
 require "cases/helper_sqlserver"
 
 class SchemaTestSQLServer < ActiveRecord::TestCase
-
   describe "When table is dbo schema" do
 
     it "find primary key for tables with odd schema" do
@@ -50,7 +49,5 @@ class SchemaTestSQLServer < ActiveRecord::TestCase
     end
 
   end
-
-
 end
 

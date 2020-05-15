@@ -3,7 +3,6 @@
 module Arel
   module Visitors
     class SQLServer < Arel::Visitors::ToSql
-
       OFFSET = " OFFSET "
       ROWS = " ROWS"
       FETCH = " FETCH NEXT "

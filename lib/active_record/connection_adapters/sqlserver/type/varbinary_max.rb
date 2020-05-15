@@ -5,7 +5,6 @@ module ActiveRecord
     module SQLServer
       module Type
         class VarbinaryMax < Varbinary
-
           def initialize(**args)
             super
             @limit = 2_147_483_647
@@ -18,7 +17,6 @@ module ActiveRecord
           def sqlserver_type
             "varbinary(max)"
           end
-
         end
       end
     end

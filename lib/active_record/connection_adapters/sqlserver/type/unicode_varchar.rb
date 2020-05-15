@@ -5,7 +5,6 @@ module ActiveRecord
     module SQLServer
       module Type
         class UnicodeVarchar < UnicodeChar
-
           def initialize(**args)
             super
             @limit = 4000 if @limit.to_i == 0
@@ -21,7 +20,6 @@ module ActiveRecord
               type
             end
           end
-
         end
       end
     end

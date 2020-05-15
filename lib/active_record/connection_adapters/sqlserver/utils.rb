@@ -13,7 +13,6 @@ module ActiveRecord
         # Inspiried from Rails PostgreSQL::Name adapter object in their own Utils.
         #
         class Name
-
           SEPARATOR = "."
           UNQUOTED_SCANNER = /\]?\./
           QUOTED_SCANNER   = /\A\[.*?\]\./
@@ -113,7 +112,6 @@ module ActiveRecord
           def parts
             @parts
           end
-
         end
 
         extend self

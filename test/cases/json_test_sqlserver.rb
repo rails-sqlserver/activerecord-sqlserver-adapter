@@ -4,7 +4,6 @@ require "cases/helper_sqlserver"
 
 if ActiveRecord::Base.connection.supports_json?
 class JsonTestSQLServer < ActiveRecord::TestCase
-
   before do
     @o1 = SSTestDatatypeMigrationJson.create! json_col: { "a" => "a", "b" => "b", "c" => "c" }
     @o2 = SSTestDatatypeMigrationJson.create! json_col: { "a" => nil, "b" => "b", "c" => "c" }
@@ -29,6 +28,5 @@ class JsonTestSQLServer < ActiveRecord::TestCase
   it "can use JSON_VALUE function" do
     _(SSTestDatatypeMigrationJson.where("JSON_VALUE(json_col, '$.b') = 'b'").count).must_equal 2
   end
-
 end
 end

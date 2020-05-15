@@ -5,7 +5,6 @@ module ActiveRecord
     module SQLServer
       module Type
         class Time < ActiveRecord::Type::Time
-
           include TimeValueFractional2
 
           def serialize(value)
@@ -45,7 +44,6 @@ module ActiveRecord
           def fractional_scale
             precision
           end
-
         end
       end
     end

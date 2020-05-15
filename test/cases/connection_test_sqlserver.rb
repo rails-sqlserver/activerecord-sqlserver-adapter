@@ -5,7 +5,6 @@ require "models/reply"
 require "models/topic"
 
 class ConnectionTestSQLServer < ActiveRecord::TestCase
-
   self.use_transactional_tests = false
 
   fixtures :topics, :accounts
@@ -69,5 +68,4 @@ class ConnectionTestSQLServer < ActiveRecord::TestCase
       connection.raw_connection.close rescue nil
     end
   end
-
 end

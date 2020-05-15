@@ -4,7 +4,6 @@ module ActiveRecord
   module ConnectionAdapters
     module SQLServer
       class SchemaDumper < ConnectionAdapters::SchemaDumper
-
         SQLSEVER_NO_LIMIT_TYPES = [
           "text",
           "ntext",
@@ -32,7 +31,6 @@ module ActiveRecord
         def default_primary_key?(column)
           super && column.is_primary? && column.is_identity?
         end
-
       end
     end
   end

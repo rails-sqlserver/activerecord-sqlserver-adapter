@@ -5,7 +5,6 @@ module ActiveRecord
     module SQLServer
       module Type
         class Binary < ActiveRecord::Type::Binary
-
           def type
             :binary_basic
           end
@@ -16,7 +15,6 @@ module ActiveRecord
               type
             end
           end
-
         end
       end
     end

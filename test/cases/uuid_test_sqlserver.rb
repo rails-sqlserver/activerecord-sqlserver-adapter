@@ -3,7 +3,6 @@
 require "cases/helper_sqlserver"
 
 class SQLServerUuidTest < ActiveRecord::TestCase
-
   let(:acceptable_uuid) { ActiveRecord::ConnectionAdapters::SQLServer::Type::Uuid::ACCEPTABLE_UUID }
 
   it "has a uuid primary key" do
@@ -44,5 +43,4 @@ class SQLServerUuidTest < ActiveRecord::TestCase
     obj = with_use_output_inserted_disabled { SSTestUuid.create!(name: "😢") }
     _(obj.id).must_be :nil?
   end
-
 end

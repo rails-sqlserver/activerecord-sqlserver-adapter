@@ -5,7 +5,6 @@ module ActiveRecord
     module SQLServer
       module Type
         class UnicodeChar < UnicodeString
-
           def type
             :nchar
           end
@@ -16,7 +15,6 @@ module ActiveRecord
               type
             end
           end
-
         end
       end
     end

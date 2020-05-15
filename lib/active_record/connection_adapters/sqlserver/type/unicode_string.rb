@@ -5,8 +5,6 @@ module ActiveRecord
     module SQLServer
       module Type
         class UnicodeString < String
-
-
         end
       end
     end

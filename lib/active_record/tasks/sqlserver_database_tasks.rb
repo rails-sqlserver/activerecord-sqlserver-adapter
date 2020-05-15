@@ -9,7 +9,6 @@ module ActiveRecord
   module Tasks
 
     class SQLServerDatabaseTasks
-
       DEFAULT_COLLATION = "SQL_Latin1_General_CP1_CI_AS"
 
       delegate :connection, :establish_connection, :clear_active_connections!,
@@ -93,7 +92,6 @@ module ActiveRecord
       def establish_master_connection
         establish_connection configuration.merge("database" => "master")
       end
-
     end
 
     module DatabaseTasksSQLServer

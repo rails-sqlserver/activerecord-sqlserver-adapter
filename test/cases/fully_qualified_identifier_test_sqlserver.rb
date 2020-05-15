@@ -3,7 +3,6 @@
 require "cases/helper_sqlserver"
 
 class FullyQualifiedIdentifierTestSQLServer < ActiveRecord::TestCase
-
   describe "local server" do
 
     it "should use table name in select projections" do
@@ -74,5 +73,4 @@ class FullyQualifiedIdentifierTestSQLServer < ActiveRecord::TestCase
     end
 
   end
-
 end

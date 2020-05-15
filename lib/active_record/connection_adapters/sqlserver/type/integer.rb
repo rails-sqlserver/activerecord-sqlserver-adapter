@@ -5,11 +5,9 @@ module ActiveRecord
     module SQLServer
       module Type
         class Integer < ActiveRecord::Type::Integer
-
           def sqlserver_type
             "int"
           end
-
         end
       end
     end

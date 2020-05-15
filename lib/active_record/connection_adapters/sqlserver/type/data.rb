@@ -5,7 +5,6 @@ module ActiveRecord
     module SQLServer
       module Type
         class Data
-
           attr_reader :value, :type
 
           def initialize(value, type)
@@ -29,7 +28,6 @@ module ActiveRecord
             self.class == other.class && self.value == other.value
           end
           alias :== :eql?
-
         end
       end
     end

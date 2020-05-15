@@ -5,7 +5,6 @@ module ActiveRecord
     module SQLServer
       module Type
         class DateTimeOffset < DateTime2
-
           def type
             :datetimeoffset
           end
@@ -17,7 +16,6 @@ module ActiveRecord
           def quoted(value)
             Utils.quote_string_single(value)
           end
-
         end
       end
     end

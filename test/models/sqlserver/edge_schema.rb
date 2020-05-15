@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 class SSTestEdgeSchema < ActiveRecord::Base
-
   self.table_name = "sst_edge_schemas"
 
   def with_spaces
@@ -11,5 +10,4 @@ class SSTestEdgeSchema < ActiveRecord::Base
   def with_spaces=(value)
     write_attribute :'with spaces', value
   end
-
 end

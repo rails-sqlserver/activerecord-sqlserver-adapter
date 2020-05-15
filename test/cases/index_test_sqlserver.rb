@@ -3,7 +3,6 @@
 require "cases/helper_sqlserver"
 
 class IndexTestSQLServer < ActiveRecord::TestCase
-
   before do
     connection.create_table(:testings) do |t|
       t.column :foo, :string, limit: 100
@@ -45,5 +44,4 @@ class IndexTestSQLServer < ActiveRecord::TestCase
     connection.execute "ALTER TABLE [testings] ADD [first_name_upper] AS UPPER([first_name])"
     connection.add_index "testings", "first_name_upper"
   end
-
 end

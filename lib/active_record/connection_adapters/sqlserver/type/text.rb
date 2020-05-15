@@ -5,7 +5,6 @@ module ActiveRecord
     module SQLServer
       module Type
         class Text < VarcharMax
-
           def type
             :text_basic
           end
@@ -13,7 +12,6 @@ module ActiveRecord
           def sqlserver_type
             "text"
           end
-
         end
       end
     end

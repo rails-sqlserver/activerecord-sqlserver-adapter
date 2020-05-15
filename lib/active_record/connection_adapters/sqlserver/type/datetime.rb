@@ -5,7 +5,6 @@ module ActiveRecord
     module SQLServer
       module Type
         class DateTime < ActiveRecord::Type::DateTime
-
           include TimeValueFractional
 
           def sqlserver_type

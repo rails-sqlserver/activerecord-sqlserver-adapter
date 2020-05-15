@@ -8,7 +8,6 @@ require "models/subscriber"
 require "models/minimalistic"
 
 class AdapterTestSQLServer < ActiveRecord::TestCase
-
   fixtures :tasks
 
   let(:basic_insert_sql) { "INSERT INTO [funny_jokes] ([name]) VALUES('Knock knock')" }
@@ -492,6 +491,5 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
       end
     end
   end
-
 end
 

@@ -5,7 +5,6 @@ module ActiveRecord
     module SQLServer
       module Type
         class UnicodeText < UnicodeVarcharMax
-
           def type
             :ntext
           end
@@ -13,7 +12,6 @@ module ActiveRecord
           def sqlserver_type
             "ntext"
           end
-
         end
       end
     end
