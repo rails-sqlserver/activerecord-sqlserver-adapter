@@ -8,7 +8,6 @@ module ActiveRecord
     module SQLServer
       module CoreExt
         module FinderMethods
-
           private
 
           # Same as original except we order by values in distinct select if present.

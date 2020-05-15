@@ -2,16 +2,13 @@
 
 module ARTest
   module SQLServer
-
     module SqlCounterSqlserver
-
       # Only return the log vs. log_all
       def capture_sql_ss
         ActiveRecord::SQLCounter.clear_log
         yield
         ActiveRecord::SQLCounter.log.dup
       end
-
     end
 
     ignored_sql = [
@@ -26,6 +23,5 @@ module ARTest
 
     sqlcounter = ObjectSpace.each_object(ActiveRecord::SQLCounter).to_a.first
     sqlcounter.instance_variable_set :@ignore, Regexp.union(ignored_sql.push(sqlcounter.ignore))
-
   end
 end

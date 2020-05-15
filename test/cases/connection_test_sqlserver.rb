@@ -35,7 +35,6 @@ class ConnectionTestSQLServer < ActiveRecord::TestCase
   end unless connection_sqlserver_azure?
 
   describe "Connection management" do
-
     it "set spid on connect" do
       _(["Fixnum", "Integer"]).must_include connection.spid.class.name
     end
@@ -56,7 +55,6 @@ class ConnectionTestSQLServer < ActiveRecord::TestCase
       connection.reconnect!
       assert connection.active?
     end
-
   end
 
   private

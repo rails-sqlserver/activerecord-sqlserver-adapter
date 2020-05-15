@@ -4,15 +4,12 @@ require "cases/helper_sqlserver"
 
 class SchemaTestSQLServer < ActiveRecord::TestCase
   describe "When table is dbo schema" do
-
     it "find primary key for tables with odd schema" do
       _(connection.primary_key("sst_natural_pk_data")).must_equal "legacy_id"
     end
-
   end
 
   describe "When table is in non-dbo schema" do
-
     it "work with table exists" do
       assert connection.data_source_exists?("test.sst_schema_natural_id")
       assert connection.data_source_exists?("[test].[sst_schema_natural_id]")
@@ -47,7 +44,6 @@ class SchemaTestSQLServer < ActiveRecord::TestCase
       assert_equal 255, columns.find {|c| c.name == "n_name"}.limit
       assert_equal 1000, columns.find {|c| c.name == "n_description"}.limit
     end
-
   end
 end
 

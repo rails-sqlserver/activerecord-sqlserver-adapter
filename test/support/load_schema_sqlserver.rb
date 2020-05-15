@@ -2,7 +2,6 @@
 
 module ARTest
   module SQLServer
-
     extend self
 
     def schema_root
@@ -24,7 +23,6 @@ module ARTest
     ensure
       $stdout = original_stdout
     end
-
   end
 end
 

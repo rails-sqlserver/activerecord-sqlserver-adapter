@@ -4,7 +4,6 @@ module ActiveRecord
   module ConnectionAdapters
     module SQLServer
       module Quoting
-
         QUOTED_TRUE  = "1".freeze
         QUOTED_FALSE = "0".freeze
         QUOTED_STRING_PREFIX = "N".freeze
@@ -130,7 +129,6 @@ module ActiveRecord
             super
           end
         end
-
       end
     end
   end

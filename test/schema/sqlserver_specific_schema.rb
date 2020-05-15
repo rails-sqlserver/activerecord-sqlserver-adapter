@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 ActiveRecord::Schema.define do
-
   # Exhaustive Data Types
 
   execute File.read(ARTest::SQLServer.schema_datatypes_2012_file)
@@ -278,5 +277,4 @@ ActiveRecord::Schema.define do
       field_2 int NOT NULL PRIMARY KEY,
     )
   SCHEMATESTMULTIPLESCHEMA
-
 end

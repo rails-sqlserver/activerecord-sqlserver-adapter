@@ -4,7 +4,6 @@ module ActiveRecord
   module ConnectionAdapters
     module SQLServer
       module DatabaseTasks
-
         def create_database(database, options = {})
           name = SQLServer::Utils.extract_identifiers(database)
           db_options = create_database_options(options)
@@ -60,7 +59,6 @@ module ActiveRecord
           edition_options = "( #{edition_options} )" if edition_options.present?
           edition_options
         end
-
       end
     end
   end

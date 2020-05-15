@@ -7,7 +7,6 @@ require "socket"
 
 module ActiveRecord
   module Tasks
-
     class SQLServerDatabaseTasks
       DEFAULT_COLLATION = "SQL_Latin1_General_CP1_CI_AS"
 
@@ -94,11 +93,9 @@ module ActiveRecord
     end
 
     module DatabaseTasksSQLServer
-
       extend ActiveSupport::Concern
 
       module ClassMethods
-
         LOCAL_IPADDR = [
           IPAddr.new("192.168.0.0/16"),
           IPAddr.new("10.0.0.0/8"),
@@ -120,13 +117,10 @@ module ActiveRecord
           return false unless host_ip
           LOCAL_IPADDR.any? { |ip| ip.include?(host_ip) }
         end
-
       end
-
     end
 
     DatabaseTasks.register_task %r{sqlserver}, SQLServerDatabaseTasks
     DatabaseTasks.send :include, DatabaseTasksSQLServer
-
   end
 end

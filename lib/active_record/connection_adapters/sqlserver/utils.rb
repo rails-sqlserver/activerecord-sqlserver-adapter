@@ -6,7 +6,6 @@ module ActiveRecord
   module ConnectionAdapters
     module SQLServer
       module Utils
-
         QUOTED_STRING_PREFIX = "N"
 
         # Value object to return identifiers from SQL Server names http://bit.ly/1CZ3EiL
@@ -139,7 +138,6 @@ module ActiveRecord
         def extract_identifiers(name)
           SQLServer::Utils::Name.new(name)
         end
-
       end
     end
   end

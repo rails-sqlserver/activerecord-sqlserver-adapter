@@ -16,7 +16,6 @@ class UtilsTestSQLServer < ActiveRecord::TestCase
   end
 
   describe ".extract_identifiers constructor and thus SQLServer::Utils::Name value object" do
-
     let(:valid_names) { valid_names_unquoted + valid_names_quoted }
 
     let(:valid_names_unquoted) {[
@@ -54,7 +53,6 @@ class UtilsTestSQLServer < ActiveRecord::TestCase
     end
 
     [:schema, :database, :server].each do |part|
-
       it "extracts and returns #{part} identifier unquoted by default or quoted as needed" do
         present, blank = send(:"#{part}_names")
         present.each do |n|
@@ -68,7 +66,6 @@ class UtilsTestSQLServer < ActiveRecord::TestCase
           _(name.send(:"#{part}_quoted")).must_be_nil "With #{n.inspect} for ##{part}_quoted method"
         end
       end
-
     end
 
     it "does not blow up on nil or blank string name" do
@@ -118,7 +115,6 @@ class UtilsTestSQLServer < ActiveRecord::TestCase
       name = extract_identifiers("server.database.schema.object")
       _(name.fully_qualified_database_quoted).must_equal "[server].[database]"
     end
-
   end
 
   private
