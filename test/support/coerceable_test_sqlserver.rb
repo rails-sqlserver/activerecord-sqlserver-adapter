@@ -21,6 +21,7 @@ module ARTest
         def coerce_all_tests!
           instance_methods(false).each do |method|
             next unless method.to_s =~ /\Atest/
+
             undef_method(method)
           end
           STDOUT.puts "🙉 🙈 🙊  Undefined all tests: #{self.name}"

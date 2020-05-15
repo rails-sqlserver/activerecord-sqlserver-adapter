@@ -14,7 +14,9 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
     Type = ActiveRecord::ConnectionAdapters::SQLServer::Type
 
     def new_obj; SSTestDatatype.new; end
+
     def column(name); SSTestDatatype.columns_hash[name]; end
+
     def assert_obj_set_and_save(attribute, value)
       obj.send :"#{attribute}=", value
       _(obj.send(attribute)).must_equal value

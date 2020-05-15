@@ -37,6 +37,7 @@ module ActiveRecord
           def cast_value(value)
             value = super
             return if value.blank?
+
             value = value.change year: 2000, month: 01, day: 01
             apply_seconds_precision(value)
           end

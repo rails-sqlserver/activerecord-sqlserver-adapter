@@ -90,8 +90,8 @@ module Arel
           else
             quote_table_name(o.name)
           end
-        rescue Exception => e
-          quote_table_name(o.name)
+                     rescue Exception => e
+                       quote_table_name(o.name)
         end
         if o.table_alias
           collector << "#{table_name} #{quote_table_name o.table_alias}"
@@ -176,6 +176,7 @@ module Arel
 
       def node_value(node)
         return nil unless node
+
         case node.expr
         when NilClass then nil
         when Numeric then node.expr
@@ -189,9 +190,11 @@ module Arel
 
       def make_Fetch_Possible_And_Deterministic o
         return if o.limit.nil? && o.offset.nil?
+
         t = table_From_Statement o
         pk = primary_Key_From_Table t
         return unless pk
+
         if o.orders.empty?
           # Prefer deterministic vs a simple `(SELECT NULL)` expr.
           o.orders = [pk.asc]
@@ -222,8 +225,9 @@ module Arel
 
       def primary_Key_From_Table t
         return unless t
+
         column_name = @connection.schema_cache.primary_keys(t.name) ||
-          @connection.schema_cache.columns_hash(t.name).first.try(:second).try(:name)
+                      @connection.schema_cache.columns_hash(t.name).first.try(:second).try(:name)
         column_name ? t[column_name] : nil
       end
 

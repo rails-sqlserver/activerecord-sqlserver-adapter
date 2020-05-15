@@ -46,4 +46,3 @@ class SchemaTestSQLServer < ActiveRecord::TestCase
     end
   end
 end
-

@@ -188,6 +188,7 @@ module ActiveRecord
 
       def active?
         return false unless @connection
+
         raw_connection_do "SELECT 1"
         true
       rescue *connection_errors
@@ -253,6 +254,7 @@ module ActiveRecord
 
       def database_prefix_remote_server?
         return false if database_prefix.blank?
+
         name = SQLServer::Utils.extract_identifiers(database_prefix)
         name.fully_qualified? && name.object.blank?
       end
@@ -420,7 +422,7 @@ module ActiveRecord
           appname: config_appname(config),
           login_timeout: config_login_timeout(config),
           timeout: config_timeout(config),
-          encoding:  config_encoding(config),
+          encoding: config_encoding(config),
           azure: config[:azure],
           contained: config[:contained]
         ).tap do |client|
@@ -476,6 +478,7 @@ module ActiveRecord
 
       def version_year
         return 2016 if sqlserver_version =~ /vNext/
+
         /SQL Server (\d+)/.match(sqlserver_version).to_a.last.to_s.to_i
       rescue StandardError => e
         2016

@@ -459,15 +459,21 @@ module ActiveRecord
   module DatabaseTasksSetupper
     def setup
       @sqlserver_tasks =
-          Class.new do
-            def create; end
-            def drop; end
-            def purge; end
-            def charset; end
-            def collation; end
-            def structure_dump(*); end
-            def structure_load(*); end
-          end.new
+        Class.new do
+          def create; end
+
+          def drop; end
+
+          def purge; end
+
+          def charset; end
+
+          def collation; end
+
+          def structure_dump(*); end
+
+          def structure_load(*); end
+        end.new
 
       $stdout, @original_stdout = StringIO.new, $stdout
       $stderr, @original_stderr = StringIO.new, $stderr
@@ -552,8 +558,8 @@ module ActiveRecord
     def test_sqlserver_structure_dump
       with_stubbed_new do
         assert_called_with(
-            eval("@sqlserver_tasks"), :structure_dump,
-            ["awesome-file.sql", nil]
+          eval("@sqlserver_tasks"), :structure_dump,
+          ["awesome-file.sql", nil]
         ) do
           ActiveRecord::Tasks::DatabaseTasks.structure_dump({ "adapter" => :sqlserver }, "awesome-file.sql")
         end
@@ -568,9 +574,9 @@ module ActiveRecord
     def test_sqlserver_structure_load
       with_stubbed_new do
         assert_called_with(
-            eval("@sqlserver_tasks"),
-            :structure_load,
-            ["awesome-file.sql", nil]
+          eval("@sqlserver_tasks"),
+          :structure_load,
+          ["awesome-file.sql", nil]
         ) do
           ActiveRecord::Tasks::DatabaseTasks.structure_load({ "adapter" => :sqlserver }, "awesome-file.sql")
         end
@@ -1228,6 +1234,7 @@ module ActiveRecord
   module ConnectionAdapters
     class SchemaCacheTest < ActiveRecord::TestCase
       private
+
       # We need to give the full path for this to work.
       def schema_dump_path
         File.join ARTest::SQLServer.root_activerecord, "test/assets/schema_dump_5_1.yml"
@@ -1237,7 +1244,7 @@ module ActiveRecord
 end
 
 class UnsafeRawSqlTest < ActiveRecord::TestCase
-   # Use LEN() vs length() function.
+  # Use LEN() vs length() function.
   coerce_tests! %r{order: always allows Arel}
   test "order: always allows Arel" do
     ids_depr     = with_unsafe_raw_sql_deprecated { Post.order(Arel.sql("len(title)")).pluck(:title) }

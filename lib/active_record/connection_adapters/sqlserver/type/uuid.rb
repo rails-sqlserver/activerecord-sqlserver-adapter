@@ -19,6 +19,7 @@ module ActiveRecord
 
           def serialize(value)
             return unless value
+
             Data.new super, self
           end
 

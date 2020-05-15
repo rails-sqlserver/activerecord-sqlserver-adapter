@@ -46,7 +46,7 @@ ActiveRecord::Schema.define do
 
   if ENV["IN_MEMORY_OLTP"] && supports_in_memory_oltp?
     create_table "sst_memory", force: true, id: false,
-                 options: "WITH (MEMORY_OPTIMIZED = ON, DURABILITY = SCHEMA_AND_DATA)" do |t|
+                               options: "WITH (MEMORY_OPTIMIZED = ON, DURABILITY = SCHEMA_AND_DATA)" do |t|
       t.primary_key_nonclustered :id
       t.string :name
       t.timestamps

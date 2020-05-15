@@ -17,9 +17,9 @@ Gem::Specification.new do |spec|
   spec.description   = "ActiveRecord SQL Server Adapter. SQL Server 2012 and upward."
 
   spec.metadata      = {
-    "bug_tracker_uri"   => "https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/issues",
-    "changelog_uri"     => "https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/blob/v#{version}/CHANGELOG.md",
-    "source_code_uri"   => "https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/tree/v#{version}",
+    "bug_tracker_uri" => "https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/issues",
+    "changelog_uri" => "https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/blob/v#{version}/CHANGELOG.md",
+    "source_code_uri" => "https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/tree/v#{version}",
   }
 
   spec.files         = `git ls-files -z`.split("\x0")

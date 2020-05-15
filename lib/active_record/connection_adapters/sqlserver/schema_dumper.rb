@@ -20,11 +20,13 @@ module ActiveRecord
 
         def schema_limit(column)
           return if SQLSEVER_NO_LIMIT_TYPES.include?(column.sql_type)
+
           super
         end
 
         def schema_collation(column)
           return unless column.collation
+
           column.collation if column.collation != @connection.collation
         end
 

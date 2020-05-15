@@ -49,4 +49,3 @@ class FetchTestSqlserver < ActiveRecord::TestCase
     @books = (1..10).map { |i| Book.create! name: "Name-#{i}" }
   end
 end
-

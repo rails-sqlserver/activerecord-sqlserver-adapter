@@ -66,6 +66,7 @@ module ActiveRecord
 
         def columns(table_name)
           return [] if table_name.blank?
+
           column_definitions(table_name).map do |ci|
             sqlserver_options = ci.slice :ordinal_position, :is_primary, :is_identity, :table_name
             sql_type_metadata = fetch_type_metadata ci[:type], sqlserver_options
@@ -131,6 +132,7 @@ module ActiveRecord
 
         def remove_column(table_name, column_name, type = nil, options = {})
           raise ArgumentError.new("You must specify at least one column name.  Example: remove_column(:people, :first_name)") if column_name.is_a? Array
+
           remove_check_constraints(table_name, column_name)
           remove_default_constraint(table_name, column_name)
           remove_indexes(table_name, column_name)
@@ -144,9 +146,9 @@ module ActiveRecord
           without_constraints = options.key?(:default) || options.key?(:limit)
           default = if !options.key?(:default) && column_object
                       column_object.default
-          else
-            options[:default]
-          end
+                    else
+                      options[:default]
+                    end
           if without_constraints || (column_object && column_object.type != type.to_sym)
             remove_default_constraint(table_name, column_name)
             indexes = indexes(table_name).select { |index| index.columns.include?(column_name.to_s) }
@@ -172,6 +174,7 @@ module ActiveRecord
           clear_cache!
           column = column_for(table_name, column_name)
           return unless column
+
           remove_default_constraint(table_name, column_name)
           default = extract_new_default_value(default_or_changes)
           do_execute "ALTER TABLE #{quote_table_name(table_name)} ADD CONSTRAINT #{default_constraint_name(table_name, column_name)} DEFAULT #{quote_default_expression(default, column)} FOR #{quote_column_name(column_name)}"
@@ -188,6 +191,7 @@ module ActiveRecord
 
         def rename_index(table_name, old_name, new_name)
           raise ArgumentError, "Index name '#{new_name}' on table '#{table_name}' is too long; the limit is #{allowed_index_name_length} characters" if new_name.length > allowed_index_name_length
+
           identifier = SQLServer::Utils.extract_identifiers("#{table_name}.#{old_name}")
           execute_procedure :sp_rename, identifier.quoted, new_name, "INDEX"
         end
@@ -249,10 +253,10 @@ module ActiveRecord
 
         def columns_for_distinct(columns, orders)
           order_columns = orders.reject(&:blank?).map { |s|
-              s = s.to_sql unless s.is_a?(String)
-              s.gsub(/\s+(?:ASC|DESC)\b/i, "")
-               .gsub(/\s+NULLS\s+(?:FIRST|LAST)\b/i, "")
-            }.reject(&:blank?).map.with_index { |column, i| "#{column} AS alias_#{i}" }
+                            s = s.to_sql unless s.is_a?(String)
+                            s.gsub(/\s+(?:ASC|DESC)\b/i, "")
+                             .gsub(/\s+NULLS\s+(?:FIRST|LAST)\b/i, "")
+                          }.reject(&:blank?).map.with_index { |column, i| "#{column} AS alias_#{i}" }
 
           (order_columns << super).join(", ")
         end
@@ -507,11 +511,11 @@ module ActiveRecord
         def get_table_name(sql)
           tn = if sql =~ /^\s*(INSERT|EXEC sp_executesql N'INSERT)(\s+INTO)?\s+([^\(\s]+)\s*|^\s*update\s+([^\(\s]+)\s*/i
                  Regexp.last_match[3] || Regexp.last_match[4]
-          elsif sql =~ /FROM\s+([^\(\s]+)\s*/i
-            Regexp.last_match[1]
-          else
-            nil
-          end
+               elsif sql =~ /FROM\s+([^\(\s]+)\s*/i
+                 Regexp.last_match[1]
+               else
+                 nil
+               end
           SQLServer::Utils.extract_identifiers(tn).object
         end
 
@@ -540,9 +544,9 @@ module ActiveRecord
               if view_info[:VIEW_DEFINITION].blank? || view_info[:VIEW_DEFINITION].length == 4000
                 view_info[:VIEW_DEFINITION] = begin
                   select_values("EXEC sp_helptext #{identifier.object_quoted}", "SCHEMA").join
-                rescue
-                  warn "No view definition found, possible permissions problem.\nPlease run GRANT VIEW DEFINITION TO your_user;"
-                  nil
+                                              rescue
+                                                warn "No view definition found, possible permissions problem.\nPlease run GRANT VIEW DEFINITION TO your_user;"
+                                                nil
                 end
               end
             end
@@ -553,6 +557,7 @@ module ActiveRecord
         def views_real_column_name(table_name, column_name)
           view_definition = view_information(table_name)[:VIEW_DEFINITION]
           return column_name unless view_definition
+
           match_data = view_definition.match(/([\w-]*)\s+as\s+#{column_name}/im)
           match_data ? match_data[1] : column_name
         end

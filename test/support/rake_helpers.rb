@@ -5,6 +5,7 @@ SQLSERVER_COERCED = "test/cases/coerced_tests.rb"
 
 def env_ar_test_files
   return unless ENV["TEST_FILES_AR"] && !ENV["TEST_FILES_AR"].empty?
+
   @env_ar_test_files ||= begin
     ENV["TEST_FILES_AR"].split(",").map { |file|
       File.join ARTest::SQLServer.root_activerecord, file.strip
@@ -14,6 +15,7 @@ end
 
 def env_test_files
   return unless ENV["TEST_FILES"] && !ENV["TEST_FILES"].empty?
+
   @env_test_files ||= ENV["TEST_FILES"].split(",").map(&:strip)
 end
 

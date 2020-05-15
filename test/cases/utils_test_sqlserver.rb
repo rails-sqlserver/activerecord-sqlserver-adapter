@@ -18,27 +18,31 @@ class UtilsTestSQLServer < ActiveRecord::TestCase
   describe ".extract_identifiers constructor and thus SQLServer::Utils::Name value object" do
     let(:valid_names) { valid_names_unquoted + valid_names_quoted }
 
-    let(:valid_names_unquoted) { [
-      "server.database.schema.object",
-      "server.database..object",
-      "server..schema.object",
-      "server...object",
-      "database.schema.object",
-      "database..object",
-      "schema.object",
-      "object"
-    ]}
+    let(:valid_names_unquoted) {
+      [
+        "server.database.schema.object",
+        "server.database..object",
+        "server..schema.object",
+        "server...object",
+        "database.schema.object",
+        "database..object",
+        "schema.object",
+        "object"
+      ]
+    }
 
-    let(:valid_names_quoted) { [
-      "[server].[database].[schema].[object]",
-      "[server].[database]..[object]",
-      "[server]..[schema].[object]",
-      "[server]...[object]",
-      "[database].[schema].[object]",
-      "[database]..[object]",
-      "[schema].[object]",
-      "[object]"
-    ]}
+    let(:valid_names_quoted) {
+      [
+        "[server].[database].[schema].[object]",
+        "[server].[database]..[object]",
+        "[server]..[schema].[object]",
+        "[server]...[object]",
+        "[database].[schema].[object]",
+        "[database]..[object]",
+        "[schema].[object]",
+        "[object]"
+      ]
+    }
 
     let(:server_names)   { valid_names.partition { |name| name =~ /server/ } }
     let(:database_names) { valid_names.partition { |name| name =~ /database/ } }
