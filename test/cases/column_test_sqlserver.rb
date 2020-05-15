@@ -9,7 +9,6 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
   end
 
   describe "ActiveRecord::ConnectionAdapters::SQLServer::Type" do
-
     let(:obj) { SSTestDatatype.new }
 
     Type = ActiveRecord::ConnectionAdapters::SQLServer::Type
@@ -835,6 +834,5 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       obj.attributes
       _(obj.changed?).must_equal false
     end
-
   end
 end

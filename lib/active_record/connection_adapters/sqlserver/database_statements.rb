@@ -454,7 +454,6 @@ module ActiveRecord
           end
           handle
         end
-
       end
     end
   end

@@ -3,9 +3,7 @@
 module ActiveRecord
   module ConnectionAdapters
     module SQLServer
-
       module ColumnMethods
-
         def primary_key(name, type = :primary_key, **options)
           if [:integer, :bigint].include?(type)
             options[:is_identity] = true unless options.key?(:default)
@@ -97,7 +95,6 @@ module ActiveRecord
         def json(*names, **options)
           names.each { |name| column(name, :text, **options) }
         end
-
       end
 
       class TableDefinition < ActiveRecord::ConnectionAdapters::TableDefinition

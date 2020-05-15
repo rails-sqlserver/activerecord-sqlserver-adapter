@@ -8,7 +8,6 @@ module ActiveRecord
     module SQLServer
       module CoreExt
         module Calculations
-
           # Same as original except we don't perform PostgreSQL hack that removes ordering.
           def calculate(operation, column_name)
             if has_include?(column_name)

@@ -2,7 +2,6 @@
 
 module ARTest
   module SQLServer
-
     extend self
 
     def root_sqlserver
@@ -44,7 +43,6 @@ module ARTest
     def arconfig_file_env!
       ENV["ARCONFIG"] = arconfig_file
     end
-
   end
 end
 

@@ -4,7 +4,6 @@ module ActiveRecord
   module ConnectionAdapters
     module SQLServer
       module SchemaStatements
-
         def native_database_types
           @native_database_types ||= initialize_native_database_types.freeze
         end
@@ -561,7 +560,6 @@ module ActiveRecord
         def create_table_definition(*args, **options)
           SQLServer::TableDefinition.new(self, *args, **options)
         end
-
       end
     end
   end

@@ -19,7 +19,6 @@ class PessimisticLockingTestSQLServer < ActiveRecord::TestCase
   end
 
   describe "For simple finds with default lock option" do
-
     it "lock with simple find" do
       assert_nothing_raised do
         Person.transaction do
@@ -54,7 +53,6 @@ class PessimisticLockingTestSQLServer < ActiveRecord::TestCase
     end
 
     describe "joining tables" do
-
       it "joined tables use updlock by default" do
         assert_sql %r|SELECT \[people\]\.\* FROM \[people\] WITH\(UPDLOCK\) INNER JOIN \[readers\] WITH\(UPDLOCK\)\s+ON \[readers\]\.\[person_id\] = \[people\]\.\[id\]| do
           Person.lock(true).joins(:readers).load
@@ -78,13 +76,10 @@ class PessimisticLockingTestSQLServer < ActiveRecord::TestCase
           Person.lock("WITH(NOLOCK)").left_joins(:readers).load
         end
       end
-
     end
-
   end
 
   describe "For paginated finds" do
-
     before do
       Person.delete_all
       20.times { |n| Person.create!(first_name: "Thing_#{n}") }
@@ -102,6 +97,5 @@ class PessimisticLockingTestSQLServer < ActiveRecord::TestCase
         _(people[4].first_name).must_equal "Thing_14"
       end
     end
-
   end
 end

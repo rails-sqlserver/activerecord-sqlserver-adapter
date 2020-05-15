@@ -5,7 +5,6 @@ module ActiveRecord
     module SQLServer
       module CoreExt
         module Explain
-
           SQLSERVER_STATEMENT_PREFIX = "EXEC sp_executesql "
           SQLSERVER_STATEMENT_REGEXP = /N'(.+)', N'(.+)', (.+)/
 
@@ -34,7 +33,6 @@ module ActiveRecord
 
             executesql
           end
-
         end
       end
     end

@@ -8,7 +8,6 @@ module ActiveRecord
     module SQLServer
       module CoreExt
         module QueryMethods
-
           private
 
           # Copy of original from Rails master.

@@ -7,7 +7,6 @@ class ShowplanTestSQLServer < ActiveRecord::TestCase
   fixtures :cars
 
   describe "Unprepare previously prepared SQL" do
-
     it "from simple statement" do
       plan = Car.where(id: 1).explain
       _(plan).must_include "SELECT [cars].* FROM [cars] WHERE [cars].[id] = 1"
@@ -38,11 +37,9 @@ class ShowplanTestSQLServer < ActiveRecord::TestCase
       _(plan).must_include " SELECT [cars].* FROM [cars] WHERE [cars].[name] IN (N'honda', N'zyke')"
       _(plan).must_include "Clustered Index Scan", "make sure we do not showplan the sp_executesql"
     end
-
   end
 
   describe "With SHOWPLAN_TEXT option" do
-
     it "use simple table printer" do
       with_showplan_option("SHOWPLAN_TEXT") do
         plan = Car.where(id: 1).explain
@@ -50,18 +47,15 @@ class ShowplanTestSQLServer < ActiveRecord::TestCase
         _(plan).must_include "Clustered Index Seek", "make sure we do not showplan the sp_executesql"
       end
     end
-
   end
 
   describe "With SHOWPLAN_XML option" do
-
     it "show formatted xml" do
       with_showplan_option("SHOWPLAN_XML") do
         plan = Car.where(id: 1).explain
         _(plan).must_include "ShowPlanXML"
       end
     end
-
   end
 
   private

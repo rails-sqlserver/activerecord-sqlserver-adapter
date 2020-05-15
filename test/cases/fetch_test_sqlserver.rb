@@ -14,7 +14,6 @@ class FetchTestSqlserver < ActiveRecord::TestCase
   end
 
   describe "count" do
-
     it "gauntlet" do
       books[0].destroy
       books[1].destroy
@@ -30,11 +29,9 @@ class FetchTestSqlserver < ActiveRecord::TestCase
       assert_equal 0, Book.limit(3).offset(7).count
       assert_equal 0, Book.limit(3).offset(8).count
     end
-
   end
 
   describe "order" do
-
     it "gauntlet" do
       Book.where(name:"Name-10").delete_all
       _(Book.order(:name).limit(1).offset(1).map(&:name)).must_equal ["Name-2"]
@@ -43,7 +40,6 @@ class FetchTestSqlserver < ActiveRecord::TestCase
       _(Book.order(:name).limit(3).offset(7).map(&:name)).must_equal ["Name-8", "Name-9"]
       _(Book.order(:name).limit(3).offset(9).map(&:name)).must_equal []
     end
-
   end
 
   protected

@@ -3,7 +3,6 @@
 module ARTest
   module SQLServer
     module CoerceableTest
-
       extend ActiveSupport::Concern
 
       included do
@@ -12,7 +11,6 @@ module ARTest
       end
 
       module ClassMethods
-
         def coerce_tests!(*methods)
           methods.each do |method|
             self.coerced_tests.push(method)
@@ -50,9 +48,7 @@ module ARTest
             end
           end
         end
-
       end
-
     end
   end
 end

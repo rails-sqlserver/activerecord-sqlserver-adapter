@@ -5,7 +5,6 @@ require "models/person"
 
 class MigrationTestSQLServer < ActiveRecord::TestCase
   describe "For transactions" do
-
     before do
       @trans_test_table1 = "sqlserver_trans_table1"
       @trans_test_table2 = "sqlserver_trans_table2"
@@ -28,11 +27,9 @@ class MigrationTestSQLServer < ActiveRecord::TestCase
       _(connection.tables).wont_include @trans_test_table1
       _(connection.tables).wont_include @trans_test_table2
     end
-
   end
 
   describe "For changing column" do
-
     it "not raise exception when column contains default constraint" do
       lock_version_column = Person.columns_hash["lock_version"]
       assert_equal :integer, lock_version_column.type
@@ -66,6 +63,5 @@ class MigrationTestSQLServer < ActiveRecord::TestCase
     it "change null and default" do
       assert_nothing_raised { connection.change_column :people, :first_name, :text, null: true, default: nil }
     end
-
   end
 end

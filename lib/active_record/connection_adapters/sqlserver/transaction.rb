@@ -4,9 +4,7 @@ require "active_record/connection_adapters/abstract/transaction"
 
 module ActiveRecord
   module ConnectionAdapters
-
     module SQLServerTransaction
-
       private
 
       def sqlserver?
@@ -25,13 +23,11 @@ module ActiveRecord
           level.upcase
         end
       end
-
     end
 
     Transaction.send :prepend, SQLServerTransaction
 
     module SQLServerRealTransaction
-
       attr_reader :starting_isolation_level
 
       def initialize(connection, options, **args)
@@ -57,7 +53,6 @@ module ActiveRecord
           connection.set_transaction_isolation_level(starting_isolation_level)
         end
       end
-
     end
 
     RealTransaction.send :prepend, SQLServerRealTransaction

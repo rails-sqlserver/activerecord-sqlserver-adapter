@@ -3,7 +3,6 @@
 module ARTest
   module SQLServer
     module ConnectionReflection
-
       extend ActiveSupport::Concern
 
       included { extend ConnectionReflection }
@@ -29,7 +28,6 @@ module ARTest
       def connection_sqlserver_azure?
         connection.sqlserver_azure?
       end
-
     end
   end
 end

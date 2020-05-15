@@ -86,7 +86,6 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
   end
 
   describe "with different language" do
-
     before do
       @default_language = connection.user_options_language
     end
@@ -116,11 +115,9 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
         Task.create! starting: starting, ending: ending
       end
     end
-
   end
 
   describe "testing #lowercase_schema_reflection" do
-
     before do
       SSTestUpper.delete_all
       SSTestUpper.create COLUMN1: "Got a minute?", COLUMN2: 419
@@ -145,11 +142,9 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
       assert_equal "Favorite number?", SSTestUppered.last.column1
       assert SSTestUppered.columns_hash["column2"]
     end
-
   end
 
   describe "identity inserts" do
-
     before do
       @identity_insert_sql = "INSERT INTO [funny_jokes] ([id],[name]) VALUES(420,'Knock knock')"
       @identity_insert_sql_unquoted = "INSERT INTO funny_jokes (id, name) VALUES(420, 'Knock knock')"
@@ -183,11 +178,9 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
     it "return an empty array when calling #identity_columns for a table_name with no identity" do
       _(connection.send(:identity_columns, Subscriber.table_name)).must_equal []
     end
-
   end
 
   describe "quoting" do
-
     it "return 1 for #quoted_true" do
       assert_equal "1", connection.quoted_true
     end
@@ -224,11 +217,9 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
     it "escape all single quotes by repeating them" do
       assert_equal "N'''quotation''s'''", connection.quote("'quotation's'")
     end
-
   end
 
   describe "disabling referential integrity" do
-
     before do
       connection.disable_referential_integrity { SSTestHasPk.delete_all; SSTestHasFk.delete_all }
       @parent = SSTestHasPk.create!
@@ -255,11 +246,9 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
       tables = SSTestHasPk.connection.tables_with_referential_integrity
       assert_equal tables.size, tables.uniq.size
     end
-
   end
 
   describe "database statements" do
-
     it "run the database consistency checker useroptions command" do
       skip "on azure" if connection_sqlserver_azure?
       keys = [:textsize, :language, :isolation_level, :dateformat]
@@ -276,11 +265,9 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
       assert_equal "read committed", user_options["isolation_level"]
       assert_equal "read committed", user_options[:isolation_level]
     end
-
   end
 
   describe "schema statements" do
-
     it "create integers when no limit supplied" do
       assert_equal "integer", connection.type_to_sql(:integer)
     end
@@ -311,11 +298,9 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
     it "create floats when no limit supplied" do
       assert_equal "float", connection.type_to_sql(:float)
     end
-
   end
 
   describe "views" do
-
     # Using connection.views
 
     it "return an array" do
@@ -415,11 +400,9 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
       assert_equal "null", SSTestStringDefaultsBigView.new.pretend_null,
         SSTestStringDefaultsBigView.columns_hash["pretend_null"].inspect
     end
-
   end
 
   describe "database_prefix_remote_server?" do
-
     after do
       connection_options.delete(:database_prefix)
     end
@@ -437,7 +420,6 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
       connection_options[:database_prefix] = "server.database.schema"
       assert_equal false, connection.database_prefix_remote_server?
     end
-
   end
 
   it "in_memory_oltp" do

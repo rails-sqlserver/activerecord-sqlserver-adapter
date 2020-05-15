@@ -4,9 +4,7 @@ module ActiveRecord
   module ConnectionAdapters
     module SQLServer
       module Type
-
         module TimeValueFractional
-
           private
 
           def apply_seconds_precision(value)
@@ -47,11 +45,9 @@ module ActiveRecord
           def fractional_scale
             3
           end
-
         end
 
         module TimeValueFractional2
-
           include TimeValueFractional
 
           private
@@ -84,9 +80,7 @@ module ActiveRecord
           def fractional_scale_max
             ("9" * fractional_scale) + ("0" * (fractional_digits - fractional_scale))
           end
-
         end
-
       end
     end
   end
