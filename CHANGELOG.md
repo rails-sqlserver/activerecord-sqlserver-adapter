@@ -2,6 +2,7 @@
 
 #### Fixed
 
+- [#720](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/720) quoted_date doesn't work for Type::DateTime
 - [#826](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/826) Rubocop: Enable Style/StringLiterals cop
 - [#827](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/827) Rubocop: Enable Layout/EmptyLinesAroundClassBody cop
 - [#828](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/828) Rubocop: Enable Layout/EmptyLines cop
@@ -9,6 +10,7 @@
 - [#830](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/830) Rubocop: Enable Layout/IndentationWidth and Layout/TrailingWhitespace cops
 - [#831](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/831) Rubocop: Enable Spacing cops
 - [#832](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/832) Rubocop: Enable Bundler cops
+- [#833](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/833) Rubocop: Enable Layout/* cops
 
 ## v6.0.0.rc1
 
