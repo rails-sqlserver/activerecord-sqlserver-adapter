@@ -78,7 +78,6 @@ module ActiveRecord
         connection.execute File.read(filename)
       end
 
-
       private
 
       def configuration

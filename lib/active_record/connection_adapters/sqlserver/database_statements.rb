@@ -248,7 +248,6 @@ module ActiveRecord
           select_value "SELECT NEWSEQUENTIALID()"
         end
 
-
         protected
 
         def sql_for_insert(sql, pk, binds)

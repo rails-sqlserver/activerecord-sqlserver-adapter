@@ -8,7 +8,6 @@ module ActiveRecord
       module CoreExt
         module AttributeMethods
 
-
           private
 
           def attributes_for_update(attribute_names)

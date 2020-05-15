@@ -77,7 +77,6 @@ class TransactionTestSQLServer < ActiveRecord::TestCase
     end
   end
 
-
   protected
 
   def delete_ships

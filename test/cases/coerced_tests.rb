@@ -2,8 +2,6 @@
 
 require "cases/helper_sqlserver"
 
-
-
 require "models/event"
 class UniquenessValidationTest < ActiveRecord::TestCase
   # So sp_executesql swallows this exception. Run without prepared to see it.
@@ -36,9 +34,6 @@ class UniquenessValidationTest < ActiveRecord::TestCase
   end
 end
 
-
-
-
 require "models/event"
 module ActiveRecord
   class AdapterTest < ActiveRecord::TestCase
@@ -68,9 +63,6 @@ module ActiveRecord
     end
   end
 end
-
-
-
 
 module ActiveRecord
   class AdapterTestWithoutTransaction < ActiveRecord::TestCase
@@ -125,9 +117,6 @@ module ActiveRecord
   end
 end
 
-
-
-
 require "models/topic"
 class AttributeMethodsTest < ActiveRecord::TestCase
   # Use IFF for boolean statement in SELECT
@@ -146,9 +135,6 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert_predicate topic, :is_test?
   end
 end
-
-
-
 
 class BasicsTest < ActiveRecord::TestCase
   # Use square brackets as SQL Server escaped character
@@ -200,9 +186,6 @@ class BasicsTest < ActiveRecord::TestCase
   end
 end
 
-
-
-
 class BelongsToAssociationsTest < ActiveRecord::TestCase
   # Since @client.firm is a single first/top, and we use FETCH the order clause is used.
   coerce_tests! :test_belongs_to_does_not_use_order_by
@@ -226,9 +209,6 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     end
   end
 end
-
-
-
 
 module ActiveRecord
   class BindParameterTest < ActiveRecord::TestCase
@@ -257,9 +237,6 @@ module ActiveRecord
   end
 end
 
-
-
-
 module ActiveRecord
   class InstrumentationTest < ActiveRecord::TestCase
     # Fix randomly failing test. The loading of the model's schema was affecting the test.
@@ -270,9 +247,6 @@ module ActiveRecord
     end
   end
 end
-
-
-
 
 class CalculationsTest < ActiveRecord::TestCase
   # Fix randomly failing test. The loading of the model's schema was affecting the test.
@@ -317,9 +291,6 @@ class CalculationsTest < ActiveRecord::TestCase
   coerce_tests! :test_having_with_strong_parameters
 end
 
-
-
-
 module ActiveRecord
   class Migration
     class ChangeSchemaTest < ActiveRecord::TestCase
@@ -351,9 +322,6 @@ module ActiveRecord
   end
 end
 
-
-
-
 module ActiveRecord
   module ConnectionAdapters
     class QuoteARBaseTest < ActiveRecord::TestCase
@@ -374,9 +342,6 @@ module ActiveRecord
   end
 end
 
-
-
-
 module ActiveRecord
   class Migration
     class ColumnAttributesTest < ActiveRecord::TestCase
@@ -390,9 +355,6 @@ module ActiveRecord
     end
   end
 end
-
-
-
 
 module ActiveRecord
   class Migration
@@ -433,9 +395,6 @@ module ActiveRecord
   end
 end
 
-
-
-
 class MigrationTest < ActiveRecord::TestCase
   # We do not have do the DecimalWithoutScale type.
   coerce_tests! :test_add_table_with_decimals
@@ -475,18 +434,12 @@ class MigrationTest < ActiveRecord::TestCase
   coerce_tests! :test_internal_metadata_stores_environment
 end
 
-
-
-
 class CoreTest < ActiveRecord::TestCase
   # I think fixtures are using the wrong time zone and the `:first`
   # `topics`.`bonus_time` attribute of 2005-01-30t15:28:00.00+01:00 is
   # getting local EST time for me and set to "09:28:00.0000000".
   coerce_tests! :test_pretty_print_persisted
 end
-
-
-
 
 module ActiveRecord
   module ConnectionAdapters
@@ -500,9 +453,6 @@ module ActiveRecord
     ConnectionHandlerTest.coerce_all_tests! if defined?(ConnectionHandlerTest)
   end
 end
-
-
-
 
 module ActiveRecord
   # The original module is hardcoded for PostgreSQL/SQLite/MySQL tests.
@@ -644,9 +594,6 @@ module ActiveRecord
   end
 end
 
-
-
-
 class DefaultScopingTest < ActiveRecord::TestCase
   # We are not doing order duplicate removal anymore.
   coerce_tests! :test_order_in_default_scope_should_not_prevail
@@ -659,9 +606,6 @@ class DefaultScopingTest < ActiveRecord::TestCase
     assert_match gender_pattern, Lion.female.to_sql
   end
 end
-
-
-
 
 require "models/post"
 require "models/subscriber"
@@ -691,9 +635,6 @@ class EachTest < ActiveRecord::TestCase
   end
 end
 
-
-
-
 class EagerAssociationTest < ActiveRecord::TestCase
   # Use LEN() vs length() function.
   coerce_tests! :test_count_with_include
@@ -704,9 +645,6 @@ class EagerAssociationTest < ActiveRecord::TestCase
   # Use TOP (1) in scope vs limit 1.
   coerce_tests! %r{including association based on sql condition and no database column}
 end
-
-
-
 
 require "models/topic"
 class FinderTest < ActiveRecord::TestCase
@@ -756,9 +694,6 @@ class FinderTest < ActiveRecord::TestCase
   end
 end
 
-
-
-
 module ActiveRecord
   class Migration
     class ForeignKeyTest < ActiveRecord::TestCase
@@ -776,9 +711,6 @@ module ActiveRecord
   end
 end
 
-
-
-
 class HasOneAssociationsTest < ActiveRecord::TestCase
   # We use OFFSET/FETCH vs TOP. So we always have an order.
   coerce_tests! :test_has_one_does_not_use_order_by
@@ -795,9 +727,6 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
   end
 end
 
-
-
-
 class HasOneThroughAssociationsTest < ActiveRecord::TestCase
   # Asserted SQL to get one row different from original test.
   coerce_tests! :test_has_one_through_executes_limited_query
@@ -808,10 +737,6 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
     end
   end
 end
-
-
-
-
 
 require "models/company"
 class InheritanceTest < ActiveRecord::TestCase
@@ -834,16 +759,10 @@ class InheritanceTest < ActiveRecord::TestCase
   end
 end
 
-
-
-
 class LeftOuterJoinAssociationTest < ActiveRecord::TestCase
   # Uses || operator in SQL. Just trust core gets value out of this test.
   coerce_tests! :test_does_not_override_select
 end
-
-
-
 
 require "models/developer"
 require "models/computer"
@@ -861,9 +780,6 @@ class NestedRelationScopingTest < ActiveRecord::TestCase
     end
   end
 end
-
-
-
 
 require "models/topic"
 class PersistenceTest < ActiveRecord::TestCase
@@ -889,9 +805,6 @@ class PersistenceTest < ActiveRecord::TestCase
   end
 end
 
-
-
-
 require "models/author"
 class UpdateAllTest < ActiveRecord::TestCase
   # Rails test required updating a identity column.
@@ -908,9 +821,6 @@ class UpdateAllTest < ActiveRecord::TestCase
     _(mary.reload.name).must_equal "Test"
   end
 end
-
-
-
 
 require "models/topic"
 module ActiveRecord
@@ -929,9 +839,6 @@ module ActiveRecord
   end
 end
 
-
-
-
 class PrimaryKeysTest < ActiveRecord::TestCase
   # SQL Server does not have query for release_savepoint
   coerce_tests! :test_create_without_primary_key_no_extra_query
@@ -943,9 +850,6 @@ class PrimaryKeysTest < ActiveRecord::TestCase
     assert_queries(2, ignore_none: true) { klass.create! }
   end
 end
-
-
-
 
 require "models/task"
 class QueryCacheTest < ActiveRecord::TestCase
@@ -983,9 +887,6 @@ class QueryCacheTest < ActiveRecord::TestCase
     end
   end
 end
-
-
-
 
 require "models/post"
 class RelationTest < ActiveRecord::TestCase
@@ -1027,7 +928,6 @@ class RelationTest < ActiveRecord::TestCase
     assert sql_log.none? { |sql| /order by [posts].[title]/i.match?(sql) }, "ORDER BY title was used in the query: #{sql_log}"
     assert sql_log.all?  { |sql| /order by \[posts\]\.\[id\]/i.match?(sql) }, "default ORDER BY ID was not used in the query: #{sql_log}"
   end
-
 
   # We are not doing order duplicate removal anymore.
   coerce_tests! :test_order_using_scoping
@@ -1076,9 +976,6 @@ class RelationTest < ActiveRecord::TestCase
   end
 end
 
-
-
-
 require "models/post"
 class SanitizeTest < ActiveRecord::TestCase
   # Use nvarchar string (N'') in assert
@@ -1103,9 +1000,6 @@ class SanitizeTest < ActiveRecord::TestCase
     end
   end
 end
-
-
-
 
 class SchemaDumperTest < ActiveRecord::TestCase
   # We have precision to 38.
@@ -1133,24 +1027,15 @@ class SchemaDumperTest < ActiveRecord::TestCase
   end
 end
 
-
-
-
 class SchemaDumperDefaultsTest < ActiveRecord::TestCase
   # These date formats do not match ours. We got these covered in our dumper tests.
   coerce_tests! :test_schema_dump_defaults_with_universally_supported_types
 end
 
-
-
-
 class TestAdapterWithInvalidConnection < ActiveRecord::TestCase
   # We trust Rails on this since we do not want to install mysql.
   coerce_tests! %r{inspect on Model class does not raise}
 end
-
-
-
 
 require "models/topic"
 class TransactionTest < ActiveRecord::TestCase
@@ -1165,9 +1050,6 @@ class TransactionTest < ActiveRecord::TestCase
     end
   end
 end
-
-
-
 
 require "models/tag"
 class TransactionIsolationTest < ActiveRecord::TestCase
@@ -1189,9 +1071,6 @@ class TransactionIsolationTest < ActiveRecord::TestCase
   coerce_tests! %r{repeatable read}
 end
 
-
-
-
 require "models/book"
 class ViewWithPrimaryKeyTest < ActiveRecord::TestCase
   # We have a few view tables. use includes vs equality.
@@ -1208,9 +1087,6 @@ class ViewWithPrimaryKeyTest < ActiveRecord::TestCase
   end
 end
 
-
-
-
 class ViewWithoutPrimaryKeyTest < ActiveRecord::TestCase
   # We have a few view tables. use includes vs equality.
   coerce_tests! :test_views
@@ -1218,9 +1094,6 @@ class ViewWithoutPrimaryKeyTest < ActiveRecord::TestCase
     assert_includes @connection.views, Paperback.table_name
   end
 end
-
-
-
 
 require "models/author"
 class YamlSerializationTest < ActiveRecord::TestCase
@@ -1232,9 +1105,6 @@ class YamlSerializationTest < ActiveRecord::TestCase
     assert_equal 5, dumped.posts_count
   end
 end
-
-
-
 
 class DateTimePrecisionTest < ActiveRecord::TestCase
   # Original test had `7` which we support vs `8` which we use.
@@ -1268,9 +1138,6 @@ class DateTimePrecisionTest < ActiveRecord::TestCase
   end
 end
 
-
-
-
 class TimePrecisionTest < ActiveRecord::TestCase
   # datetime is rounded to increments of .000, .003, or .007 seconds
   coerce_tests! :test_time_precision_is_truncated_on_assignment
@@ -1295,9 +1162,6 @@ class TimePrecisionTest < ActiveRecord::TestCase
   # SQL Server uses default precision for time.
   coerce_tests! :test_no_time_precision_isnt_truncated_on_assignment
 end
-
-
-
 
 class DefaultNumbersTest < ActiveRecord::TestCase
   # We do better with native types and do not return strings for everything.
@@ -1325,18 +1189,12 @@ class DefaultNumbersTest < ActiveRecord::TestCase
   end
 end
 
-
-
-
 module ActiveRecord
   class CollectionCacheKeyTest < ActiveRecord::TestCase
     # Will trust rails has this sorted since you cant offset without a limit.
     coerce_tests! %r{with offset which return 0 rows}
   end
 end
-
-
-
 
 module ActiveRecord
   class CacheKeyTest < ActiveRecord::TestCase
@@ -1347,9 +1205,6 @@ module ActiveRecord
     coerce_tests! %r{cache_version does not truncate zeros when timestamp ends in zeros}
   end
 end
-
-
-
 
 require "models/book"
 module ActiveRecord
@@ -1369,9 +1224,6 @@ module ActiveRecord
   end
 end
 
-
-
-
 module ActiveRecord
   module ConnectionAdapters
     class SchemaCacheTest < ActiveRecord::TestCase
@@ -1383,9 +1235,6 @@ module ActiveRecord
     end
   end
 end
-
-
-
 
 class UnsafeRawSqlTest < ActiveRecord::TestCase
    # Use LEN() vs length() function.
@@ -1419,9 +1268,6 @@ class UnsafeRawSqlTest < ActiveRecord::TestCase
   end
 end
 
-
-
-
 class ReservedWordTest < ActiveRecord::TestCase
   coerce_tests! :test_change_columns
   def test_change_columns_coerced
@@ -1431,9 +1277,6 @@ class ReservedWordTest < ActiveRecord::TestCase
     assert_nothing_raised { @connection.rename_column(:group, :order, :values) }
   end
 end
-
-
-
 
 class OptimisticLockingTest < ActiveRecord::TestCase
   # We do not allow updating identities, but we can test using a non-identity key
@@ -1456,9 +1299,6 @@ class OptimisticLockingTest < ActiveRecord::TestCase
   end
 end
 
-
-
-
 class RelationMergingTest < ActiveRecord::TestCase
   # Use nvarchar string (N'') in assert
   coerce_tests! :test_merging_with_order_with_binds
@@ -1468,9 +1308,6 @@ class RelationMergingTest < ActiveRecord::TestCase
   end
 end
 
-
-
-
 module ActiveRecord
   class DatabaseTasksTruncateAllTest < ActiveRecord::TestCase
     # SQL Server does not allow truncation of tables that are referenced by foreign key
@@ -1479,9 +1316,6 @@ module ActiveRecord
     coerce_tests! :test_truncate_tables
   end
 end
-
-
-
 
 require "models/book"
 class EnumTest < ActiveRecord::TestCase
@@ -1526,10 +1360,6 @@ class EnumTest < ActiveRecord::TestCase
   end
 end
 
-
-
-
-
 require "models/task"
 class QueryCacheExpiryTest < ActiveRecord::TestCase
   # SQL Server does not support skipping or upserting duplicates.
@@ -1561,8 +1391,6 @@ class QueryCacheExpiryTest < ActiveRecord::TestCase
   end
 end
 
-
-
 require "models/citation"
 class EagerLoadingTooManyIdsTest < ActiveRecord::TestCase
   # Original Rails test fails with SQL Server error message "The query processor ran out of internal resources and
@@ -1585,9 +1413,6 @@ class EagerLoadingTooManyIdsTest < ActiveRecord::TestCase
   end
 end
 
-
-
-
 class LogSubscriberTest < ActiveRecord::TestCase
   # Call original test from coerced test. Fixes issue on CI with Rails installed as a gem.
   coerce_tests! :test_vebose_query_logs
@@ -1595,9 +1420,6 @@ class LogSubscriberTest < ActiveRecord::TestCase
     original_test_vebose_query_logs
   end
 end
-
-
-
 
 class ActiveRecordSchemaTest < ActiveRecord::TestCase
   # Workaround for randomly failing test.
@@ -1608,9 +1430,6 @@ class ActiveRecordSchemaTest < ActiveRecord::TestCase
   end
 end
 
-
-
-
 module ActiveRecord
   module ConnectionAdapters
     class ReaperTest < ActiveRecord::TestCase
@@ -1620,16 +1439,10 @@ module ActiveRecord
   end
 end
 
-
-
-
 class FixturesTest < ActiveRecord::TestCase
   # Skip test on Windows. Skip can be removed when Rails PR https://github.com/rails/rails/pull/39234 has been merged.
   coerce_tests! :test_binary_in_fixtures if RbConfig::CONFIG["host_os"] =~ /mswin|mingw/
 end
-
-
-
 
 class ReloadModelsTest < ActiveRecord::TestCase
   # Skip test on Windows. The number of arguements passed to `IO.popen` in

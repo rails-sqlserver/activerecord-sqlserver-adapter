@@ -59,7 +59,6 @@ class ConnectionTestSQLServer < ActiveRecord::TestCase
 
   end
 
-
   private
 
   def disconnect_raw_connection!

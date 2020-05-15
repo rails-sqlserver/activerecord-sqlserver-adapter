@@ -46,7 +46,6 @@ class FetchTestSqlserver < ActiveRecord::TestCase
 
   end
 
-
   protected
 
   def create_10_books
