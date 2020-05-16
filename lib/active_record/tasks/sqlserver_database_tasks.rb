@@ -21,8 +21,8 @@ module ActiveRecord
         establish_master_connection unless master_established
         connection.create_database configuration["database"], configuration.merge("collation" => default_collation)
         establish_connection configuration
-      rescue ActiveRecord::StatementInvalid => error
-        if /database .* already exists/i === error.message
+      rescue ActiveRecord::StatementInvalid => e
+        if /database .* already exists/i === e.message
           raise DatabaseAlreadyExists
         else
           raise
