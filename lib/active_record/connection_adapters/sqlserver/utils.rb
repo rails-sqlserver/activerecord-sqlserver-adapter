@@ -61,8 +61,8 @@ module ActiveRecord
             quote @raw_name
           end
 
-          def ==(o)
-            o.class == self.class && o.parts == parts
+          def ==(other)
+            other.class == self.class && other.parts == parts
           end
           alias_method :eql?, :==
 

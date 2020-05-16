@@ -759,12 +759,12 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       _(type.precision).must_be_nil
       _(type.scale).must_be_nil
       # Basic set and save.
-      binary_data_20 = binary_data.to(20)
-      _(binary_data_20.encoding).must_equal Encoding::BINARY
-      obj.varbinary_49 = binary_data_20
-      _(obj.varbinary_49).must_equal binary_data_20
+      binary_data20 = binary_data.to(20)
+      _(binary_data20.encoding).must_equal Encoding::BINARY
+      obj.varbinary_49 = binary_data20
+      _(obj.varbinary_49).must_equal binary_data20
       obj.save!
-      _(obj.reload.varbinary_49).must_equal binary_data_20
+      _(obj.reload.varbinary_49).must_equal binary_data20
     end
 
     it "varbinary(max)" do
