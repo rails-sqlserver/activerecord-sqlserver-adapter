@@ -4,6 +4,9 @@ AllCops:
 Layout/LineLength:
   Max: 120
 
+Naming/AccessorMethodName:
+  Enabled: false
+
 Naming/FileName:
   Exclude:
     - lib/activerecord-sqlserver-adapter.rb
