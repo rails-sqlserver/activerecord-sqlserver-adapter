@@ -22,5 +22,8 @@ Naming/MethodName:
 Naming/MethodParameterName:
   Enabled: false
 
+Naming/PredicateName:
+  Enabled: false
+
 Style/StringLiterals:
   EnforcedStyle: double_quotes
