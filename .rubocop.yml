@@ -19,5 +19,8 @@ Naming/MethodName:
     - distinct_One_As_One_Is_So_Not_Fetch
     - make_Fetch_Possible_And_Deterministic
 
+Naming/MethodParameterName:
+  Enabled: false
+
 Style/StringLiterals:
   EnforcedStyle: double_quotes
