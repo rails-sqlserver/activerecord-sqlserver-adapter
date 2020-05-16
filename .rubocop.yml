@@ -11,5 +11,13 @@ Naming/FileName:
   Exclude:
     - lib/activerecord-sqlserver-adapter.rb
 
+Naming/MethodName:
+  IgnoredPatterns:
+    - visit_.*
+    - primary_Key_From_Table
+    - table_From_Statement
+    - distinct_One_As_One_Is_So_Not_Fetch
+    - make_Fetch_Possible_And_Deterministic
+
 Style/StringLiterals:
   EnforcedStyle: double_quotes
