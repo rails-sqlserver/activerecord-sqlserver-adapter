@@ -4,5 +4,9 @@ AllCops:
 Layout/LineLength:
   Max: 120
 
+Naming/FileName:
+  Exclude:
+    - lib/activerecord-sqlserver-adapter.rb
+
 Style/StringLiterals:
   EnforcedStyle: double_quotes
