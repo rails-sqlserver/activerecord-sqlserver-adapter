@@ -1,4 +1,4 @@
-## v6.0.0.rc2 (unreleased)
+## v6.0.0.rc2
 
 #### Fixed
 
