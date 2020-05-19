@@ -13,10 +13,7 @@ The SQL Server adapter for ActiveRecord. If you need the adapter for SQL Server 
 
 #### Testing Rake Tasks Support
 
-This is a long story, but if you are not working with a legacy database and you can trust your schema.rb to setup your local development or test database, then we have adapter level support for rails :db rake tasks. Please read this wiki page for full details.
-
-http://wiki.github.com/rails-sqlserver/activerecord-sqlserver-adapter/rails-db-rake-tasks
-
+This is a long story, but if you are not working with a legacy database and you can trust your schema.rb to setup your local development or test database, then we have adapter level support for rails :db rake tasks. Please read [this guide](guides/RAKE_DB_TASKS.md) for full details.
 
 #### Date/Time Data Type Hinting
 
@@ -202,10 +199,7 @@ gem 'tiny_tds'
 gem 'activerecord-sqlserver-adapter', '~> 4.0.0'
 ```
 
-If you want to use ruby ODBC, please use at least version 0.99992 since that contains fixes for both native types as well as fixes for proper encoding support under 1.9. If you have any troubles installing the lower level libraries for the adapter, please consult the wiki pages for various platform installation guides. Tons of good info can be found and we ask that you contribute too!
-
-http://wiki.github.com/rails-sqlserver/activerecord-sqlserver-adapter/platform-installation
-
+If you want to use ruby ODBC, please use at least version 0.99992 since that contains fixes for both native types as well as fixes for proper encoding support under 1.9. If you have any troubles installing the lower level libraries for the adapter, please consult the [guide pages](guides/PLATAFORM_INSTALLATION.md) for various platform installation guides. Tons of good info can be found and we ask that you contribute too!
 
 
 ## Contributing
