@@ -2,6 +2,7 @@
 
 #### Fixed
 
+- [#639](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/639) Primary key should be lowercase if schema forced to lowercase
 - [#720](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/720) quoted_date doesn't work for Type::DateTime
 
 #### Changed
