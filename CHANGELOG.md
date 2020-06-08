@@ -1,3 +1,7 @@
+## v6.0.0
+
+**No Changes**
+
 ## v6.0.0.rc2
 
 #### Fixed
