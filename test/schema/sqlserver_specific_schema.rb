@@ -277,4 +277,14 @@ ActiveRecord::Schema.define do
       field_2 int NOT NULL PRIMARY KEY,
     )
   SCHEMATESTMULTIPLESCHEMA
+
+  execute "IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'unique_key_dumped_table') DROP TABLE unique_key_dumped_table"
+  execute <<-SQLSERVERUNIQUEKEYS
+    CREATE TABLE unique_key_dumped_table (
+      id int IDENTITY(1,1) NOT NULL,
+      unique_field int DEFAULT 0 NOT NULL,
+      CONSTRAINT IX_UNIQUE_KEY UNIQUE (unique_field),
+      CONSTRAINT PK_UNIQUE_KEY PRIMARY KEY (id)
+    );
+  SQLSERVERUNIQUEKEYS
 end
