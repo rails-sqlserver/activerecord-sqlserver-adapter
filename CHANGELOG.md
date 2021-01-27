@@ -6,7 +6,7 @@
 
 #### Changed
 
-- ...
+- [#852](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/852) Updated the column name matchers to accept database and owner names
 
 #### Added
 

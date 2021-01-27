@@ -1243,7 +1243,11 @@ module ActiveRecord
   end
 end
 
+require "models/post"
+require "models/comment"
 class UnsafeRawSqlTest < ActiveRecord::TestCase
+  fixtures :posts
+
   # Use LEN() vs length() function.
   coerce_tests! %r{order: always allows Arel}
   test "order: always allows Arel" do
@@ -1272,6 +1276,86 @@ class UnsafeRawSqlTest < ActiveRecord::TestCase
 
     assert_equal ids_expected, ids_depr
     assert_equal ids_expected, ids_disabled
+  end
+
+  test "order: allows string column names that are quoted" do
+    ids_expected = Post.order(Arel.sql("id")).pluck(:id)
+
+    ids_depr     = with_unsafe_raw_sql_deprecated { Post.order("[id]").pluck(:id) }
+    ids_disabled = with_unsafe_raw_sql_disabled   { Post.order("[id]").pluck(:id) }
+
+    assert_equal ids_expected, ids_depr
+    assert_equal ids_expected, ids_disabled
+  end
+
+  test "order: allows string column names that are quoted with table" do
+    ids_expected = Post.order(Arel.sql("id")).pluck(:id)
+
+    ids_depr     = with_unsafe_raw_sql_deprecated { Post.order("[posts].[id]").pluck(:id) }
+    ids_disabled = with_unsafe_raw_sql_disabled   { Post.order("[posts].[id]").pluck(:id) }
+
+    assert_equal ids_expected, ids_depr
+    assert_equal ids_expected, ids_disabled
+  end
+
+  test "order: allows string column names that are quoted with table and user" do
+    ids_expected = Post.order(Arel.sql("id")).pluck(:id)
+
+    ids_depr     = with_unsafe_raw_sql_deprecated { Post.order("[dbo].[posts].[id]").pluck(:id) }
+    ids_disabled = with_unsafe_raw_sql_disabled   { Post.order("[dbo].[posts].[id]").pluck(:id) }
+
+    assert_equal ids_expected, ids_depr
+    assert_equal ids_expected, ids_disabled
+  end
+
+  test "order: allows string column names that are quoted with table, user and database" do
+    ids_expected = Post.order(Arel.sql("id")).pluck(:id)
+
+    ids_depr     = with_unsafe_raw_sql_deprecated { Post.order("[activerecord_unittest].[dbo].[posts].[id]").pluck(:id) }
+    ids_disabled = with_unsafe_raw_sql_disabled   { Post.order("[activerecord_unittest].[dbo].[posts].[id]").pluck(:id) }
+
+    assert_equal ids_expected, ids_depr
+    assert_equal ids_expected, ids_disabled
+  end
+
+  test "pluck: allows string column name that are quoted" do
+    titles_expected = Post.pluck(Arel.sql("title"))
+
+    titles_depr     = with_unsafe_raw_sql_deprecated { Post.pluck("[title]") }
+    titles_disabled = with_unsafe_raw_sql_disabled   { Post.pluck("[title]") }
+
+    assert_equal titles_expected, titles_depr
+    assert_equal titles_expected, titles_disabled
+  end
+
+  test "pluck: allows string column name that are quoted with table" do
+    titles_expected = Post.pluck(Arel.sql("title"))
+
+    titles_depr     = with_unsafe_raw_sql_deprecated { Post.pluck("[posts].[title]") }
+    titles_disabled = with_unsafe_raw_sql_disabled   { Post.pluck("[posts].[title]") }
+
+    assert_equal titles_expected, titles_depr
+    assert_equal titles_expected, titles_disabled
+  end
+
+  test "pluck: allows string column name that are quoted with table and user" do
+    titles_expected = Post.pluck(Arel.sql("title"))
+
+    titles_depr     = with_unsafe_raw_sql_deprecated { Post.pluck("[dbo].[posts].[title]") }
+    titles_disabled = with_unsafe_raw_sql_disabled   { Post.pluck("[dbo].[posts].[title]") }
+
+    assert_equal titles_expected, titles_depr
+    assert_equal titles_expected, titles_disabled
+  end
+
+  test "pluck: allows string column name that are quoted with table, user and database" do
+    titles_expected = Post.pluck(Arel.sql("title"))
+
+    titles_depr     = with_unsafe_raw_sql_deprecated { Post.pluck("[activerecord_unittest].[dbo].[posts].[title]") }
+    titles_disabled = with_unsafe_raw_sql_disabled   { Post.pluck("[activerecord_unittest].[dbo].[posts].[title]") }
+
+    assert_equal titles_expected, titles_depr
+    assert_equal titles_expected, titles_disabled
   end
 end
 
