@@ -135,6 +135,12 @@ class SchemaDumperTestSQLServer < ActiveRecord::TestCase
     assert_line :name, type: "string", limit: nil, default: nil, collation: nil
   end
 
+  it "dumps field with unique key constraints only once" do
+    output = generate_schema_for_table "unique_key_dumped_table"
+
+    _(output.scan('t.integer "unique_field"').length).must_equal(1)
+  end
+
   private
 
   def generate_schema_for_table(*table_names)

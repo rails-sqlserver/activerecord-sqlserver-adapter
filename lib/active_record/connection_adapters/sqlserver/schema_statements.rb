@@ -472,6 +472,7 @@ module ActiveRecord
               AND c.default_object_id = d.object_id
             LEFT OUTER JOIN #{database}.sys.key_constraints k
               ON c.object_id = k.parent_object_id
+              AND k.type = 'PK'
             LEFT OUTER JOIN #{database}.sys.index_columns ic
               ON k.parent_object_id = ic.object_id
               AND k.unique_index_id = ic.index_id
