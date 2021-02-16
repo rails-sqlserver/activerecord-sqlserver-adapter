@@ -1,3 +1,9 @@
+## v6.0.1
+
+#### Fixed
+
+- [#851](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/851) Updated 'column_definitions_sql' to ensure that only primary key key constraints are queried for
+
 ## v6.0.0
 
 **No Changes**
