@@ -3,7 +3,11 @@
 module ActiveRecord
   module ConnectionAdapters
     module SQLServer
-      class SchemaCreation < SchemaCreation
+      BASE_SCHEMA_CREATION_CLASS = ((ActiveRecord.version <=> Gem::Version.new("6.1")) != -1) ?
+        SchemaCreation :
+        AbstractAdapter::SchemaCreation
+
+      class SchemaCreation < BASE_SCHEMA_CREATION_CLASS
         private
 
         def visit_TableDefinition(o)

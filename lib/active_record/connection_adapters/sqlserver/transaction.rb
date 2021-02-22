@@ -31,10 +31,18 @@ module ActiveRecord
     module SQLServerRealTransaction
       attr_reader :starting_isolation_level
 
-      def initialize(connection, isolation: nil, joinable: true, run_commit_callbacks: false)
-        @connection = connection
-        @starting_isolation_level = current_isolation_level if isolation
-        super
+      if (ActiveRecord.version <=> Gem::Version.new("6.1")) != -1
+        def initialize(connection, **args)
+          @connection = connection
+          @starting_isolation_level = current_isolation_level if args[:isolation]
+          super
+        end
+      else
+        def initialize(connection, options, **args)
+          @connection = connection
+          @starting_isolation_level = current_isolation_level if options[:isolation]
+          super
+        end
       end
 
       def commit
