@@ -99,7 +99,7 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       _(col.sql_type).must_equal           "bit"
       _(col.type).must_equal               :boolean
       _(col.null).must_equal               true
-      _(col.default).must_equal            true
+      _(col.default).must_equal            "1"
       _(obj.bit).must_equal                true
       _(col.default_function).must_be_nil
       type = connection.lookup_cast_type_from_column(col)
