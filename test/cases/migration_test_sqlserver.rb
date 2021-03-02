@@ -64,4 +64,48 @@ class MigrationTestSQLServer < ActiveRecord::TestCase
       assert_nothing_raised { connection.change_column :people, :first_name, :text, null: true, default: nil }
     end
   end
+
+  describe "#create_schema" do
+    it "creates a new schema" do
+      connection.create_schema("some schema")
+
+      schemas = connection.exec_query("select name from sys.schemas").to_a
+
+      assert_includes schemas, { "name" => "some schema" }
+    end
+
+    it "creates a new schema with an owner" do
+      connection.create_schema("some schema", :guest)
+
+      schemas = connection.exec_query("select name, principal_id from sys.schemas").to_a
+
+      assert_includes schemas, { "name" => "some schema", "principal_id" => 2 }
+    end
+  end
+
+  describe "#change_table_schema" do
+    before { connection.create_schema("foo") }
+
+    it "transfer the given table to the given schema" do
+      connection.change_table_schema("foo", "orders")
+
+      assert connection.data_source_exists?("foo.orders")
+    end
+  end
+
+  describe "#drop_schema" do
+    before { connection.create_schema("some schema") }
+
+    it "drops a schema" do
+      schemas = connection.exec_query("select name from sys.schemas").to_a
+
+      assert_includes schemas, { "name" => "some schema" }
+
+      connection.drop_schema("some schema")
+
+      schemas = connection.exec_query("select name from sys.schemas").to_a
+
+      refute_includes schemas, { "name" => "some schema" }
+    end
+  end
 end

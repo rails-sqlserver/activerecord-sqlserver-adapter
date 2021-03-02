@@ -281,6 +281,21 @@ module ActiveRecord
           SQLServer::SchemaDumper.create(self, options)
         end
 
+        def create_schema(schema_name, authorization = nil)
+          sql = "CREATE SCHEMA [#{schema_name}]"
+          sql += " AUTHORIZATION [#{authorization}]" if authorization
+
+          execute sql
+        end
+
+        def change_table_schema(schema_name, table_name)
+          execute "ALTER SCHEMA [#{schema_name}] TRANSFER [#{table_name}]"
+        end
+
+        def drop_schema(schema_name)
+          execute "DROP SCHEMA [#{schema_name}]"
+        end
+
         private
 
         def data_source_sql(name = nil, type: nil)
