@@ -1,3 +1,17 @@
+## Unreleased
+
+#### Fixed
+
+- ...
+
+#### Changed
+
+- ...
+
+#### Added
+
+- ...
+
 ## v6.0.1
 
 #### Fixed
