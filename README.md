@@ -52,6 +52,24 @@ Depending on your user and schema setup, it may be needed to use a table name pr
 ActiveRecord::Base.table_name_prefix = 'dbo.'
 ```
 
+It's also possible to create/change/drop a schema in the migration file as in the example below:
+
+```ruby
+class CreateFooSchema < ActiveRecord::Migration[6.0]
+  def up
+    create_schema('foo')
+
+    # Or you could move a table to a different schema
+
+    change_table_schema('foo', 'dbo.admin')
+  end
+
+  def down
+    drop_schema('foo')
+  end
+end
+```
+
 
 #### Configure Connection & App Name
 
