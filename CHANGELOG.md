@@ -11,6 +11,7 @@
 #### Added
 
 - [#855](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/855) Add helpers to create/change/drop a schema.
+- [#857](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/857) Included WAITFOR as read query type. 
 
 ## v6.0.1
 

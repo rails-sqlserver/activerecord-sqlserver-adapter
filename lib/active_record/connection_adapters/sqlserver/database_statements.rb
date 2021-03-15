@@ -4,7 +4,7 @@ module ActiveRecord
   module ConnectionAdapters
     module SQLServer
       module DatabaseStatements
-        READ_QUERY = ActiveRecord::ConnectionAdapters::AbstractAdapter.build_read_query_regexp(:begin, :commit, :dbcc, :explain, :save, :select, :set, :rollback) # :nodoc:
+        READ_QUERY = ActiveRecord::ConnectionAdapters::AbstractAdapter.build_read_query_regexp(:begin, :commit, :dbcc, :explain, :save, :select, :set, :rollback, :waitfor) # :nodoc:
         private_constant :READ_QUERY
 
         def write_query?(sql) # :nodoc:
