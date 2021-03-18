@@ -6,6 +6,7 @@ require "models/task"
 require "models/post"
 require "models/subscriber"
 require "models/minimalistic"
+require "models/college"
 
 class AdapterTestSQLServer < ActiveRecord::TestCase
   fixtures :tasks
@@ -42,15 +43,46 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
     assert connection.supports_ddl_transactions?
   end
 
-  it "allow owner table name prefixs like dbo to still allow table exists to return true" do
+  it "table exists works if table name prefixed by schema and owner" do
     begin
       assert_equal "topics", Topic.table_name
       assert Topic.table_exists?
+
+      # Test when owner included in table name.
       Topic.table_name = "dbo.topics"
-      assert Topic.table_exists?, "Tasks table name of dbo.topics should return true for exists."
+      assert Topic.table_exists?, "Topics table name of 'dbo.topics' should return true for exists."
+
+      # Test when database and owner included in table name.
+      Topic.table_name = "#{ActiveRecord::Base.configurations["arunit"]['database']}.dbo.topics"
+      assert Topic.table_exists?, "Topics table name of '[DATABASE].dbo.topics' should return true for exists."
     ensure
       Topic.table_name = "topics"
     end
+  end
+
+  it "test table existence across database schemas" do
+    arunit_connection = Topic.connection
+    arunit2_connection = College.connection
+
+    arunit_database = arunit_connection.pool.spec.config[:database]
+    arunit2_database = arunit2_connection.pool.spec.config[:database]
+
+    # Assert that connections use different default databases schemas.
+    assert_not_equal arunit_database, arunit2_database
+
+    # Assert that the Topics table exists when using the Topics connection.
+    assert arunit_connection.table_exists?('topics'), 'Topics table exists using table name'
+    assert arunit_connection.table_exists?('dbo.topics'), 'Topics table exists using owner and table name'
+    assert arunit_connection.table_exists?("#{arunit_database}.dbo.topics"), 'Topics table exists using database, owner and table name'
+
+    # Assert that the Colleges table exists when using the Colleges connection.
+    assert arunit2_connection.table_exists?('colleges'), 'College table exists using table name'
+    assert arunit2_connection.table_exists?('dbo.colleges'), 'College table exists using owner and table name'
+    assert arunit2_connection.table_exists?("#{arunit2_database}.dbo.colleges"), 'College table exists using database, owner and table name'
+
+    # Assert that the tables exist when using each others connection.
+    assert arunit_connection.table_exists?("#{arunit2_database}.dbo.colleges"), 'Colleges table exists using Topics connection'
+    assert arunit2_connection.table_exists?("#{arunit_database}.dbo.topics"), 'Topics table exists using Colleges connection'
   end
 
   it "return true to insert sql query for inserts only" do
