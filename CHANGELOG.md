@@ -2,7 +2,7 @@
 
 #### Fixed
 
-- ...
+- [#858](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/858) Allow table existence to be tested across database schemas.
 
 #### Changed
 
