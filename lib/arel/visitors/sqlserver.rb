@@ -144,6 +144,20 @@ module Arel
         super
       end
 
+      def visit_Arel_Nodes_SelectCore(o, collector)
+        collector = super
+        maybe_visit o.optimizer_hints, collector
+      end
+
+      def visit_Arel_Nodes_OptimizerHints(o, collector)
+        hints = o.expr.map { |v| sanitize_as_sql_comment(v) }.join(", ")
+        collector << "OPTION (#{hints})"
+      end
+
+      def collect_optimizer_hints(o, collector)
+        collector
+      end
+
       # SQLServer ToSql/Visitor (Additions)
 
       def visit_Arel_Nodes_SelectStatement_SQLServer_Lock collector, options = {}
