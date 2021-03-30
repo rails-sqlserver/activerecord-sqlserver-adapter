@@ -176,6 +176,10 @@ module ActiveRecord
         false
       end
 
+      def supports_optimizer_hints?
+        true
+      end
+
       def disable_referential_integrity
         tables = tables_with_referential_integrity
         tables.each { |t| do_execute "ALTER TABLE #{quote_table_name(t)} NOCHECK CONSTRAINT ALL" }

@@ -11,6 +11,7 @@
 #### Added
 
 - [#855](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/855) Add helpers to create/change/drop a schema.
+- [#856](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/issues/856) Implemented optimizer hints.
 
 ## v6.0.1
 
