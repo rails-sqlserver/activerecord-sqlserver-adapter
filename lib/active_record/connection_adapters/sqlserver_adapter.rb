@@ -152,6 +152,10 @@ module ActiveRecord
         true
       end
 
+      def supports_optimizer_hints?
+        true
+      end
+
       def supports_lazy_transactions?
         true
       end
