@@ -80,6 +80,16 @@ module Arel
         @select_statement = nil
       end
 
+      def visit_Arel_Nodes_SelectCore(o, collector)
+        collector = super
+        maybe_visit o.optimizer_hints, collector
+      end
+
+      def visit_Arel_Nodes_OptimizerHints(o, collector)
+        hints = o.expr.map { |v| sanitize_as_option_clause(v) }.join(", ")
+        collector << "OPTION (#{hints})"
+      end
+
       def visit_Arel_Table o, collector
         # Apparently, o.engine.connection can actually be a different adapter
         # than sqlserver. Can be removed if fixed in ActiveRecord. See:
@@ -142,6 +152,10 @@ module Arel
         end
 
         super
+      end
+
+      def collect_optimizer_hints(o, collector)
+        collector
       end
 
       # SQLServer ToSql/Visitor (Additions)
@@ -246,6 +260,10 @@ module Arel
         return unless Arel::Nodes::SelectStatement === node
 
         node.orders = [] unless node.offset || node.limit
+      end
+
+      def sanitize_as_option_clause(value)
+        value.gsub(%r{OPTION \s* \( (.+) \)}xi, "\\1")
       end
     end
   end

@@ -982,6 +982,21 @@ class RelationTest < ActiveRecord::TestCase
   end
 end
 
+module ActiveRecord
+  class RelationTest < ActiveRecord::TestCase
+    # Skipping this test. SQL Server doesn't support optimizer hint as comments
+    coerce_tests! :test_relation_with_optimizer_hints_filters_sql_comment_delimiters
+
+    coerce_tests! :test_does_not_duplicate_optimizer_hints_on_merge
+    def test_does_not_duplicate_optimizer_hints_on_merge_coerced
+      escaped_table = Post.connection.quote_table_name("posts")
+      expected = "SELECT #{escaped_table}.* FROM #{escaped_table} OPTION (OMGHINT)"
+      query = Post.optimizer_hints("OMGHINT").merge(Post.optimizer_hints("OMGHINT")).to_sql
+      assert_equal expected, query
+    end
+  end
+end
+
 require "models/post"
 class SanitizeTest < ActiveRecord::TestCase
   # Use nvarchar string (N'') in assert
