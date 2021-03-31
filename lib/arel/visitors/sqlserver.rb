@@ -263,7 +263,7 @@ module Arel
       end
 
       def sanitize_as_option_clause(value)
-        value.gsub(%r{OPTION \s* \( (.+) \)}x, "\\1")
+        value.gsub(%r{OPTION \s* \( (.+) \)}xi, "\\1")
       end
     end
   end

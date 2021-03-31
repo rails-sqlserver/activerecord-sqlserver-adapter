@@ -54,6 +54,12 @@ class OptimizerHitsTestSQLServer < ActiveRecord::TestCase
       companies = companies.distinct.select("firm_id")
       companies.to_a
     end
+
+    assert_sql(%r{\ASELECT .+ FROM .+ OPTION \(HASH GROUP\)\z}) do
+      companies = Company.optimizer_hints("Option(HASH GROUP)")
+      companies = companies.distinct.select("firm_id")
+      companies.to_a
+    end
   end
 
   it "skip optimization after unscope" do
