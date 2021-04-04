@@ -19,5 +19,5 @@ matrix:
       env: TARGET_VERSION=2.5.8
     - name: 2.6.6
       env: TARGET_VERSION=2.6.6
-    - name: 2.7.1
-      env: TARGET_VERSION=2.7.1
+    - name: 2.7.2
+      env: TARGET_VERSION=2.7.2
