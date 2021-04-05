@@ -1,0 +1,32 @@
+name: CI
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    name: Run test suite
+    runs-on: ubuntu-latest
+
+    env:
+      COMPOSE_FILE: docker-compose.ci.yml
+
+    strategy:
+      fail-fast: false
+      matrix:
+        ruby: [2.5.8, 2.6.6, 2.7.2, 3.0.0]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build docker images
+        run: docker-compose build --build-arg TARGET_VERSION=${{ matrix.ruby }}
+
+      - name: Run tests
+        run: docker-compose run ci
