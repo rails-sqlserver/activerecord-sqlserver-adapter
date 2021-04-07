@@ -1555,3 +1555,8 @@ class ReloadModelsTest < ActiveRecord::TestCase
   # `activesupport/lib/active_support/testing/isolation.rb` exceeds what Windows can handle.
   coerce_tests! :test_has_one_with_reload if RbConfig::CONFIG["host_os"] =~ /mswin|mingw/
 end
+
+class InsertAllTest < ActiveRecord::TestCase
+  # Skip this until upsert is supported
+  coerce_tests! :test_insert
+end

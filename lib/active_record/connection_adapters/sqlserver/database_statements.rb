@@ -140,6 +140,37 @@ module ActiveRecord
         private :default_insert_value
 
         def build_insert_sql(insert) # :nodoc:
+          if insert.skip_duplicates?
+            # Do we have a unique_by index? Use index columns
+            conflict_columns = if (unique_by = insert.send(:insert_all).unique_by)
+              [unique_by.columns]
+            else
+              # Compare against every unique constraint (primary key included).
+              # Discard constraints that are not fully included on insert.keys. Prevents invalid queries.
+              # Example: ignore unique index for columns ["name"] if insert keys is ["description"]
+              insert_all = insert.send(:insert_all)
+
+              (insert_all.send(:unique_indexes).map(&:columns) + [insert_all.primary_keys]).select do |columns|
+                columns.to_set.subset?(insert.keys)
+              end
+            end
+            includes_primary_key = (insert.send(:insert_all).primary_keys.to_set & insert.keys).present?
+
+            sql = +""
+            sql << "SET IDENTITY_INSERT #{insert.model.quoted_table_name} ON;" if includes_primary_key
+            sql << "MERGE INTO #{insert.model.quoted_table_name} WITH (UPDLOCK, HOLDLOCK) AS target"
+            sql << " USING (SELECT DISTINCT * FROM (#{insert.values_list}) AS t1 (#{insert.send(:columns_list)})) AS source"
+            sql << " ON (#{conflict_columns.map { |columns| columns.map { |column| "target.#{quote_column_name(column)} = source.#{quote_column_name(column)}" }.join(" AND ") }.join(") OR (")})"
+            sql << " WHEN NOT MATCHED BY TARGET THEN"
+            sql << " INSERT (#{insert.send(:columns_list)}) VALUES (#{insert.keys.map { |column| "source.#{quote_column_name(column)}" }.join(", ")})"
+            if returning = insert.send(:insert_all).returning
+              sql << " OUTPUT " << returning.map { |column| "INSERTED.#{quote_column_name(column)}" }.join(", ")
+            end
+            sql << ";"
+            sql << "SET IDENTITY_INSERT #{insert.model.quoted_table_name} OFF;" if includes_primary_key
+            return sql
+          end
+
           sql = +"INSERT #{insert.into}"
 
           if returning = insert.send(:insert_all).returning
