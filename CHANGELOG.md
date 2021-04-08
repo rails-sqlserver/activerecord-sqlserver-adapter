@@ -13,6 +13,7 @@
 - [#855](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/855) Add helpers to create/change/drop a schema.
 - [#857](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/857) Included WAITFOR as read query type.
 - [#865](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/865) Implemented optimizer hints.
+- [#870](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/870) Added DecimalWithoutScale type
 
 ## v6.0.1
 

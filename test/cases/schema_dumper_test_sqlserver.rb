@@ -16,7 +16,7 @@ class SchemaDumperTestSQLServer < ActiveRecord::TestCase
     assert_line :tinyint,           type: "integer",      limit: 1,             precision: nil,   scale: nil,  default: 42
     assert_line :bit,               type: "boolean",      limit: nil,           precision: nil,   scale: nil,  default: true
     assert_line :decimal_9_2,       type: "decimal",      limit: nil,           precision: 9,     scale: 2,    default: 12345.01
-    assert_line :numeric_18_0,      type: "decimal",      limit: nil,           precision: 18,    scale: 0,    default: 191.0
+    assert_line :numeric_18_0,      type: "decimal",      limit: nil,           precision: 18,    scale: nil,  default: 191
     assert_line :numeric_36_2,      type: "decimal",      limit: nil,           precision: 36,    scale: 2,    default: 12345678901234567890.01
     assert_line :money,             type: "money",        limit: nil,           precision: 19,    scale: 4,    default: 4.2
     assert_line :smallmoney,        type: "smallmoney",   limit: nil,           precision: 10,    scale: 4,    default: 4.2
@@ -75,7 +75,7 @@ class SchemaDumperTestSQLServer < ActiveRecord::TestCase
     assert_line :integer_col,     type: "integer",      limit: nil,          precision: nil,  scale: nil, default: nil
     assert_line :bigint_col,      type: "bigint",       limit: nil,          precision: nil,  scale: nil, default: nil
     assert_line :boolean_col,     type: "boolean",      limit: nil,          precision: nil,  scale: nil, default: nil
-    assert_line :decimal_col,     type: "decimal",      limit: nil,          precision: 18,   scale: 0,   default: nil
+    assert_line :decimal_col,     type: "decimal",      limit: nil,          precision: 18,   scale: nil, default: nil
     assert_line :float_col,       type: "float",        limit: nil,          precision: nil,  scale: nil, default: nil
     assert_line :string_col,      type: "string",       limit: nil,          precision: nil,  scale: nil, default: nil
     assert_line :text_col,        type: "text",         limit: nil,          precision: nil,  scale: nil, default: nil
@@ -166,13 +166,15 @@ class SchemaDumperTestSQLServer < ActiveRecord::TestCase
 
   def assert_line(column_name, options = {})
     line = line(column_name)
-    assert line, "Count not find line with column name: #{column_name.inspect} in schema:\n#{schema}"
+    assert line, "Could not find line with column name: #{column_name.inspect} in schema:\n#{schema}"
+
     [:type, :limit, :precision, :scale, :collation, :default].each do |key|
       next unless options.key?(key)
 
       actual   = key == :type ? line.send(:type_method) : line.send(key)
       expected = options[key]
       message  = "#{key.to_s.titleize} of #{expected.inspect} not found in:\n#{line}"
+
       if expected.nil?
         _(actual).must_be_nil message
       elsif expected.is_a?(Array)

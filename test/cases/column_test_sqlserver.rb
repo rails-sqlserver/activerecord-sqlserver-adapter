@@ -157,13 +157,16 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       _(col.default).must_equal            BigDecimal("191")
       _(obj.numeric_18_0).must_equal       BigDecimal("191")
       _(col.default_function).must_be_nil
+
       type = connection.lookup_cast_type_from_column(col)
-      _(type).must_be_instance_of Type::Decimal
+      _(type).must_be_instance_of Type::DecimalWithoutScale
       _(type.limit).must_be_nil
       _(type.precision).must_equal         18
-      _(type.scale).must_equal             0
+      _(type.scale).must_be_nil
+
       obj.numeric_18_0 = "192.1"
       _(obj.numeric_18_0).must_equal BigDecimal("192")
+
       obj.save!
       _(obj.reload.numeric_18_0).must_equal BigDecimal("192")
     end
