@@ -125,23 +125,33 @@ module Arel
       end
 
       def visit_Arel_Nodes_InnerJoin o, collector
-        collector << "INNER JOIN "
-        collector = visit o.left, collector
-        collector = visit_Arel_Nodes_SelectStatement_SQLServer_Lock collector, space: true
-        if o.right
-          collector << " "
-          visit(o.right, collector)
+        if o.left.is_a?(Arel::Nodes::As) && o.left.left.is_a?(Arel::Nodes::Lateral)
+          collector << "CROSS "
+          visit o.left, collector
         else
-          collector
+          collector << "INNER JOIN "
+          collector = visit o.left, collector
+          collector = visit_Arel_Nodes_SelectStatement_SQLServer_Lock collector, space: true
+          if o.right
+            collector << " "
+            visit(o.right, collector)
+          else
+            collector
+          end
         end
       end
 
       def visit_Arel_Nodes_OuterJoin o, collector
-        collector << "LEFT OUTER JOIN "
-        collector = visit o.left, collector
-        collector = visit_Arel_Nodes_SelectStatement_SQLServer_Lock collector, space: true
-        collector << " "
-        visit o.right, collector
+        if o.left.is_a?(Arel::Nodes::As) && o.left.left.is_a?(Arel::Nodes::Lateral)
+          collector << "OUTER "
+          visit o.left, collector
+        else
+          collector << "LEFT OUTER JOIN "
+          collector = visit o.left, collector
+          collector = visit_Arel_Nodes_SelectStatement_SQLServer_Lock collector, space: true
+          collector << " "
+          visit o.right, collector
+        end
       end
 
       def collect_in_clause(left, right, collector)
@@ -186,6 +196,18 @@ module Arel
         collector = visit o.offset, collector if o.offset
         collector = visit o.limit, collector if o.limit
         collector
+      end
+
+      def visit_Arel_Nodes_Lateral o, collector
+        collector << "APPLY"
+        collector << " "
+        if o.expr.is_a?(Arel::Nodes::SelectStatement)
+          collector << "("
+          visit(o.expr, collector)
+          collector << ")"
+        else
+          visit(o.expr, collector)
+        end
       end
 
       # SQLServer Helpers
