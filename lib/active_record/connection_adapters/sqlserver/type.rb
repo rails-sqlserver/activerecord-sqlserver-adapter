@@ -11,6 +11,7 @@ require "active_record/connection_adapters/sqlserver/type/small_integer"
 require "active_record/connection_adapters/sqlserver/type/tiny_integer"
 require "active_record/connection_adapters/sqlserver/type/boolean"
 require "active_record/connection_adapters/sqlserver/type/decimal"
+require "active_record/connection_adapters/sqlserver/type/decimal_without_scale"
 require "active_record/connection_adapters/sqlserver/type/money"
 require "active_record/connection_adapters/sqlserver/type/small_money"
 # Approximate Numerics

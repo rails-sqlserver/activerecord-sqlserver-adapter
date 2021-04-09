@@ -300,6 +300,7 @@ module ActiveRecord
 
       def initialize_type_map(m = type_map)
         m.register_type              %r{.*}, SQLServer::Type::UnicodeString.new
+
         # Exact Numerics
         register_class_with_limit m, "bigint(8)",         SQLServer::Type::BigInteger
         m.alias_type                 "bigint",            "bigint(8)"
@@ -312,16 +313,22 @@ module ActiveRecord
         m.alias_type                 "tinyint",           "tinyint(1)"
         m.register_type              "bit",               SQLServer::Type::Boolean.new
         m.register_type              %r{\Adecimal}i do |sql_type|
-          scale = extract_scale(sql_type)
+          scale     = extract_scale(sql_type)
           precision = extract_precision(sql_type)
-          SQLServer::Type::Decimal.new precision: precision, scale: scale
+          if scale == 0
+            SQLServer::Type::DecimalWithoutScale.new(precision: precision)
+          else
+            SQLServer::Type::Decimal.new(precision: precision, scale: scale)
+          end
         end
         m.alias_type                 %r{\Anumeric}i,      "decimal"
         m.register_type              "money",             SQLServer::Type::Money.new
         m.register_type              "smallmoney",        SQLServer::Type::SmallMoney.new
+
         # Approximate Numerics
         m.register_type              "float",             SQLServer::Type::Float.new
         m.register_type              "real",              SQLServer::Type::Real.new
+
         # Date and Time
         m.register_type              "date",              SQLServer::Type::Date.new
         m.register_type              %r{\Adatetime} do |sql_type|
@@ -341,11 +348,13 @@ module ActiveRecord
           precision = extract_precision(sql_type) || DEFAULT_TIME_PRECISION
           SQLServer::Type::Time.new precision: precision
         end
+
         # Character Strings
         register_class_with_limit m, %r{\Achar}i,         SQLServer::Type::Char
         register_class_with_limit m, %r{\Avarchar}i,      SQLServer::Type::Varchar
         m.register_type              "varchar(max)",      SQLServer::Type::VarcharMax.new
         m.register_type              "text",              SQLServer::Type::Text.new
+
         # Unicode Character Strings
         register_class_with_limit m, %r{\Anchar}i,        SQLServer::Type::UnicodeChar
         register_class_with_limit m, %r{\Anvarchar}i,     SQLServer::Type::UnicodeVarchar
@@ -353,10 +362,12 @@ module ActiveRecord
         m.register_type              "nvarchar(max)",     SQLServer::Type::UnicodeVarcharMax.new
         m.register_type              "nvarchar(max)",     SQLServer::Type::UnicodeVarcharMax.new
         m.register_type              "ntext",             SQLServer::Type::UnicodeText.new
+
         # Binary Strings
         register_class_with_limit m, %r{\Abinary}i,       SQLServer::Type::Binary
         register_class_with_limit m, %r{\Avarbinary}i,    SQLServer::Type::Varbinary
         m.register_type              "varbinary(max)",    SQLServer::Type::VarbinaryMax.new
+
         # Other Data Types
         m.register_type              "uniqueidentifier",  SQLServer::Type::Uuid.new
         m.register_type              "timestamp",         SQLServer::Type::Timestamp.new
