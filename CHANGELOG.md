@@ -2,7 +2,7 @@
 
 #### Fixed
 
-- ...
+- [#872](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/872) Use native String#start_with
 
 #### Changed
 

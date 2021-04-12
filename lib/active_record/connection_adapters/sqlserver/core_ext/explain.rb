@@ -21,7 +21,7 @@ module ActiveRecord
           # which uses sp_executesql to just the first argument, then unquote it. Likewise our
           # `sp_executesql` method should substitude the @n args with the quoted values.
           def unprepare_sqlserver_statement(sql, binds)
-            return sql unless sql.starts_with?(SQLSERVER_STATEMENT_PREFIX)
+            return sql unless sql.start_with?(SQLSERVER_STATEMENT_PREFIX)
 
             executesql = sql.from(SQLSERVER_STATEMENT_PREFIX.length)
             executesql = executesql.match(SQLSERVER_STATEMENT_REGEXP).to_a[1]
