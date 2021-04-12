@@ -3,11 +3,7 @@
 module ActiveRecord
   module ConnectionAdapters
     module SQLServer
-      BASE_SCHEMA_CREATION_CLASS = Rails::VERSION::MAJOR >= 6 && Rails::VERSION::MINOR >= 1 ?
-        SchemaCreation :
-        AbstractAdapter::SchemaCreation
-
-      class SchemaCreation < BASE_SCHEMA_CREATION_CLASS
+      class SchemaCreation < SchemaCreation
         private
 
         def visit_TableDefinition(o)
