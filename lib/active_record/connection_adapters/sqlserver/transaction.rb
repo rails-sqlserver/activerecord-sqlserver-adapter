@@ -31,9 +31,9 @@ module ActiveRecord
     module SQLServerRealTransaction
       attr_reader :starting_isolation_level
 
-      def initialize(connection, **args)
+      def initialize(connection, isolation: nil, joinable: true, run_commit_callbacks: false)
         @connection = connection
-        @starting_isolation_level = current_isolation_level if args[:isolation]
+        @starting_isolation_level = current_isolation_level if isolation
         super
       end
 
