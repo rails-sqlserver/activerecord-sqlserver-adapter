@@ -54,7 +54,7 @@ module ActiveRecord
         end
 
         def begin_db_transaction
-          do_execute "BEGIN TRANSACTION"
+          do_execute "BEGIN TRANSACTION", "TRANSACTION"
         end
 
         def transaction_isolation_levels
@@ -67,25 +67,25 @@ module ActiveRecord
         end
 
         def set_transaction_isolation_level(isolation_level)
-          do_execute "SET TRANSACTION ISOLATION LEVEL #{isolation_level}"
+          do_execute "SET TRANSACTION ISOLATION LEVEL #{isolation_level}", "TRANSACTION"
         end
 
         def commit_db_transaction
-          do_execute "COMMIT TRANSACTION"
+          do_execute "COMMIT TRANSACTION", "TRANSACTION"
         end
 
         def exec_rollback_db_transaction
-          do_execute "IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION"
+          do_execute "IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION", "TRANSACTION"
         end
 
         include Savepoints
 
         def create_savepoint(name = current_savepoint_name)
-          do_execute "SAVE TRANSACTION #{name}"
+          do_execute "SAVE TRANSACTION #{name}", "TRANSACTION"
         end
 
         def exec_rollback_to_savepoint(name = current_savepoint_name)
-          do_execute "ROLLBACK TRANSACTION #{name}"
+          do_execute "ROLLBACK TRANSACTION #{name}", "TRANSACTION"
         end
 
         def release_savepoint(name = current_savepoint_name)

@@ -11,17 +11,19 @@ module ARTest
       end
     end
 
-    ignored_sql = [
-      /INFORMATION_SCHEMA\.(TABLES|VIEWS|COLUMNS|KEY_COLUMN_USAGE)/im,
-      /sys.columns/i,
-      /SELECT @@version/,
-      /SELECT @@TRANCOUNT/,
-      /(BEGIN|COMMIT|ROLLBACK|SAVE) TRANSACTION/,
-      /SELECT CAST\(.* AS .*\) AS value/,
-      /SELECT DATABASEPROPERTYEX/im
-    ]
-
-    sqlcounter = ObjectSpace.each_object(ActiveRecord::SQLCounter).to_a.first
-    sqlcounter.instance_variable_set :@ignore, Regexp.union(ignored_sql.push(sqlcounter.ignore))
+    # TODO: Delete the code below after all Rails 6.1 tests passing.
+    #
+    # ignored_sql = [
+    #   /INFORMATION_SCHEMA\.(TABLES|VIEWS|COLUMNS|KEY_COLUMN_USAGE)/im,
+    #   /sys.columns/i,
+    #   /SELECT @@version/,
+    #   /SELECT @@TRANCOUNT/,
+    #   /(BEGIN|COMMIT|ROLLBACK|SAVE) TRANSACTION/,
+    #   /SELECT CAST\(.* AS .*\) AS value/,
+    #   /SELECT DATABASEPROPERTYEX/im
+    # ]
+    #
+    # sqlcounter = ObjectSpace.each_object(ActiveRecord::SQLCounter).to_a.first
+    # sqlcounter.instance_variable_set :@ignore, Regexp.union(ignored_sql.push(sqlcounter.ignore))
   end
 end

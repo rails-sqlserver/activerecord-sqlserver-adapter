@@ -6,6 +6,10 @@ module ActiveRecord
       class SchemaCreation < SchemaCreation
         private
 
+        def supports_index_using?
+          false
+        end
+
         def visit_TableDefinition(o)
           if_not_exists = o.if_not_exists
 
