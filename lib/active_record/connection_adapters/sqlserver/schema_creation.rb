@@ -3,12 +3,12 @@
 module ActiveRecord
   module ConnectionAdapters
     module SQLServer
-      BASE_SCHEMA_CREATION_CLASS = ((ActiveRecord.version <=> Gem::Version.new("6.1")) != -1) ?
-        SchemaCreation :
-        AbstractAdapter::SchemaCreation
-
-      class SchemaCreation < BASE_SCHEMA_CREATION_CLASS
+      class SchemaCreation < SchemaCreation
         private
+
+        def supports_index_using?
+          false
+        end
 
         def visit_TableDefinition(o)
           if_not_exists = o.if_not_exists

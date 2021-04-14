@@ -27,7 +27,7 @@ module ActiveRecord
             end
           end
           if options[:if_exists] && @version_year < 2016
-            execute "IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = #{quote(table_name)}) DROP TABLE #{quote_table_name(table_name)}"
+            execute "IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = #{quote(table_name)}) DROP TABLE #{quote_table_name(table_name)}", "SCHEMA"
           else
             super
           end
@@ -51,7 +51,7 @@ module ActiveRecord
               index[:index_keys].split(",").each do |column|
                 column.strip!
 
-                if column.ends_with?("(-)")
+                if column.end_with?("(-)")
                   column.gsub! "(-)", ""
                   orders[column] = :desc
                 end
