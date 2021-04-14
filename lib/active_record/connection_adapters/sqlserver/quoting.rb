@@ -10,14 +10,14 @@ module ActiveRecord
 
         def fetch_type_metadata(sql_type, sqlserver_options = {})
           cast_type = lookup_cast_type(sql_type)
-          SQLServer::SqlTypeMetadata.new(
+          simple_type = SqlTypeMetadata.new(
             sql_type: sql_type,
             type: cast_type.type,
             limit: cast_type.limit,
             precision: cast_type.precision,
-            scale: cast_type.scale,
-            sqlserver_options: sqlserver_options
+            scale: cast_type.scale
           )
+          SQLServer::TypeMetadata.new(simple_type, sqlserver_options: sqlserver_options)
         end
 
         def quote_string(s)
