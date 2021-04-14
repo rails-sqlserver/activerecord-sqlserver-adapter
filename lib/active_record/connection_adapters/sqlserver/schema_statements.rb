@@ -51,7 +51,7 @@ module ActiveRecord
               index[:index_keys].split(",").each do |column|
                 column.strip!
 
-                if column.ends_with?("(-)")
+                if column.end_with?("(-)")
                   column.gsub! "(-)", ""
                   orders[column] = :desc
                 end
