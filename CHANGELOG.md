@@ -3,6 +3,7 @@
 #### Fixed
 
 - [#872](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/872) Use native String#start_with
+- [#876](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/876) Use native String#end_with
 
 #### Changed
 
