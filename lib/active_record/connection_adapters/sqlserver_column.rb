@@ -27,6 +27,22 @@ module ActiveRecord
       def case_sensitive?
         collation && collation.match(/_CS/)
       end
+
+      private
+
+      # Handle when the default value is a boolean. Boolean's do not respond to the method `:-@`. Method now
+      # checks whether the default value is already frozen and if so it uses that, otherwise it calls `:-@` to
+      # freeze it.
+      def deduplicated
+        @name = -name
+        @sql_type_metadata = sql_type_metadata.deduplicate if sql_type_metadata
+        @default = (default.frozen? ? default : -default) if default
+        @default_function = -default_function if default_function
+        @collation = -collation if collation
+        @comment = -comment if comment
+
+        freeze
+      end
     end
   end
 end
