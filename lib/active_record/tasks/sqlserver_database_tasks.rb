@@ -48,7 +48,7 @@ module ActiveRecord
         create true
       end
 
-      def structure_dump(filename, extra_flags)
+      def structure_dump(filename, _extra_flags)
         server_arg = "-S #{Shellwords.escape(configuration['host'])}"
         server_arg += ":#{Shellwords.escape(configuration['port'])}" if configuration["port"]
         command = [
@@ -59,9 +59,9 @@ module ActiveRecord
           "-P #{Shellwords.escape(configuration['password'])}",
           "-o #{Shellwords.escape(filename)}",
         ]
-        table_args = connection.tables.map { |t| Shellwords.escape(t) }
+        table_args = connection.tables.sort.map { |t| Shellwords.escape(t) }
         command.concat(table_args)
-        view_args = connection.views.map { |v| Shellwords.escape(v) }
+        view_args = connection.views.sort.map { |v| Shellwords.escape(v) }
         command.concat(view_args)
         raise "Error dumping database" unless Kernel.system(command.join(" "))
 
@@ -70,11 +70,14 @@ module ActiveRecord
         dump.gsub!(/^GO\n/, "")                               # Strip db GO statements
         dump.gsub!(/nvarchar\(8000\)/, "nvarchar(4000)")      # Fix nvarchar(8000) column defs
         dump.gsub!(/nvarchar\(-1\)/, "nvarchar(max)")         # Fix nvarchar(-1) column defs
+        dump.gsub!(/varbinary\(-1\)/, "varbinary(max)")       # Fix varbinary(-1) column defs
         dump.gsub!(/text\(\d+\)/, "text")                     # Fix text(16) column defs
+        dump.gsub!(/\r\n/, "\n")                              # Convert line breaks
+        dump.gsub!(/\s+$/, "")                                # Strip trailing whitespace
         File.open(filename, "w") { |file| file.puts dump }
       end
 
-      def structure_load(filename, extra_flags)
+      def structure_load(filename, _extra_flags)
         connection.execute File.read(filename)
       end
 
