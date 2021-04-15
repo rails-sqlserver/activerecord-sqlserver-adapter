@@ -18,10 +18,6 @@ module Arel
 
       def bind_block; BIND_BLOCK; end
 
-      def visit_Arel_Nodes_BindParam(o, collector)
-        collector.add_bind(o.value, &bind_block)
-      end
-
       def visit_Arel_Nodes_Bin(o, collector)
         visit o.expr, collector
         collector << " #{ActiveRecord::ConnectionAdapters::SQLServerAdapter.cs_equality_operator} "
