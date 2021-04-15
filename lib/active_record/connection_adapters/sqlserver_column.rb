@@ -30,13 +30,14 @@ module ActiveRecord
 
       private
 
-      # Handle when the default value is a boolean. Boolean's do not respond to the method `:-@`. Method now
-      # checks whether the default value is already frozen and if so it uses that, otherwise it calls `:-@` to
-      # freeze it.
+      # In the Rails version of this method there is an assumption that the `default` value will always be a
+      # `String` class, which must be true for the MySQL/PostgreSQL/SQLite adapters. However, in the SQL Server
+      # adapter the `default` value can also be Boolean/Date/Time/etc. Changed the implementation of this method
+      # to handle non-String `default` objects.
       def deduplicated
         @name = -name
         @sql_type_metadata = sql_type_metadata.deduplicate if sql_type_metadata
-        @default = (default.frozen? ? default : -default) if default
+        @default = (default.is_a?(String) ? -default : default.dup.freeze) if default
         @default_function = -default_function if default_function
         @collation = -collation if collation
         @comment = -comment if comment
