@@ -7,6 +7,7 @@
 - [#873](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/873) Various fixes to get the tests running for Rails 6.1
 - [#874](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/874) Deduplicate schema cache structures
 - [#875](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/875) Handle default boolean column values when deduplicating
+- [#879](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/879) Added visit method for HomogeneousIn
 
 #### Changed
 
