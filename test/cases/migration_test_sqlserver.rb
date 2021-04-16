@@ -63,6 +63,13 @@ class MigrationTestSQLServer < ActiveRecord::TestCase
     it "change null and default" do
       assert_nothing_raised { connection.change_column :people, :first_name, :text, null: true, default: nil }
     end
+
+    it "change collation" do
+      assert_nothing_raised { connection.change_column :sst_string_collation, :string_with_collation, :varchar, collation: :SQL_Latin1_General_CP437_BIN }
+
+      SstStringCollation.reset_column_information
+      assert_equal "SQL_Latin1_General_CP437_BIN", SstStringCollation.columns_hash['string_with_collation'].collation
+    end
   end
 
   describe "#create_schema" do
