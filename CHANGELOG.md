@@ -9,6 +9,7 @@
 - [#875](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/875) Handle default boolean column values when deduplicating
 - [#879](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/879) Added visit method for HomogeneousIn
 - [#880](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/880) Handle any default column class when deduplicating
+- [#861](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/861) Fix Rails 6.1 database config
 
 #### Changed
 
