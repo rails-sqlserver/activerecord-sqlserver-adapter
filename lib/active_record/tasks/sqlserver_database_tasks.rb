@@ -13,13 +13,18 @@ module ActiveRecord
       delegate :connection, :establish_connection, :clear_active_connections!,
                to: ActiveRecord::Base
 
+      def self.using_database_configurations?
+        true
+      end
+
       def initialize(configuration)
         @configuration = configuration
+        @configuration_hash = @configuration.configuration_hash
       end
 
       def create(master_established = false)
         establish_master_connection unless master_established
-        connection.create_database configuration["database"], configuration.merge("collation" => default_collation)
+        connection.create_database configuration.database, configuration_hash.merge("collation" => default_collation)
         establish_connection configuration
       rescue ActiveRecord::StatementInvalid => e
         if /database .* already exists/i === e.message
@@ -31,7 +36,7 @@ module ActiveRecord
 
       def drop
         establish_master_connection
-        connection.drop_database configuration["database"]
+        connection.drop_database configuration.database
       end
 
       def charset
@@ -49,14 +54,14 @@ module ActiveRecord
       end
 
       def structure_dump(filename, extra_flags)
-        server_arg = "-S #{Shellwords.escape(configuration['host'])}"
-        server_arg += ":#{Shellwords.escape(configuration['port'])}" if configuration["port"]
+        server_arg = "-S #{Shellwords.escape(configuration_hash['host'])}"
+        server_arg += ":#{Shellwords.escape(configuration_hash['port'])}" if configuration_hash["port"]
         command = [
           "defncopy-ttds",
           server_arg,
-          "-D #{Shellwords.escape(configuration['database'])}",
-          "-U #{Shellwords.escape(configuration['username'])}",
-          "-P #{Shellwords.escape(configuration['password'])}",
+          "-D #{Shellwords.escape(configuration_hash['database'])}",
+          "-U #{Shellwords.escape(configuration_hash['username'])}",
+          "-P #{Shellwords.escape(configuration_hash['password'])}",
           "-o #{Shellwords.escape(filename)}",
         ]
         table_args = connection.tables.map { |t| Shellwords.escape(t) }
@@ -80,16 +85,14 @@ module ActiveRecord
 
       private
 
-      def configuration
-        @configuration
-      end
+      attr_reader :configuration, :configuration_hash
 
       def default_collation
-        configuration["collation"] || DEFAULT_COLLATION
+        configuration_hash["collation"] || DEFAULT_COLLATION
       end
 
       def establish_master_connection
-        establish_connection configuration.merge("database" => "master")
+        establish_connection configuration_hash.merge("database" => "master")
       end
     end
 
@@ -110,9 +113,9 @@ module ActiveRecord
         end
 
         def configuration_host_ip(configuration)
-          return nil unless configuration["host"]
+          return nil unless configuration.host
 
-          Socket::getaddrinfo(configuration["host"], "echo", Socket::AF_INET)[0][3]
+          Socket::getaddrinfo(configuration.host, "echo", Socket::AF_INET)[0][3]
         end
 
         def local_ipaddr?(host_ip)
