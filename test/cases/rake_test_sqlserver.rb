@@ -10,7 +10,7 @@ class SQLServerRakeTest < ActiveRecord::TestCase
 
   let(:db_tasks)              { ActiveRecord::Tasks::DatabaseTasks }
   let(:new_database)          { "activerecord_unittest_tasks" }
-  let(:default_configuration) { ARTest.connection_config["arunit"] }
+  let(:default_configuration) { ARTest.test_configuration_hashes["arunit"] }
   let(:configuration)         { default_configuration.merge("database" => new_database) }
 
   before { skip "on azure" if azure_skip }
