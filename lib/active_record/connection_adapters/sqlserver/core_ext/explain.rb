@@ -27,7 +27,12 @@ module ActiveRecord
             executesql = executesql.match(SQLSERVER_STATEMENT_REGEXP).to_a[1]
 
             binds.each_with_index do |bind, index|
-              value = connection.quote(bind)
+
+              value = if ::ActiveModel::Attribute === bind then
+                connection.quote(bind.value_for_database)
+              else
+                connection.quote(bind)
+              end
               executesql = executesql.sub("@#{index}", value)
             end
 
