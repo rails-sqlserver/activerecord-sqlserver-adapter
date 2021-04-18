@@ -79,7 +79,7 @@ module Arel
 
         if values.empty?
           collector << @connection.quote(nil)
-        else
+        elsif @connection.prepared_statements
           # Monkey-patch start. Add query attribute bindings rather than just values.
           column_name = o.column_name
           column_type = o.attribute.relation.type_for_attribute(o.column_name)
@@ -87,6 +87,8 @@ module Arel
 
           collector.add_binds(attrs, &bind_block)
           # Monkey-patch end.
+        else
+          collector.add_binds(values, &bind_block)
         end
 
         collector << ")"
