@@ -53,7 +53,8 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
       assert Topic.table_exists?, "Topics table name of 'dbo.topics' should return true for exists."
 
       # Test when database and owner included in table name.
-      Topic.table_name = "#{ActiveRecord::Base.configurations["arunit"]['database']}.dbo.topics"
+      db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
+      Topic.table_name = "#{db_config.database}.dbo.topics"
       assert Topic.table_exists?, "Topics table name of '[DATABASE].dbo.topics' should return true for exists."
     ensure
       Topic.table_name = "topics"
@@ -100,21 +101,23 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
 
   it "test bad connection" do
     assert_raise ActiveRecord::NoDatabaseError do
-      config = ActiveRecord::Base.configurations["arunit"].merge(database: "inexistent_activerecord_unittest")
-      ActiveRecord::Base.sqlserver_connection config
+      db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
+      configuration = db_config.configuration_hash.merge(database: "inexistent_activerecord_unittest")
+      ActiveRecord::Base.sqlserver_connection configuration
     end
   end
 
   it "test database exists returns false if database does not exist" do
-    config = ActiveRecord::Base.configurations["arunit"].merge(database: "inexistent_activerecord_unittest")
-    assert_not ActiveRecord::ConnectionAdapters::SQLServerAdapter.database_exists?(config),
+    db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
+    configuration = db_config.configuration_hash.merge(database: "inexistent_activerecord_unittest")
+    assert_not ActiveRecord::ConnectionAdapters::SQLServerAdapter.database_exists?(configuration),
                "expected database to not exist"
   end
 
   it "test database exists returns true when the database exists" do
-    config = ActiveRecord::Base.configurations["arunit"]
-    assert ActiveRecord::ConnectionAdapters::SQLServerAdapter.database_exists?(config),
-           "expected database #{config[:database]} to exist"
+    db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
+    assert ActiveRecord::ConnectionAdapters::SQLServerAdapter.database_exists?(db_config.configuration_hash),
+           "expected database #{db_config.database} to exist"
   end
 
   describe "with different language" do
