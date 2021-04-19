@@ -329,14 +329,18 @@ module ActiveRecord
       coerce_tests! :test_quote_ar_object
       def test_quote_ar_object_coerced
         value = DatetimePrimaryKey.new(id: @time)
-        assert_equal "'02-14-2017 12:34:56.79'", @connection.quote(value)
+        assert_deprecated do
+          assert_equal "'02-14-2017 12:34:56.79'", @connection.quote(value)
+        end
       end
 
       # Use our date format.
       coerce_tests! :test_type_cast_ar_object
       def test_type_cast_ar_object_coerced
         value = DatetimePrimaryKey.new(id: @time)
-        assert_equal "02-14-2017 12:34:56.79", @connection.type_cast(value)
+        assert_deprecated do
+          assert_equal "02-14-2017 12:34:56.79", @connection.type_cast(value)
+        end
       end
     end
   end
@@ -896,7 +900,14 @@ class RelationTest < ActiveRecord::TestCase
   coerce_tests! :test_reorder_with_first
   def test_reorder_with_first_coerced
     sql_log = capture_sql do
-      assert Post.order(:title).reorder(nil).first
+      message = <<~MSG.squish
+        `.reorder(nil)` with `.first` / `.first!` no longer
+        takes non-deterministic result in Rails 6.2.
+        To continue taking non-deterministic result, use `.take` / `.take!` instead.
+      MSG
+      assert_deprecated(message) do
+        assert Post.order(:title).reorder(nil).first
+      end
     end
     assert sql_log.none? { |sql| /order by [posts].[title]/i.match?(sql) }, "ORDER BY title was used in the query: #{sql_log}"
     assert sql_log.all?  { |sql| /order by \[posts\]\.\[id\]/i.match?(sql) }, "default ORDER BY ID was not used in the query: #{sql_log}"
