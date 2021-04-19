@@ -244,6 +244,55 @@ module ActiveRecord
     coerce_tests! :test_statement_cache_with_find_by
     coerce_tests! :test_statement_cache_with_in_clause
     coerce_tests! :test_statement_cache_with_sql_string_literal
+
+    # Same as original coerced test except prepared statements include `EXEC sp_executesql` wrapper.
+    coerce_tests! :test_bind_params_to_sql_with_prepared_statements, :test_bind_params_to_sql_with_unprepared_statements
+    def test_bind_params_to_sql_with_prepared_statements_coerced
+      assert_bind_params_to_sql_coerced(prepared: true)
+    end
+
+    def test_bind_params_to_sql_with_unprepared_statements_coerced
+      @connection.unprepared_statement do
+        assert_bind_params_to_sql_coerced(prepared: false)
+      end
+    end
+
+    private
+
+    def assert_bind_params_to_sql_coerced(prepared:)
+      table = Author.quoted_table_name
+      pk = "#{table}.#{Author.quoted_primary_key}"
+
+      # prepared_statements: true
+      #
+      #   EXEC sp_executesql N'SELECT [authors].* FROM [authors] WHERE [authors].[id] IN (@0, @1, @2) OR [authors].[id] IS NULL)', N'@0 bigint, @1 bigint, @2 bigint', @0 = 1, @1 = 2, @2 = 3
+      #
+      # prepared_statements: false
+      #
+      #   SELECT [authors].* FROM [authors] WHERE ([authors].[id] IN (1, 2, 3) OR [authors].[id] IS NULL)
+      #
+      sql_unprepared = "SELECT #{table}.* FROM #{table} WHERE (#{pk} IN (#{bind_params(1..3)}) OR #{pk} IS NULL)"
+      sql_prepared = "EXEC sp_executesql N'SELECT #{table}.* FROM #{table} WHERE (#{pk} IN (#{bind_params(1..3)}) OR #{pk} IS NULL)', N'@0 bigint, @1 bigint, @2 bigint', @0 = 1, @1 = 2, @2 = 3"
+
+      authors = Author.where(id: [1, 2, 3, nil])
+      assert_equal sql_unprepared, @connection.to_sql(authors.arel)
+      assert_sql(prepared ? sql_prepared : sql_unprepared) { assert_equal 3, authors.length }
+
+      # prepared_statements: true
+      #
+      #   EXEC sp_executesql N'SELECT [authors].* FROM [authors] WHERE [authors].[id] IN (@0, @1, @2)', N'@0 bigint, @1 bigint, @2 bigint', @0 = 1, @1 = 2, @2 = 3
+      #
+      # prepared_statements: false
+      #
+      #   SELECT [authors].* FROM [authors] WHERE [authors].[id] IN (1, 2, 3)
+      #
+      sql_unprepared = "SELECT #{table}.* FROM #{table} WHERE #{pk} IN (#{bind_params(1..3)})"
+      sql_prepared = "EXEC sp_executesql N'SELECT #{table}.* FROM #{table} WHERE #{pk} IN (#{bind_params(1..3)})', N'@0 bigint, @1 bigint, @2 bigint', @0 = 1, @1 = 2, @2 = 3"
+
+      authors = Author.where(id: [1, 2, 3, 9223372036854775808])
+      assert_equal sql_unprepared, @connection.to_sql(authors.arel)
+      assert_sql(prepared ? sql_prepared : sql_unprepared) { assert_equal 3, authors.length }
+    end
   end
 end
 
@@ -634,7 +683,11 @@ class EagerAssociationTest < ActiveRecord::TestCase
 end
 
 require "models/topic"
+require "models/customer"
+require "models/non_primary_key"
 class FinderTest < ActiveRecord::TestCase
+  fixtures :customers, :topics, :authors
+
   # We have implicit ordering, via FETCH.
   coerce_tests! %r{doesn't have implicit ordering},
                 :test_find_doesnt_have_implicit_ordering
@@ -678,6 +731,84 @@ class FinderTest < ActiveRecord::TestCase
         assert_equal topic, Topic.where(written_on: topic.written_on.getlocal).first
       end
     end
+  end
+
+  # Check for `FETCH NEXT x ROWS` rather then `LIMIT`.
+  coerce_tests! :test_include_on_unloaded_relation_with_match
+  def test_include_on_unloaded_relation_with_match_coerced
+    assert_sql(/1 AS one.*FETCH NEXT @2 ROWS ONLY.*@2 = 1/) do
+      assert_equal true, Customer.where(name: "David").include?(customers(:david))
+    end
+  end
+
+  # Check for `FETCH NEXT x ROWS` rather then `LIMIT`.
+  coerce_tests! :test_include_on_unloaded_relation_without_match
+  def test_include_on_unloaded_relation_without_match_coerced
+    assert_sql(/1 AS one.*FETCH NEXT @2 ROWS ONLY.*@2 = 1/) do
+      assert_equal false, Customer.where(name: "David").include?(customers(:mary))
+    end
+  end
+
+  # Check for `FETCH NEXT x ROWS` rather then `LIMIT`.
+  coerce_tests! :test_member_on_unloaded_relation_with_match
+  def test_member_on_unloaded_relation_with_match_coerced
+    assert_sql(/1 AS one.*FETCH NEXT @2 ROWS ONLY.*@2 = 1/) do
+      assert_equal true, Customer.where(name: "David").member?(customers(:david))
+    end
+  end
+
+  # Check for `FETCH NEXT x ROWS` rather then `LIMIT`.
+  coerce_tests! :test_member_on_unloaded_relation_without_match
+  def test_member_on_unloaded_relation_without_match_coerced
+    assert_sql(/1 AS one.*FETCH NEXT @2 ROWS ONLY.*@2 = 1/) do
+      assert_equal false, Customer.where(name: "David").member?(customers(:mary))
+    end
+  end
+
+  # Check for `FETCH NEXT x ROWS` rather then `LIMIT`.
+  coerce_tests! :test_implicit_order_column_is_configurable
+  def test_implicit_order_column_is_configurable_coerced
+    old_implicit_order_column = Topic.implicit_order_column
+    Topic.implicit_order_column = "title"
+
+    assert_equal topics(:fifth), Topic.first
+    assert_equal topics(:third), Topic.last
+
+    c = Topic.connection
+    assert_sql(/ORDER BY #{Regexp.escape(c.quote_table_name("topics.title"))} DESC, #{Regexp.escape(c.quote_table_name("topics.id"))} DESC OFFSET 0 ROWS FETCH NEXT @0 ROWS ONLY.*@0 = 1/i) {
+      Topic.last
+    }
+  ensure
+    Topic.implicit_order_column = old_implicit_order_column
+  end
+
+  # Check for `FETCH NEXT x ROWS` rather then `LIMIT`.
+  coerce_tests! :test_implicit_order_set_to_primary_key
+  def test_implicit_order_set_to_primary_key_coerced
+    old_implicit_order_column = Topic.implicit_order_column
+    Topic.implicit_order_column = "id"
+
+    c = Topic.connection
+    assert_sql(/ORDER BY #{Regexp.escape(c.quote_table_name("topics.id"))} DESC OFFSET 0 ROWS FETCH NEXT @0 ROWS ONLY.*@0 = 1/i) {
+      Topic.last
+    }
+  ensure
+    Topic.implicit_order_column = old_implicit_order_column
+  end
+
+  # Check for `FETCH NEXT x ROWS` rather then `LIMIT`.
+  coerce_tests! :test_implicit_order_for_model_without_primary_key
+  def test_implicit_order_for_model_without_primary_key_coerced
+    old_implicit_order_column = NonPrimaryKey.implicit_order_column
+    NonPrimaryKey.implicit_order_column = "created_at"
+
+    c = NonPrimaryKey.connection
+
+    assert_sql(/ORDER BY #{Regexp.escape(c.quote_table_name("non_primary_keys.created_at"))} DESC OFFSET 0 ROWS FETCH NEXT @0 ROWS ONLY.*@0 = 1/i) {
+      NonPrimaryKey.last
+    }
+  ensure
+    NonPrimaryKey.implicit_order_column = old_implicit_order_column
   end
 end
 

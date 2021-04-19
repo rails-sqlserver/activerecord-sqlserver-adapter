@@ -156,6 +156,7 @@ module ActiveRecord
           end
           sql_commands << "UPDATE #{quote_table_name(table_name)} SET #{quote_column_name(column_name)}=#{quote_default_expression(options[:default], column_object)} WHERE #{quote_column_name(column_name)} IS NULL" if !options[:null].nil? && options[:null] == false && !options[:default].nil?
           alter_command = "ALTER TABLE #{quote_table_name(table_name)} ALTER COLUMN #{quote_column_name(column_name)} #{type_to_sql(type, limit: options[:limit], precision: options[:precision], scale: options[:scale])}"
+          alter_command += " COLLATE #{options[:collation]}" if options[:collation].present?
           alter_command += " NOT NULL" if !options[:null].nil? && options[:null] == false
           sql_commands << alter_command
           if without_constraints

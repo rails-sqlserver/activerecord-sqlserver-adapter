@@ -65,8 +65,8 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
     arunit_connection = Topic.connection
     arunit2_connection = College.connection
 
-    arunit_database = arunit_connection.pool.spec.config[:database]
-    arunit2_database = arunit2_connection.pool.spec.config[:database]
+    arunit_database = arunit_connection.pool.db_config.database
+    arunit2_database = arunit2_connection.pool.db_config.database
 
     # Assert that connections use different default databases schemas.
     assert_not_equal arunit_database, arunit2_database

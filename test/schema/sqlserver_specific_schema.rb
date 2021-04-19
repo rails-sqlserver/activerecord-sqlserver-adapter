@@ -95,6 +95,13 @@ ActiveRecord::Schema.define do
     t.column :string_with_multiline_default, :string, default: "Some long default with a\nnew line."
   end
 
+  create_table :sst_string_collation, collation: :SQL_Latin1_General_CP1_CI_AS, force: true do |t|
+    t.string :string_without_collation
+    t.varchar :string_default_collation, collation: :SQL_Latin1_General_CP1_CI_AS
+    t.varchar :string_with_collation, collation: :SQL_Latin1_General_CP1_CS_AS
+    t.varchar :varchar_with_collation, collation: :SQL_Latin1_General_CP1_CS_AS
+  end
+
   create_table :sst_edge_schemas, force: true do |t|
     t.string :description
     t.column "crazy]]quote", :string
