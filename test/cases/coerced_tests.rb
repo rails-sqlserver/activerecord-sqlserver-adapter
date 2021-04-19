@@ -695,6 +695,7 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   # Check for `FETCH NEXT x ROWS` rather then `LIMIT`.
+  coerce_tests! :test_member_on_unloaded_relation_without_match
   def test_member_on_unloaded_relation_without_match_coerced
     assert_sql(/1 AS one.*FETCH NEXT @2 ROWS ONLY.*@2 = 1/) do
       assert_equal false, Customer.where(name: "David").member?(customers(:mary))
