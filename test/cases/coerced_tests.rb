@@ -59,6 +59,22 @@ module ActiveRecord
 end
 
 module ActiveRecord
+  class AdapterPreventWritesLegacyTest < ActiveRecord::TestCase
+    # We do some read queries. Remove assert_no_queries
+    coerce_tests! :test_errors_when_an_insert_query_prefixed_by_a_slash_star_comment_is_called_while_preventing_writes
+    def test_errors_when_an_insert_query_prefixed_by_a_slash_star_comment_is_called_while_preventing_writes_coerced
+      @connection_handler.while_preventing_writes do
+        @connection.transaction do
+          assert_raises(ActiveRecord::ReadOnlyError) do
+            @connection.insert("/* some comment */ INSERT INTO subscribers(nick) VALUES ('138853948594')", nil, false)
+          end
+        end
+      end
+    end
+  end
+end
+
+module ActiveRecord
   class AdapterTestWithoutTransaction < ActiveRecord::TestCase
     # SQL Server does not allow truncation of tables that are referenced by foreign key
     # constraints. So manually remove/add foreign keys in test.
