@@ -28,7 +28,7 @@ module ActiveRecord
 
             binds.each_with_index do |bind, index|
 
-              value = if ::ActiveModel::Attribute === bind then
+              value = if bind.is_a?(::ActiveModel::Attribute)  then
                 connection.quote(bind.value_for_database)
               else
                 connection.quote(bind)
