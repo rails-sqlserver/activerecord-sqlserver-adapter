@@ -469,12 +469,11 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
   describe "block writes to a database" do
     def setup
       @conn = ActiveRecord::Base.connection
-      @connection_handler = ActiveRecord::Base.connection_handler
     end
 
     def test_errors_when_an_insert_query_is_called_while_preventing_writes
       assert_raises(ActiveRecord::ReadOnlyError) do
-        @connection_handler.while_preventing_writes do
+        ActiveRecord::Base.while_preventing_writes do
           @conn.insert("INSERT INTO [subscribers] ([nick]) VALUES ('aido')")
         end
       end
@@ -484,7 +483,7 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
       @conn.insert("INSERT INTO [subscribers] ([nick]) VALUES ('aido')")
 
       assert_raises(ActiveRecord::ReadOnlyError) do
-        @connection_handler.while_preventing_writes do
+        ActiveRecord::Base.while_preventing_writes do
           @conn.update("UPDATE [subscribers] SET [subscribers].[name] = 'Aidan' WHERE [subscribers].[nick] = 'aido'")
         end
       end
@@ -494,7 +493,7 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
       @conn.execute("INSERT INTO [subscribers] ([nick]) VALUES ('aido')")
 
       assert_raises(ActiveRecord::ReadOnlyError) do
-        @connection_handler.while_preventing_writes do
+        ActiveRecord::Base.while_preventing_writes do
           @conn.execute("DELETE FROM [subscribers] WHERE [subscribers].[nick] = 'aido'")
         end
       end
@@ -503,7 +502,7 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
     def test_doesnt_error_when_a_select_query_is_called_while_preventing_writes
       @conn.execute("INSERT INTO [subscribers] ([nick]) VALUES ('aido')")
 
-      @connection_handler.while_preventing_writes do
+      ActiveRecord::Base.while_preventing_writes do
         assert_equal 1, @conn.execute("SELECT * FROM [subscribers] WHERE [subscribers].[nick] = 'aido'")
       end
     end

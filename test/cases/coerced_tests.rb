@@ -159,7 +159,7 @@ class BasicsTest < ActiveRecord::TestCase
   # SQL Server does not have query for release_savepoint
   coerce_tests! %r{an empty transaction does not raise if preventing writes}
   test "an empty transaction does not raise if preventing writes coerced" do
-    ActiveRecord::Base.connection_handler.while_preventing_writes do
+    ActiveRecord::Base.while_preventing_writes do
       assert_queries(1, ignore_none: true) do
         Bird.transaction do
           ActiveRecord::Base.connection.materialize_transactions
