@@ -23,22 +23,12 @@ class UniquenessValidationTest < ActiveRecord::TestCase
       end
     end
   end
-
-  # Skip the test if database is case-insensitive.
-  coerce_tests! :test_validate_case_sensitive_uniqueness_by_default
-  def test_validate_case_sensitive_uniqueness_by_default_coerced
-    database_collation = connection.select_one("SELECT collation_name FROM sys.databases WHERE name = 'activerecord_unittest'").values.first
-    skip if database_collation.include?("_CI_")
-
-    original_test_validate_case_sensitive_uniqueness_by_default_coerced
-  end
 end
 
 require "models/event"
 module ActiveRecord
   class AdapterTest < ActiveRecord::TestCase
     # I really don`t think we can support legacy binds.
-    coerce_tests! :test_select_all_with_legacy_binds
     coerce_tests! :test_insert_update_delete_with_legacy_binds
 
     # As far as I can tell, SQL Server does not support null bytes in strings.
@@ -53,13 +43,6 @@ module ActiveRecord
         end
         assert_not_nil error.cause
       end
-    end
-
-    # Fix randomly failing test. The loading of the model's schema was affecting the test.
-    coerce_tests! :test_errors_when_an_insert_query_is_called_while_preventing_writes
-    def test_errors_when_an_insert_query_is_called_while_preventing_writes_coerced
-      Subscriber.send(:load_schema!)
-      original_test_errors_when_an_insert_query_is_called_while_preventing_writes
     end
   end
 end
@@ -1452,28 +1435,6 @@ class QueryCacheExpiryTest < ActiveRecord::TestCase
 
     assert_raises(ArgumentError, /does not support upsert/) do
       Task.cache { Task.upsert_all([{ starting: Time.now }]) }
-    end
-  end
-end
-
-require "models/citation"
-class EagerLoadingTooManyIdsTest < ActiveRecord::TestCase
-  # Original Rails test fails with SQL Server error message "The query processor ran out of internal resources and
-  # could not produce a query plan". This error goes away if you change database compatibility level to 110 (SQL 2012)
-  # (see https://www.mssqltips.com/sqlservertip/5279/sql-server-error-query-processor-ran-out-of-internal-resources-and-could-not-produce-a-query-plan/).
-  # However, you cannot change the compatibility level during a test. The purpose of the test is to ensure that an
-  # unprepared statement is used if the number of values exceeds the adapter's `bind_params_length`. The coerced test
-  # still does this as there will be 32,768 remaining citation records in the database and the `bind_params_length` of
-  # adapter is 2,098.
-  coerce_tests! :test_eager_loading_too_may_ids
-  def test_eager_loading_too_may_ids_coerced
-    # Remove excess records.
-    Citation.limit(32768).order(id: :desc).delete_all
-
-    # Perform test
-    citation_count = Citation.count
-    assert_sql(/WHERE \(\[citations\]\.\[id\] IN \(0, 1/) do
-      assert_equal citation_count, Citation.eager_load(:citations).offset(0).size
     end
   end
 end

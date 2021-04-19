@@ -118,6 +118,8 @@ module ActiveRecord
             value.quoted
           when String, ActiveSupport::Multibyte::Chars
             "#{QUOTED_STRING_PREFIX}#{super}"
+          when ActiveModel::Attribute
+            quote(value.value_for_database)
           else
             super
           end
