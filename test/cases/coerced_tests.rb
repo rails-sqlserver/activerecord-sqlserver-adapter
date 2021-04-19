@@ -48,6 +48,17 @@ module ActiveRecord
 end
 
 module ActiveRecord
+  class AdapterPreventWritesTest < ActiveRecord::TestCase
+    # Fix randomly failing test. The loading of the model's schema was affecting the test.
+    coerce_tests! :test_errors_when_an_insert_query_is_called_while_preventing_writes
+    def test_errors_when_an_insert_query_is_called_while_preventing_writes_coerced
+      Subscriber.send(:load_schema!)
+      original_test_errors_when_an_insert_query_is_called_while_preventing_writes
+    end
+  end
+end
+
+module ActiveRecord
   class AdapterTestWithoutTransaction < ActiveRecord::TestCase
     # SQL Server does not allow truncation of tables that are referenced by foreign key
     # constraints. So manually remove/add foreign keys in test.
