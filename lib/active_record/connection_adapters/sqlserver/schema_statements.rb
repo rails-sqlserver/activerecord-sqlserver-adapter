@@ -190,7 +190,7 @@ module ActiveRecord
         end
 
         def rename_index(table_name, old_name, new_name)
-          raise ArgumentError, "Index name '#{new_name}' on table '#{table_name}' is too long; the limit is #{allowed_index_name_length} characters" if new_name.length > allowed_index_name_length
+          raise ArgumentError, "Index name '#{new_name}' on table '#{table_name}' is too long; the limit is #{index_name_length} characters" if new_name.length > index_name_length
 
           identifier = SQLServer::Utils.extract_identifiers("#{table_name}.#{old_name}")
           execute_procedure :sp_rename, identifier.quoted, new_name, "INDEX"
