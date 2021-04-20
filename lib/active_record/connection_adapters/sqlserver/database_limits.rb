@@ -37,10 +37,6 @@ module ActiveRecord
         end
         deprecate :columns_per_multicolumn_index
 
-        def in_clause_length
-          10_000
-        end
-
         def sql_query_length
           65_536 * 4_096
         end
