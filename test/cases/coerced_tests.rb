@@ -1606,3 +1606,14 @@ class ReloadModelsTest < ActiveRecord::TestCase
   # `activesupport/lib/active_support/testing/isolation.rb` exceeds what Windows can handle.
   coerce_tests! :test_has_one_with_reload if RbConfig::CONFIG["host_os"] =~ /mswin|mingw/
 end
+
+class MarshalSerializationTest < ActiveRecord::TestCase
+  private
+
+  def marshal_fixture_path(file_name)
+    File.expand_path(
+      "support/marshal_compatibility_fixtures/#{ActiveRecord::Base.connection.adapter_name}/#{file_name}.dump",
+      ARTest::SQLServer.test_root_sqlserver
+    )
+  end
+end
