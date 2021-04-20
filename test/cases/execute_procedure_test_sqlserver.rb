@@ -41,4 +41,13 @@ class ExecuteProcedureTestSQLServer < ActiveRecord::TestCase
     date_base = connection.select_value("select GETUTCDATE()")
     assert_equal date_base.change(usec: 0), date_proc.change(usec: 0)
   end
+
+  it 'test deprecation with transaction return when executing procedure' do
+    assert_deprecated do
+      ActiveRecord::Base.transaction do
+        connection.execute_procedure("my_getutcdate")
+        return
+      end
+    end
+  end
 end
