@@ -1587,20 +1587,6 @@ class ActiveRecordSchemaTest < ActiveRecord::TestCase
   end
 end
 
-module ActiveRecord
-  module ConnectionAdapters
-    class ReaperTest < ActiveRecord::TestCase
-      # Coerce can be removed if Rails version > 6.0.3
-      coerce_tests! :test_connection_pool_starts_reaper_in_fork unless Process.respond_to?(:fork)
-    end
-  end
-end
-
-class FixturesTest < ActiveRecord::TestCase
-  # Skip test on Windows. Skip can be removed when Rails PR https://github.com/rails/rails/pull/39234 has been merged.
-  coerce_tests! :test_binary_in_fixtures if RbConfig::CONFIG["host_os"] =~ /mswin|mingw/
-end
-
 class ReloadModelsTest < ActiveRecord::TestCase
   # Skip test on Windows. The number of arguements passed to `IO.popen` in
   # `activesupport/lib/active_support/testing/isolation.rb` exceeds what Windows can handle.
