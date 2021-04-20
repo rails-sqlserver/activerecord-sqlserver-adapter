@@ -17,6 +17,7 @@ module ActiveRecord
           end
 
           materialize_transactions
+          mark_transaction_written_if_write(sql)
 
           if id_insert_table_name = query_requires_identity_insert?(sql)
             with_identity_insert_enabled(id_insert_table_name) { do_execute(sql, name) }
@@ -31,6 +32,7 @@ module ActiveRecord
           end
 
           materialize_transactions
+          mark_transaction_written_if_write(sql)
 
           sp_executesql(sql, name, binds, prepare: prepare)
         end
@@ -291,6 +293,7 @@ module ActiveRecord
 
         def do_execute(sql, name = "SQL")
           materialize_transactions
+          mark_transaction_written_if_write(sql)
 
           log(sql, name) { raw_connection_do(sql) }
         end
