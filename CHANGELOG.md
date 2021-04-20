@@ -12,6 +12,7 @@
 - [#861](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/861) Fix Rails 6.1 database config
 - [#890](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/890) Fix removal of invalid ordering from select statements
 - [#881](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/881) Dump column collation to schema.rb and allow collation changes using column_change
+- [#891](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/891) Add support for if_not_exists to indexes
 - [#892](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/892) Add support for if_exists on remove_column
 
 #### Changed
