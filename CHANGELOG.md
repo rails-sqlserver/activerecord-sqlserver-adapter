@@ -13,6 +13,7 @@
 - [#885](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/885) Fix the quoting of ActiveModel attributes
 - [#890](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/890) Fix removal of invalid ordering from select statements
 - [#881](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/881) Dump column collation to schema.rb and allow collation changes using column_change
+- [#892](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/892) Add support for if_exists on remove_column
 
 #### Changed
 
