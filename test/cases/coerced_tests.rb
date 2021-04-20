@@ -45,6 +45,33 @@ module ActiveRecord
 end
 
 module ActiveRecord
+  class AdapterPreventWritesTest < ActiveRecord::TestCase
+    # Fix randomly failing test. The loading of the model's schema was affecting the test.
+    coerce_tests! :test_errors_when_an_insert_query_is_called_while_preventing_writes
+    def test_errors_when_an_insert_query_is_called_while_preventing_writes_coerced
+      Subscriber.send(:load_schema!)
+      original_test_errors_when_an_insert_query_is_called_while_preventing_writes
+    end
+  end
+end
+
+module ActiveRecord
+  class AdapterPreventWritesLegacyTest < ActiveRecord::TestCase
+    # We do some read queries. Remove assert_no_queries
+    coerce_tests! :test_errors_when_an_insert_query_prefixed_by_a_slash_star_comment_is_called_while_preventing_writes
+    def test_errors_when_an_insert_query_prefixed_by_a_slash_star_comment_is_called_while_preventing_writes_coerced
+      @connection_handler.while_preventing_writes do
+        @connection.transaction do
+          assert_raises(ActiveRecord::ReadOnlyError) do
+            @connection.insert("/* some comment */ INSERT INTO subscribers(nick) VALUES ('138853948594')", nil, false)
+          end
+        end
+      end
+    end
+  end
+end
+
+module ActiveRecord
   class AdapterTestWithoutTransaction < ActiveRecord::TestCase
     # SQL Server does not allow truncation of tables that are referenced by foreign key
     # constraints. So manually remove/add foreign keys in test.
@@ -156,7 +183,7 @@ class BasicsTest < ActiveRecord::TestCase
   # SQL Server does not have query for release_savepoint
   coerce_tests! %r{an empty transaction does not raise if preventing writes}
   test "an empty transaction does not raise if preventing writes coerced" do
-    ActiveRecord::Base.connection_handler.while_preventing_writes do
+    ActiveRecord::Base.while_preventing_writes do
       assert_queries(1, ignore_none: true) do
         Bird.transaction do
           ActiveRecord::Base.connection.materialize_transactions
