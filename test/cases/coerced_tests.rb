@@ -28,9 +28,6 @@ end
 require "models/event"
 module ActiveRecord
   class AdapterTest < ActiveRecord::TestCase
-    # I really don`t think we can support legacy binds.
-    coerce_tests! :test_insert_update_delete_with_legacy_binds
-
     # As far as I can tell, SQL Server does not support null bytes in strings.
     coerce_tests! :test_update_prepared_statement
 
@@ -1585,20 +1582,6 @@ class ActiveRecordSchemaTest < ActiveRecord::TestCase
     @schema_migration.reset_column_information
     original_test_has_primary_key
   end
-end
-
-module ActiveRecord
-  module ConnectionAdapters
-    class ReaperTest < ActiveRecord::TestCase
-      # Coerce can be removed if Rails version > 6.0.3
-      coerce_tests! :test_connection_pool_starts_reaper_in_fork unless Process.respond_to?(:fork)
-    end
-  end
-end
-
-class FixturesTest < ActiveRecord::TestCase
-  # Skip test on Windows. Skip can be removed when Rails PR https://github.com/rails/rails/pull/39234 has been merged.
-  coerce_tests! :test_binary_in_fixtures if RbConfig::CONFIG["host_os"] =~ /mswin|mingw/
 end
 
 class ReloadModelsTest < ActiveRecord::TestCase
