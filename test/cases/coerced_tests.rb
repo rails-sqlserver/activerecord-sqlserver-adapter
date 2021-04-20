@@ -23,24 +23,11 @@ class UniquenessValidationTest < ActiveRecord::TestCase
       end
     end
   end
-
-  # Skip the test if database is case-insensitive.
-  coerce_tests! :test_validate_case_sensitive_uniqueness_by_default
-  def test_validate_case_sensitive_uniqueness_by_default_coerced
-    database_collation = connection.select_one("SELECT collation_name FROM sys.databases WHERE name = 'activerecord_unittest'").values.first
-    skip if database_collation.include?("_CI_")
-
-    original_test_validate_case_sensitive_uniqueness_by_default_coerced
-  end
 end
 
 require "models/event"
 module ActiveRecord
   class AdapterTest < ActiveRecord::TestCase
-    # I really don`t think we can support legacy binds.
-    coerce_tests! :test_select_all_with_legacy_binds
-    coerce_tests! :test_insert_update_delete_with_legacy_binds
-
     # As far as I can tell, SQL Server does not support null bytes in strings.
     coerce_tests! :test_update_prepared_statement
 
@@ -53,13 +40,6 @@ module ActiveRecord
         end
         assert_not_nil error.cause
       end
-    end
-
-    # Fix randomly failing test. The loading of the model's schema was affecting the test.
-    coerce_tests! :test_errors_when_an_insert_query_is_called_while_preventing_writes
-    def test_errors_when_an_insert_query_is_called_while_preventing_writes_coerced
-      Subscriber.send(:load_schema!)
-      original_test_errors_when_an_insert_query_is_called_while_preventing_writes
     end
   end
 end
@@ -234,6 +214,55 @@ module ActiveRecord
     coerce_tests! :test_statement_cache_with_find_by
     coerce_tests! :test_statement_cache_with_in_clause
     coerce_tests! :test_statement_cache_with_sql_string_literal
+
+    # Same as original coerced test except prepared statements include `EXEC sp_executesql` wrapper.
+    coerce_tests! :test_bind_params_to_sql_with_prepared_statements, :test_bind_params_to_sql_with_unprepared_statements
+    def test_bind_params_to_sql_with_prepared_statements_coerced
+      assert_bind_params_to_sql_coerced(prepared: true)
+    end
+
+    def test_bind_params_to_sql_with_unprepared_statements_coerced
+      @connection.unprepared_statement do
+        assert_bind_params_to_sql_coerced(prepared: false)
+      end
+    end
+
+    private
+
+    def assert_bind_params_to_sql_coerced(prepared:)
+      table = Author.quoted_table_name
+      pk = "#{table}.#{Author.quoted_primary_key}"
+
+      # prepared_statements: true
+      #
+      #   EXEC sp_executesql N'SELECT [authors].* FROM [authors] WHERE [authors].[id] IN (@0, @1, @2) OR [authors].[id] IS NULL)', N'@0 bigint, @1 bigint, @2 bigint', @0 = 1, @1 = 2, @2 = 3
+      #
+      # prepared_statements: false
+      #
+      #   SELECT [authors].* FROM [authors] WHERE ([authors].[id] IN (1, 2, 3) OR [authors].[id] IS NULL)
+      #
+      sql_unprepared = "SELECT #{table}.* FROM #{table} WHERE (#{pk} IN (#{bind_params(1..3)}) OR #{pk} IS NULL)"
+      sql_prepared = "EXEC sp_executesql N'SELECT #{table}.* FROM #{table} WHERE (#{pk} IN (#{bind_params(1..3)}) OR #{pk} IS NULL)', N'@0 bigint, @1 bigint, @2 bigint', @0 = 1, @1 = 2, @2 = 3"
+
+      authors = Author.where(id: [1, 2, 3, nil])
+      assert_equal sql_unprepared, @connection.to_sql(authors.arel)
+      assert_sql(prepared ? sql_prepared : sql_unprepared) { assert_equal 3, authors.length }
+
+      # prepared_statements: true
+      #
+      #   EXEC sp_executesql N'SELECT [authors].* FROM [authors] WHERE [authors].[id] IN (@0, @1, @2)', N'@0 bigint, @1 bigint, @2 bigint', @0 = 1, @1 = 2, @2 = 3
+      #
+      # prepared_statements: false
+      #
+      #   SELECT [authors].* FROM [authors] WHERE [authors].[id] IN (1, 2, 3)
+      #
+      sql_unprepared = "SELECT #{table}.* FROM #{table} WHERE #{pk} IN (#{bind_params(1..3)})"
+      sql_prepared = "EXEC sp_executesql N'SELECT #{table}.* FROM #{table} WHERE #{pk} IN (#{bind_params(1..3)})', N'@0 bigint, @1 bigint, @2 bigint', @0 = 1, @1 = 2, @2 = 3"
+
+      authors = Author.where(id: [1, 2, 3, 9223372036854775808])
+      assert_equal sql_unprepared, @connection.to_sql(authors.arel)
+      assert_sql(prepared ? sql_prepared : sql_unprepared) { assert_equal 3, authors.length }
+    end
   end
 end
 
@@ -329,14 +358,18 @@ module ActiveRecord
       coerce_tests! :test_quote_ar_object
       def test_quote_ar_object_coerced
         value = DatetimePrimaryKey.new(id: @time)
-        assert_equal "'02-14-2017 12:34:56.79'", @connection.quote(value)
+        assert_deprecated do
+          assert_equal "'02-14-2017 12:34:56.79'", @connection.quote(value)
+        end
       end
 
       # Use our date format.
       coerce_tests! :test_type_cast_ar_object
       def test_type_cast_ar_object_coerced
         value = DatetimePrimaryKey.new(id: @time)
-        assert_equal "02-14-2017 12:34:56.79", @connection.type_cast(value)
+        assert_deprecated do
+          assert_equal "02-14-2017 12:34:56.79", @connection.type_cast(value)
+        end
       end
     end
   end
@@ -620,7 +653,11 @@ class EagerAssociationTest < ActiveRecord::TestCase
 end
 
 require "models/topic"
+require "models/customer"
+require "models/non_primary_key"
 class FinderTest < ActiveRecord::TestCase
+  fixtures :customers, :topics, :authors
+
   # We have implicit ordering, via FETCH.
   coerce_tests! %r{doesn't have implicit ordering},
                 :test_find_doesnt_have_implicit_ordering
@@ -664,6 +701,84 @@ class FinderTest < ActiveRecord::TestCase
         assert_equal topic, Topic.where(written_on: topic.written_on.getlocal).first
       end
     end
+  end
+
+  # Check for `FETCH NEXT x ROWS` rather then `LIMIT`.
+  coerce_tests! :test_include_on_unloaded_relation_with_match
+  def test_include_on_unloaded_relation_with_match_coerced
+    assert_sql(/1 AS one.*FETCH NEXT @2 ROWS ONLY.*@2 = 1/) do
+      assert_equal true, Customer.where(name: "David").include?(customers(:david))
+    end
+  end
+
+  # Check for `FETCH NEXT x ROWS` rather then `LIMIT`.
+  coerce_tests! :test_include_on_unloaded_relation_without_match
+  def test_include_on_unloaded_relation_without_match_coerced
+    assert_sql(/1 AS one.*FETCH NEXT @2 ROWS ONLY.*@2 = 1/) do
+      assert_equal false, Customer.where(name: "David").include?(customers(:mary))
+    end
+  end
+
+  # Check for `FETCH NEXT x ROWS` rather then `LIMIT`.
+  coerce_tests! :test_member_on_unloaded_relation_with_match
+  def test_member_on_unloaded_relation_with_match_coerced
+    assert_sql(/1 AS one.*FETCH NEXT @2 ROWS ONLY.*@2 = 1/) do
+      assert_equal true, Customer.where(name: "David").member?(customers(:david))
+    end
+  end
+
+  # Check for `FETCH NEXT x ROWS` rather then `LIMIT`.
+  coerce_tests! :test_member_on_unloaded_relation_without_match
+  def test_member_on_unloaded_relation_without_match_coerced
+    assert_sql(/1 AS one.*FETCH NEXT @2 ROWS ONLY.*@2 = 1/) do
+      assert_equal false, Customer.where(name: "David").member?(customers(:mary))
+    end
+  end
+
+  # Check for `FETCH NEXT x ROWS` rather then `LIMIT`.
+  coerce_tests! :test_implicit_order_column_is_configurable
+  def test_implicit_order_column_is_configurable_coerced
+    old_implicit_order_column = Topic.implicit_order_column
+    Topic.implicit_order_column = "title"
+
+    assert_equal topics(:fifth), Topic.first
+    assert_equal topics(:third), Topic.last
+
+    c = Topic.connection
+    assert_sql(/ORDER BY #{Regexp.escape(c.quote_table_name("topics.title"))} DESC, #{Regexp.escape(c.quote_table_name("topics.id"))} DESC OFFSET 0 ROWS FETCH NEXT @0 ROWS ONLY.*@0 = 1/i) {
+      Topic.last
+    }
+  ensure
+    Topic.implicit_order_column = old_implicit_order_column
+  end
+
+  # Check for `FETCH NEXT x ROWS` rather then `LIMIT`.
+  coerce_tests! :test_implicit_order_set_to_primary_key
+  def test_implicit_order_set_to_primary_key_coerced
+    old_implicit_order_column = Topic.implicit_order_column
+    Topic.implicit_order_column = "id"
+
+    c = Topic.connection
+    assert_sql(/ORDER BY #{Regexp.escape(c.quote_table_name("topics.id"))} DESC OFFSET 0 ROWS FETCH NEXT @0 ROWS ONLY.*@0 = 1/i) {
+      Topic.last
+    }
+  ensure
+    Topic.implicit_order_column = old_implicit_order_column
+  end
+
+  # Check for `FETCH NEXT x ROWS` rather then `LIMIT`.
+  coerce_tests! :test_implicit_order_for_model_without_primary_key
+  def test_implicit_order_for_model_without_primary_key_coerced
+    old_implicit_order_column = NonPrimaryKey.implicit_order_column
+    NonPrimaryKey.implicit_order_column = "created_at"
+
+    c = NonPrimaryKey.connection
+
+    assert_sql(/ORDER BY #{Regexp.escape(c.quote_table_name("non_primary_keys.created_at"))} DESC OFFSET 0 ROWS FETCH NEXT @0 ROWS ONLY.*@0 = 1/i) {
+      NonPrimaryKey.last
+    }
+  ensure
+    NonPrimaryKey.implicit_order_column = old_implicit_order_column
   end
 end
 
@@ -896,7 +1011,14 @@ class RelationTest < ActiveRecord::TestCase
   coerce_tests! :test_reorder_with_first
   def test_reorder_with_first_coerced
     sql_log = capture_sql do
-      assert Post.order(:title).reorder(nil).first
+      message = <<~MSG.squish
+        `.reorder(nil)` with `.first` / `.first!` no longer
+        takes non-deterministic result in Rails 6.2.
+        To continue taking non-deterministic result, use `.take` / `.take!` instead.
+      MSG
+      assert_deprecated(message) do
+        assert Post.order(:title).reorder(nil).first
+      end
     end
     assert sql_log.none? { |sql| /order by [posts].[title]/i.match?(sql) }, "ORDER BY title was used in the query: #{sql_log}"
     assert sql_log.all?  { |sql| /order by \[posts\]\.\[id\]/i.match?(sql) }, "default ORDER BY ID was not used in the query: #{sql_log}"
@@ -1445,28 +1567,6 @@ class QueryCacheExpiryTest < ActiveRecord::TestCase
   end
 end
 
-require "models/citation"
-class EagerLoadingTooManyIdsTest < ActiveRecord::TestCase
-  # Original Rails test fails with SQL Server error message "The query processor ran out of internal resources and
-  # could not produce a query plan". This error goes away if you change database compatibility level to 110 (SQL 2012)
-  # (see https://www.mssqltips.com/sqlservertip/5279/sql-server-error-query-processor-ran-out-of-internal-resources-and-could-not-produce-a-query-plan/).
-  # However, you cannot change the compatibility level during a test. The purpose of the test is to ensure that an
-  # unprepared statement is used if the number of values exceeds the adapter's `bind_params_length`. The coerced test
-  # still does this as there will be 32,768 remaining citation records in the database and the `bind_params_length` of
-  # adapter is 2,098.
-  coerce_tests! :test_eager_loading_too_may_ids
-  def test_eager_loading_too_may_ids_coerced
-    # Remove excess records.
-    Citation.limit(32768).order(id: :desc).delete_all
-
-    # Perform test
-    citation_count = Citation.count
-    assert_sql(/WHERE \(\[citations\]\.\[id\] IN \(0, 1/) do
-      assert_equal citation_count, Citation.eager_load(:citations).offset(0).size
-    end
-  end
-end
-
 class LogSubscriberTest < ActiveRecord::TestCase
   # Call original test from coerced test. Fixes issue on CI with Rails installed as a gem.
   coerce_tests! :test_vebose_query_logs
@@ -1482,20 +1582,6 @@ class ActiveRecordSchemaTest < ActiveRecord::TestCase
     @schema_migration.reset_column_information
     original_test_has_primary_key
   end
-end
-
-module ActiveRecord
-  module ConnectionAdapters
-    class ReaperTest < ActiveRecord::TestCase
-      # Coerce can be removed if Rails version > 6.0.3
-      coerce_tests! :test_connection_pool_starts_reaper_in_fork unless Process.respond_to?(:fork)
-    end
-  end
-end
-
-class FixturesTest < ActiveRecord::TestCase
-  # Skip test on Windows. Skip can be removed when Rails PR https://github.com/rails/rails/pull/39234 has been merged.
-  coerce_tests! :test_binary_in_fixtures if RbConfig::CONFIG["host_os"] =~ /mswin|mingw/
 end
 
 class ReloadModelsTest < ActiveRecord::TestCase

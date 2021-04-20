@@ -186,11 +186,11 @@ module Arel
         end
       end
 
-      def collect_in_clause(left, right, collector)
-        if Array === right
-          right.each { |node| remove_invalid_ordering_from_select_statement(node) }
+      def visit_Arel_Nodes_In(o, collector)
+        if Array === o.right
+          o.right.each { |node| remove_invalid_ordering_from_select_statement(node) }
         else
-          remove_invalid_ordering_from_select_statement(right)
+          remove_invalid_ordering_from_select_statement(o.right)
         end
 
         super

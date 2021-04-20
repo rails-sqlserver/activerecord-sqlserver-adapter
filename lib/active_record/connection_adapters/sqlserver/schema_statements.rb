@@ -130,8 +130,9 @@ module ActiveRecord
           rename_table_indexes(table_name, new_name)
         end
 
-        def remove_column(table_name, column_name, type = nil, options = {})
+        def remove_column(table_name, column_name, type = nil, **options)
           raise ArgumentError.new("You must specify at least one column name.  Example: remove_column(:people, :first_name)") if column_name.is_a? Array
+          return if options[:if_exists] == true && !column_exists?(table_name, column_name)
 
           remove_check_constraints(table_name, column_name)
           remove_default_constraint(table_name, column_name)
@@ -156,6 +157,7 @@ module ActiveRecord
           end
           sql_commands << "UPDATE #{quote_table_name(table_name)} SET #{quote_column_name(column_name)}=#{quote_default_expression(options[:default], column_object)} WHERE #{quote_column_name(column_name)} IS NULL" if !options[:null].nil? && options[:null] == false && !options[:default].nil?
           alter_command = "ALTER TABLE #{quote_table_name(table_name)} ALTER COLUMN #{quote_column_name(column_name)} #{type_to_sql(type, limit: options[:limit], precision: options[:precision], scale: options[:scale])}"
+          alter_command += " COLLATE #{options[:collation]}" if options[:collation].present?
           alter_command += " NOT NULL" if !options[:null].nil? && options[:null] == false
           sql_commands << alter_command
           if without_constraints
@@ -190,7 +192,7 @@ module ActiveRecord
         end
 
         def rename_index(table_name, old_name, new_name)
-          raise ArgumentError, "Index name '#{new_name}' on table '#{table_name}' is too long; the limit is #{allowed_index_name_length} characters" if new_name.length > allowed_index_name_length
+          raise ArgumentError, "Index name '#{new_name}' on table '#{table_name}' is too long; the limit is #{index_name_length} characters" if new_name.length > index_name_length
 
           identifier = SQLServer::Utils.extract_identifiers("#{table_name}.#{old_name}")
           execute_procedure :sp_rename, identifier.quoted, new_name, "INDEX"

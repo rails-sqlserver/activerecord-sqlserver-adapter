@@ -10,6 +10,9 @@
 - [#879](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/879) Added visit method for HomogeneousIn
 - [#880](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/880) Handle any default column class when deduplicating
 - [#861](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/861) Fix Rails 6.1 database config
+- [#890](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/890) Fix removal of invalid ordering from select statements
+- [#881](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/881) Dump column collation to schema.rb and allow collation changes using column_change
+- [#892](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/892) Add support for if_exists on remove_column
 - [#883](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/885) Fix quoting of ActiveRecord::Relation::QueryAttribute and ActiveModel::Attributes
 
 #### Changed

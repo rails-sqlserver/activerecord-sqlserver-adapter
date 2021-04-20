@@ -38,6 +38,9 @@ module ActiveRecord
           if options[:null] == false
             sql << " NOT NULL"
           end
+          if options[:collation].present?
+            sql << " COLLATE #{options[:collation]}"
+          end
           if options[:is_identity] == true
             sql << " IDENTITY(1,1)"
           end

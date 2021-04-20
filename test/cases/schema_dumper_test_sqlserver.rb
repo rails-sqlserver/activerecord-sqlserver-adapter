@@ -119,6 +119,15 @@ class SchemaDumperTestSQLServer < ActiveRecord::TestCase
     assert_line :json_col,          type: "text",           limit: nil,           precision: nil,   scale: nil,  default: nil
   end
 
+  it "dump column collation" do
+    generate_schema_for_table('sst_string_collation')
+
+    assert_line :string_without_collation, type: "string", limit: nil, default: nil, collation: nil
+    assert_line :string_default_collation, type: "varchar", limit: nil, default: nil, collation: nil
+    assert_line :string_with_collation, type: "varchar", limit: nil, default: nil, collation: "SQL_Latin1_General_CP1_CS_AS"
+    assert_line :varchar_with_collation, type: "varchar", limit: nil, default: nil, collation: "SQL_Latin1_General_CP1_CS_AS"
+  end
+
   # Special Cases
 
   it "honor nonstandard primary keys" do
