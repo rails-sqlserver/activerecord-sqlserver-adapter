@@ -1656,3 +1656,14 @@ class AnnotateTest < ActiveRecord::TestCase
     end
   end
 end
+
+class MarshalSerializationTest < ActiveRecord::TestCase
+  private
+
+  def marshal_fixture_path(file_name)
+    File.expand_path(
+      "support/marshal_compatibility_fixtures/#{ActiveRecord::Base.connection.adapter_name}/#{file_name}.dump",
+      ARTest::SQLServer.test_root_sqlserver
+    )
+  end
+end

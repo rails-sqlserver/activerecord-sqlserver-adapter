@@ -15,6 +15,7 @@
 - [#891](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/891) Add support for if_not_exists to indexes
 - [#892](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/892) Add support for if_exists on remove_column
 - [#883](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/885) Fix quoting of ActiveRecord::Relation::QueryAttribute and ActiveModel::Attributes
+- [#893](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/893) Add Active Record Marshal forward compatibility tests
 
 #### Changed
 
