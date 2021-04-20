@@ -33,6 +33,20 @@ module ActiveRecord
           sql
         end
 
+        def visit_CreateIndexDefinition(o)
+          if_not_exists = o.if_not_exists
+
+          o.if_not_exists = false
+
+          sql = super
+
+          if if_not_exists
+            sql = "IF NOT EXISTS (SELECT name FROM sysindexes WHERE name = '#{o.index.name}') #{sql}"
+          end
+
+          sql
+        end
+
         def add_column_options!(sql, options)
           sql << " DEFAULT #{quote_default_expression(options[:default], options[:column])}" if options_include_default?(options)
           if options[:null] == false

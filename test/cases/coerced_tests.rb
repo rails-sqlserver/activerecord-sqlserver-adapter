@@ -28,9 +28,6 @@ end
 require "models/event"
 module ActiveRecord
   class AdapterTest < ActiveRecord::TestCase
-    # I really don`t think we can support legacy binds.
-    coerce_tests! :test_insert_update_delete_with_legacy_binds
-
     # As far as I can tell, SQL Server does not support null bytes in strings.
     coerce_tests! :test_update_prepared_statement
 
@@ -42,6 +39,33 @@ module ActiveRecord
           Event.create(title: "abcdefgh")
         end
         assert_not_nil error.cause
+      end
+    end
+  end
+end
+
+module ActiveRecord
+  class AdapterPreventWritesTest < ActiveRecord::TestCase
+    # Fix randomly failing test. The loading of the model's schema was affecting the test.
+    coerce_tests! :test_errors_when_an_insert_query_is_called_while_preventing_writes
+    def test_errors_when_an_insert_query_is_called_while_preventing_writes_coerced
+      Subscriber.send(:load_schema!)
+      original_test_errors_when_an_insert_query_is_called_while_preventing_writes
+    end
+  end
+end
+
+module ActiveRecord
+  class AdapterPreventWritesLegacyTest < ActiveRecord::TestCase
+    # We do some read queries. Remove assert_no_queries
+    coerce_tests! :test_errors_when_an_insert_query_prefixed_by_a_slash_star_comment_is_called_while_preventing_writes
+    def test_errors_when_an_insert_query_prefixed_by_a_slash_star_comment_is_called_while_preventing_writes_coerced
+      @connection_handler.while_preventing_writes do
+        @connection.transaction do
+          assert_raises(ActiveRecord::ReadOnlyError) do
+            @connection.insert("/* some comment */ INSERT INTO subscribers(nick) VALUES ('138853948594')", nil, false)
+          end
+        end
       end
     end
   end
@@ -159,7 +183,7 @@ class BasicsTest < ActiveRecord::TestCase
   # SQL Server does not have query for release_savepoint
   coerce_tests! %r{an empty transaction does not raise if preventing writes}
   test "an empty transaction does not raise if preventing writes coerced" do
-    ActiveRecord::Base.connection_handler.while_preventing_writes do
+    ActiveRecord::Base.while_preventing_writes do
       assert_queries(1, ignore_none: true) do
         Bird.transaction do
           ActiveRecord::Base.connection.materialize_transactions
@@ -1587,24 +1611,61 @@ class ActiveRecordSchemaTest < ActiveRecord::TestCase
   end
 end
 
-module ActiveRecord
-  module ConnectionAdapters
-    class ReaperTest < ActiveRecord::TestCase
-      # Coerce can be removed if Rails version > 6.0.3
-      coerce_tests! :test_connection_pool_starts_reaper_in_fork unless Process.respond_to?(:fork)
+class ReloadModelsTest < ActiveRecord::TestCase
+  # Skip test on Windows. The number of arguments passed to `IO.popen` in
+  # `activesupport/lib/active_support/testing/isolation.rb` exceeds what Windows can handle.
+  coerce_tests! :test_has_one_with_reload if RbConfig::CONFIG["host_os"] =~ /mswin|mingw/
+end
+
+require "models/post"
+class AnnotateTest < ActiveRecord::TestCase
+  # Same as original coerced test except our SQL starts with `EXEC sp_executesql`.
+  coerce_tests! :test_annotate_wraps_content_in_an_inline_comment
+  def test_annotate_wraps_content_in_an_inline_comment_coerced
+    quoted_posts_id, quoted_posts = regexp_escape_table_name("posts.id"), regexp_escape_table_name("posts")
+
+    assert_sql(%r{SELECT #{quoted_posts_id} FROM #{quoted_posts} /\* foo \*/}i) do
+      posts = Post.select(:id).annotate("foo")
+      assert posts.first
+    end
+  end
+
+  # Same as original coerced test except our SQL starts with `EXEC sp_executesql`.
+  coerce_tests! :test_annotate_is_sanitized
+  def test_annotate_is_sanitized_coerced
+    quoted_posts_id, quoted_posts = regexp_escape_table_name("posts.id"), regexp_escape_table_name("posts")
+
+    assert_sql(%r{SELECT #{quoted_posts_id} FROM #{quoted_posts} /\* foo \*/}i) do
+      posts = Post.select(:id).annotate("*/foo/*")
+      assert posts.first
+    end
+
+    assert_sql(%r{SELECT #{quoted_posts_id} FROM #{quoted_posts} /\* foo \*/}i) do
+      posts = Post.select(:id).annotate("**//foo//**")
+      assert posts.first
+    end
+
+    assert_sql(%r{SELECT #{quoted_posts_id} FROM #{quoted_posts} /\* foo \*/ /\* bar \*/}i) do
+      posts = Post.select(:id).annotate("*/foo/*").annotate("*/bar")
+      assert posts.first
+    end
+
+    assert_sql(%r{SELECT #{quoted_posts_id} FROM #{quoted_posts} /\* \+ MAX_EXECUTION_TIME\(1\) \*/}i) do
+      posts = Post.select(:id).annotate("+ MAX_EXECUTION_TIME(1)")
+      assert posts.first
     end
   end
 end
 
-class FixturesTest < ActiveRecord::TestCase
-  # Skip test on Windows. Skip can be removed when Rails PR https://github.com/rails/rails/pull/39234 has been merged.
-  coerce_tests! :test_binary_in_fixtures if RbConfig::CONFIG["host_os"] =~ /mswin|mingw/
-end
+class MarshalSerializationTest < ActiveRecord::TestCase
+  private
 
-class ReloadModelsTest < ActiveRecord::TestCase
-  # Skip test on Windows. The number of arguements passed to `IO.popen` in
-  # `activesupport/lib/active_support/testing/isolation.rb` exceeds what Windows can handle.
-  coerce_tests! :test_has_one_with_reload if RbConfig::CONFIG["host_os"] =~ /mswin|mingw/
+  def marshal_fixture_path(file_name)
+    File.expand_path(
+      "support/marshal_compatibility_fixtures/#{ActiveRecord::Base.connection.adapter_name}/#{file_name}.dump",
+      ARTest::SQLServer.test_root_sqlserver
+    )
+  end
 end
 
 class NestedThroughAssociationsTest < ActiveRecord::TestCase
