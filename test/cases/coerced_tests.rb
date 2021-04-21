@@ -1509,6 +1509,25 @@ class RelationMergingTest < ActiveRecord::TestCase
     relation = Post.all.merge(Post.order([Arel.sql("title LIKE ?"), "%suffix"]))
     assert_equal ["title LIKE N'%suffix'"], relation.order_values
   end
+
+  # Same as original but change first regexp to match sp_executesql binding syntax
+  coerce_tests! :test_merge_doesnt_duplicate_same_clauses
+  def test_merge_doesnt_duplicate_same_clauses_coerced
+    david, mary, bob = authors(:david, :mary, :bob)
+
+    non_mary_and_bob = Author.where.not(id: [mary, bob])
+
+    author_id = Author.connection.quote_table_name("authors.id")
+    assert_sql(/WHERE #{Regexp.escape(author_id)} NOT IN \((@\d), \g<1>\)'/) do
+      assert_equal [david], non_mary_and_bob.merge(non_mary_and_bob)
+    end
+
+    only_david = Author.where("#{author_id} IN (?)", david)
+
+    assert_sql(/WHERE \(#{Regexp.escape(author_id)} IN \(1\)\)\z/) do
+      assert_equal [david], only_david.merge(only_david)
+    end
+  end
 end
 
 module ActiveRecord
