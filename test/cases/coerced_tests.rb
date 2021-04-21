@@ -47,10 +47,17 @@ end
 module ActiveRecord
   class AdapterPreventWritesTest < ActiveRecord::TestCase
     # Fix randomly failing test. The loading of the model's schema was affecting the test.
+    # Also, we do some read queries. Remove assert_no_queries
     coerce_tests! :test_errors_when_an_insert_query_is_called_while_preventing_writes
     def test_errors_when_an_insert_query_is_called_while_preventing_writes_coerced
       Subscriber.send(:load_schema!)
-      original_test_errors_when_an_insert_query_is_called_while_preventing_writes
+      assert_raises(ActiveRecord::ReadOnlyError) do
+        ActiveRecord::Base.while_preventing_writes do
+          @connection.transaction do
+            @connection.insert("INSERT INTO subscribers(nick) VALUES ('138853948594')", nil, false)
+          end
+        end
+      end
     end
   end
 end
