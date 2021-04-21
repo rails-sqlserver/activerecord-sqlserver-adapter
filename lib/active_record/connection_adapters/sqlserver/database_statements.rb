@@ -167,9 +167,7 @@ module ActiveRecord
           log(sql, name) do
             case @connection_options[:mode]
             when :dblib
-              raise ActiveRecord::ConnectionNotEstablished if @connection.nil?
-
-              result = @connection.execute(sql)
+              result = ensure_established_connection! { @connection.execute(sql) }
               options = { as: :hash, cache_rows: true, timezone: ActiveRecord::Base.default_timezone || :utc }
               result.each(options) do |row|
                 r = row.with_indifferent_access
@@ -359,9 +357,7 @@ module ActiveRecord
         def raw_connection_do(sql)
           case @connection_options[:mode]
           when :dblib
-            raise ActiveRecord::ConnectionNotEstablished if @connection.nil?
-
-            result = @connection.execute(sql)
+            result = ensure_established_connection! { @connection.execute(sql) }
 
             # TinyTDS returns false instead of raising an exception if connection fails.
             # Getting around this by raising an exception ourselves while this PR
@@ -432,9 +428,7 @@ module ActiveRecord
         def raw_connection_run(sql)
           case @connection_options[:mode]
           when :dblib
-            raise ActiveRecord::ConnectionNotEstablished if @connection.nil?
-
-            @connection.execute(sql)
+            ensure_established_connection! { @connection.execute(sql) }
           end
         end
 
@@ -467,6 +461,12 @@ module ActiveRecord
             handle.cancel if handle
           end
           handle
+        end
+
+        def ensure_established_connection!
+          raise ActiveRecord::ConnectionNotEstablished, 'SQL Server client is not connected' unless @connection
+
+          yield
         end
       end
     end
