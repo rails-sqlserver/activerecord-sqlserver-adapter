@@ -813,6 +813,9 @@ class FinderTest < ActiveRecord::TestCase
   ensure
     NonPrimaryKey.implicit_order_column = old_implicit_order_column
   end
+
+  # SQL Server is unable to use aliased SELECT in the HAVING clause.
+  coerce_tests! :test_include_on_unloaded_relation_with_having_referencing_aliased_select
 end
 
 module ActiveRecord
