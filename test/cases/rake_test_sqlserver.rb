@@ -12,6 +12,7 @@ class SQLServerRakeTest < ActiveRecord::TestCase
   let(:new_database)          { "activerecord_unittest_tasks" }
   let(:default_configuration) { ARTest.test_configuration_hashes["arunit"] }
   let(:configuration)         { default_configuration.merge("database" => new_database) }
+  let(:db_config)             { ActiveRecord::Base.configurations.resolve(configuration) }
 
   before { skip "on azure" if azure_skip }
   before { disconnect! unless azure_skip }
@@ -151,7 +152,7 @@ class SQLServerRakeStructureDumpLoadTest < SQLServerRakeTest
     _(filedata).must_match %r{CREATE TABLE dbo\.users}
     db_tasks.purge(configuration)
     _(connection.tables).wont_include "users"
-    db_tasks.load_schema configuration, :sql, filename
+    db_tasks.load_schema db_config, :sql, filename
     _(connection.tables).must_include "users"
   end
 end

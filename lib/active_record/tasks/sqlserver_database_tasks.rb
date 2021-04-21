@@ -24,7 +24,7 @@ module ActiveRecord
 
       def create(master_established = false)
         establish_master_connection unless master_established
-        connection.create_database configuration.database, configuration_hash.merge("collation" => default_collation)
+        connection.create_database configuration.database, configuration_hash.merge(collation: default_collation)
         establish_connection configuration
       rescue ActiveRecord::StatementInvalid => e
         if /database .* already exists/i === e.message
@@ -54,14 +54,14 @@ module ActiveRecord
       end
 
       def structure_dump(filename, extra_flags)
-        server_arg = "-S #{Shellwords.escape(configuration_hash['host'])}"
-        server_arg += ":#{Shellwords.escape(configuration_hash['port'])}" if configuration_hash["port"]
+        server_arg = "-S #{Shellwords.escape(configuration_hash[:host])}"
+        server_arg += ":#{Shellwords.escape(configuration_hash[:port])}" if configuration_hash[:port]
         command = [
           "defncopy-ttds",
           server_arg,
-          "-D #{Shellwords.escape(configuration_hash['database'])}",
-          "-U #{Shellwords.escape(configuration_hash['username'])}",
-          "-P #{Shellwords.escape(configuration_hash['password'])}",
+          "-D #{Shellwords.escape(configuration_hash[:database])}",
+          "-U #{Shellwords.escape(configuration_hash[:username])}",
+          "-P #{Shellwords.escape(configuration_hash[:password])}",
           "-o #{Shellwords.escape(filename)}",
         ]
         table_args = connection.tables.map { |t| Shellwords.escape(t) }
@@ -88,11 +88,11 @@ module ActiveRecord
       attr_reader :configuration, :configuration_hash
 
       def default_collation
-        configuration_hash["collation"] || DEFAULT_COLLATION
+        configuration_hash[:collation] || DEFAULT_COLLATION
       end
 
       def establish_master_connection
-        establish_connection configuration_hash.merge("database" => "master")
+        establish_connection configuration_hash.merge(database: "master")
       end
     end
 
