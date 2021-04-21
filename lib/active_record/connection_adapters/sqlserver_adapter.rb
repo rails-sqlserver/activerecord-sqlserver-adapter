@@ -374,7 +374,7 @@ module ActiveRecord
       end
 
       def translate_exception(e, message:, sql:, binds:)
-        return ActiveRecord::ConnectionNotEstablished.new("SQLServer client is not connected") if e.is_a?(ActiveRecord::ConnectionNotEstablished)
+        return e if e.is_a?(ActiveRecord::ConnectionNotEstablished)
 
         case message
         when /(cannot insert duplicate key .* with unique index) | (violation of unique key constraint)/i
