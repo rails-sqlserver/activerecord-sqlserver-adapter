@@ -1686,3 +1686,13 @@ class MarshalSerializationTest < ActiveRecord::TestCase
     )
   end
 end
+
+class PrimaryKeyAnyTypeTest < ActiveRecord::TestCase
+  # Same as original but add 'default: nil' option
+  coerce_tests! %r{schema dump primary key includes type and options}
+  test "schema dump primary key includes type and options coerced" do
+    schema = dump_table_schema "barcodes"
+    assert_match %r/create_table "barcodes", primary_key: "code", id: { type: :string, limit: 42, default: nil }/, schema
+    assert_no_match %r{t\.index \["code"\]}, schema
+  end
+end
