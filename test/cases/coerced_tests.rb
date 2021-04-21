@@ -1732,3 +1732,23 @@ class BasePreventWritesLegacyTest < ActiveRecord::TestCase
     end
   end
 end
+
+require "models/citation"
+class EagerLoadingTooManyIdsTest < ActiveRecord::TestCase
+  # This test can fail with error "The query processor ran out of internal resources and could not produce a query plan"
+  # if the SQL Server database is unable to handle the large number of values in the IN clause when generating the query
+  # plan. This is a known issue with SQL Server (see https://www.mssqltips.com/sqlservertip/5279/sql-server-error-query-processor-ran-out-of-internal-resources-and-could-not-produce-a-query-plan/).
+  # I have found that the test passes if the database compatibility level is 100/110/120 but fails if it's 130/140.
+  #
+  # The issue, when it happens, is with the database instance and not the SQL Server adapter. So by skipping the test
+  # only when the query plan generation fails we can do our best to catch any genuine errors while ignoring a known
+  # SQL Server issue.
+  coerce_tests! :test_eager_loading_too_many_ids
+  def test_eager_loading_too_many_ids_coerced
+    original_test_eager_loading_too_many_ids
+  rescue Exception => e
+    skip if e.message =~ /The query processor ran out of internal resources and could not produce a query plan/
+
+    raise e
+  end
+end
