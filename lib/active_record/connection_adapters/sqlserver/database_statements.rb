@@ -167,6 +167,8 @@ module ActiveRecord
           log(sql, name) do
             case @connection_options[:mode]
             when :dblib
+              raise ActiveRecord::ConnectionNotEstablished if @connection.nil?
+
               result = @connection.execute(sql)
               options = { as: :hash, cache_rows: true, timezone: ActiveRecord::Base.default_timezone || :utc }
               result.each(options) do |row|
@@ -357,6 +359,8 @@ module ActiveRecord
         def raw_connection_do(sql)
           case @connection_options[:mode]
           when :dblib
+            raise ActiveRecord::ConnectionNotEstablished if @connection.nil?
+
             result = @connection.execute(sql)
 
             # TinyTDS returns false instead of raising an exception if connection fails.
@@ -428,6 +432,8 @@ module ActiveRecord
         def raw_connection_run(sql)
           case @connection_options[:mode]
           when :dblib
+            raise ActiveRecord::ConnectionNotEstablished if @connection.nil?
+
             @connection.execute(sql)
           end
         end
