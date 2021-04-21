@@ -68,6 +68,12 @@ module ActiveRecord
         end
       end
     end
+
+    coerce_tests! :test_errors_when_an_insert_query_prefixed_by_a_double_dash_comment_containing_read_command_is_called_while_preventing_writes
+    def test_errors_when_an_insert_query_prefixed_by_a_double_dash_comment_containing_read_command_is_called_while_preventing_writes_coerced
+      Subscriber.send(:load_schema!)
+      original_test_errors_when_an_insert_query_prefixed_by_a_double_dash_comment_containing_read_command_is_called_while_preventing_writes
+    end
   end
 end
 
@@ -1691,5 +1697,33 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
       Category.where("comments.id" => comments(:more_greetings).id).order(:id),
       [categories(:general), categories(:technology)], :post_comments
     )
+  end
+end
+
+class BasePreventWritesTest < ActiveRecord::TestCase
+  # SQL Server does not have query for release_savepoint
+  coerce_tests! %r{an empty transaction does not raise if preventing writes}
+  test "an empty transaction does not raise if preventing writes coerced" do
+    ActiveRecord::Base.while_preventing_writes do
+      assert_queries(1, ignore_none: true) do
+        Bird.transaction do
+          ActiveRecord::Base.connection.materialize_transactions
+        end
+      end
+    end
+  end
+end
+
+class BasePreventWritesLegacyTest < ActiveRecord::TestCase
+  # SQL Server does not have query for release_savepoint
+  coerce_tests! %r{an empty transaction does not raise if preventing writes}
+  test "an empty transaction does not raise if preventing writes coerced" do
+    ActiveRecord::Base.connection_handler.while_preventing_writes do
+      assert_queries(1, ignore_none: true) do
+        Bird.transaction do
+          ActiveRecord::Base.connection.materialize_transactions
+        end
+      end
+    end
   end
 end
