@@ -68,6 +68,12 @@ module ActiveRecord
         end
       end
     end
+
+    coerce_tests! :test_errors_when_an_insert_query_prefixed_by_a_double_dash_comment_containing_read_command_is_called_while_preventing_writes
+    def test_errors_when_an_insert_query_prefixed_by_a_double_dash_comment_containing_read_command_is_called_while_preventing_writes_coerced
+      Subscriber.send(:load_schema!)
+      original_test_errors_when_an_insert_query_prefixed_by_a_double_dash_comment_containing_read_command_is_called_while_preventing_writes
+    end
   end
 end
 
@@ -807,6 +813,9 @@ class FinderTest < ActiveRecord::TestCase
   ensure
     NonPrimaryKey.implicit_order_column = old_implicit_order_column
   end
+
+  # SQL Server is unable to use aliased SELECT in the HAVING clause.
+  coerce_tests! :test_include_on_unloaded_relation_with_having_referencing_aliased_select
 end
 
 module ActiveRecord
@@ -1620,6 +1629,7 @@ end
 require "models/post"
 class AnnotateTest < ActiveRecord::TestCase
   # Same as original coerced test except our SQL starts with `EXEC sp_executesql`.
+  # TODO: Remove coerce after Rails 7 (see https://github.com/rails/rails/pull/42027)
   coerce_tests! :test_annotate_wraps_content_in_an_inline_comment
   def test_annotate_wraps_content_in_an_inline_comment_coerced
     quoted_posts_id, quoted_posts = regexp_escape_table_name("posts.id"), regexp_escape_table_name("posts")
@@ -1631,6 +1641,7 @@ class AnnotateTest < ActiveRecord::TestCase
   end
 
   # Same as original coerced test except our SQL starts with `EXEC sp_executesql`.
+  # TODO: Remove coerce after Rails 7 (see https://github.com/rails/rails/pull/42027)
   coerce_tests! :test_annotate_is_sanitized
   def test_annotate_is_sanitized_coerced
     quoted_posts_id, quoted_posts = regexp_escape_table_name("posts.id"), regexp_escape_table_name("posts")
@@ -1691,6 +1702,34 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
       Category.where("comments.id" => comments(:more_greetings).id).order(:id),
       [categories(:general), categories(:technology)], :post_comments
     )
+  end
+end
+
+class BasePreventWritesTest < ActiveRecord::TestCase
+  # SQL Server does not have query for release_savepoint
+  coerce_tests! %r{an empty transaction does not raise if preventing writes}
+  test "an empty transaction does not raise if preventing writes coerced" do
+    ActiveRecord::Base.while_preventing_writes do
+      assert_queries(1, ignore_none: true) do
+        Bird.transaction do
+          ActiveRecord::Base.connection.materialize_transactions
+        end
+      end
+    end
+  end
+end
+
+class BasePreventWritesLegacyTest < ActiveRecord::TestCase
+  # SQL Server does not have query for release_savepoint
+  coerce_tests! %r{an empty transaction does not raise if preventing writes}
+  test "an empty transaction does not raise if preventing writes coerced" do
+    ActiveRecord::Base.connection_handler.while_preventing_writes do
+      assert_queries(1, ignore_none: true) do
+        Bird.transaction do
+          ActiveRecord::Base.connection.materialize_transactions
+        end
+      end
+    end
   end
 end
 
