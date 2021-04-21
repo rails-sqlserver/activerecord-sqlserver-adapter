@@ -1675,8 +1675,34 @@ class MarshalSerializationTest < ActiveRecord::TestCase
   end
 end
 
+class NestedThroughAssociationsTest < ActiveRecord::TestCase
+  # Same as original but replace order with "order(:id)" to ensure that assert_includes_and_joins_equal doesn't raise
+  # "A column has been specified more than once in the order by list"
+  # Example: original test generate queries like "ORDER BY authors.id, [authors].[id]". We don't support duplicate columns in the order list
+  coerce_tests! :test_has_many_through_has_many_with_has_many_through_habtm_source_reflection_preload_via_joins, :test_has_many_through_has_and_belongs_to_many_with_has_many_source_reflection_preload_via_joins
+  def test_has_many_through_has_many_with_has_many_through_habtm_source_reflection_preload_via_joins_coerced
+    # preload table schemas
+    Author.joins(:category_post_comments).first
+
+    assert_includes_and_joins_equal(
+      Author.where("comments.id" => comments(:does_it_hurt).id).order(:id),
+      [authors(:david), authors(:mary)], :category_post_comments
+    )
+  end
+
+  def test_has_many_through_has_and_belongs_to_many_with_has_many_source_reflection_preload_via_joins_coerced
+    # preload table schemas
+    Category.joins(:post_comments).first
+
+    assert_includes_and_joins_equal(
+      Category.where("comments.id" => comments(:more_greetings).id).order(:id),
+      [categories(:general), categories(:technology)], :post_comments
+    )
+  end
+end
+
 class BasePreventWritesTest < ActiveRecord::TestCase
-  # We open one transaction, not two. Same as original but checking one query
+  # SQL Server does not have query for release_savepoint
   coerce_tests! %r{an empty transaction does not raise if preventing writes}
   test "an empty transaction does not raise if preventing writes coerced" do
     ActiveRecord::Base.while_preventing_writes do
@@ -1690,7 +1716,7 @@ class BasePreventWritesTest < ActiveRecord::TestCase
 end
 
 class BasePreventWritesLegacyTest < ActiveRecord::TestCase
-  # We open one transaction, not two. Same as original but checking one query
+  # SQL Server does not have query for release_savepoint
   coerce_tests! %r{an empty transaction does not raise if preventing writes}
   test "an empty transaction does not raise if preventing writes coerced" do
     ActiveRecord::Base.connection_handler.while_preventing_writes do

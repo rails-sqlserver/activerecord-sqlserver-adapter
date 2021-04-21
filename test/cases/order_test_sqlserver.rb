@@ -143,4 +143,11 @@ class OrderTestSQLServer < ActiveRecord::TestCase
     assert_equal post1, Post.order(Arel.sql(order)).first
     assert_equal post2, Post.order(Arel.sql(order)).second
   end
+
+  # Executing this kind of queries will raise "A column has been specified more than once in the order by list"
+  # This test shows that we don't do anything to prevent this
+  it "doesn't deduplicate semantically equal orders" do
+    sql = Post.order(:id).order("posts.id ASC").to_sql
+    assert_equal "SELECT [posts].* FROM [posts] ORDER BY [posts].[id] ASC, posts.id ASC", sql
+  end
 end
