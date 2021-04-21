@@ -1629,6 +1629,7 @@ end
 require "models/post"
 class AnnotateTest < ActiveRecord::TestCase
   # Same as original coerced test except our SQL starts with `EXEC sp_executesql`.
+  # TODO: Remove coerce after Rails 7 (see https://github.com/rails/rails/pull/42027)
   coerce_tests! :test_annotate_wraps_content_in_an_inline_comment
   def test_annotate_wraps_content_in_an_inline_comment_coerced
     quoted_posts_id, quoted_posts = regexp_escape_table_name("posts.id"), regexp_escape_table_name("posts")
@@ -1640,6 +1641,7 @@ class AnnotateTest < ActiveRecord::TestCase
   end
 
   # Same as original coerced test except our SQL starts with `EXEC sp_executesql`.
+  # TODO: Remove coerce after Rails 7 (see https://github.com/rails/rails/pull/42027)
   coerce_tests! :test_annotate_is_sanitized
   def test_annotate_is_sanitized_coerced
     quoted_posts_id, quoted_posts = regexp_escape_table_name("posts.id"), regexp_escape_table_name("posts")
