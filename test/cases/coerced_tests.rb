@@ -318,11 +318,112 @@ class CalculationsTest < ActiveRecord::TestCase
     original_test_offset_is_kept
   end
 
-  # Are decimal, not integer.
+  # The SQL Server `AVG()` function for a list of integers returns an integer (not a decimal).
   coerce_tests! :test_should_return_decimal_average_of_integer_field
   def test_should_return_decimal_average_of_integer_field_coerced
     value = Account.average(:id)
-    assert_equal BigDecimal("3.0").to_s, BigDecimal(value).to_s
+    assert_equal 3, value
+  end
+
+  # In SQL Server the `AVG()` function for a list of integers returns an integer so need to cast values as decimals before averaging.
+  # Match SQL Server limit implementation.
+  coerce_tests! :test_select_avg_with_group_by_as_virtual_attribute_with_sql
+  def test_select_avg_with_group_by_as_virtual_attribute_with_sql_coerced
+    rails_core = companies(:rails_core)
+
+    sql = <<~SQL
+      SELECT firm_id, AVG(CAST(credit_limit AS DECIMAL)) AS avg_credit_limit
+      FROM accounts
+      WHERE firm_id = ?
+      GROUP BY firm_id
+      ORDER BY firm_id
+      OFFSET 0 ROWS FETCH NEXT 1 ROWS ONLY
+    SQL
+
+    account = Account.find_by_sql([sql, rails_core]).first
+
+    # id was not selected, so it should be nil
+    # (cannot select id because it wasn't used in the GROUP BY clause)
+    assert_nil account.id
+
+    # firm_id was explicitly selected, so it should be present
+    assert_equal(rails_core, account.firm)
+
+    # avg_credit_limit should be present as a virtual attribute
+    assert_equal(52.5, account.avg_credit_limit)
+  end
+
+  # In SQL Server the `AVG()` function for a list of integers returns an integer so need to cast values as decimals before averaging.
+  # Order column must be in the GROUP clause.
+  coerce_tests! :test_select_avg_with_group_by_as_virtual_attribute_with_ar
+  def test_select_avg_with_group_by_as_virtual_attribute_with_ar_coerced
+    rails_core = companies(:rails_core)
+
+    account = Account
+                .select(:firm_id, "AVG(CAST(credit_limit AS DECIMAL)) AS avg_credit_limit")
+                .where(firm: rails_core)
+                .group(:firm_id)
+                .order(:firm_id)
+                .take!
+
+    # id was not selected, so it should be nil
+    # (cannot select id because it wasn't used in the GROUP BY clause)
+    assert_nil account.id
+
+    # firm_id was explicitly selected, so it should be present
+    assert_equal(rails_core, account.firm)
+
+    # avg_credit_limit should be present as a virtual attribute
+    assert_equal(52.5, account.avg_credit_limit)
+  end
+
+  # In SQL Server the `AVG()` function for a list of integers returns an integer so need to cast values as decimals before averaging.
+  # SELECT columns must be in the GROUP clause.
+  # Match SQL Server limit implementation.
+  coerce_tests! :test_select_avg_with_joins_and_group_by_as_virtual_attribute_with_sql
+  def test_select_avg_with_joins_and_group_by_as_virtual_attribute_with_sql_coerced
+    rails_core = companies(:rails_core)
+
+    sql = <<~SQL
+      SELECT companies.*, AVG(CAST(accounts.credit_limit AS DECIMAL)) AS avg_credit_limit
+      FROM companies
+      INNER JOIN accounts ON companies.id = accounts.firm_id
+      WHERE companies.id = ?
+      GROUP BY companies.id, companies.type, companies.firm_id, companies.firm_name, companies.name, companies.client_of, companies.rating, companies.account_id, companies.description
+      ORDER BY companies.id
+      OFFSET 0 ROWS FETCH NEXT 1 ROWS ONLY
+    SQL
+
+    firm = DependentFirm.find_by_sql([sql, rails_core]).first
+
+    # all the DependentFirm attributes should be present
+    assert_equal rails_core, firm
+    assert_equal rails_core.name, firm.name
+
+    # avg_credit_limit should be present as a virtual attribute
+    assert_equal(52.5, firm.avg_credit_limit)
+  end
+
+
+  # In SQL Server the `AVG()` function for a list of integers returns an integer so need to cast values as decimals before averaging.
+  # SELECT columns must be in the GROUP clause.
+  coerce_tests! :test_select_avg_with_joins_and_group_by_as_virtual_attribute_with_ar
+  def test_select_avg_with_joins_and_group_by_as_virtual_attribute_with_ar_coerced
+    rails_core = companies(:rails_core)
+
+    firm = DependentFirm
+             .select("companies.*", "AVG(CAST(accounts.credit_limit AS DECIMAL)) AS avg_credit_limit")
+             .where(id: rails_core)
+             .joins(:account)
+             .group(:id, :type, :firm_id, :firm_name, :name, :client_of, :rating, :account_id, :description)
+             .take!
+
+    # all the DependentFirm attributes should be present
+    assert_equal rails_core, firm
+    assert_equal rails_core.name, firm.name
+
+    # avg_credit_limit should be present as a virtual attribute
+    assert_equal(52.5, firm.avg_credit_limit)
   end
 
   # Match SQL Server limit implementation
