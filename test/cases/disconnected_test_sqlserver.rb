@@ -15,7 +15,7 @@ class TestDisconnectedAdapter < ActiveRecord::TestCase
     ActiveRecord::Base.establish_connection(db_config)
   end
 
-  test "can't execute procuderes while disconnected" do
+  test "can't execute procedures while disconnected" do
     @connection.execute_procedure :sp_tables, "sst_datatypes"
     @connection.disconnect!
     assert_raises(ActiveRecord::ConnectionNotEstablished, 'SQL Server client is not connected') do
