@@ -332,7 +332,7 @@ module ActiveRecord
         def initialize_native_database_types
           {
             primary_key: "bigint NOT NULL IDENTITY(1,1) PRIMARY KEY",
-            primary_key_nonclustered: "int NOT NULL IDENTITY(1,1) PRIMARY KEY NONCLUSTERED",
+            primary_key_nonclustered: "bigint NOT NULL IDENTITY(1,1) PRIMARY KEY NONCLUSTERED",
             integer: { name: "int", limit: 4 },
             bigint: { name: "bigint" },
             boolean: { name: "bit" },
