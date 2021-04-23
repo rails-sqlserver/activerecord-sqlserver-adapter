@@ -37,7 +37,7 @@ module ActiveRecord
         end
 
         def default_primary_key?(column)
-          super && column.is_primary? && column.is_identity?
+          super && column.is_identity?
         end
       end
     end
