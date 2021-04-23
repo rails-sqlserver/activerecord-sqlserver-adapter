@@ -374,9 +374,9 @@ module ActiveRecord
       end
 
       def translate_exception(e, message:, sql:, binds:)
-        return e if e.is_a?(ActiveRecord::ConnectionNotEstablished)
-
         case message
+        when /SQL Server client is not connected/
+          ConnectionNotEstablished.new(message)
         when /(cannot insert duplicate key .* with unique index) | (violation of unique key constraint)/i
           RecordNotUnique.new(message, sql: sql, binds: binds)
         when /(conflicted with the foreign key constraint) | (The DELETE statement conflicted with the REFERENCE constraint)/i
