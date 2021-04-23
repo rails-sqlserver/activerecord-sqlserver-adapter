@@ -464,7 +464,7 @@ module ActiveRecord
         end
 
         def ensure_established_connection!
-          raise ActiveRecord::ConnectionNotEstablished, 'SQL Server client is not connected' unless @connection
+          raise ActiveRecord::ConnectionNotEstablished, 'SQL Server client is not connected' if @connection.nil? || !@connection.active?
 
           yield
         end
