@@ -23,6 +23,28 @@ class UniquenessValidationTest < ActiveRecord::TestCase
       end
     end
   end
+
+  # Same as original coerced test except that it handles default SQL Server case-insensitive collation.
+  coerce_tests! :test_validate_uniqueness_by_default_database_collation
+  def test_validate_uniqueness_by_default_database_collation_coerced
+    Topic.validates_uniqueness_of(:author_email_address)
+
+    topic1 = Topic.new(author_email_address: "david@loudthinking.com")
+    topic2 = Topic.new(author_email_address: "David@loudthinking.com")
+
+    assert_equal 1, Topic.where(author_email_address: "david@loudthinking.com").count
+
+    assert_not topic1.valid?
+    assert_not topic1.save
+
+    # Case insensitive collation (SQL_Latin1_General_CP1_CI_AS) by default.
+    # Should not allow "David" if "david" exists.
+    assert_not topic2.valid?
+    assert_not topic2.save
+
+    assert_equal 1, Topic.where(author_email_address: "david@loudthinking.com").count
+    assert_equal 1, Topic.where(author_email_address: "David@loudthinking.com").count
+  end
 end
 
 require "models/event"
