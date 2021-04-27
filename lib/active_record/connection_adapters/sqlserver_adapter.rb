@@ -59,13 +59,73 @@ module ActiveRecord
       self.use_output_inserted = true
       self.exclude_output_inserted_table_names = Concurrent::Map.new { false }
 
-      def initialize(connection, logger = nil, config = {})
+      class << self
+        def new_client(config)
+          case config[:mode]
+          when :dblib
+            require "tiny_tds"
+            dblib_connect(config)
+          else
+            raise ArgumentError, "Unknown connection mode in #{config.inspect}."
+          end
+        end
+
+        def dblib_connect(config)
+          TinyTds::Client.new(
+            dataserver:    config[:dataserver],
+            host:          config[:host],
+            port:          config[:port],
+            username:      config[:username],
+            password:      config[:password],
+            database:      config[:database],
+            tds_version:   config[:tds_version] || "7.3",
+            appname:       config_appname(config),
+            login_timeout: config_login_timeout(config),
+            timeout:       config_timeout(config),
+            encoding:      config_encoding(config),
+            azure:         config[:azure],
+            contained:     config[:contained]
+          ).tap do |client|
+            if config[:azure]
+              client.execute("SET ANSI_NULLS ON").do
+              client.execute("SET ANSI_NULL_DFLT_ON ON").do
+              client.execute("SET ANSI_PADDING ON").do
+              client.execute("SET ANSI_WARNINGS ON").do
+            else
+              client.execute("SET ANSI_DEFAULTS ON").do
+            end
+            client.execute("SET QUOTED_IDENTIFIER ON").do
+            client.execute("SET CURSOR_CLOSE_ON_COMMIT OFF").do
+            client.execute("SET IMPLICIT_TRANSACTIONS OFF").do
+            client.execute("SET TEXTSIZE 2147483647").do
+            client.execute("SET CONCAT_NULL_YIELDS_NULL ON").do
+          end
+        rescue TinyTds::Error => e
+          raise ActiveRecord::NoDatabaseError if e.message.match(/database .* does not exist/i)
+          raise e
+        end
+
+        def config_appname(config)
+          config[:appname] || configure_application_name || Rails.application.class.name.split("::").first rescue nil
+        end
+
+        def config_login_timeout(config)
+          config[:login_timeout].present? ? config[:login_timeout].to_i : nil
+        end
+
+        def config_timeout(config)
+          config[:timeout].present? ? config[:timeout].to_i / 1000 : nil
+        end
+
+        def config_encoding(config)
+          config[:encoding].present? ? config[:encoding] : nil
+        end
+      end
+
+      def initialize(connection, logger, _connection_options, config)
         super(connection, logger, config)
-        # Our Responsibility
         @connection_options = config
-        connect
-        initialize_dateformatter
-        use_database
+        configure_connection
       end
 
       # === Abstract Adapter ========================================== #
@@ -224,6 +284,14 @@ module ActiveRecord
       def reset!
         reset_transaction
         do_execute "IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION"
+      end
+
+      def configure_connection
+        @spid = _raw_select("SELECT @@SPID", fetch: :rows).first.first
+        @version_year = version_year
+
+        initialize_dateformatter
+        use_database
       end
 
       # === Abstract Adapter (Misc Support) =========================== #
@@ -408,78 +476,18 @@ module ActiveRecord
 
       # === SQLServer Specific (Connection Management) ================ #
 
-      def connect
-        config = @connection_options
-        @connection = case config[:mode]
-                      when :dblib
-                        dblib_connect(config)
-                      end
-        @spid = _raw_select("SELECT @@SPID", fetch: :rows).first.first
-        @version_year = version_year
-        configure_connection
-      end
-
       def connection_errors
         @connection_errors ||= [].tap do |errors|
           errors << TinyTds::Error if defined?(TinyTds::Error)
         end
       end
 
-      def dblib_connect(config)
-        TinyTds::Client.new(
-          dataserver: config[:dataserver],
-          host: config[:host],
-          port: config[:port],
-          username: config[:username],
-          password: config[:password],
-          database: config[:database],
-          tds_version: config[:tds_version] || "7.3",
-          appname: config_appname(config),
-          login_timeout: config_login_timeout(config),
-          timeout: config_timeout(config),
-          encoding: config_encoding(config),
-          azure: config[:azure],
-          contained: config[:contained]
-        ).tap do |client|
-          if config[:azure]
-            client.execute("SET ANSI_NULLS ON").do
-            client.execute("SET ANSI_NULL_DFLT_ON ON").do
-            client.execute("SET ANSI_PADDING ON").do
-            client.execute("SET ANSI_WARNINGS ON").do
-          else
-            client.execute("SET ANSI_DEFAULTS ON").do
-          end
-          client.execute("SET QUOTED_IDENTIFIER ON").do
-          client.execute("SET CURSOR_CLOSE_ON_COMMIT OFF").do
-          client.execute("SET IMPLICIT_TRANSACTIONS OFF").do
-          client.execute("SET TEXTSIZE 2147483647").do
-          client.execute("SET CONCAT_NULL_YIELDS_NULL ON").do
-        end
-      end
-
-      def config_appname(config)
-        config[:appname] || configure_application_name || Rails.application.class.name.split("::").first rescue nil
-      end
-
-      def config_login_timeout(config)
-        config[:login_timeout].present? ? config[:login_timeout].to_i : nil
-      end
-
-      def config_timeout(config)
-        config[:timeout].present? ? config[:timeout].to_i / 1000 : nil
-      end
-
-      def config_encoding(config)
-        config[:encoding].present? ? config[:encoding] : nil
-      end
-
-      def configure_connection; end
-
       def configure_application_name; end
 
       def initialize_dateformatter
         @database_dateformat = user_options_dateformat
         a, b, c = @database_dateformat.each_char.to_a
+
         [a, b, c].each { |f| f.upcase! if f == "y" }
         dateformat = "%#{a}-%#{b}-%#{c}"
         ::Date::DATE_FORMATS[:_sqlserver_dateformat]     = dateformat
@@ -501,6 +509,13 @@ module ActiveRecord
 
       def sqlserver_version
         @sqlserver_version ||= _raw_select("SELECT @@version", fetch: :rows).first.first.to_s
+      end
+
+      private
+
+      def connect
+        @connection = self.class.new_client(@connection_options)
+        configure_connection
       end
     end
   end
