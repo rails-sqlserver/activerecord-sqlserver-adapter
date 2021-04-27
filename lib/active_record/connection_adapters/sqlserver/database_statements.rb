@@ -464,7 +464,7 @@ module ActiveRecord
         end
 
         def ensure_established_connection!
-          raise TinyTds::Error, 'SQL Server client is not connected' if @connection.nil? || !@connection.active?
+          raise TinyTds::Error, 'SQL Server client is not connected' unless @connection
 
           yield
         end
