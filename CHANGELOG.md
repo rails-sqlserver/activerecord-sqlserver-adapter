@@ -23,6 +23,6 @@
 
 #### Added
 
-- ...
+- [#918](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/918) Check if TinyTDS connection failed when using raw_connection_run/execute_procedure
 
 Please check [6-0-stable](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/blob/6-0-stable/CHANGELOG.md) for previous changes.

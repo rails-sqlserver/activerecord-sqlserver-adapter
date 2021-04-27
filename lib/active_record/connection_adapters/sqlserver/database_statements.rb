@@ -167,7 +167,7 @@ module ActiveRecord
           log(sql, name) do
             case @connection_options[:mode]
             when :dblib
-              result = @connection.execute(sql)
+              result = dblib_connection_execute(sql)
               options = { as: :hash, cache_rows: true, timezone: ActiveRecord::Base.default_timezone || :utc }
               result.each(options) do |row|
                 r = row.with_indifferent_access
@@ -176,6 +176,15 @@ module ActiveRecord
               result.each.map { |row| row.is_a?(Hash) ? row.with_indifferent_access : row }
             end
           end
+        end
+
+        # TinyTDS returns false instead of raising an exception if connection fails.
+        # Getting around this by raising an exception ourselves while this PR
+        # https://github.com/rails-sqlserver/tiny_tds/pull/469 is not released.
+        def dblib_connection_execute(sql)
+          result = @connection.execute(sql)
+          raise TinyTds::Error, "failed to execute statement" if result.is_a?(FalseClass)
+          result
         end
 
         def with_identity_insert_enabled(table_name)
@@ -357,13 +366,7 @@ module ActiveRecord
         def raw_connection_do(sql)
           case @connection_options[:mode]
           when :dblib
-            result = @connection.execute(sql)
-
-            # TinyTDS returns false instead of raising an exception if connection fails.
-            # Getting around this by raising an exception ourselves while this PR
-            # https://github.com/rails-sqlserver/tiny_tds/pull/469 is not released.
-            raise TinyTds::Error, "failed to execute statement" if result.is_a?(FalseClass)
-
+            result = dblib_connection_execute(sql)
             result.do
           end
         ensure
@@ -428,7 +431,7 @@ module ActiveRecord
         def raw_connection_run(sql)
           case @connection_options[:mode]
           when :dblib
-            @connection.execute(sql)
+            dblib_connection_execute(sql)
           end
         end
 
