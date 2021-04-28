@@ -167,7 +167,7 @@ module ActiveRecord
           log(sql, name) do
             case @connection_options[:mode]
             when :dblib
-              result = @connection.execute(sql)
+              result = ensure_established_connection! { dblib_execute(sql) }
               options = { as: :hash, cache_rows: true, timezone: ActiveRecord::Base.default_timezone || :utc }
               result.each(options) do |row|
                 r = row.with_indifferent_access
@@ -357,13 +357,7 @@ module ActiveRecord
         def raw_connection_do(sql)
           case @connection_options[:mode]
           when :dblib
-            result = @connection.execute(sql)
-
-            # TinyTDS returns false instead of raising an exception if connection fails.
-            # Getting around this by raising an exception ourselves while this PR
-            # https://github.com/rails-sqlserver/tiny_tds/pull/469 is not released.
-            raise TinyTds::Error, "failed to execute statement" if result.is_a?(FalseClass)
-
+            result = ensure_established_connection! { dblib_execute(sql) }
             result.do
           end
         ensure
@@ -428,7 +422,7 @@ module ActiveRecord
         def raw_connection_run(sql)
           case @connection_options[:mode]
           when :dblib
-            @connection.execute(sql)
+            ensure_established_connection! { dblib_execute(sql) }
           end
         end
 
@@ -461,6 +455,21 @@ module ActiveRecord
             handle.cancel if handle
           end
           handle
+        end
+
+        def dblib_execute(sql)
+          @connection.execute(sql).tap do |result|
+            # TinyTDS returns false instead of raising an exception if connection fails.
+            # Getting around this by raising an exception ourselves while this PR
+            # https://github.com/rails-sqlserver/tiny_tds/pull/469 is not released.
+            raise TinyTds::Error, "failed to execute statement" if result.is_a?(FalseClass)
+          end
+        end
+
+        def ensure_established_connection!
+          raise TinyTds::Error, 'SQL Server client is not connected' unless @connection
+
+          yield
         end
       end
     end

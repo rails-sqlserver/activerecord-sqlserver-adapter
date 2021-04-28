@@ -23,11 +23,37 @@ class UniquenessValidationTest < ActiveRecord::TestCase
       end
     end
   end
+
+  # Same as original coerced test except that it handles default SQL Server case-insensitive collation.
+  coerce_tests! :test_validate_uniqueness_by_default_database_collation
+  def test_validate_uniqueness_by_default_database_collation_coerced
+    Topic.validates_uniqueness_of(:author_email_address)
+
+    topic1 = Topic.new(author_email_address: "david@loudthinking.com")
+    topic2 = Topic.new(author_email_address: "David@loudthinking.com")
+
+    assert_equal 1, Topic.where(author_email_address: "david@loudthinking.com").count
+
+    assert_not topic1.valid?
+    assert_not topic1.save
+
+    # Case insensitive collation (SQL_Latin1_General_CP1_CI_AS) by default.
+    # Should not allow "David" if "david" exists.
+    assert_not topic2.valid?
+    assert_not topic2.save
+
+    assert_equal 1, Topic.where(author_email_address: "david@loudthinking.com").count
+    assert_equal 1, Topic.where(author_email_address: "David@loudthinking.com").count
+  end
 end
 
 require "models/event"
 module ActiveRecord
   class AdapterTest < ActiveRecord::TestCase
+    # Legacy binds are not supported.
+    coerce_tests! :test_select_all_insert_update_delete_with_casted_binds
+    coerce_tests! :test_select_all_insert_update_delete_with_legacy_binds
+
     # As far as I can tell, SQL Server does not support null bytes in strings.
     coerce_tests! :test_update_prepared_statement
 
@@ -52,23 +78,47 @@ module ActiveRecord
       Subscriber.send(:load_schema!)
       original_test_errors_when_an_insert_query_is_called_while_preventing_writes
     end
+
+    # Fix randomly failing test. The loading of the model's schema was affecting the test.
+    coerce_tests! :test_errors_when_an_insert_query_prefixed_by_a_double_dash_comment_containing_read_command_is_called_while_preventing_writes
+    def test_errors_when_an_insert_query_prefixed_by_a_double_dash_comment_containing_read_command_is_called_while_preventing_writes_coerced
+      Subscriber.send(:load_schema!)
+      original_test_errors_when_an_insert_query_prefixed_by_a_double_dash_comment_containing_read_command_is_called_while_preventing_writes
+    end
+
+    # Fix randomly failing test. The loading of the model's schema was affecting the test.
+    coerce_tests! :test_errors_when_an_insert_query_prefixed_by_a_double_dash_comment_is_called_while_preventing_writes
+    def test_errors_when_an_insert_query_prefixed_by_a_double_dash_comment_is_called_while_preventing_writes_coerced
+      Subscriber.send(:load_schema!)
+      original_test_errors_when_an_insert_query_prefixed_by_a_double_dash_comment_is_called_while_preventing_writes
+    end
   end
 end
 
 module ActiveRecord
   class AdapterPreventWritesLegacyTest < ActiveRecord::TestCase
-    # We do some read queries. Remove assert_no_queries
-    coerce_tests! :test_errors_when_an_insert_query_prefixed_by_a_slash_star_comment_is_called_while_preventing_writes
-    def test_errors_when_an_insert_query_prefixed_by_a_slash_star_comment_is_called_while_preventing_writes_coerced
-      @connection_handler.while_preventing_writes do
-        @connection.transaction do
-          assert_raises(ActiveRecord::ReadOnlyError) do
-            @connection.insert("/* some comment */ INSERT INTO subscribers(nick) VALUES ('138853948594')", nil, false)
-          end
-        end
-      end
+    # Fix randomly failing test. The loading of the model's schema was affecting the test.
+    coerce_tests! :test_errors_when_an_insert_query_is_called_while_preventing_writes
+    def test_errors_when_an_insert_query_is_called_while_preventing_writes_coerced
+      Subscriber.send(:load_schema!)
+      original_test_errors_when_an_insert_query_is_called_while_preventing_writes
     end
 
+    # Fix randomly failing test. The loading of the model's schema was affecting the test.
+    coerce_tests! :test_errors_when_an_insert_query_prefixed_by_a_slash_star_comment_is_called_while_preventing_writes
+    def test_errors_when_an_insert_query_prefixed_by_a_slash_star_comment_is_called_while_preventing_writes_coerced
+      Subscriber.send(:load_schema!)
+      original_test_errors_when_an_insert_query_prefixed_by_a_slash_star_comment_is_called_while_preventing_writes
+    end
+
+    # Fix randomly failing test. The loading of the model's schema was affecting the test.
+    coerce_tests! :test_errors_when_an_insert_query_prefixed_by_a_double_dash_comment_is_called_while_preventing_writes
+    def test_errors_when_an_insert_query_prefixed_by_a_double_dash_comment_is_called_while_preventing_writes_coerced
+      Subscriber.send(:load_schema!)
+      original_test_errors_when_an_insert_query_prefixed_by_a_double_dash_comment_is_called_while_preventing_writes
+    end
+
+    # Fix randomly failing test. The loading of the model's schema was affecting the test.
     coerce_tests! :test_errors_when_an_insert_query_prefixed_by_a_double_dash_comment_containing_read_command_is_called_while_preventing_writes
     def test_errors_when_an_insert_query_prefixed_by_a_double_dash_comment_containing_read_command_is_called_while_preventing_writes_coerced
       Subscriber.send(:load_schema!)
@@ -318,11 +368,112 @@ class CalculationsTest < ActiveRecord::TestCase
     original_test_offset_is_kept
   end
 
-  # Are decimal, not integer.
+  # The SQL Server `AVG()` function for a list of integers returns an integer (not a decimal).
   coerce_tests! :test_should_return_decimal_average_of_integer_field
   def test_should_return_decimal_average_of_integer_field_coerced
     value = Account.average(:id)
-    assert_equal BigDecimal("3.0").to_s, BigDecimal(value).to_s
+    assert_equal 3, value
+  end
+
+  # In SQL Server the `AVG()` function for a list of integers returns an integer so need to cast values as decimals before averaging.
+  # Match SQL Server limit implementation.
+  coerce_tests! :test_select_avg_with_group_by_as_virtual_attribute_with_sql
+  def test_select_avg_with_group_by_as_virtual_attribute_with_sql_coerced
+    rails_core = companies(:rails_core)
+
+    sql = <<~SQL
+      SELECT firm_id, AVG(CAST(credit_limit AS DECIMAL)) AS avg_credit_limit
+      FROM accounts
+      WHERE firm_id = ?
+      GROUP BY firm_id
+      ORDER BY firm_id
+      OFFSET 0 ROWS FETCH NEXT 1 ROWS ONLY
+    SQL
+
+    account = Account.find_by_sql([sql, rails_core]).first
+
+    # id was not selected, so it should be nil
+    # (cannot select id because it wasn't used in the GROUP BY clause)
+    assert_nil account.id
+
+    # firm_id was explicitly selected, so it should be present
+    assert_equal(rails_core, account.firm)
+
+    # avg_credit_limit should be present as a virtual attribute
+    assert_equal(52.5, account.avg_credit_limit)
+  end
+
+  # In SQL Server the `AVG()` function for a list of integers returns an integer so need to cast values as decimals before averaging.
+  # Order column must be in the GROUP clause.
+  coerce_tests! :test_select_avg_with_group_by_as_virtual_attribute_with_ar
+  def test_select_avg_with_group_by_as_virtual_attribute_with_ar_coerced
+    rails_core = companies(:rails_core)
+
+    account = Account
+                .select(:firm_id, "AVG(CAST(credit_limit AS DECIMAL)) AS avg_credit_limit")
+                .where(firm: rails_core)
+                .group(:firm_id)
+                .order(:firm_id)
+                .take!
+
+    # id was not selected, so it should be nil
+    # (cannot select id because it wasn't used in the GROUP BY clause)
+    assert_nil account.id
+
+    # firm_id was explicitly selected, so it should be present
+    assert_equal(rails_core, account.firm)
+
+    # avg_credit_limit should be present as a virtual attribute
+    assert_equal(52.5, account.avg_credit_limit)
+  end
+
+  # In SQL Server the `AVG()` function for a list of integers returns an integer so need to cast values as decimals before averaging.
+  # SELECT columns must be in the GROUP clause.
+  # Match SQL Server limit implementation.
+  coerce_tests! :test_select_avg_with_joins_and_group_by_as_virtual_attribute_with_sql
+  def test_select_avg_with_joins_and_group_by_as_virtual_attribute_with_sql_coerced
+    rails_core = companies(:rails_core)
+
+    sql = <<~SQL
+      SELECT companies.*, AVG(CAST(accounts.credit_limit AS DECIMAL)) AS avg_credit_limit
+      FROM companies
+      INNER JOIN accounts ON companies.id = accounts.firm_id
+      WHERE companies.id = ?
+      GROUP BY companies.id, companies.type, companies.firm_id, companies.firm_name, companies.name, companies.client_of, companies.rating, companies.account_id, companies.description
+      ORDER BY companies.id
+      OFFSET 0 ROWS FETCH NEXT 1 ROWS ONLY
+    SQL
+
+    firm = DependentFirm.find_by_sql([sql, rails_core]).first
+
+    # all the DependentFirm attributes should be present
+    assert_equal rails_core, firm
+    assert_equal rails_core.name, firm.name
+
+    # avg_credit_limit should be present as a virtual attribute
+    assert_equal(52.5, firm.avg_credit_limit)
+  end
+
+
+  # In SQL Server the `AVG()` function for a list of integers returns an integer so need to cast values as decimals before averaging.
+  # SELECT columns must be in the GROUP clause.
+  coerce_tests! :test_select_avg_with_joins_and_group_by_as_virtual_attribute_with_ar
+  def test_select_avg_with_joins_and_group_by_as_virtual_attribute_with_ar_coerced
+    rails_core = companies(:rails_core)
+
+    firm = DependentFirm
+             .select("companies.*", "AVG(CAST(accounts.credit_limit AS DECIMAL)) AS avg_credit_limit")
+             .where(id: rails_core)
+             .joins(:account)
+             .group(:id, :type, :firm_id, :firm_name, :name, :client_of, :rating, :account_id, :description)
+             .take!
+
+    # all the DependentFirm attributes should be present
+    assert_equal rails_core, firm
+    assert_equal rails_core.name, firm.name
+
+    # avg_credit_limit should be present as a virtual attribute
+    assert_equal(52.5, firm.avg_credit_limit)
   end
 
   # Match SQL Server limit implementation
@@ -1373,7 +1524,35 @@ end
 module ActiveRecord
   module ConnectionAdapters
     class SchemaCacheTest < ActiveRecord::TestCase
+      # Ruby 2.5 and 2.6 have issues to marshal Time before 1900. 2012.sql has one column with default value 1753
+      coerce_tests! :test_marshal_dump_and_load_with_gzip, :test_marshal_dump_and_load_via_disk
+      def test_marshal_dump_and_load_with_gzip_coerced
+        with_marshable_time_defaults { original_test_marshal_dump_and_load_with_gzip }
+      end
+      def test_marshal_dump_and_load_via_disk_coerced
+        with_marshable_time_defaults { original_test_marshal_dump_and_load_via_disk }
+      end
+
       private
+
+      def with_marshable_time_defaults
+        # Detect problems
+        if Gem::Version.new(RUBY_VERSION) < Gem::Version.new("2.7")
+          column = @connection.columns(:sst_datatypes).find { |c| c.name == "datetime" }
+          current_default = column.default if column.default.is_a?(Time) && column.default.year < 1900
+        end
+
+        # Correct problems
+        if current_default.present?
+          @connection.change_column_default(:sst_datatypes, :datetime, current_default.dup.change(year: 1900))
+        end
+
+        # Run original test
+        yield
+      ensure
+        # Revert changes
+        @connection.change_column_default(:sst_datatypes, :datetime, current_default) if current_default.present?
+      end
 
       # We need to give the full path for this to work.
       def schema_dump_path
@@ -1518,6 +1697,25 @@ class RelationMergingTest < ActiveRecord::TestCase
     relation = Post.all.merge(Post.order([Arel.sql("title LIKE ?"), "%suffix"]))
     assert_equal ["title LIKE N'%suffix'"], relation.order_values
   end
+
+  # Same as original but change first regexp to match sp_executesql binding syntax
+  coerce_tests! :test_merge_doesnt_duplicate_same_clauses
+  def test_merge_doesnt_duplicate_same_clauses_coerced
+    david, mary, bob = authors(:david, :mary, :bob)
+
+    non_mary_and_bob = Author.where.not(id: [mary, bob])
+
+    author_id = Author.connection.quote_table_name("authors.id")
+    assert_sql(/WHERE #{Regexp.escape(author_id)} NOT IN \((@\d), \g<1>\)'/) do
+      assert_equal [david], non_mary_and_bob.merge(non_mary_and_bob)
+    end
+
+    only_david = Author.where("#{author_id} IN (?)", david)
+
+    assert_sql(/WHERE \(#{Regexp.escape(author_id)} IN \(1\)\)\z/) do
+      assert_equal [david], only_david.merge(only_david)
+    end
+  end
 end
 
 module ActiveRecord
@@ -1599,6 +1797,30 @@ class QueryCacheExpiryTest < ActiveRecord::TestCase
 
     assert_raises(ArgumentError, /does not support upsert/) do
       Task.cache { Task.upsert_all([{ starting: Time.now }]) }
+    end
+  end
+end
+
+require "models/citation"
+class EagerLoadingTooManyIdsTest < ActiveRecord::TestCase
+  fixtures :citations
+
+  # Original Rails test fails with SQL Server error message "The query processor ran out of internal resources and
+  # could not produce a query plan". This error goes away if you change database compatibility level to 110 (SQL 2012)
+  # (see https://www.mssqltips.com/sqlservertip/5279/sql-server-error-query-processor-ran-out-of-internal-resources-and-could-not-produce-a-query-plan/).
+  # However, you cannot change the compatibility level during a test. The purpose of the test is to ensure that an
+  # unprepared statement is used if the number of values exceeds the adapter's `bind_params_length`. The coerced test
+  # still does this as there will be 32,768 remaining citation records in the database and the `bind_params_length` of
+  # adapter is 2,098.
+  coerce_tests! :test_eager_loading_too_many_ids
+  def test_eager_loading_too_many_ids_coerced
+    # Remove excess records.
+    Citation.limit(32768).order(id: :desc).delete_all
+
+    # Perform test
+    citation_count = Citation.count
+    assert_sql(/WHERE \[citations\]\.\[id\] IN \(0, 1/) do
+      assert_equal citation_count, Citation.eager_load(:citations).offset(0).size
     end
   end
 end
@@ -1717,16 +1939,16 @@ class BasePreventWritesTest < ActiveRecord::TestCase
       end
     end
   end
-end
 
-class BasePreventWritesLegacyTest < ActiveRecord::TestCase
-  # SQL Server does not have query for release_savepoint
-  coerce_tests! %r{an empty transaction does not raise if preventing writes}
-  test "an empty transaction does not raise if preventing writes coerced" do
-    ActiveRecord::Base.connection_handler.while_preventing_writes do
-      assert_queries(1, ignore_none: true) do
-        Bird.transaction do
-          ActiveRecord::Base.connection.materialize_transactions
+  class BasePreventWritesLegacyTest < ActiveRecord::TestCase
+    # SQL Server does not have query for release_savepoint
+    coerce_tests! %r{an empty transaction does not raise if preventing writes}
+    test "an empty transaction does not raise if preventing writes coerced" do
+      ActiveRecord::Base.connection_handler.while_preventing_writes do
+        assert_queries(1, ignore_none: true) do
+          Bird.transaction do
+            ActiveRecord::Base.connection.materialize_transactions
+          end
         end
       end
     end
