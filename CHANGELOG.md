@@ -19,7 +19,7 @@
 
 #### Changed
 
-- ...
+- [#917](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/917) Refactored to use new_client connection pattern
 
 #### Added
 
