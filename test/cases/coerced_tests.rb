@@ -98,6 +98,13 @@ end
 module ActiveRecord
   class AdapterPreventWritesLegacyTest < ActiveRecord::TestCase
     # Fix randomly failing test. The loading of the model's schema was affecting the test.
+    coerce_tests! :test_errors_when_an_insert_query_is_called_while_preventing_writes
+    def test_errors_when_an_insert_query_is_called_while_preventing_writes_coerced
+      Subscriber.send(:load_schema!)
+      original_test_errors_when_an_insert_query_is_called_while_preventing_writes
+    end
+
+    # Fix randomly failing test. The loading of the model's schema was affecting the test.
     coerce_tests! :test_errors_when_an_insert_query_prefixed_by_a_slash_star_comment_is_called_while_preventing_writes
     def test_errors_when_an_insert_query_prefixed_by_a_slash_star_comment_is_called_while_preventing_writes_coerced
       Subscriber.send(:load_schema!)
