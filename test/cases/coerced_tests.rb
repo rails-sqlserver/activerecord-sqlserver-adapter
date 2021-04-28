@@ -768,11 +768,6 @@ module ActiveRecord
     end
   end
 
-  class DatabaseTasksDumpSchemaCacheTest < ActiveRecord::TestCase
-    # Skip this test with /tmp/my_schema_cache.yml path on Windows.
-    coerce_tests! :test_dump_schema_cache if RbConfig::CONFIG["host_os"] =~ /mswin|mingw/
-  end
-
   class DatabaseTasksCreateAllTest < ActiveRecord::TestCase
     # We extend `local_database?` so that common VM IPs can be used.
     coerce_tests! :test_ignores_remote_databases, :test_warning_for_remote_databases
@@ -1524,13 +1519,20 @@ end
 module ActiveRecord
   module ConnectionAdapters
     class SchemaCacheTest < ActiveRecord::TestCase
+      # Tests fail on Windows AppVeyor CI with 'Permission denied' error when renaming file during `File.atomic_write` call.
+      coerce_tests! :test_yaml_dump_and_load, :test_yaml_dump_and_load_with_gzip if RbConfig::CONFIG["host_os"] =~ /mswin|mingw/
+
       # Ruby 2.5 and 2.6 have issues to marshal Time before 1900. 2012.sql has one column with default value 1753
       coerce_tests! :test_marshal_dump_and_load_with_gzip, :test_marshal_dump_and_load_via_disk
-      def test_marshal_dump_and_load_with_gzip_coerced
-        with_marshable_time_defaults { original_test_marshal_dump_and_load_with_gzip }
-      end
-      def test_marshal_dump_and_load_via_disk_coerced
-        with_marshable_time_defaults { original_test_marshal_dump_and_load_via_disk }
+
+      # Tests fail on Windows AppVeyor CI with 'Permission denied' error when renaming file during `File.atomic_write` call.
+      unless RbConfig::CONFIG["host_os"] =~ /mswin|mingw/
+        def test_marshal_dump_and_load_with_gzip_coerced
+          with_marshable_time_defaults { original_test_marshal_dump_and_load_with_gzip }
+        end
+        def test_marshal_dump_and_load_via_disk_coerced
+          with_marshable_time_defaults { original_test_marshal_dump_and_load_via_disk }
+        end
       end
 
       private
