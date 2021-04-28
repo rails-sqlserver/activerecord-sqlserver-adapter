@@ -82,7 +82,7 @@ class PrimaryKeyIntegerTest < ActiveRecord::TestCase
     assert_match %r/create_table "widgets", force: :cascade do/, schema
   end
 
-  test "don't set itentity to integer and bigint when there is a default" do
+  test "don't set identity to integer and bigint when there is a default" do
     @connection.create_table(:barcodes, id: :integer, default: nil, force: true)
     @connection.create_table(:widgets, id: :bigint, default: nil, force: true)
 
