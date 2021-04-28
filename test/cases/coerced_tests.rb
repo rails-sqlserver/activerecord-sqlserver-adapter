@@ -1517,7 +1517,35 @@ end
 module ActiveRecord
   module ConnectionAdapters
     class SchemaCacheTest < ActiveRecord::TestCase
+      # Ruby 2.5 and 2.6 have issues to marshal Time before 1900. 2012.sql has one column with default value 1753
+      coerce_tests! :test_marshal_dump_and_load_with_gzip, :test_marshal_dump_and_load_via_disk
+      def test_marshal_dump_and_load_with_gzip_coerced
+        with_marshable_time_defaults { original_test_marshal_dump_and_load_with_gzip }
+      end
+      def test_marshal_dump_and_load_via_disk_coerced
+        with_marshable_time_defaults { original_test_marshal_dump_and_load_via_disk }
+      end
+
       private
+
+      def with_marshable_time_defaults
+        # Detect problems
+        if Gem::Version.new(RUBY_VERSION) < Gem::Version.new("2.7")
+          column = @connection.columns(:sst_datatypes).find { |c| c.name == "datetime" }
+          current_default = column.default if column.default.is_a?(Time) && column.default.year < 1900
+        end
+
+        # Correct problems
+        if current_default.present?
+          @connection.change_column_default(:sst_datatypes, :datetime, current_default.dup.change(year: 1900))
+        end
+
+        # Run original test
+        yield
+      ensure
+        # Revert changes
+        @connection.change_column_default(:sst_datatypes, :datetime, current_default) if current_default.present?
+      end
 
       # We need to give the full path for this to work.
       def schema_dump_path
@@ -1919,5 +1947,3 @@ class BasePreventWritesTest < ActiveRecord::TestCase
     end
   end
 end
-
-
