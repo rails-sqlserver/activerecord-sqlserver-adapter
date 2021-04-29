@@ -451,7 +451,7 @@ module ActiveRecord
           InvalidForeignKey.new(message, sql: sql, binds: binds)
         when /has been chosen as the deadlock victim/i
           DeadlockVictim.new(message, sql: sql, binds: binds)
-        when /database .* does not exist/i
+        when /(database .* does not exist) | (Invalid object name .*)/i
           NoDatabaseError.new(message, sql: sql, binds: binds)
         when /data would be truncated/
           ValueTooLong.new(message, sql: sql, binds: binds)
