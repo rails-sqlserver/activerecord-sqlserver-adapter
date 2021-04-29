@@ -445,13 +445,13 @@ module ActiveRecord
         case message
         when /(SQL Server client is not connected)|(failed to execute statement)/i
           ConnectionNotEstablished.new(message)
-        when /(cannot insert duplicate key .* with unique index) | (violation of unique key constraint)/i
+        when /(cannot insert duplicate key .* with unique index)|(violation of unique key constraint)/i
           RecordNotUnique.new(message, sql: sql, binds: binds)
-        when /(conflicted with the foreign key constraint) | (The DELETE statement conflicted with the REFERENCE constraint)/i
+        when /(conflicted with the foreign key constraint)|(The DELETE statement conflicted with the REFERENCE constraint)/i
           InvalidForeignKey.new(message, sql: sql, binds: binds)
         when /has been chosen as the deadlock victim/i
           DeadlockVictim.new(message, sql: sql, binds: binds)
-        when /(database .* does not exist) | (Invalid object name .*)/i
+        when /(database .* does not exist)|(Invalid object name '.*')/i
           NoDatabaseError.new(message, sql: sql, binds: binds)
         when /data would be truncated/
           ValueTooLong.new(message, sql: sql, binds: binds)
