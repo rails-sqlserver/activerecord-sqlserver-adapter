@@ -1270,6 +1270,16 @@ module ActiveRecord
       query = Post.optimizer_hints("OMGHINT").merge(Post.optimizer_hints("OMGHINT")).to_sql
       assert_equal expected, query
     end
+
+    # Original Rails test fails on Windows CI because the dump file was not being binary read.
+    coerce_tests! :test_marshal_load_legacy_relation
+    def test_marshal_load_legacy_relation_coerced
+      path = File.expand_path(
+        "support/marshal_compatibility_fixtures/legacy_relation.dump",
+        ARTest::SQLServer.root_activerecord_test
+      )
+      assert_equal 11, Marshal.load(File.binread(path)).size
+    end
   end
 end
 
