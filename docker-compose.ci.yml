@@ -8,6 +8,6 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.ci
-    command: wait-for sqlserver:1433 -- bundle exec rake test
+    command: wait-for sqlserver:1433 -- bundle exec rake test TEST_FILES="test/cases/debug_test_sqlserver.rb"
     depends_on:
       - "sqlserver"
