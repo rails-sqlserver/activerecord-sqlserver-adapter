@@ -1,4 +1,4 @@
-## Unreleased
+## v6.1.0.0.rc1
 
 #### Fixed
 
@@ -21,9 +21,5 @@
 #### Changed
 
 - [#917](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/917) Refactored to use new_client connection pattern
-
-#### Added
-
-- ...
 
 Please check [6-0-stable](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/blob/6-0-stable/CHANGELOG.md) for previous changes.
