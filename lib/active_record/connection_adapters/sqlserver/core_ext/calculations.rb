@@ -39,5 +39,5 @@ end
 
 ActiveSupport.on_load(:active_record) do
   mod = ActiveRecord::ConnectionAdapters::SQLServer::CoreExt::Calculations
-  ActiveRecord::Relation.prepend(mod)
+  ActiveRecord::Relation.include(mod)
 end
