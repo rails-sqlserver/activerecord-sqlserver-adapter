@@ -1976,3 +1976,8 @@ class MultiDbMigratorTest < ActiveRecord::TestCase
   # Test fails on Windows AppVeyor CI for unknown reason.
   coerce_tests! :test_migrator_db_has_no_schema_migrations_table if RbConfig::CONFIG["host_os"] =~ /mswin|mingw/
 end
+
+class InsertAllTest < ActiveRecord::TestCase
+  # Skip this until upsert is supported
+  coerce_tests! :test_insert
+end
