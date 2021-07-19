@@ -8,8 +8,12 @@ module ActiveRecord
     module SQLServer
       module CoreExt
         module Calculations
+          alias_method :_original_non_sqlserver_calculate, :calculate
+
           # Same as original except we don't perform PostgreSQL hack that removes ordering.
           def calculate(operation, column_name)
+            return _original_non_sqlserver_calculate unless connection.sqlserver?
+
             if has_include?(column_name)
               relation = apply_join_dependency
 
@@ -28,7 +32,11 @@ module ActiveRecord
 
           private
 
+          alias_method :_original_non_sqlserver_build_count_subquery, :build_count_subquery
+
           def build_count_subquery(relation, column_name, distinct)
+            return _original_non_sqlserver_build_count_subquery unless connection.sqlserver?
+
             super(relation.unscope(:order), column_name, distinct)
           end
         end
