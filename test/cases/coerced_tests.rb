@@ -1521,6 +1521,7 @@ module ActiveRecord
 
       original_test_statement_cache_values_differ
     ensure
+      Book.where(author_id: nil, name: 'my book').delete_all
       Book.connection.add_index(:books, [:author_id, :name], unique: true)
     end
   end
@@ -1748,6 +1749,7 @@ class EnumTest < ActiveRecord::TestCase
 
     send(:'original_enums are distinct per class')
   ensure
+    Book.where(author_id: nil, name: nil).delete_all
     Book.connection.add_index(:books, [:author_id, :name], unique: true)
   end
 
@@ -1758,6 +1760,7 @@ class EnumTest < ActiveRecord::TestCase
 
     send(:'original_creating new objects with enum scopes')
   ensure
+    Book.where(author_id: nil, name: nil).delete_all
     Book.connection.add_index(:books, [:author_id, :name], unique: true)
   end
 
@@ -1768,6 +1771,7 @@ class EnumTest < ActiveRecord::TestCase
 
     send(:'original_enums are inheritable')
   ensure
+    Book.where(author_id: nil, name: nil).delete_all
     Book.connection.add_index(:books, [:author_id, :name], unique: true)
   end
 
@@ -1778,6 +1782,7 @@ class EnumTest < ActiveRecord::TestCase
 
     send(:'original_declare multiple enums at a time')
   ensure
+    Book.where(author_id: nil, name: nil).delete_all
     Book.connection.add_index(:books, [:author_id, :name], unique: true)
   end
 end
@@ -1842,6 +1847,14 @@ class LogSubscriberTest < ActiveRecord::TestCase
   coerce_tests! :test_vebose_query_logs
   def test_vebose_query_logs_coerced
     original_test_vebose_query_logs
+  end
+
+  # Bindings logged slightly differently.
+  coerce_tests! :test_where_in_binds_logging_include_attribute_names
+  def test_where_in_binds_logging_include_attribute_names_coerced
+    Developer.where(id: [1, 2, 3, 4, 5]).load
+    wait
+    assert_match(%{@0 = 1, @1 = 2, @2 = 3, @3 = 4, @4 = 5  [["id", nil], ["id", nil], ["id", nil], ["id", nil], ["id", nil]]}, @logger.logged(:debug).last)
   end
 end
 
