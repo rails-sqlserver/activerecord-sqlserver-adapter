@@ -10,6 +10,8 @@ module ActiveRecord
         module Calculations
           # Same as original except we don't perform PostgreSQL hack that removes ordering.
           def calculate(operation, column_name)
+            return super unless klass.connection.adapter_name == "SQLServer"
+
             if has_include?(column_name)
               relation = apply_join_dependency
 
@@ -29,6 +31,8 @@ module ActiveRecord
           private
 
           def build_count_subquery(relation, column_name, distinct)
+            return super unless klass.connection.adapter_name == "SQLServer"
+
             super(relation.unscope(:order), column_name, distinct)
           end
         end
