@@ -10,6 +10,8 @@ module ActiveRecord
           private
 
           def records_for(ids)
+            return super unless klass.connection.adapter_name == "SQLServer"
+
             ids.each_slice(in_clause_length).flat_map do |slice|
               scope.where(association_key_name => slice).load do |record|
                 # Processing only the first owner
