@@ -377,7 +377,7 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
       assert !SSTestCustomersView.columns.blank?
       assert_equal columns.size, SSTestCustomersView.columns.size
       columns.each do |colname|
-        assert_instance_of ActiveRecord::ConnectionAdapters::SQLServerColumn,
+        assert_instance_of ActiveRecord::ConnectionAdapters::SQLServer::Column,
                            SSTestCustomersView.columns_hash[colname],
                            "Column name #{colname.inspect} was not found in these columns #{SSTestCustomersView.columns.map(&:name).inspect}"
       end
@@ -404,7 +404,7 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
       assert !SSTestStringDefaultsView.columns.blank?
       assert_equal columns.size, SSTestStringDefaultsView.columns.size
       columns.each do |colname|
-        assert_instance_of ActiveRecord::ConnectionAdapters::SQLServerColumn,
+        assert_instance_of ActiveRecord::ConnectionAdapters::SQLServer::Column,
                            SSTestStringDefaultsView.columns_hash[colname],
                            "Column name #{colname.inspect} was not found in these columns #{SSTestStringDefaultsView.columns.map(&:name).inspect}"
       end
