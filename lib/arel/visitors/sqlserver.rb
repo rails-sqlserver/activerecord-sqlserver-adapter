@@ -296,8 +296,21 @@ module Arel
       def primary_Key_From_Table(t)
         return unless t
 
-        column_name = @connection.schema_cache.primary_keys(t.name) ||
-          @connection.schema_cache.columns_hash(t.name).first.try(:second).try(:name)
+        primary_keys = @connection.schema_cache.primary_keys(t.name)
+        column_name = nil
+
+        case primary_keys
+        when NilClass
+          column_name = @connection.schema_cache.columns_hash(t.name).first.try(:second).try(:name)
+        when String
+          column_name = primary_keys
+        when Array
+          candidate_columns = @connection.schema_cache.columns_hash(t.name).slice(*primary_keys).values
+          candidate_column = candidate_columns.find(&:is_identity?)
+          candidate_column ||= candidate_columns.first
+          column_name = candidate_column.try(:name)
+        end
+
         column_name ? t[column_name] : nil
       end
 

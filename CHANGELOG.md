@@ -5,6 +5,7 @@
 - [#933](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/933) Conditionally apply SQL Server monkey patches to ActiveRecord so that it is safe to use this gem alongside other database adapters (e.g. PostgreSQL) in a multi-database Rails app
 - [#935](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/935) Fix schema cache generation
   (**breaking change**)
+- [#936](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/936) Fix deteministic fetch when table has a composite primary key
 
 #### Changed
 

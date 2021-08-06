@@ -49,3 +49,21 @@ class FetchTestSqlserver < ActiveRecord::TestCase
     @books = (1..10).map { |i| Book.create! name: "Name-#{i}" }
   end
 end
+
+class DeterministicFetchWithCompositePkTestSQLServer < ActiveRecord::TestCase
+  it "orders by the identity column if table has one" do
+    SSCompositePkWithIdentity.delete_all
+    SSCompositePkWithIdentity.create(pk_col_two: 2)
+    SSCompositePkWithIdentity.create(pk_col_two: 1)
+
+    _(SSCompositePkWithIdentity.take(1).map(&:pk_col_two)).must_equal [2]
+  end
+
+  it "orders by the first column if table has no identity column" do
+    SSCompositePkWithoutIdentity.delete_all
+    SSCompositePkWithoutIdentity.create(pk_col_one: 2, pk_col_two: 2)
+    SSCompositePkWithoutIdentity.create(pk_col_one: 1, pk_col_two: 1)
+
+    _(SSCompositePkWithoutIdentity.take(1).map(&:pk_col_two)).must_equal [1]
+  end
+end
