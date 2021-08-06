@@ -294,4 +294,22 @@ ActiveRecord::Schema.define do
       CONSTRAINT PK_UNIQUE_KEY PRIMARY KEY (id)
     );
   SQLSERVERUNIQUEKEYS
+
+  execute "IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'sst_composite_without_identity') DROP TABLE sst_composite_without_identity"
+  execute <<-COMPOSITE_WITHOUT_IDENTITY
+    CREATE TABLE sst_composite_without_identity (
+      pk_col_one int NOT NULL,
+      pk_col_two int NOT NULL,
+      CONSTRAINT PK_sst_composite_without_identity PRIMARY KEY (pk_col_one, pk_col_two)
+    );
+  COMPOSITE_WITHOUT_IDENTITY
+
+  execute "IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'sst_composite_with_identity') DROP TABLE sst_composite_with_identity"
+  execute <<-COMPOSITE_WITH_IDENTITY
+    CREATE TABLE sst_composite_with_identity (
+      pk_col_one int IDENTITY NOT NULL,
+      pk_col_two int NOT NULL,
+      CONSTRAINT PK_sst_composite_with_identity PRIMARY KEY (pk_col_one, pk_col_two)
+    );
+  COMPOSITE_WITH_IDENTITY
 end
