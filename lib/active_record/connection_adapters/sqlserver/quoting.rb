@@ -17,7 +17,8 @@ module ActiveRecord
             precision: cast_type.precision,
             scale: cast_type.scale
           )
-          SQLServer::TypeMetadata.new(simple_type, sqlserver_options: sqlserver_options)
+
+          SQLServer::TypeMetadata.new(simple_type, **sqlserver_options)
         end
 
         def quote_string(s)

@@ -156,3 +156,38 @@ class SQLServerRakeStructureDumpLoadTest < SQLServerRakeTest
     _(connection.tables).must_include "users"
   end
 end
+
+class SQLServerRakeSchemaCacheDumpLoadTest < SQLServerRakeTest
+  let(:filename) { File.join ARTest::SQLServer.test_root_sqlserver, "schema_cache.yml" }
+  let(:filedata) { File.read(filename) }
+
+  before do
+    quietly { db_tasks.create(configuration) }
+
+    connection.create_table :users, force: true do |t|
+      t.string :name, null: false
+    end
+  end
+
+  after do
+    FileUtils.rm_rf(filename)
+  end
+
+  it "dumps schema cache with SQL Server metadata" do
+    quietly { db_tasks.dump_schema_cache connection, filename }
+
+    schema_cache = YAML.load(File.read(filename))
+
+    col_id, col_name = connection.schema_cache.columns("users")
+
+    assert col_id.is_identity
+    assert col_id.is_primary
+    assert_equal col_id.ordinal_position, 1
+    assert_equal col_id.table_name, "users"
+
+    assert_not col_name.is_identity
+    assert_not col_name.is_primary
+    assert_equal col_name.ordinal_position, 2
+    assert_equal col_name.table_name, "users"
+  end
+end
