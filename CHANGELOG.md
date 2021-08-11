@@ -6,6 +6,7 @@
 - [#935](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/935) Fix schema cache generation
   (**breaking change**)
 - [#936](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/936) Fix deteministic fetch when table has a composite primary key
+- [#938](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/938) Fix date columns serialization for range values
 
 #### Changed
 

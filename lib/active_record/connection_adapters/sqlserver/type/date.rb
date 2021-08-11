@@ -10,7 +10,8 @@ module ActiveRecord
           end
 
           def serialize(value)
-            return unless value.present?
+            value = super
+            return value unless value.acts_like?(:date)
 
             date = super(value).to_s(:_sqlserver_dateformat)
             Data.new date, self

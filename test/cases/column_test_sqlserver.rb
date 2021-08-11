@@ -299,6 +299,8 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       _(obj.date).must_equal Date.civil(0001, 4, 1)
       obj.reload
       _(obj.date).must_equal Date.civil(0001, 4, 1)
+      # Can filter by date range
+      _(obj).must_equal obj.class.where(date: obj.date..Date::Infinity.new).first
       # Can keep and return assigned date.
       assert_obj_set_and_save :date, Date.civil(1972, 04, 14)
       # Can accept and cast time objects.
@@ -333,6 +335,8 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       obj.reload
       _(obj.datetime).must_equal time, "Microseconds were <#{obj.datetime.usec}> vs <3000>"
       _(obj).must_equal obj.class.where(datetime: time).first
+      # Can filter by datetime range
+      _(obj).must_equal obj.class.where(datetime: time..DateTime::Infinity.new).first
       # Will cast to true DB value on attribute write, save and return again.
       time = Time.utc 2010, 04, 01, 12, 34, 56, 234567
       time2 = Time.utc 2010, 04, 01, 12, 34, 56, 233000
