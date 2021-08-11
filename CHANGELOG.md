@@ -1,4 +1,6 @@
-## Unreleased
+## v6.1.1.0
+
+[Full changelog](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/compare/v6.1.0.0...v6.1.1.0)
 
 #### Fixed
 
@@ -8,19 +10,13 @@
 - [#936](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/936) Fix deteministic fetch when table has a composite primary key
 - [#938](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/938) Fix date columns serialization for range values
 
-#### Changed
-
-- ...
-
-#### Added
-
-- ...
-
 ## v6.1.0.0
 
 - No changes
 
 ## v6.1.0.0.rc1
+
+[Full changelog](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/compare/6-0-stable...v6.1.0.0.rc1)
 
 #### Fixed
 
