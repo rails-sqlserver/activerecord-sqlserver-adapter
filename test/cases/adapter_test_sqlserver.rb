@@ -120,6 +120,14 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
            "expected database #{db_config.database} to exist"
   end
 
+  it "test primary key violation" do
+    Post.create!(id: 0, title: 'Setup', body: 'Create post with primary key of zero')
+
+    assert_raise ActiveRecord::RecordNotUnique do
+      Post.create!(id: 0, title: 'Test', body: 'Try to create another post with primary key of zero')
+    end
+  end
+
   describe "with different language" do
     before do
       @default_language = connection.user_options_language
