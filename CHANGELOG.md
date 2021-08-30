@@ -1,3 +1,17 @@
+#### Unreleased
+
+#### Fixed
+
+- [#940](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/940) Primary key violation should result in RecordNotUnique error
+
+#### Changed
+
+- ...
+
+#### Added
+
+- ...
+
 ## v6.1.1.0
 
 [Full changelog](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/compare/v6.1.0.0...v6.1.1.0)
