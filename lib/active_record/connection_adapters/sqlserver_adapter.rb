@@ -444,7 +444,7 @@ module ActiveRecord
         case message
         when /(SQL Server client is not connected)|(failed to execute statement)/i
           ConnectionNotEstablished.new(message)
-        when /(cannot insert duplicate key .* with unique index) | (violation of unique key constraint)/i
+        when /(cannot insert duplicate key .* with unique index) | (violation of (unique|primary) key constraint)/i
           RecordNotUnique.new(message, sql: sql, binds: binds)
         when /(conflicted with the foreign key constraint) | (The DELETE statement conflicted with the REFERENCE constraint)/i
           InvalidForeignKey.new(message, sql: sql, binds: binds)
