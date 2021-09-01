@@ -119,6 +119,8 @@ module ActiveRecord
         def config_encoding(config)
           config[:encoding].present? ? config[:encoding] : nil
         end
+
+        def configure_application_name; end
       end
 
       def initialize(connection, logger, _connection_options, config)
@@ -482,8 +484,6 @@ module ActiveRecord
           errors << TinyTds::Error if defined?(TinyTds::Error)
         end
       end
-
-      def configure_application_name; end
 
       def initialize_dateformatter
         @database_dateformat = user_options_dateformat
