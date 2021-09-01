@@ -3,6 +3,7 @@
 #### Fixed
 
 - [#940](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/940) Primary key violation should result in RecordNotUnique error
+- [#941](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/941) Fix application name sent to TinyTDS
 
 #### Changed
 
