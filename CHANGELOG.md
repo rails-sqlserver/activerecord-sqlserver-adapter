@@ -3,11 +3,10 @@
 #### Fixed
 
 - [#940](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/940) Primary key violation should result in RecordNotUnique error
-- [#941](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/941) Fix application name sent to TinyTDS
 
 #### Changed
 
-- ...
+- [#941](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/941) No longer support configuring the application name by overriding the 'configure_application_name' method.
 
 #### Added
 

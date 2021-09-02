@@ -82,26 +82,32 @@ end
 ```
 
 
-#### Configure Connection & App Name
+#### Configure Connection
 
-We currently conform to an unpublished and non-standard AbstractAdapter interface to configure connections made to the database. To do so, just override the `configure_connection` method in an initializer like so. In this case below we are setting the `TEXTSIZE` to 64 megabytes. Also, TinyTDS supports an application name when it logs into SQL Server. This can be used to identify the connection in SQL Server's activity monitor. By default it will use the `appname` from your database.yml file or a lowercased version of your Rails::Application name. It is now possible to define a `configure_application_name` method that can give you per instance details. Below shows how you might use this to get the process id and thread id of the current connection.
+We currently conform to an unpublished and non-standard AbstractAdapter interface to configure connections made to the database. To do so, just override the `configure_connection` method in an initializer like so. In this case below we are setting the `TEXTSIZE` to 64 megabytes.
 
 ```ruby
 module ActiveRecord
   module ConnectionAdapters
     class SQLServerAdapter < AbstractAdapter
-
       def configure_connection
         raw_connection_do "SET TEXTSIZE #{64.megabytes}"
       end
-
-      def configure_application_name
-        "myapp_#{$$}_#{Thread.current.object_id}".to(29)
-      end
-
     end
   end
 end
+```
+
+#### Configure Application Name
+
+TinyTDS supports an application name when it logs into SQL Server. This can be used to identify the connection in SQL Server's activity monitor. By default it will use the `appname` from your database.yml file or your Rails::Application name.
+
+Below shows how you might use the database.yml file to use the process ID in your application name.
+
+```yaml
+development:
+  adapter: sqlserver
+  appname: <%= myapp_#{Process.pid} %>
 ```
 
 #### Executing Stored Procedures

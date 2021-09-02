@@ -105,7 +105,23 @@ module ActiveRecord
         end
 
         def config_appname(config)
-          config[:appname] || configure_application_name || Rails.application.class.name.split("::").first rescue nil
+          if self.instance_methods.include?(:configure_application_name)
+            ActiveSupport::Deprecation.warn <<~MSG.squish
+            Configuring the application name used by TinyTDS by overriding the
+            `ActiveRecord::ConnectionAdapters::SQLServerAdapter#configure_application_name`
+            instance method is no longer supported. The application name should configured
+            using the `appname` setting in the `database.yml` file instead. Consult the
+            README for further information."
+            MSG
+          end
+
+          config[:appname] || rails_application_name
+        end
+
+        def rails_application_name
+          return nil if Rails.application.nil?
+
+          Rails.application.class.name.split("::").first
         end
 
         def config_login_timeout(config)
@@ -119,8 +135,6 @@ module ActiveRecord
         def config_encoding(config)
           config[:encoding].present? ? config[:encoding] : nil
         end
-
-        def configure_application_name; end
       end
 
       def initialize(connection, logger, _connection_options, config)
