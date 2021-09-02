@@ -6,7 +6,7 @@
 
 #### Changed
 
-- ...
+- [#941](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/941) No longer support configuring the application name by overriding the 'configure_application_name' method.
 
 #### Added
 
