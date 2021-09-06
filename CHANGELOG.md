@@ -1,4 +1,6 @@
-#### Unreleased
+## v6.1.2.0
+
+[Full changelog](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/compare/v6.1.1.0...v6.1.2.0)
 
 #### Fixed
 
@@ -7,10 +9,6 @@
 #### Changed
 
 - [#941](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/941) No longer support configuring the application name by overriding the 'configure_application_name' method.
-
-#### Added
-
-- ...
 
 ## v6.1.1.0
 

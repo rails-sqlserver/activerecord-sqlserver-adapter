@@ -13,7 +13,7 @@ Interested in older versions? We follow a rational versioning policy that tracks
 
 | Adapter Version | Rails Version | Support                                                                                     |
 | --------------- | ------------- | ------------------------------------------------------------------------------------------- |
-| `6.1.1.0`       | `6.1.x`       | [active](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/tree/main)       |
+| `6.1.2.0`       | `6.1.x`       | [active](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/tree/main)       |
 | `6.0.2`         | `6.0.x`       | [active](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/tree/6-0-stable) |
 | `5.2.1`         | `5.2.x`       | [active](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/tree/5-2-stable) |
 | `5.1.6`         | `5.1.x`       | [ended](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/tree/5-1-stable)  |
@@ -115,7 +115,7 @@ development:
 Every class that sub classes ActiveRecord::Base will now have an execute_procedure class method to use. This method takes the name of the stored procedure which can be a string or symbol and any number of variables to pass to the procedure. Arguments will automatically be quoted per the connection's standards as normal. For example:
 
 ```ruby
-Account.execute_procedure(:update_totals, 'admin', nil, true
+Account.execute_procedure(:update_totals, 'admin', nil, true)
 # Or with named parameters.
 Account.execute_procedure(:update_totals, named: 'params')
 ```
