@@ -1,3 +1,9 @@
+## Unreleased
+
+#### Fixed
+
+- [#943](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/943) Fix appname resolution when outside Rails context
+
 ## v6.1.2.0
 
 [Full changelog](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/compare/v6.1.1.0...v6.1.2.0)
