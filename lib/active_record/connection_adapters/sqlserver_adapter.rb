@@ -119,9 +119,9 @@ module ActiveRecord
         end
 
         def rails_application_name
-          return nil if Rails.application.nil?
-
           Rails.application.class.name.split("::").first
+        rescue
+          nil # Might not be in a Rails context so we fallback to `nil`.
         end
 
         def config_login_timeout(config)
