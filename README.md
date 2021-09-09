@@ -152,15 +152,24 @@ ActiveRecord::ConnectionAdapters::SQLServerAdapter.showplan_option = 'SHOWPLAN_X
 **NOTE:** The method we utilize to make SHOWPLANs work is very brittle to complex SQL. There is no getting around this as we have to deconstruct an already prepared statement for the sp_executesql method. If you find that explain breaks your app, simple disable it. Do not open a github issue unless you have a patch.  Please [consult the Rails guides](http://guides.rubyonrails.org/active_record_querying.html#running-explain) for more info.
 
 
+## New Rails Applications
+
+When creating a new Rails application you can specify that you want to use the SQL Server adapter using the `database` option:
+
+```
+rails new my_app --database=sqlserver
+```
+
+To then connect the application to your SQL Server instance edit the `config/database.yml` file with the username, password and host of your SQL Server instance.
+
+
 ## Installation
 
 The adapter has no strict gem dependencies outside of `ActiveRecord`. You will have to pick a connection mode, the default is dblib which uses the `TinyTDS` gem. Just bundle the gem and the adapter will use it.
 
 ```ruby
-gem 'tiny_tds'
 gem 'activerecord-sqlserver-adapter'
 ```
-
 
 ## Contributing
 
