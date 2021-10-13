@@ -531,15 +531,20 @@ module ActiveRecord
 
         # === SQLServer Specific (Misc Helpers) ========================= #
 
+        # Parses just the table name from the SQL. Table name does not include database/schema/etc.
         def get_table_name(sql)
-          tn = if sql =~ /^\s*(INSERT|EXEC sp_executesql N'INSERT)(\s+INTO)?\s+([^\(\s]+)\s*|^\s*update\s+([^\(\s]+)\s*/i
-                 Regexp.last_match[3] || Regexp.last_match[4]
-               elsif sql =~ /FROM\s+([^\(\s]+)\s*/i
-                 Regexp.last_match[1]
-               else
-                 nil
-               end
+          tn = get_raw_table_name(sql)
           SQLServer::Utils.extract_identifiers(tn).object
+        end
+
+        # Parses the raw table name that is used in the SQL. Table name could include database/schema/etc.
+        def get_raw_table_name(sql)
+          case sql
+          when /^\s*(INSERT|EXEC sp_executesql N'INSERT)(\s+INTO)?\s+([^\(\s]+)\s*|^\s*update\s+([^\(\s]+)\s*/i
+            Regexp.last_match[3] || Regexp.last_match[4]
+          when /FROM\s+([^\(\s]+)\s*/i
+            Regexp.last_match[1]
+          end
         end
 
         def default_constraint_name(table_name, column_name)
