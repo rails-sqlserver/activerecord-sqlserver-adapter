@@ -46,7 +46,22 @@ module ActiveRecord
           end
 
           def fully_qualified?
-            parts.compact.size == 4
+            qualified_level == :fully
+          end
+
+          def qualified_level
+            case parts.compact.size
+            when 4
+              :fully
+            when 3
+              :database
+            when 2
+              :schema
+            when 1
+              :table
+            else
+              :none
+            end
           end
 
           def to_s
