@@ -107,7 +107,7 @@ Below shows how you might use the database.yml file to use the process ID in you
 ```yaml
 development:
   adapter: sqlserver
-  appname: <%= myapp_#{Process.pid} %>
+  appname: <%= "myapp_#{Process.pid}" %>
 ```
 
 #### Executing Stored Procedures
