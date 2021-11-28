@@ -72,7 +72,6 @@ module ActiveRecord
 
         dump = File.read(filename)
         dump.gsub!(/^USE .*$\nGO\n/, "")                      # Strip db USE statements
-        dump.gsub!(/^GO\n/, "")                               # Strip db GO statements
         dump.gsub!(/nvarchar\(8000\)/, "nvarchar(4000)")      # Fix nvarchar(8000) column defs
         dump.gsub!(/nvarchar\(-1\)/, "nvarchar(max)")         # Fix nvarchar(-1) column defs
         dump.gsub!(/text\(\d+\)/, "text")                     # Fix text(16) column defs
@@ -80,7 +79,18 @@ module ActiveRecord
       end
 
       def structure_load(filename, extra_flags)
-        connection.execute File.read(filename)
+        server_arg = "-S #{Shellwords.escape(configuration_hash[:host])}"
+        server_arg += ":#{Shellwords.escape(configuration_hash[:port])}" if configuration_hash[:port]
+        command = [
+          "tsql-ttds",
+          server_arg,
+          "-D #{Shellwords.escape(configuration_hash[:database])}",
+          "-U #{Shellwords.escape(configuration_hash[:username])}",
+          "-P #{Shellwords.escape(configuration_hash[:password])}",
+        ]
+
+        stdout_str, stderr_str, status = Open3.capture3(command.join(" "), stdin_data: File.read(filename))
+        raise "Error loading database: #{stderr_str}" unless status.exitstatus == 0
       end
 
       private
