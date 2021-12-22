@@ -168,7 +168,7 @@ module ActiveRecord
             case @connection_options[:mode]
             when :dblib
               result = ensure_established_connection! { dblib_execute(sql) }
-              options = { as: :hash, cache_rows: true, timezone: ActiveRecord::Base.default_timezone || :utc }
+              options = { as: :hash, cache_rows: true, timezone: ActiveRecord.default_timezone || :utc }
               result.each(options) do |row|
                 r = row.with_indifferent_access
                 yield(r) if block_given?
@@ -441,7 +441,7 @@ module ActiveRecord
 
         def handle_to_names_and_values_dblib(handle, options = {})
           query_options = {}.tap do |qo|
-            qo[:timezone] = ActiveRecord::Base.default_timezone || :utc
+            qo[:timezone] = ActiveRecord.default_timezone || :utc
             qo[:as] = (options[:ar_result] || options[:fetch] == :rows) ? :array : :hash
           end
           results = handle.each(query_options)
