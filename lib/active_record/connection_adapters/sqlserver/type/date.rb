@@ -13,7 +13,7 @@ module ActiveRecord
             value = super
             return value unless value.acts_like?(:date)
 
-            date = super(value).to_s(:_sqlserver_dateformat)
+            date = super(value).to_formatted_s(:_sqlserver_dateformat)
             Data.new date, self
           end
 
