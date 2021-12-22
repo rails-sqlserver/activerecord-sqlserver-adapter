@@ -109,9 +109,7 @@ module ActiveRecord
 
         private_constant :COLUMN_NAME, :COLUMN_NAME_WITH_ORDER
 
-        private
-
-        def _quote(value)
+        def quote(value)
           case value
           when Type::Binary::Data
             "0x#{value.hex}"
@@ -124,7 +122,7 @@ module ActiveRecord
           end
         end
 
-        def _type_cast(value)
+        def type_cast(value)
           case value
           when ActiveRecord::Type::SQLServer::Data
             value.to_s
