@@ -409,7 +409,7 @@ module ActiveRecord
         # === SQLServer Specific (Selecting) ============================ #
 
         def raw_select(sql, name = "SQL", binds = [], options = {})
-          log(sql, name, binds) { _raw_select(sql, options) }
+          log(sql, name, binds, async: options[:async]) { _raw_select(sql, options) }
         end
 
         def _raw_select(sql, options = {})
