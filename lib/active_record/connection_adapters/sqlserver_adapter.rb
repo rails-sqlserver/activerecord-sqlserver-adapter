@@ -467,7 +467,7 @@ module ActiveRecord
         when /has been chosen as the deadlock victim/i
           DeadlockVictim.new(message, sql: sql, binds: binds)
         when /database .* does not exist/i
-          NoDatabaseError.new(message, sql: sql, binds: binds)
+          NoDatabaseError.new(message)
         when /data would be truncated/
           ValueTooLong.new(message, sql: sql, binds: binds)
         when /connection timed out/
