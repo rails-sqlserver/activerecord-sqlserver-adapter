@@ -26,7 +26,7 @@ module ActiveRecord
           end
         end
 
-        def exec_query(sql, name = "SQL", binds = [], prepare: false)
+        def exec_query(sql, name = "SQL", binds = [], prepare: false, async: false)
           if preventing_writes? && write_query?(sql)
             raise ActiveRecord::ReadOnlyError, "Write query attempted while in readonly mode: #{sql}"
           end
@@ -34,7 +34,7 @@ module ActiveRecord
           materialize_transactions
           mark_transaction_written_if_write(sql)
 
-          sp_executesql(sql, name, binds, prepare: prepare)
+          sp_executesql(sql, name, binds, prepare: prepare, async: async)
         end
 
         def exec_insert(sql, name = nil, binds = [], pk = nil, _sequence_name = nil)
