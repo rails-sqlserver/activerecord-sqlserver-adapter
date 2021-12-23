@@ -7,6 +7,8 @@ module ActiveRecord
         class Data
           attr_reader :value, :type
 
+          delegate :sub, to: :value
+
           def initialize(value, type)
             @value, @type = value, type
           end
