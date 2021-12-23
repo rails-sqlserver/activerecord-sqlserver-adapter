@@ -9,11 +9,12 @@
 
 The SQL Server adapter for ActiveRecord using SQL Server 2012 or higher.
 
-Interested in older versions? We follow a rational versioning policy that tracks Rails. That means that our 6.x version of the adapter is only for the latest 6.x version of Rails. If you need the adapter for SQL Server 2008 or 2005, you are still in the right spot. Just install the latest 3.2.x to 4.1.x version of the adapter that matches your Rails version. We also have stable branches for each major/minor release of ActiveRecord.
+Interested in older versions? We follow a rational versioning policy that tracks Rails. That means that our 7.x version of the adapter is only for the latest 7.x version of Rails. If you need the adapter for SQL Server 2008 or 2005, you are still in the right spot. Just install the latest 3.2.x to 4.1.x version of the adapter that matches your Rails version. We also have stable branches for each major/minor release of ActiveRecord.
 
 | Adapter Version | Rails Version | Support                                                                                     |
 | --------------- | ------------- | ------------------------------------------------------------------------------------------- |
-| `6.1.2.1`       | `6.1.x`       | [active](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/tree/main)       |
+| `7.0.0.0`       | `7.0.x`       | [unreleased](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/tree/main)   |
+| `6.1.2.1`       | `6.1.x`       | [active](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/tree/6-1-stable) |
 | `6.0.2`         | `6.0.x`       | [active](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/tree/6-0-stable) |
 | `5.2.1`         | `5.2.x`       | [active](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/tree/5-2-stable) |
 | `5.1.6`         | `5.1.x`       | [ended](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/tree/5-1-stable)  |
@@ -66,7 +67,7 @@ ActiveRecord::Base.table_name_prefix = 'dbo.'
 It's also possible to create/change/drop a schema in the migration file as in the example below:
 
 ```ruby
-class CreateFooSchema < ActiveRecord::Migration[6.0]
+class CreateFooSchema < ActiveRecord::Migration[7.0]
   def up
     create_schema('foo')
 
@@ -188,4 +189,3 @@ You can see an up-to-date list of contributors here: http://github.com/rails-sql
 ## License
 
 Copyright © 2008-2020. It is free software, and may be redistributed under the terms specified in the [MIT-LICENSE](MIT-LICENSE) file.
-
