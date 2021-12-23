@@ -52,7 +52,6 @@ module ActiveRecord
   class AdapterTest < ActiveRecord::TestCase
     # Legacy binds are not supported.
     coerce_tests! :test_select_all_insert_update_delete_with_casted_binds
-    coerce_tests! :test_select_all_insert_update_delete_with_legacy_binds
 
     # As far as I can tell, SQL Server does not support null bytes in strings.
     coerce_tests! :test_update_prepared_statement
@@ -530,30 +529,6 @@ module ActiveRecord
         assert_equal false, connection.lookup_cast_type_from_column(three).deserialize(three.default)
         assert_equal 1, four.default
         assert_equal "hello", five.default
-      end
-    end
-  end
-end
-
-module ActiveRecord
-  module ConnectionAdapters
-    class QuoteARBaseTest < ActiveRecord::TestCase
-      # Use our date format.
-      coerce_tests! :test_quote_ar_object
-      def test_quote_ar_object_coerced
-        value = DatetimePrimaryKey.new(id: @time)
-        assert_deprecated do
-          assert_equal "'02-14-2017 12:34:56.79'", @connection.quote(value)
-        end
-      end
-
-      # Use our date format.
-      coerce_tests! :test_type_cast_ar_object
-      def test_type_cast_ar_object_coerced
-        value = DatetimePrimaryKey.new(id: @time)
-        assert_deprecated do
-          assert_equal "02-14-2017 12:34:56.79", @connection.type_cast(value)
-        end
       end
     end
   end
@@ -1265,16 +1240,6 @@ module ActiveRecord
       query = Post.optimizer_hints("OMGHINT").merge(Post.optimizer_hints("OMGHINT")).to_sql
       assert_equal expected, query
     end
-
-    # Original Rails test fails on Windows CI because the dump file was not being binary read.
-    coerce_tests! :test_marshal_load_legacy_relation
-    def test_marshal_load_legacy_relation_coerced
-      path = File.expand_path(
-        "support/marshal_compatibility_fixtures/legacy_relation.dump",
-        ARTest::SQLServer.root_activerecord_test
-      )
-      assert_equal 11, Marshal.load(File.binread(path)).size
-    end
   end
 end
 
@@ -1844,8 +1809,8 @@ end
 
 class LogSubscriberTest < ActiveRecord::TestCase
   # Call original test from coerced test. Fixes issue on CI with Rails installed as a gem.
-  coerce_tests! :test_vebose_query_logs
-  def test_vebose_query_logs_coerced
+  coerce_tests! :test_verbose_query_logs
+  def test_verbose_query_logs_coerced
     original_test_vebose_query_logs
   end
 
