@@ -952,6 +952,19 @@ module ActiveRecord
           @connection.add_foreign_key :astronauts, :rockets, column: "rocket_id", on_update: :restrict
         end
       end
+
+      # Error message depends on the database adapter.
+      coerce_tests! :test_add_foreign_key_with_if_not_exists_not_set
+      def test_add_foreign_key_with_if_not_exists_not_set_coerced
+        @connection.add_foreign_key :astronauts, :rockets
+        assert_equal 1, @connection.foreign_keys("astronauts").size
+
+        error = assert_raises do
+          @connection.add_foreign_key :astronauts, :rockets
+        end
+
+        assert_match(/TinyTds::Error: There is already an object named '.*' in the database/, error.message)
+      end
     end
   end
 end
