@@ -11,7 +11,7 @@ module ActiveRecord
             value = super
             return value unless value.acts_like?(:time)
 
-            time = "#{value.to_s(:_sqlserver_time)}.#{quote_fractional(value)}"
+            time = "#{value.to_formatted_s(:_sqlserver_time)}.#{quote_fractional(value)}"
 
             Data.new time, self
           end
