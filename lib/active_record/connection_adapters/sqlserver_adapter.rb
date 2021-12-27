@@ -460,12 +460,11 @@ module ActiveRecord
 
       protected
 
+      # === Abstract Adapter (Misc Support) =========================== #
+
       def type_map
         TYPE_MAP
       end
-
-      # === Abstract Adapter (Misc Support) =========================== #
-
 
       def translate_exception(e, message:, sql:, binds:)
         case message
