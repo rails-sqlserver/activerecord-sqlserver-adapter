@@ -6,7 +6,7 @@
 
 #### Changed
 
-...
+- Define adapter type maps statically (PR #968)
 
 #### Added
 
