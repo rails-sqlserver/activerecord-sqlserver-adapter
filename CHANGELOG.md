@@ -6,7 +6,7 @@
 
 #### Changed
 
-- Define adapter type maps statically (PR #968)
+- [#968](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/968) Define adapter type maps statically
 
 #### Added
 
