@@ -1851,48 +1851,6 @@ class ReloadModelsTest < ActiveRecord::TestCase
   coerce_tests! :test_has_one_with_reload if RbConfig::CONFIG["host_os"] =~ /mswin|mingw/
 end
 
-require "models/post"
-class AnnotateTest < ActiveRecord::TestCase
-  # Same as original coerced test except our SQL starts with `EXEC sp_executesql`.
-  # TODO: Remove coerce after Rails 7 (see https://github.com/rails/rails/pull/42027)
-  coerce_tests! :test_annotate_wraps_content_in_an_inline_comment
-  def test_annotate_wraps_content_in_an_inline_comment_coerced
-    quoted_posts_id, quoted_posts = regexp_escape_table_name("posts.id"), regexp_escape_table_name("posts")
-
-    assert_sql(%r{SELECT #{quoted_posts_id} FROM #{quoted_posts} /\* foo \*/}i) do
-      posts = Post.select(:id).annotate("foo")
-      assert posts.first
-    end
-  end
-
-  # Same as original coerced test except our SQL starts with `EXEC sp_executesql`.
-  # TODO: Remove coerce after Rails 7 (see https://github.com/rails/rails/pull/42027)
-  coerce_tests! :test_annotate_is_sanitized
-  def test_annotate_is_sanitized_coerced
-    quoted_posts_id, quoted_posts = regexp_escape_table_name("posts.id"), regexp_escape_table_name("posts")
-
-    assert_sql(%r{SELECT #{quoted_posts_id} FROM #{quoted_posts} /\* foo \*/}i) do
-      posts = Post.select(:id).annotate("*/foo/*")
-      assert posts.first
-    end
-
-    assert_sql(%r{SELECT #{quoted_posts_id} FROM #{quoted_posts} /\* foo \*/}i) do
-      posts = Post.select(:id).annotate("**//foo//**")
-      assert posts.first
-    end
-
-    assert_sql(%r{SELECT #{quoted_posts_id} FROM #{quoted_posts} /\* foo \*/ /\* bar \*/}i) do
-      posts = Post.select(:id).annotate("*/foo/*").annotate("*/bar")
-      assert posts.first
-    end
-
-    assert_sql(%r{SELECT #{quoted_posts_id} FROM #{quoted_posts} /\* \+ MAX_EXECUTION_TIME\(1\) \*/}i) do
-      posts = Post.select(:id).annotate("+ MAX_EXECUTION_TIME(1)")
-      assert posts.first
-    end
-  end
-end
-
 class MarshalSerializationTest < ActiveRecord::TestCase
   private
 
