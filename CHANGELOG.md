@@ -6,6 +6,7 @@
 
 #### Changed
 
+- [#972](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/972) Add support to `ActiveRecord::QueryLogs`
 ...
 
 #### Added
