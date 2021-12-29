@@ -12,6 +12,7 @@ module ActiveRecord
         end
 
         def execute(sql, name = nil)
+          sql = transform_query(sql)
           if preventing_writes? && write_query?(sql)
             raise ActiveRecord::ReadOnlyError, "Write query attempted while in readonly mode: #{sql}"
           end
@@ -27,6 +28,7 @@ module ActiveRecord
         end
 
         def exec_query(sql, name = "SQL", binds = [], prepare: false, async: false)
+          sql = transform_query(sql)
           if preventing_writes? && write_query?(sql)
             raise ActiveRecord::ReadOnlyError, "Write query attempted while in readonly mode: #{sql}"
           end
