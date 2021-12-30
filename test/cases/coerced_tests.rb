@@ -2003,3 +2003,56 @@ class QueryLogsTest < ActiveRecord::TestCase
     end
   end
 end
+
+# SQL Server does not support upsert yet
+# TODO: Remove coerce after Rails 7.1.0 (see https://github.com/rails/rails/pull/44050)
+class InsertAllTest < ActiveRecord::TestCase
+  coerce_tests! :test_upsert_all_only_updates_the_column_provided_via_update_only
+  def test_upsert_all_only_updates_the_column_provided_via_update_only_coerced
+    assert_raises(ArgumentError, /does not support upsert/) do
+      original_test_upsert_all_only_updates_the_column_provided_via_update_only
+    end
+  end
+
+  coerce_tests! :test_upsert_all_only_updates_the_list_of_columns_provided_via_update_only
+  def test_upsert_all_only_updates_the_list_of_columns_provided_via_update_only_coerced
+    assert_raises(ArgumentError, /does not support upsert/) do
+      original_test_upsert_all_only_updates_the_list_of_columns_provided_via_update_only
+    end
+  end
+
+  coerce_tests! :test_upsert_all_implicitly_sets_timestamps_on_create_when_model_record_timestamps_is_true
+  def test_upsert_all_implicitly_sets_timestamps_on_create_when_model_record_timestamps_is_true_coerced
+    assert_raises(ArgumentError, /does not support upsert/) do
+      original_test_upsert_all_implicitly_sets_timestamps_on_create_when_model_record_timestamps_is_true
+    end
+  end
+
+  coerce_tests! :test_upsert_all_respects_created_at_precision_when_touched_implicitly
+  def test_upsert_all_respects_created_at_precision_when_touched_implicitly_coerced
+    assert_raises(ArgumentError, /does not support upsert/) do
+      original_test_upsert_all_respects_created_at_precision_when_touched_implicitly
+    end
+  end
+
+  coerce_tests! :test_upsert_all_does_not_implicitly_set_timestamps_on_create_when_model_record_timestamps_is_true_but_overridden
+  def test_upsert_all_does_not_implicitly_set_timestamps_on_create_when_model_record_timestamps_is_true_but_overridden_coerced
+    assert_raises(ArgumentError, /does not support upsert/) do
+      original_test_upsert_all_does_not_implicitly_set_timestamps_on_create_when_model_record_timestamps_is_true_but_overridden
+    end
+  end
+
+  coerce_tests! :test_upsert_all_does_not_implicitly_set_timestamps_on_create_when_model_record_timestamps_is_false
+  def test_upsert_all_does_not_implicitly_set_timestamps_on_create_when_model_record_timestamps_is_false_coerced
+    assert_raises(ArgumentError, /does not support upsert/) do
+      original_test_upsert_all_does_not_implicitly_set_timestamps_on_create_when_model_record_timestamps_is_false
+    end
+  end
+
+  coerce_tests! :test_upsert_all_implicitly_sets_timestamps_on_create_when_model_record_timestamps_is_false_but_overridden
+  def test_upsert_all_implicitly_sets_timestamps_on_create_when_model_record_timestamps_is_false_but_overridden_coerced
+    assert_raises(ArgumentError, /does not support upsert/) do
+      original_test_upsert_all_implicitly_sets_timestamps_on_create_when_model_record_timestamps_is_false_but_overridden
+    end
+  end
+end
