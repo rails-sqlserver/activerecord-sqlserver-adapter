@@ -1763,6 +1763,17 @@ class EnumTest < ActiveRecord::TestCase
     Book.where(author_id: nil, name: nil).delete_all
     Book.connection.add_index(:books, [:author_id, :name], unique: true)
   end
+
+  # Need to remove index as SQL Server considers NULLs on a unique-index to be equal unlike PostgreSQL/MySQL/SQLite.
+  coerce_tests! %r{with large number label}
+  test "with large number label coerced" do
+    Book.connection.remove_index(:books, column: [:author_id, :name])
+
+    send(:'original_with large number label')
+  ensure
+    Book.where(author_id: nil, name: nil).delete_all
+    Book.connection.add_index(:books, [:author_id, :name], unique: true)
+  end
 end
 
 require "models/task"
@@ -1924,4 +1935,29 @@ end
 class MultiDbMigratorTest < ActiveRecord::TestCase
   # Test fails on Windows AppVeyor CI for unknown reason.
   coerce_tests! :test_migrator_db_has_no_schema_migrations_table if RbConfig::CONFIG["host_os"] =~ /mswin|mingw/
+end
+
+require "models/book"
+class FieldOrderedValuesTest < ActiveRecord::TestCase
+  # Need to remove index as SQL Server considers NULLs on a unique-index to be equal unlike PostgreSQL/MySQL/SQLite.
+  coerce_tests! :test_in_order_of_with_enums_values
+  def test_in_order_of_with_enums_values_coerced
+    Book.connection.remove_index(:books, column: [:author_id, :name])
+
+    original_test_in_order_of_with_enums_values
+  ensure
+    Book.where(author_id: nil, name: nil).delete_all
+    Book.connection.add_index(:books, [:author_id, :name], unique: true)
+  end
+
+  # Need to remove index as SQL Server considers NULLs on a unique-index to be equal unlike PostgreSQL/MySQL/SQLite.
+  coerce_tests! :test_in_order_of_with_enums_keys
+  def test_in_order_of_with_enums_keys_coerced
+    Book.connection.remove_index(:books, column: [:author_id, :name])
+
+    original_test_in_order_of_with_enums_keys
+  ensure
+    Book.where(author_id: nil, name: nil).delete_all
+    Book.connection.add_index(:books, [:author_id, :name], unique: true)
+  end
 end
