@@ -1119,7 +1119,8 @@ class QueryCacheTest < ActiveRecord::TestCase
     end
   end
 
-  # Same as original test except that we expect one query to be performed to retrieve the table's primary key.
+  # Same as original test except that we expect one query to be performed to retrieve the table's primary key
+  # and we don't call `reload_type_map` because SQL Server adapter doesn't support it.
   # When we generate the SQL for the `find` it includes ordering on the primary key. If we reset the column
   # information then the primary key needs to be retrieved from the database again to generate the SQL causing the
   # original test's `assert_no_queries` assertion to fail. Assert that the query was to get the primary key.
@@ -1128,9 +1129,6 @@ class QueryCacheTest < ActiveRecord::TestCase
     Task.cache do
       # Warm the cache
       Task.find(1)
-
-      # Preload the type cache again (so we don't have those queries issued during our assertions)
-      Task.connection.send(:reload_type_map) if Task.connection.respond_to?(:reload_type_map, true)
 
       # Clear places where type information is cached
       Task.reset_column_information
