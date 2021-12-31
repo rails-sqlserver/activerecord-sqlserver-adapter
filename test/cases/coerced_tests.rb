@@ -2056,3 +2056,22 @@ class InsertAllTest < ActiveRecord::TestCase
     end
   end
 end
+
+class HasOneThroughDisableJoinsAssociationsTest < ActiveRecord::TestCase
+  # TODO: Remove coerce after Rails 7.1.0 (see https://github.com/rails/rails/pull/44051)
+  coerce_tests! :test_disable_joins_through_with_enum_type
+  def test_disable_joins_through_with_enum_type_coerced
+    joins = capture_sql { @member.club }
+    no_joins = capture_sql { @member.club_without_joins }
+
+    assert_equal 1, joins.size
+    assert_equal 2, no_joins.size
+
+    assert_match(/INNER JOIN/, joins.first)
+    no_joins.each do |nj|
+      assert_no_match(/INNER JOIN/, nj)
+    end
+
+    assert_match(/\[memberships\]\.\[type\]/, no_joins.first)
+  end
+end
