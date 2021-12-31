@@ -1961,3 +1961,44 @@ class FieldOrderedValuesTest < ActiveRecord::TestCase
     Book.connection.add_index(:books, [:author_id, :name], unique: true)
   end
 end
+
+require "models/dashboard"
+class QueryLogsTest < ActiveRecord::TestCase
+  # Same as original coerced test except our SQL ends with binding.
+  coerce_tests! :test_custom_basic_tags, :test_custom_proc_tags, :test_multiple_custom_tags, :test_custom_proc_context_tags
+  def test_custom_basic_tags_coerced
+    ActiveRecord::QueryLogs.tags = [ :application, { custom_string: "test content" } ]
+
+    assert_sql(%r{/\*application:active_record,custom_string:test content\*/}) do
+      Dashboard.first
+    end
+  end
+
+  def test_custom_proc_tags_coerced
+    ActiveRecord::QueryLogs.tags = [ :application, { custom_proc: -> { "test content" } } ]
+
+    assert_sql(%r{/\*application:active_record,custom_proc:test content\*/}) do
+      Dashboard.first
+    end
+  end
+
+  def test_multiple_custom_tags_coerced
+    ActiveRecord::QueryLogs.tags = [
+      :application,
+      { custom_proc: -> { "test content" }, another_proc: -> { "more test content" } },
+    ]
+
+    assert_sql(%r{/\*application:active_record,custom_proc:test content,another_proc:more test content\*/}) do
+      Dashboard.first
+    end
+  end
+
+  def test_custom_proc_context_tags_coerced
+    ActiveSupport::ExecutionContext[:foo] = "bar"
+    ActiveRecord::QueryLogs.tags = [ :application, { custom_context_proc: ->(context) { context[:foo] } } ]
+
+    assert_sql(%r{/\*application:active_record,custom_context_proc:bar\*/}) do
+      Dashboard.first
+    end
+  end
+end
