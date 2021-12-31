@@ -1765,11 +1765,11 @@ class EnumTest < ActiveRecord::TestCase
   end
 
   # Need to remove index as SQL Server considers NULLs on a unique-index to be equal unlike PostgreSQL/MySQL/SQLite.
-  coerce_tests! %r{with large number label}
-  test "with large number label coerced" do
+  coerce_tests! %r{serializable\? with large number label}
+  test "serializable? with large number label coerced" do
     Book.connection.remove_index(:books, column: [:author_id, :name])
 
-    send(:'original_with large number label')
+    send(:'original_serializable? with large number label')
   ensure
     Book.where(author_id: nil, name: nil).delete_all
     Book.connection.add_index(:books, [:author_id, :name], unique: true)
