@@ -6,7 +6,7 @@
 
 #### Changed
 
-...
+- [#983](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/983) Optimize remove_columns to use a single SQL statement
 
 #### Added
 
