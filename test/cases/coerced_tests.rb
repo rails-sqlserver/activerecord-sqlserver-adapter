@@ -1090,6 +1090,24 @@ class UpdateAllTest < ActiveRecord::TestCase
     _(david.reload.name).must_equal "David"
     _(mary.reload.name).must_equal "Test"
   end
+
+  # SQL Server doesn't support queries like SELECT table.* FROM table GROUP BY table.id.
+  # These kind of query is generated to get the affeted records.
+  # Same as original but moving conflicting queries into subqueries
+  coerce_tests! :test_update_all_with_group_by
+  def test_update_all_with_group_by_coerced
+    minimum_comments_count = 2
+
+    Post.most_commented(minimum_comments_count).update_all(title: "ig")
+    posts = Post.where(id: Post.most_commented(minimum_comments_count)).all.to_a
+
+    assert_operator posts.length, :>, 0
+    assert posts.all? { |post| post.comments.length >= minimum_comments_count }
+    assert posts.all? { |post| "ig" == post.title }
+
+    post = Post.where(id: Post.joins(:comments).group("posts.id").having("count(comments.id) < #{minimum_comments_count}")).first
+    assert_not_equal "ig", post.title
+  end
 end
 
 require "models/topic"
@@ -2091,5 +2109,25 @@ class InsertAllTest < ActiveRecord::TestCase
 
     result = Book.insert_all! [{ name: "Rework", author_id: 1 }], returning: Arel.sql("UPPER(INSERTED.name) as name")
     assert_equal %w[ REWORK ], result.pluck("name")
+  end
+end
+
+class DeleteAllTest < ActiveRecord::TestCase
+  # SQL Server does not support SELECT table.* FROM table GROUP BY table.id.
+  # This test is using these kind of query to get the amount of records that should be deleted.
+  # Same as original moving conflicting queries into subqueries.
+  coerce_tests! :test_delete_all_with_group_by_and_having
+  def test_delete_all_with_group_by_and_having_coerced
+    minimum_comments_count = 2
+    posts_to_be_deleted = Post.where(id: Post.most_commented(minimum_comments_count)).all.to_a
+    assert_operator posts_to_be_deleted.length, :>, 0
+
+    assert_difference("Post.count", -posts_to_be_deleted.length) do
+      Post.most_commented(minimum_comments_count).delete_all
+    end
+
+    posts_to_be_deleted.each do |deleted_post|
+      assert_raise(ActiveRecord::RecordNotFound) { deleted_post.reload }
+    end
   end
 end
