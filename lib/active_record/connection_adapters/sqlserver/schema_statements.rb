@@ -439,14 +439,10 @@ module ActiveRecord
           end
 
           # Since Rails 7, it's expected that all adapter raise error when table doesn't exists.
-          # It's hard to modify the existing query to detect non-existing tables.
-          # Checking existance with an extra query up-front seems bad from performance perspecive.
-          # Asumming that most of the times this method is called with an existing table, we only do a second query
-          # when there are no columns. This way handle the unlikely edge case of asking for columns of an empty table
+          # I'm not aware of the possibility of tables without columns on SQL Server (postgres have those).
+          # Raise error if the method return an empty array
           columns.tap do |result|
-            if result.empty? && !data_source_exists?(table_name)
-              raise ActiveRecord::StatementInvalid, "Table '#{table_name}' doesn't exist"
-            end
+            raise ActiveRecord::StatementInvalid, "Table '#{table_name}' doesn't exist" if result.empty?
           end
         end
 
