@@ -378,7 +378,7 @@ module ActiveRecord
           binds << Relation::QueryAttribute.new("TABLE_NAME", identifier.object, nv128)
           binds << Relation::QueryAttribute.new("TABLE_SCHEMA", identifier.schema, nv128) unless identifier.schema.blank?
           results = sp_executesql(sql, "SCHEMA", binds)
-          results.map do |ci|
+          columns = results.map do |ci|
             ci = ci.symbolize_keys
             ci[:_type] = ci[:type]
             ci[:table_name] = view_tblnm || table_name
@@ -436,6 +436,17 @@ module ActiveRecord
             ci[:is_primary] = ci[:is_primary].to_i == 1
             ci[:is_identity] = ci[:is_identity].to_i == 1 unless [TrueClass, FalseClass].include?(ci[:is_identity].class)
             ci
+          end
+
+          # Since Rails 7, it's expected that all adapter raise error when table doesn't exists.
+          # It's hard to modify the existing query to detect non-existing tables.
+          # Checking existance with an extra query up-front seems bad from performance perspecive.
+          # Asumming that most of the times this method is called with an existing table, we only do a second query
+          # when there are no columns. This way handle the unlikely edge case of asking for columns of an empty table
+          columns.tap do |result|
+            if result.empty? && !data_source_exists?(table_name)
+              raise ActiveRecord::StatementInvalid, "Table '#{table_name}' doesn't exist"
+            end
           end
         end
 
