@@ -67,7 +67,7 @@ class SchemaDumperTestSQLServer < ActiveRecord::TestCase
     _(columns["float_col"].sql_type).must_equal        "float"
     _(columns["string_col"].sql_type).must_equal       "nvarchar(4000)"
     _(columns["text_col"].sql_type).must_equal         "nvarchar(max)"
-    _(columns["datetime_col"].sql_type).must_equal     "datetime"
+    _(columns["datetime_col"].sql_type).must_equal     "datetime2(6)"
     _(columns["timestamp_col"].sql_type).must_equal    "datetime"
     _(columns["time_col"].sql_type).must_equal         "time(7)"
     _(columns["date_col"].sql_type).must_equal         "date"
@@ -79,7 +79,7 @@ class SchemaDumperTestSQLServer < ActiveRecord::TestCase
     assert_line :float_col,       type: "float",        limit: nil,          precision: nil,  scale: nil, default: nil
     assert_line :string_col,      type: "string",       limit: nil,          precision: nil,  scale: nil, default: nil
     assert_line :text_col,        type: "text",         limit: nil,          precision: nil,  scale: nil, default: nil
-    assert_line :datetime_col,    type: "datetime",     limit: nil,          precision: nil,  scale: nil, default: nil
+    assert_line :datetime_col,    type: "datetime",     limit: nil,          precision: 6,    scale: nil, default: nil
     assert_line :timestamp_col,   type: "datetime",     limit: nil,          precision: nil,  scale: nil, default: nil
     assert_line :time_col,        type: "time",         limit: nil,          precision: 7,    scale: nil, default: nil
     assert_line :date_col,        type: "date",         limit: nil,          precision: nil,  scale: nil, default: nil
