@@ -1965,7 +1965,7 @@ end
 require "models/dashboard"
 class QueryLogsTest < ActiveRecord::TestCase
   # Same as original coerced test except our SQL ends with binding.
-  # TODO: Remove coerce after Rails 7.0.1 (see https://github.com/rails/rails/pull/44053)
+  # TODO: Remove coerce after Rails 7.1.0 (see https://github.com/rails/rails/pull/44053)
   coerce_tests! :test_custom_basic_tags, :test_custom_proc_tags, :test_multiple_custom_tags, :test_custom_proc_context_tags
   def test_custom_basic_tags_coerced
     ActiveRecord::QueryLogs.tags = [ :application, { custom_string: "test content" } ]
