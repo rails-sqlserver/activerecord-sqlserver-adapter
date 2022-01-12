@@ -378,7 +378,7 @@ module ActiveRecord
           binds << Relation::QueryAttribute.new("TABLE_NAME", identifier.object, nv128)
           binds << Relation::QueryAttribute.new("TABLE_SCHEMA", identifier.schema, nv128) unless identifier.schema.blank?
           results = sp_executesql(sql, "SCHEMA", binds)
-          results.map do |ci|
+          columns = results.map do |ci|
             ci = ci.symbolize_keys
             ci[:_type] = ci[:type]
             ci[:table_name] = view_tblnm || table_name
@@ -436,6 +436,13 @@ module ActiveRecord
             ci[:is_primary] = ci[:is_primary].to_i == 1
             ci[:is_identity] = ci[:is_identity].to_i == 1 unless [TrueClass, FalseClass].include?(ci[:is_identity].class)
             ci
+          end
+
+          # Since Rails 7, it's expected that all adapter raise error when table doesn't exists.
+          # I'm not aware of the possibility of tables without columns on SQL Server (postgres have those).
+          # Raise error if the method return an empty array
+          columns.tap do |result|
+            raise ActiveRecord::StatementInvalid, "Table '#{table_name}' doesn't exist" if result.empty?
           end
         end
 
