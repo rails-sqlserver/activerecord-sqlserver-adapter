@@ -1178,16 +1178,11 @@ class RelationTest < ActiveRecord::TestCase
   # We have implicit ordering, via FETCH.
   coerce_tests! :test_reorder_with_first
   def test_reorder_with_first_coerced
+    post = nil
     sql_log = capture_sql do
-      message = <<~MSG.squish
-        `.reorder(nil)` with `.first` / `.first!` no longer
-        takes non-deterministic result in Rails 6.2.
-        To continue taking non-deterministic result, use `.take` / `.take!` instead.
-      MSG
-      assert_deprecated(message) do
-        assert Post.order(:title).reorder(nil).first
-      end
+      post = Post.order(:title).reorder(nil).first
     end
+    assert_equal posts(:welcome), post
     assert sql_log.none? { |sql| /order by [posts].[title]/i.match?(sql) }, "ORDER BY title was used in the query: #{sql_log}"
     assert sql_log.all?  { |sql| /order by \[posts\]\.\[id\]/i.match?(sql) }, "default ORDER BY ID was not used in the query: #{sql_log}"
   end
@@ -1767,7 +1762,7 @@ class EnumTest < ActiveRecord::TestCase
   test "serializable? with large number label coerced" do
     Book.connection.remove_index(:books, column: [:author_id, :name])
 
-    send(:'original_serializable? with large number label')
+    send(:'original_serializable\? with large number label')
   ensure
     Book.where(author_id: nil, name: nil).delete_all
     Book.connection.add_index(:books, [:author_id, :name], unique: true)
@@ -1957,5 +1952,100 @@ class FieldOrderedValuesTest < ActiveRecord::TestCase
   ensure
     Book.where(author_id: nil, name: nil).delete_all
     Book.connection.add_index(:books, [:author_id, :name], unique: true)
+  end
+end
+
+require "models/dashboard"
+class QueryLogsTest < ActiveRecord::TestCase
+  # Same as original coerced test except our SQL ends with binding.
+  # TODO: Remove coerce after Rails 7.1.0 (see https://github.com/rails/rails/pull/44053)
+  coerce_tests! :test_custom_basic_tags, :test_custom_proc_tags, :test_multiple_custom_tags, :test_custom_proc_context_tags
+  def test_custom_basic_tags_coerced
+    ActiveRecord::QueryLogs.tags = [ :application, { custom_string: "test content" } ]
+
+    assert_sql(%r{/\*application:active_record,custom_string:test content\*/}) do
+      Dashboard.first
+    end
+  end
+
+  def test_custom_proc_tags_coerced
+    ActiveRecord::QueryLogs.tags = [ :application, { custom_proc: -> { "test content" } } ]
+
+    assert_sql(%r{/\*application:active_record,custom_proc:test content\*/}) do
+      Dashboard.first
+    end
+  end
+
+  def test_multiple_custom_tags_coerced
+    ActiveRecord::QueryLogs.tags = [
+      :application,
+      { custom_proc: -> { "test content" }, another_proc: -> { "more test content" } },
+    ]
+
+    assert_sql(%r{/\*application:active_record,custom_proc:test content,another_proc:more test content\*/}) do
+      Dashboard.first
+    end
+  end
+
+  def test_custom_proc_context_tags_coerced
+    ActiveSupport::ExecutionContext[:foo] = "bar"
+    ActiveRecord::QueryLogs.tags = [ :application, { custom_context_proc: ->(context) { context[:foo] } } ]
+
+    assert_sql(%r{/\*application:active_record,custom_context_proc:bar\*/}) do
+      Dashboard.first
+    end
+  end
+end
+
+# SQL Server does not support upsert yet
+# TODO: Remove coerce after Rails 7.1.0 (see https://github.com/rails/rails/pull/44050)
+class InsertAllTest < ActiveRecord::TestCase
+  coerce_tests! :test_upsert_all_only_updates_the_column_provided_via_update_only
+  def test_upsert_all_only_updates_the_column_provided_via_update_only_coerced
+    assert_raises(ArgumentError, /does not support upsert/) do
+      original_test_upsert_all_only_updates_the_column_provided_via_update_only
+    end
+  end
+
+  coerce_tests! :test_upsert_all_only_updates_the_list_of_columns_provided_via_update_only
+  def test_upsert_all_only_updates_the_list_of_columns_provided_via_update_only_coerced
+    assert_raises(ArgumentError, /does not support upsert/) do
+      original_test_upsert_all_only_updates_the_list_of_columns_provided_via_update_only
+    end
+  end
+
+  coerce_tests! :test_upsert_all_implicitly_sets_timestamps_on_create_when_model_record_timestamps_is_true
+  def test_upsert_all_implicitly_sets_timestamps_on_create_when_model_record_timestamps_is_true_coerced
+    assert_raises(ArgumentError, /does not support upsert/) do
+      original_test_upsert_all_implicitly_sets_timestamps_on_create_when_model_record_timestamps_is_true
+    end
+  end
+
+  coerce_tests! :test_upsert_all_respects_created_at_precision_when_touched_implicitly
+  def test_upsert_all_respects_created_at_precision_when_touched_implicitly_coerced
+    assert_raises(ArgumentError, /does not support upsert/) do
+      original_test_upsert_all_respects_created_at_precision_when_touched_implicitly
+    end
+  end
+
+  coerce_tests! :test_upsert_all_does_not_implicitly_set_timestamps_on_create_when_model_record_timestamps_is_true_but_overridden
+  def test_upsert_all_does_not_implicitly_set_timestamps_on_create_when_model_record_timestamps_is_true_but_overridden_coerced
+    assert_raises(ArgumentError, /does not support upsert/) do
+      original_test_upsert_all_does_not_implicitly_set_timestamps_on_create_when_model_record_timestamps_is_true_but_overridden
+    end
+  end
+
+  coerce_tests! :test_upsert_all_does_not_implicitly_set_timestamps_on_create_when_model_record_timestamps_is_false
+  def test_upsert_all_does_not_implicitly_set_timestamps_on_create_when_model_record_timestamps_is_false_coerced
+    assert_raises(ArgumentError, /does not support upsert/) do
+      original_test_upsert_all_does_not_implicitly_set_timestamps_on_create_when_model_record_timestamps_is_false
+    end
+  end
+
+  coerce_tests! :test_upsert_all_implicitly_sets_timestamps_on_create_when_model_record_timestamps_is_false_but_overridden
+  def test_upsert_all_implicitly_sets_timestamps_on_create_when_model_record_timestamps_is_false_but_overridden_coerced
+    assert_raises(ArgumentError, /does not support upsert/) do
+      original_test_upsert_all_implicitly_sets_timestamps_on_create_when_model_record_timestamps_is_false_but_overridden
+    end
   end
 end
