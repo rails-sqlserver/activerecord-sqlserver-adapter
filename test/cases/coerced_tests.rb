@@ -603,6 +603,36 @@ class MigrationTest < ActiveRecord::TestCase
   # For some reason our tests set Rails.@_env which breaks test env switching.
   coerce_tests! :test_internal_metadata_stores_environment_when_other_data_exists
   coerce_tests! :test_internal_metadata_stores_environment
+
+  # Same as original but using binary type instead of blob
+  coerce_tests! :test_add_column_with_casted_type_if_not_exists_set_to_true
+  def test_add_column_with_casted_type_if_not_exists_set_to_true_coerced
+    migration_a = Class.new(ActiveRecord::Migration::Current) {
+      def version; 100 end
+      def migrate(x)
+        add_column "people", "last_name", :binary
+      end
+    }.new
+
+    migration_b = Class.new(ActiveRecord::Migration::Current) {
+      def version; 101 end
+      def migrate(x)
+        add_column "people", "last_name", :binary, if_not_exists: true
+      end
+    }.new
+
+    ActiveRecord::Migrator.new(:up, [migration_a], @schema_migration, 100).migrate
+    assert_column Person, :last_name, "migration_a should have created the last_name column on people"
+
+    assert_nothing_raised do
+      ActiveRecord::Migrator.new(:up, [migration_b], @schema_migration, 101).migrate
+    end
+  ensure
+    Person.reset_column_information
+    if Person.column_names.include?("last_name")
+      Person.connection.remove_column("people", "last_name")
+    end
+  end
 end
 
 class CoreTest < ActiveRecord::TestCase
@@ -2078,5 +2108,16 @@ class HasOneThroughDisableJoinsAssociationsTest < ActiveRecord::TestCase
     end
 
     assert_match(/\[memberships\]\.\[type\]/, no_joins.first)
+  end
+end
+
+class InsertAllTest < ActiveRecord::TestCase
+  coerce_tests! :test_insert_all_returns_requested_sql_fields
+  # Same as original but using INSERTED.name as UPPER argument
+  def test_insert_all_returns_requested_sql_fields_coerced
+    skip unless supports_insert_returning?
+
+    result = Book.insert_all! [{ name: "Rework", author_id: 1 }], returning: Arel.sql("UPPER(INSERTED.name) as name")
+    assert_equal %w[ REWORK ], result.pluck("name")
   end
 end
