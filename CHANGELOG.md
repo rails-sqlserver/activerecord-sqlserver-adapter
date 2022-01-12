@@ -8,6 +8,7 @@
 
 - [#968](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/968) Define adapter type maps statically
 - [#983](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/983) Optimize remove_columns to use a single SQL statement
+- [#984](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/984) Better handle SQL queries with invalid encoding
 
 #### Added
 

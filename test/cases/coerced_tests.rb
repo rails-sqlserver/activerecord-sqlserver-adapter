@@ -91,6 +91,18 @@ module ActiveRecord
       Subscriber.send(:load_schema!)
       original_test_errors_when_an_insert_query_prefixed_by_a_double_dash_comment_is_called_while_preventing_writes
     end
+
+    coerce_tests! :test_doesnt_error_when_a_select_query_has_encoding_errors
+    def test_doesnt_error_when_a_select_query_has_encoding_errors_coerced
+      ActiveRecord::Base.while_preventing_writes do
+        # TinyTDS fail on encoding errors.
+        # But at least we can assert it fails in the client and not before when trying to
+        # match the query.
+        assert_raises ActiveRecord::StatementInvalid do
+          @connection.select_all("SELECT '\xC8'")
+        end
+      end
+    end
   end
 end
 
@@ -2047,5 +2059,24 @@ class InsertAllTest < ActiveRecord::TestCase
     assert_raises(ArgumentError, /does not support upsert/) do
       original_test_upsert_all_implicitly_sets_timestamps_on_create_when_model_record_timestamps_is_false_but_overridden
     end
+  end
+end
+
+class HasOneThroughDisableJoinsAssociationsTest < ActiveRecord::TestCase
+  # TODO: Remove coerce after Rails 7.1.0 (see https://github.com/rails/rails/pull/44051)
+  coerce_tests! :test_disable_joins_through_with_enum_type
+  def test_disable_joins_through_with_enum_type_coerced
+    joins = capture_sql { @member.club }
+    no_joins = capture_sql { @member.club_without_joins }
+
+    assert_equal 1, joins.size
+    assert_equal 2, no_joins.size
+
+    assert_match(/INNER JOIN/, joins.first)
+    no_joins.each do |nj|
+      assert_no_match(/INNER JOIN/, nj)
+    end
+
+    assert_match(/\[memberships\]\.\[type\]/, no_joins.first)
   end
 end
