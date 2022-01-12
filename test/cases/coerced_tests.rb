@@ -1764,7 +1764,7 @@ class EnumTest < ActiveRecord::TestCase
   test "serializable? with large number label coerced" do
     Book.connection.remove_index(:books, column: [:author_id, :name])
 
-    send(:'original_serializable? with large number label')
+    send(:'original_serializable\? with large number label')
   ensure
     Book.where(author_id: nil, name: nil).delete_all
     Book.connection.add_index(:books, [:author_id, :name], unique: true)
