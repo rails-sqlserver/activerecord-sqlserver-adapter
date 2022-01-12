@@ -2082,3 +2082,14 @@ class HasOneThroughDisableJoinsAssociationsTest < ActiveRecord::TestCase
     assert_match(/\[memberships\]\.\[type\]/, no_joins.first)
   end
 end
+
+class InsertAllTest < ActiveRecord::TestCase
+  coerce_tests! :test_insert_all_returns_requested_sql_fields
+  # Same as original but using INSERTED.name as UPPER argument
+  def test_insert_all_returns_requested_sql_fields_coerced
+    skip unless supports_insert_returning?
+
+    result = Book.insert_all! [{ name: "Rework", author_id: 1 }], returning: Arel.sql("UPPER(INSERTED.name) as name")
+    assert_equal %w[ REWORK ], result.pluck("name")
+  end
+end
