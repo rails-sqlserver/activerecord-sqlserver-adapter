@@ -13,7 +13,7 @@ module ARTest
       module ClassMethods
         def coerce_tests!(*methods)
           methods.each do |method|
-            self.coerced_tests.push(method)
+            coerced_tests.push(method)
             coerced_test_warning(method)
           end
         end
@@ -24,7 +24,7 @@ module ARTest
 
             undef_method(method)
           end
-          STDOUT.puts "🙉 🙈 🙊  Undefined all tests: #{self.name}"
+          STDOUT.puts "🙉 🙈 🙊  Undefined all tests: #{name}"
         end
 
         private
@@ -43,9 +43,9 @@ module ARTest
                      end
 
             if result.blank?
-              STDOUT.puts "🐳  Unfound coerced test: #{self.name}##{m}"
+              STDOUT.puts "🐳  Unfound coerced test: #{name}##{m}"
             else
-              STDOUT.puts "🐵  Undefined coerced test: #{self.name}##{m}"
+              STDOUT.puts "🐵  Undefined coerced test: #{name}##{m}"
             end
           end
         end

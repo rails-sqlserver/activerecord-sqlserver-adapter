@@ -27,7 +27,7 @@ module ActiveRecord
           end
 
           def eql?(other)
-            self.class == other.class && self.value == other.value
+            self.class == other.class && value == other.value
           end
           alias :== :eql?
         end
