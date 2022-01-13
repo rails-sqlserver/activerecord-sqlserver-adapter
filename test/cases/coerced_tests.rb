@@ -2155,3 +2155,15 @@ class InsertAllTest < ActiveRecord::TestCase
     assert_equal %w[ REWORK ], result.pluck("name")
   end
 end
+
+class ActiveRecord::Encryption::EncryptableRecordTest < ActiveRecord::EncryptionTestCase
+  # TODO: Remove coerce after Rails 7.1.0 (see https://github.com/rails/rails/pull/44052)
+  # Same as original but SQL Server string is varchar(4000), not varchar(255) as other adapters. Produce invalid strings with 4001 characters
+  coerce_tests! %r{validate column sizes}
+  test "validate column sizes coerced" do
+    assert EncryptedAuthor.new(name: "jorge").valid?
+    assert_not EncryptedAuthor.new(name: "a" * 4001).valid?
+    author = EncryptedAuthor.create(name: "a" * 4001)
+    assert_not author.valid?
+  end
+end
