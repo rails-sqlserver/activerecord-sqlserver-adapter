@@ -1350,6 +1350,15 @@ module ActiveRecord
       query = Post.optimizer_hints("OMGHINT").merge(Post.optimizer_hints("OMGHINT")).to_sql
       assert_equal expected, query
     end
+
+    # Workaround for randomly failing test. Ordering of results not guaranteed.
+    # TODO: Remove coerced test when https://github.com/rails/rails/pull/44168 merged.
+    coerce_tests! :test_select_quotes_when_using_from_clause
+    def test_select_quotes_when_using_from_clause_coerced
+      quoted_join = ActiveRecord::Base.connection.quote_table_name("join")
+      selected = Post.select(:join).from(Post.select("id as #{quoted_join}")).map(&:join)
+      assert_equal Post.pluck(:id).sort, selected.sort
+    end
   end
 end
 
