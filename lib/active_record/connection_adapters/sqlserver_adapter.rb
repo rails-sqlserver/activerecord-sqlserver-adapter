@@ -105,7 +105,7 @@ module ActiveRecord
         end
 
         def config_appname(config)
-          if self.instance_methods.include?(:configure_application_name)
+          if instance_methods.include?(:configure_application_name)
             ActiveSupport::Deprecation.warn <<~MSG.squish
             Configuring the application name used by TinyTDS by overriding the
             `ActiveRecord::ConnectionAdapters::SQLServerAdapter#configure_application_name`
