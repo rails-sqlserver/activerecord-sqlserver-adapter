@@ -1486,7 +1486,8 @@ class YamlSerializationTest < ActiveRecord::TestCase
   coerce_tests! :test_types_of_virtual_columns_are_not_changed_on_round_trip
   def test_types_of_virtual_columns_are_not_changed_on_round_trip_coerced
     author = Author.select("authors.*, 5 as posts_count").first
-    dumped = YAML.load(YAML.dump(author))
+    dumped_author = YAML.dump(author)
+    dumped = YAML.respond_to?(:unsafe_load) ? YAML.unsafe_load(dumped_author) : YAML.load(dumped_author)
     assert_equal 5, author.posts_count
     assert_equal 5, dumped.posts_count
   end

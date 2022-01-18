@@ -176,7 +176,8 @@ class SQLServerRakeSchemaCacheDumpLoadTest < SQLServerRakeTest
   it "dumps schema cache with SQL Server metadata" do
     quietly { db_tasks.dump_schema_cache connection, filename }
 
-    schema_cache = YAML.load(File.read(filename))
+    filedata = File.read(filename)
+    schema_cache = YAML.respond_to?(:unsafe_load) ? YAML.unsafe_load(filedata) : YAML.load(filedata)
 
     col_id, col_name = connection.schema_cache.columns("users")
 
