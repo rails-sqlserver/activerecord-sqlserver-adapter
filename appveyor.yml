@@ -5,6 +5,7 @@ build: off
 matrix:
   fast_finish: true
   allow_failures:
+    - ruby_version: "25-x64"
     - ruby_version: "25"
     - ruby_version: "26"
     - ruby_version: "27"
