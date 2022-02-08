@@ -1,3 +1,9 @@
+## Unreleased
+
+#### Fixed
+
+- [#999](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/issues/999) Fixed support for index types
+
 ## v6.1.2.1
 
 [Full changelog](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/compare/v6.1.2.0...v6.1.2.1)
