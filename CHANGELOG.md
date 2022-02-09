@@ -1,3 +1,9 @@
+## Unreleased
+
+#### Changed
+
+- [#1004](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1004) Dump the precision for datetime columns following the new defaults.
+
 ## v7.0.0.0.rc1
 
 [Full changelog](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/compare/6-1-stable...v7.0.0.0.rc1)
