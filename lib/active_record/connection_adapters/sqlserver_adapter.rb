@@ -46,6 +46,7 @@ module ActiveRecord
       DEFAULT_TIME_PRECISION = 7
 
       attr_reader :spid
+      attr_reader :default_schema
 
       cattr_accessor :cs_equality_operator, instance_accessor: false
       cattr_accessor :use_output_inserted, instance_accessor: false
@@ -365,6 +366,7 @@ module ActiveRecord
                         dblib_connect(config)
                       end
         @spid = _raw_select('SELECT @@SPID', fetch: :rows).first.first
+        @default_schema = _raw_select('SELECT SCHEMA_NAME()', fetch: :rows).first.first
         @version_year = version_year
         configure_connection
       end

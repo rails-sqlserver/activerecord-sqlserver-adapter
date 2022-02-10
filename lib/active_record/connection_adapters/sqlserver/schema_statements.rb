@@ -294,7 +294,7 @@ module ActiveRecord
         def quoted_scope(name = nil, type: nil)
           identifier = SQLServer::Utils.extract_identifiers(name)
           {}.tap do |scope|
-            scope[:schema] = identifier.schema || 'dbo'
+            scope[:schema] = identifier.schema || @default_schema
             scope[:name] = identifier.object if identifier.object
             scope[:type] = type if type
           end
