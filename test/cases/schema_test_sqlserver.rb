@@ -49,6 +49,71 @@ class SchemaTestSQLServer < ActiveRecord::TestCase
 
   end
 
+  describe 'When login has non-dbo schema' do
 
+    before(:all) do
+      # Create login and user
+      sql= <<-SQL
+        IF NOT EXISTS (SELECT name FROM master.sys.server_principals WHERE name = 'activerecordtestuser')
+        BEGIN
+          CREATE LOGIN [activerecordtestuser] WITH PASSWORD = '', CHECK_POLICY = OFF, DEFAULT_DATABASE = [activerecord_unittest]
+        END
+        USE [activerecord_unittest]
+        DROP USER IF EXISTS [activerecordtestuser]
+        CREATE USER [activerecordtestuser] FOR LOGIN [activerecordtestuser] WITH DEFAULT_SCHEMA = test
+        GRANT SELECT, INSERT, UPDATE, DELETE ON SCHEMA :: test TO [activerecordtestuser]
+        GRANT VIEW DEFINITION TO [activerecordtestuser]
+        COMMIT TRANSACTION
+      SQL
+      connection.execute sql # rescue nil
+
+      # create view
+      sql= <<-SQL
+        IF OBJECT_ID('test.accounts', 'V') IS NOT NULL
+          DROP VIEW test.accounts
+        EXEC('CREATE VIEW test.accounts AS SELECT id AS account_id, firm_name AS account_name  FROM dbo.accounts')
+      SQL
+      connection.execute sql # rescue nil
+
+      config = ARTest.connection_config['arunit']
+      @conn2 = ActiveRecord::Base.establish_connection(config.merge('username' => 'activerecordtestuser')).connection
+    end
+
+    after(:all) do
+      ActiveRecord::Base.remove_connection(@conn2)
+      config = ARTest.connection_config['arunit']
+      ActiveRecord::Base.establish_connection(config)
+      sql=  <<-SQL
+          DROP VIEW test.accounts
+          DROP USER IF EXISTS [activerecordtestuser]
+          DROP LOGIN [activerecordtestuser]
+          COMMIT TRANSACTION
+      SQL
+      connection.execute sql # rescue nil
+    end
+
+    it 'table in schema exists' do
+      assert @conn2.data_source_exists?('sst_schema_columns'), "table 'sst_schema_columns' is visible"
+    end
+
+    it 'tables from dbo schema not visible' do
+      assert !@conn2.table_exists?('accounts'), "table 'accounts' (in dbo) not visible"
+      assert @conn2.view_exists?('accounts'), "view 'accounts' (in test) visible"
+    end
+
+    class Accounts  < ActiveRecord::Base
+    end
+
+    it "access view" do
+      assert_equal 2, Accounts.columns.count
+      assert_equal "account_id", Accounts.columns[0].name
+    end
+
+    it "create accounts record" do
+      data = Accounts.create!
+      assert_equal 1, data.account_id
+    end
+
+  end
 end
 
