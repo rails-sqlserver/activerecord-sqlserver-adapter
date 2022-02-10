@@ -1,5 +1,9 @@
 ## Unreleased
 
+#### Fixed
+
+- [#1002](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1002) Fix support for index types
+
 #### Changed
 
 - [#1004](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1004) Dump the precision for datetime columns following the new defaults.
