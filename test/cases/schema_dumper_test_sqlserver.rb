@@ -79,7 +79,7 @@ class SchemaDumperTestSQLServer < ActiveRecord::TestCase
     assert_line :float_col,       type: "float",        limit: nil,          precision: nil,  scale: nil, default: nil
     assert_line :string_col,      type: "string",       limit: nil,          precision: nil,  scale: nil, default: nil
     assert_line :text_col,        type: "text",         limit: nil,          precision: nil,  scale: nil, default: nil
-    assert_line :datetime_col,    type: "datetime",     limit: nil,          precision: 6,    scale: nil, default: nil
+    assert_line :datetime_col,    type: "datetime",     limit: nil,          precision: nil,  scale: nil, default: nil
     assert_line :timestamp_col,   type: "datetime",     limit: nil,          precision: nil,  scale: nil, default: nil
     assert_line :time_col,        type: "time",         limit: nil,          precision: 7,    scale: nil, default: nil
     assert_line :date_col,        type: "date",         limit: nil,          precision: nil,  scale: nil, default: nil
