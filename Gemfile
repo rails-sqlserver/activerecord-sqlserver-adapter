@@ -7,7 +7,9 @@ git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 gemspec
 
 gem "bcrypt"
-gem "pg",      ">= 0.18.0"
+
+gem "pg", "1.2.3"
+
 gem "sqlite3", "~> 1.4"
 gem "tzinfo-data", platforms: [:mingw, :mswin, :x64_mingw, :jruby]
 
