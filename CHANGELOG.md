@@ -4,6 +4,10 @@
 
 - [#1006](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1006) Fix support for index types
 
+#### Changed
+
+- [#1014](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1014) Better handle SQL queries with invalid encoding
+
 ## v6.1.2.1
 
 [Full changelog](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/compare/v6.1.2.0...v6.1.2.1)
