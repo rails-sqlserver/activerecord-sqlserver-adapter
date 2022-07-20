@@ -162,7 +162,7 @@ module ActiveRecord
           sql_commands << alter_command
           if without_constraints
             default = quote_default_expression(default, column_object || column_for(table_name, column_name))
-            sql_commands << "ALTER TABLE #{quote_table_name(table_name)} ADD CONSTRAINT #{default_constraint_name(table_name, column_name)} DEFAULT #{default} FOR #{quote_column_name(column_name)}"
+            sql_commands << "ALTER TABLE #{quote_table_name(table_name)} ADD CONSTRAINT #{default_constraint_name(table_name, column_name)} DEFAULT #{default} FOR #{quote_column_name(column_name)}" unless default.blank?
           end
           # Add any removed indexes back
           indexes.each do |index|
