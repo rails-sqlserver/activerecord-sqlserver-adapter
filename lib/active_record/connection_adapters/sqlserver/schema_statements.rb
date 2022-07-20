@@ -179,7 +179,7 @@ module ActiveRecord
 
           remove_default_constraint(table_name, column_name)
           default = extract_new_default_value(default_or_changes)
-          do_execute "ALTER TABLE #{quote_table_name(table_name)} ADD CONSTRAINT #{default_constraint_name(table_name, column_name)} DEFAULT #{quote_default_expression(default, column)} FOR #{quote_column_name(column_name)}"
+          do_execute "ALTER TABLE #{quote_table_name(table_name)} ADD CONSTRAINT #{default_constraint_name(table_name, column_name)} DEFAULT #{quote_default_expression(default, column)} FOR #{quote_column_name(column_name)}" unless default.blank?
           clear_cache!
         end
 
