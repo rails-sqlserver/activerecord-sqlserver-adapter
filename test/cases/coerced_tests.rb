@@ -1395,7 +1395,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
     assert_match %r{t.decimal\s+"atoms_in_universe",\s+precision: 38}, output
   end
 
-  # This is a poorly written test and really does not catch the bottom'ness it is meant too. Ours throw it off.
+  # This is a poorly written test and really does not catch the bottom'ness it is meant to. Ours throw it off.
   coerce_tests! :test_foreign_keys_are_dumped_at_the_bottom_to_circumvent_dependency_issues
 
   # Fall through false positive with no filter.
@@ -1416,6 +1416,35 @@ end
 class SchemaDumperDefaultsTest < ActiveRecord::TestCase
   # These date formats do not match ours. We got these covered in our dumper tests.
   coerce_tests! :test_schema_dump_defaults_with_universally_supported_types
+
+  # SQL Server uses different method to generate a UUID than Rails test uses. Reimplemented the
+  # test in 'SchemaDumperDefaultsCoerceTest'.
+  coerce_tests! :test_schema_dump_with_text_column
+end
+
+class SchemaDumperDefaultsCoerceTest < ActiveRecord::TestCase
+  include SchemaDumpingHelper
+
+  setup do
+    @connection = ActiveRecord::Base.connection
+    @connection.create_table :dump_defaults, force: true do |t|
+      t.string   :string_with_default,   default: "Hello!"
+      t.date     :date_with_default,     default: "2014-06-05"
+      t.datetime :datetime_with_default, default: "2014-06-05 07:17:04"
+      t.time     :time_with_default,     default: "07:17:04"
+      t.decimal  :decimal_with_default,  default: "1234567890.0123456789", precision: 20, scale: 10
+
+      t.text     :text_with_default, default: "John' Doe"
+      t.text     :uuid, default: -> { "newid()" }
+    end
+  end
+
+  def test_schema_dump_with_text_column_coerced
+    output = dump_table_schema("dump_defaults")
+
+    assert_match %r{t\.text\s+"text_with_default",.*?default: "John' Doe"}, output
+    assert_match %r{t\.text\s+"uuid",.*?default: -> \{ "newid\(\)" \}}, output
+  end
 end
 
 class TestAdapterWithInvalidConnection < ActiveRecord::TestCase
