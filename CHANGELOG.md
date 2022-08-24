@@ -1,3 +1,7 @@
+## Unreleased
+
+- [#1021](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1021) Freeze the SQL sent to instrumentation.
+
 ## v7.0.0.0
 
 [Full changelog](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/compare/v7.0.0.0.rc1...v7.0.0.0)

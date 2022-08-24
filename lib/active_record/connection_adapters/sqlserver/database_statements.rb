@@ -360,7 +360,7 @@ module ActiveRecord
             sql = "EXEC sp_executesql #{quote(sql)}"
             sql += ", #{types}, #{params}" unless params.empty?
           end
-          sql
+          sql.freeze
         end
 
         def raw_connection_do(sql)
