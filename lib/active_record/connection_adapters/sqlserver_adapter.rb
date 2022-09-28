@@ -59,6 +59,23 @@ module ActiveRecord
       self.exclude_output_inserted_table_names = Concurrent::Map.new { false }
 
       class << self
+        def dbconsole(config, options = {})
+          sqlserver_config = config.configuration_hash
+          args = []
+
+          args += ["-d", "#{config.database}"] if config.database
+          args += ["-U", "#{sqlserver_config[:username]}"] if sqlserver_config[:username]
+          args += ["-P", "#{sqlserver_config[:password]}"] if sqlserver_config[:password]
+
+          if sqlserver_config[:host]
+            host_arg = +"tcp:#{sqlserver_config[:host]}"
+            host_arg << ",#{sqlserver_config[:port]}" if sqlserver_config[:port]
+            args += ["-S", host_arg]
+          end
+
+          find_cmd_and_exec("sqlcmd", *args)
+        end
+
         def new_client(config)
           case config[:mode]
           when :dblib
