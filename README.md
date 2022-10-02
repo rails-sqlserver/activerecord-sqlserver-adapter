@@ -25,7 +25,7 @@ For older versions, please check their stable branches.
 
 #### Native Data Type Support
 
-We support every data type supported by FreeTDS. All simplified Rails types in migrations will coorespond to a matching SQL Server national (unicode) data type. Always check the `initialize_native_database_types` [(here)](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/blob/master/lib/active_record/connection_adapters/sqlserver/schema_statements.rb) for an updated list.
+We support every data type supported by FreeTDS. All simplified Rails types in migrations will correspond to a matching SQL Server national (unicode) data type. Always check the `initialize_native_database_types` [(here)](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/blob/master/lib/active_record/connection_adapters/sqlserver/schema_statements.rb) for an updated list.
 
 The following types (`date`, `datetime2`, `datetimeoffset`, `time`) all require TDS version `7.3` with TinyTDS. We recommend using FreeTDS 1.0 or higher which default to using `TDSVER` to `7.3`. The adapter also sets TinyTDS's `tds_version` to this as well if non is specified.
 
