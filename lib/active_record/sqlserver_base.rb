@@ -2,7 +2,7 @@
 
 module ActiveRecord
   module ConnectionHandling
-    def sqlserver_connection_class
+    def sqlserver_adapter_class
       ConnectionAdapters::SQLServerAdapter
     end
 
@@ -11,8 +11,8 @@ module ActiveRecord
       config.reverse_merge!(mode: :dblib)
       config[:mode] = config[:mode].to_s.downcase.underscore.to_sym
 
-      sqlserver_connection_class.new(
-        sqlserver_connection_class.new_client(config),
+      sqlserver_adapter_class.new(
+        sqlserver_adapter_class.new_client(config),
         logger,
         nil,
         config
