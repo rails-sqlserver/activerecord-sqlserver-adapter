@@ -11,6 +11,7 @@ gem "pg",      ">= 0.18.0"
 gem "sqlite3", "~> 1.4"
 gem "tzinfo-data", platforms: [:mingw, :mswin, :x64_mingw, :jruby]
 gem "benchmark-ips"
+gem "minitest", ">= 5.15.0", "< 5.16"
 
 if ENV["RAILS_SOURCE"]
   gemspec path: ENV["RAILS_SOURCE"]
