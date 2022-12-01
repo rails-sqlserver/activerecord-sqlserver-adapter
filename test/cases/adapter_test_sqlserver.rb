@@ -373,6 +373,12 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
       assert_match(/CREATE VIEW sst_customers_view/, view_info["VIEW_DEFINITION"])
     end
 
+    it "allows connection#view_information to work with qualified object names" do
+      view_info = connection.send(:view_information, "[activerecord_unittest].[dbo].[sst_customers_view]")
+      assert_equal("sst_customers_view", view_info["TABLE_NAME"])
+      assert_match(/CREATE VIEW sst_customers_view/, view_info["VIEW_DEFINITION"])
+    end
+
     it "allow the connection#view_table_name method to return true table_name for the view" do
       assert_equal "customers", connection.send(:view_table_name, "sst_customers_view")
       assert_equal "topics", connection.send(:view_table_name, "topics"), "No view here, the same table name should come back."
