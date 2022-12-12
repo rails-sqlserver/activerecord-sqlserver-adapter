@@ -312,11 +312,4 @@ ActiveRecord::Schema.define do
       CONSTRAINT PK_sst_composite_with_identity PRIMARY KEY (pk_col_one, pk_col_two)
     );
   COMPOSITE_WITH_IDENTITY
-
-  # Separate db view.
-  execute "DROP VIEW IF EXISTS sst_cross_college_view"
-  execute <<-SPECIFIC_SCHEMA_VIEW
-    CREATE VIEW sst_cross_college_view AS
-      SELECT * FROM activerecord_unittest2.dbo.colleges
-  SPECIFIC_SCHEMA_VIEW
 end
