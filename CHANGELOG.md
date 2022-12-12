@@ -1,5 +1,11 @@
 ## Unreleased
 
+#### Fixed
+
+- [#1029](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1029) Handle views defined in other databases.
+
+#### Changed
+
 - [#1021](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1021) Freeze the SQL sent to instrumentation.
 
 ## v7.0.0.0
