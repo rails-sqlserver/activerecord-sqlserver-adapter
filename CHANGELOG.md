@@ -3,6 +3,8 @@
 #### Fixed
 
 - [#1029](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1029) Handle views defined in other databases.
+- [#1033](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1033) Support proc default values in ruby 3.2.
+
 
 #### Changed
 

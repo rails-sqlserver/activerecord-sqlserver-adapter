@@ -43,4 +43,12 @@ class SQLServerUuidTest < ActiveRecord::TestCase
     obj = with_use_output_inserted_disabled { SSTestUuid.create!(name: "😢") }
     _(obj.id).must_be :nil?
   end
+
+  it "can add column with proc as default" do
+    table_name = SSTestUuid.table_name
+    connection.add_column table_name, :thingy, :uuid, null: false, default: -> { "NEWSEQUENTIALID()" }
+    SSTestUuid.reset_column_information
+    column = SSTestUuid.columns_hash["thingy"]
+    _(column.default_function).must_equal "newsequentialid()"
+  end
 end
