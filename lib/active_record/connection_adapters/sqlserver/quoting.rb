@@ -39,7 +39,7 @@ module ActiveRecord
 
         def quote_default_expression(value, column)
           cast_type = lookup_cast_type(column.sql_type)
-          if cast_type.type == :uuid && value =~ /\(\)/
+          if cast_type.type == :uuid && value.is_a?(String) && value.include?('()')
             value
           else
             super
