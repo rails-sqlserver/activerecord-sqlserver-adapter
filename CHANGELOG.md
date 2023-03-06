@@ -4,6 +4,7 @@
 
 - [#1029](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1029) Handle views defined in other databases.
 - [#1033](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1033) Support proc default values in ruby 3.2.
+- [#1020](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1020) Support using adapter as a stand-alone gem.
 
 
 #### Changed
