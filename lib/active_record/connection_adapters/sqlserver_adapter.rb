@@ -140,7 +140,7 @@ module ActiveRecord
       def initialize(connection, logger, _connection_options, config)
         super(connection, logger, config)
         @connection_options = config
-        configure_connection
+        perform_connection_configuration
       end
 
       # === Abstract Adapter ========================================== #
@@ -299,14 +299,6 @@ module ActiveRecord
       def reset!
         reset_transaction
         do_execute "IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION"
-      end
-
-      def configure_connection
-        @spid = _raw_select("SELECT @@SPID", fetch: :rows).first.first
-        @version_year = version_year
-
-        initialize_dateformatter
-        use_database
       end
 
       # === Abstract Adapter (Misc Support) =========================== #
@@ -530,7 +522,20 @@ module ActiveRecord
 
       def connect
         @connection = self.class.new_client(@connection_options)
-        configure_connection
+        perform_connection_configuration
+      end
+
+      def perform_connection_configuration
+        configure_connection_defaults
+        configure_connection if self.respond_to?(:configure_connection)
+      end
+
+      def configure_connection_defaults
+        @spid = _raw_select("SELECT @@SPID", fetch: :rows).first.first
+        @version_year = version_year
+
+        initialize_dateformatter
+        use_database
       end
     end
   end
