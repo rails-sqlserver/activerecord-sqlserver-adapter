@@ -1414,7 +1414,8 @@ class YamlSerializationTest < ActiveRecord::TestCase
   coerce_tests! :test_types_of_virtual_columns_are_not_changed_on_round_trip
   def test_types_of_virtual_columns_are_not_changed_on_round_trip_coerced
     author = Author.select("authors.*, 5 as posts_count").first
-    dumped = YAML.load(YAML.dump(author))
+    dumped_author = YAML.dump(author)
+    dumped = YAML.respond_to?(:unsafe_load) ? YAML.unsafe_load(dumped_author) : YAML.load(dumped_author)
     assert_equal 5, author.posts_count
     assert_equal 5, dumped.posts_count
   end
@@ -1905,17 +1906,22 @@ class AnnotateTest < ActiveRecord::TestCase
   def test_annotate_is_sanitized_coerced
     quoted_posts_id, quoted_posts = regexp_escape_table_name("posts.id"), regexp_escape_table_name("posts")
 
-    assert_sql(%r{SELECT #{quoted_posts_id} FROM #{quoted_posts} /\* foo \*/}i) do
+    assert_sql(%r{SELECT #{quoted_posts_id} FROM #{quoted_posts} /\* \* /foo/ \* \*/}i) do
       posts = Post.select(:id).annotate("*/foo/*")
       assert posts.first
     end
 
-    assert_sql(%r{SELECT #{quoted_posts_id} FROM #{quoted_posts} /\* foo \*/}i) do
+    assert_sql(%r{SELECT #{quoted_posts_id} FROM #{quoted_posts} /\* \*\* //foo// \*\* \*/}i) do
       posts = Post.select(:id).annotate("**//foo//**")
       assert posts.first
     end
 
-    assert_sql(%r{SELECT #{quoted_posts_id} FROM #{quoted_posts} /\* foo \*/ /\* bar \*/}i) do
+    assert_sql(%r{SELECT #{quoted_posts_id} FROM #{quoted_posts} /\* \* \* //foo// \* \* \*/}i) do
+      posts = Post.select(:id).annotate("* *//foo//* *")
+      assert posts.first
+    end
+
+    assert_sql(%r{SELECT #{quoted_posts_id} FROM #{quoted_posts} /\* \* /foo/ \* \*/ /\* \* /bar \*/}i) do
       posts = Post.select(:id).annotate("*/foo/*").annotate("*/bar")
       assert posts.first
     end

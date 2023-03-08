@@ -8,10 +8,11 @@ gemspec
 
 gem "bcrypt"
 
-gem "pg", "1.2.3"
+gem "pg", "~> 1.3"
 
 gem "sqlite3", "~> 1.4"
 gem "tzinfo-data", platforms: [:mingw, :mswin, :x64_mingw, :jruby]
+gem "minitest", ">= 5.15.0", "< 5.16"
 
 if ENV["RAILS_SOURCE"]
   gemspec path: ENV["RAILS_SOURCE"]
