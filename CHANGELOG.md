@@ -3,6 +3,7 @@
 #### Fixed
 
 - [#1006](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1006) Fix support for index types
+- [#x](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/x) Fix hook method that allows custom connection configuration.
 
 #### Changed
 
