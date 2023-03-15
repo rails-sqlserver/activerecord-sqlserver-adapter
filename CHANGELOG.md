@@ -1,4 +1,6 @@
-## Unreleased
+## v6.1.3.0
+
+[Full changelog](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/compare/v6.1.2.1...v6.1.3.0)
 
 #### Fixed
 
