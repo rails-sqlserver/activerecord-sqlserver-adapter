@@ -1,6 +1,6 @@
 ARG TARGET_VERSION=3.2.1
 
-FROM aidanharan/activerecord-sqlserver-adapter:${TARGET_VERSION}
+FROM ghcr.io/rails-sqlserver/activerecord-sqlserver-adapter:${TARGET_VERSION}
 
 ENV WORKDIR /activerecord-sqlserver-adapter
 
