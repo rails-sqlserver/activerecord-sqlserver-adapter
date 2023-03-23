@@ -1,7 +1,7 @@
 version: "2.2"
 services:
   sqlserver:
-    image: metaskills/mssql-server-linux-rails
+    image: ghcr.io/rails-sqlserver/mssql-server-linux-rails
   ci:
     environment:
       - ACTIVERECORD_UNITTEST_HOST=sqlserver
