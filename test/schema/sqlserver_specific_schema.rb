@@ -312,4 +312,11 @@ ActiveRecord::Schema.define do
       CONSTRAINT PK_sst_composite_with_identity PRIMARY KEY (pk_col_one, pk_col_two)
     );
   COMPOSITE_WITH_IDENTITY
+
+  execute "IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'aliens' and TABLE_SCHEMA = 'test') DROP TABLE test.aliens"
+  execute <<-TABLE_IN_OTHER_SCHEMA_USED_BY_MODEL
+    CREATE TABLE test.aliens(
+      name varchar(255)
+    )
+  TABLE_IN_OTHER_SCHEMA_USED_BY_MODEL
 end

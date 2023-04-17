@@ -197,7 +197,7 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
       @identity_insert_sql_unordered_sp = "EXEC sp_executesql N'INSERT INTO [funny_jokes] ([name],[id]) VALUES (@0, @1)', N'@0 nvarchar(255), @1  int', @0 = N'Knock knock', @1 = 420"
     end
 
-    it "return quoted table_name to #query_requires_identity_insert? when INSERT sql contains id column" do
+    it "return unquoted table_name to #query_requires_identity_insert? when INSERT sql contains id column" do
       assert_equal "funny_jokes", connection.send(:query_requires_identity_insert?, @identity_insert_sql)
       assert_equal "funny_jokes", connection.send(:query_requires_identity_insert?, @identity_insert_sql_unquoted)
       assert_equal "funny_jokes", connection.send(:query_requires_identity_insert?, @identity_insert_sql_unordered)
