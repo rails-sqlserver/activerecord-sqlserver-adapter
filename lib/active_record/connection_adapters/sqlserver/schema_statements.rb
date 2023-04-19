@@ -441,9 +441,9 @@ module ActiveRecord
           # Since Rails 7, it's expected that all adapter raise error when table doesn't exists.
           # I'm not aware of the possibility of tables without columns on SQL Server (postgres have those).
           # Raise error if the method return an empty array
-          columns.tap do |result|
-            raise ActiveRecord::StatementInvalid, "Table '#{table_name}' doesn't exist" if result.empty?
-          end
+          # columns.tap do |result|
+          #   raise ActiveRecord::StatementInvalid, "Table '#{table_name}' doesn't exist" if result.empty?
+          # end
         end
 
         def column_definitions_sql(database, identifier)
