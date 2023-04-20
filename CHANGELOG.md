@@ -1,3 +1,9 @@
+## Unreleased
+
+#### Fixed
+
+- [#1052](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1052) Ignore casing of VALUES clause when inserting records using SQL
+
 ## v7.0.2.0
 
 [Full changelog](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/compare/v7.0.1.0...v7.0.2.0)

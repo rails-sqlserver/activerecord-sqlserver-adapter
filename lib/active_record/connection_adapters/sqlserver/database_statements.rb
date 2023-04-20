@@ -278,11 +278,11 @@ module ActiveRecord
                     id_sql_type = exclude_output_inserted.is_a?(TrueClass) ? "bigint" : exclude_output_inserted
                     <<~SQL.squish
                       DECLARE @ssaIdInsertTable table (#{quoted_pk} #{id_sql_type});
-                      #{sql.dup.insert sql.index(/ (DEFAULT )?VALUES/), " OUTPUT INSERTED.#{quoted_pk} INTO @ssaIdInsertTable"}
+                      #{sql.dup.insert sql.index(/ (DEFAULT )?VALUES/i), " OUTPUT INSERTED.#{quoted_pk} INTO @ssaIdInsertTable"}
                       SELECT CAST(#{quoted_pk} AS #{id_sql_type}) FROM @ssaIdInsertTable
                     SQL
                   else
-                    sql.dup.insert sql.index(/ (DEFAULT )?VALUES/), " OUTPUT INSERTED.#{quoted_pk}"
+                    sql.dup.insert sql.index(/ (DEFAULT )?VALUES/i), " OUTPUT INSERTED.#{quoted_pk}"
                   end
                 else
                   "#{sql}; SELECT CAST(SCOPE_IDENTITY() AS bigint) AS Ident"
@@ -392,7 +392,7 @@ module ActiveRecord
           self.class.exclude_output_inserted_table_names[table_name]
         end
 
-        def exec_insert_requires_identity?(sql, pk, binds)
+        def exec_insert_requires_identity?(sql, _pk, _binds)
           query_requires_identity_insert?(sql)
         end
 
