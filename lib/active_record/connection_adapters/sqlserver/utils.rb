@@ -9,7 +9,7 @@ module ActiveRecord
         QUOTED_STRING_PREFIX = "N"
 
         # Value object to return identifiers from SQL Server names http://bit.ly/1CZ3EiL
-        # Inspiried from Rails PostgreSQL::Name adapter object in their own Utils.
+        # Inspired from Rails PostgreSQL::Name adapter object in their own Utils.
         #
         class Name
           SEPARATOR = "."
@@ -69,7 +69,11 @@ module ActiveRecord
           end
 
           def quoted
-            parts.map { |p| quote(p) if p }.join SEPARATOR
+            parts.compact.map { |p| quote(p) }.join SEPARATOR
+          end
+
+          def unquoted
+            parts.compact.map { |p| p }.join SEPARATOR
           end
 
           def quoted_raw

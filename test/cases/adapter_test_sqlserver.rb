@@ -195,6 +195,7 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
       @identity_insert_sql_sp = "EXEC sp_executesql N'INSERT INTO [funny_jokes] ([id],[name]) VALUES (@0, @1)', N'@0 int, @1 nvarchar(255)', @0 = 420, @1 = N'Knock knock'"
       @identity_insert_sql_unquoted_sp = "EXEC sp_executesql N'INSERT INTO [funny_jokes] (id, name) VALUES (@0, @1)', N'@0 int, @1 nvarchar(255)', @0 = 420, @1 = N'Knock knock'"
       @identity_insert_sql_unordered_sp = "EXEC sp_executesql N'INSERT INTO [funny_jokes] ([name],[id]) VALUES (@0, @1)', N'@0 nvarchar(255), @1  int', @0 = N'Knock knock', @1 = 420"
+      @identity_insert_sql_non_dbo = "INSERT INTO [test].[aliens] ([id],[name]) VALUES(420,'Mork')"
     end
 
     it "return unquoted table_name to #query_requires_identity_insert? when INSERT sql contains id column" do
@@ -204,6 +205,7 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
       assert_equal "funny_jokes", connection.send(:query_requires_identity_insert?, @identity_insert_sql_sp)
       assert_equal "funny_jokes", connection.send(:query_requires_identity_insert?, @identity_insert_sql_unquoted_sp)
       assert_equal "funny_jokes", connection.send(:query_requires_identity_insert?, @identity_insert_sql_unordered_sp)
+      assert_equal "test.aliens", connection.send(:query_requires_identity_insert?, @identity_insert_sql_non_dbo)
     end
 
     it "return false to #query_requires_identity_insert? for normal SQL" do
@@ -530,6 +532,16 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
       ActiveRecord::Base.while_preventing_writes do
         assert_equal 1, @conn.execute("SELECT * FROM [subscribers] WHERE [subscribers].[nick] = 'aido'")
       end
+    end
+  end
+
+  describe 'table is in non-dbo schema' do
+    it "records can be created successfully" do
+      Alien.create!(name: 'Trisolarans')
+    end
+
+    it 'records can be inserted using SQL' do
+      Alien.connection.exec_insert("insert into [test].[aliens] (id, name) VALUES(1, 'Trisolarans'), (2, 'Xenomorph')")
     end
   end
 end

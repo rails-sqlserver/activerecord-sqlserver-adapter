@@ -47,9 +47,5 @@ class SchemaTestSQLServer < ActiveRecord::TestCase
       assert_equal 255, columns.find { |c| c.name == "n_name" }.limit
       assert_equal 1000, columns.find { |c| c.name == "n_description" }.limit
     end
-
-    it "creates new record" do
-      Alien.create!(name: 'Trisolarans')
-    end
   end
 end
