@@ -193,19 +193,31 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
       @identity_insert_sql_unquoted = "INSERT INTO funny_jokes (id, name) VALUES(420, 'Knock knock')"
       @identity_insert_sql_unordered = "INSERT INTO [funny_jokes] ([name],[id]) VALUES('Knock knock',420)"
       @identity_insert_sql_sp = "EXEC sp_executesql N'INSERT INTO [funny_jokes] ([id],[name]) VALUES (@0, @1)', N'@0 int, @1 nvarchar(255)', @0 = 420, @1 = N'Knock knock'"
-      @identity_insert_sql_unquoted_sp = "EXEC sp_executesql N'INSERT INTO [funny_jokes] (id, name) VALUES (@0, @1)', N'@0 int, @1 nvarchar(255)', @0 = 420, @1 = N'Knock knock'"
+      @identity_insert_sql_unquoted_sp = "EXEC sp_executesql N'INSERT INTO funny_jokes (id, name) VALUES (@0, @1)', N'@0 int, @1 nvarchar(255)', @0 = 420, @1 = N'Knock knock'"
       @identity_insert_sql_unordered_sp = "EXEC sp_executesql N'INSERT INTO [funny_jokes] ([name],[id]) VALUES (@0, @1)', N'@0 nvarchar(255), @1  int', @0 = N'Knock knock', @1 = 420"
+
       @identity_insert_sql_non_dbo = "INSERT INTO [test].[aliens] ([id],[name]) VALUES(420,'Mork')"
+      @identity_insert_sql_non_dbo_unquoted = "INSERT INTO test.aliens ([id],[name]) VALUES(420,'Mork')"
+      @identity_insert_sql_non_dbo_unordered = "INSERT INTO [test].[aliens] ([name],[id]) VALUES('Mork',420)"
+      @identity_insert_sql_non_dbo_sp = "EXEC sp_executesql N'INSERT INTO [test].[aliens] ([id],[name]) VALUES (@0, @1)', N'@0 int, @1 nvarchar(255)', @0 = 420, @1 = N'Mork'"
+      @identity_insert_sql_non_dbo_unquoted_sp = "EXEC sp_executesql N'INSERT INTO test.aliens (id, name) VALUES (@0, @1)', N'@0 int, @1 nvarchar(255)', @0 = 420, @1 = N'Mork'"
+      @identity_insert_sql_non_dbo_unordered_sp = "EXEC sp_executesql N'INSERT INTO [test].[aliens] ([name],[id]) VALUES (@0, @1)', N'@0 nvarchar(255), @1  int', @0 = N'Mork', @1 = 420"
     end
 
-    it "return unquoted table_name to #query_requires_identity_insert? when INSERT sql contains id column" do
-      assert_equal "funny_jokes", connection.send(:query_requires_identity_insert?, @identity_insert_sql)
-      assert_equal "funny_jokes", connection.send(:query_requires_identity_insert?, @identity_insert_sql_unquoted)
-      assert_equal "funny_jokes", connection.send(:query_requires_identity_insert?, @identity_insert_sql_unordered)
-      assert_equal "funny_jokes", connection.send(:query_requires_identity_insert?, @identity_insert_sql_sp)
-      assert_equal "funny_jokes", connection.send(:query_requires_identity_insert?, @identity_insert_sql_unquoted_sp)
-      assert_equal "funny_jokes", connection.send(:query_requires_identity_insert?, @identity_insert_sql_unordered_sp)
-      assert_equal "test.aliens", connection.send(:query_requires_identity_insert?, @identity_insert_sql_non_dbo)
+    it "return quoted table_name to #query_requires_identity_insert? when INSERT sql contains id column" do
+      assert_equal "[funny_jokes]",   connection.send(:query_requires_identity_insert?, @identity_insert_sql)
+      assert_equal "[funny_jokes]",   connection.send(:query_requires_identity_insert?, @identity_insert_sql_unquoted)
+      assert_equal "[funny_jokes]",   connection.send(:query_requires_identity_insert?, @identity_insert_sql_unordered)
+      assert_equal "[funny_jokes]",   connection.send(:query_requires_identity_insert?, @identity_insert_sql_sp)
+      assert_equal "[funny_jokes]",   connection.send(:query_requires_identity_insert?, @identity_insert_sql_unquoted_sp)
+      assert_equal "[funny_jokes]",   connection.send(:query_requires_identity_insert?, @identity_insert_sql_unordered_sp)
+
+      assert_equal "[test].[aliens]", connection.send(:query_requires_identity_insert?, @identity_insert_sql_non_dbo)
+      assert_equal "[test].[aliens]", connection.send(:query_requires_identity_insert?, @identity_insert_sql_non_dbo_unquoted)
+      assert_equal "[test].[aliens]", connection.send(:query_requires_identity_insert?, @identity_insert_sql_non_dbo_unordered)
+      assert_equal "[test].[aliens]", connection.send(:query_requires_identity_insert?, @identity_insert_sql_non_dbo_sp)
+      assert_equal "[test].[aliens]", connection.send(:query_requires_identity_insert?, @identity_insert_sql_non_dbo_unquoted_sp)
+      assert_equal "[test].[aliens]", connection.send(:query_requires_identity_insert?, @identity_insert_sql_non_dbo_unordered_sp)
     end
 
     it "return false to #query_requires_identity_insert? for normal SQL" do

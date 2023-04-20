@@ -77,7 +77,7 @@ class UtilsTestSQLServer < ActiveRecord::TestCase
       _(extract_identifiers(" ").object).must_be_nil
     end
 
-    it "has a #quoted that returns a fully quoted name with all identifiers as orginially passed in" do
+    it "has a #quoted that returns a fully quoted name with all identifiers as originally passed in" do
       _(extract_identifiers("object").quoted).must_equal "[object]"
       _(extract_identifiers("server.database..object").quoted).must_equal "[server].[database]..[object]"
       _(extract_identifiers("[server]...[object]").quoted).must_equal "[server]...[object]"
@@ -92,7 +92,7 @@ class UtilsTestSQLServer < ActiveRecord::TestCase
       _(extract_identifiers("[obj.name].[foo]").quoted).must_equal "[obj.name].[foo]"
     end
 
-    it "should indicate if a name is fully qualitified" do
+    it "should indicate if a name is fully qualified" do
       _(extract_identifiers("object").fully_qualified?).must_equal false
       _(extract_identifiers("schema.object").fully_qualified?).must_equal false
       _(extract_identifiers("database.schema.object").fully_qualified?).must_equal false
