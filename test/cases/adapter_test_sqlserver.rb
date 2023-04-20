@@ -535,13 +535,13 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
 
   describe "exec_insert" do
     it 'values clause should be case-insensitive' do
-      first_insert = connection.exec_insert("INSERT INTO [posts] ([id],[title],[body]) VALUES(1, 'Title', 'Body'), (2, 'Title', 'Body')")
-      second_insert = connection.exec_insert("INSERT INTO [posts] ([id],[title],[body]) values(13, 'Body', 'Body'), (14, 'Body', 'Body')")
+      assert_difference("Post.count", 4) do
+        first_insert = connection.exec_insert("INSERT INTO [posts] ([id],[title],[body]) VALUES(100, 'Title', 'Body'), (102, 'Title', 'Body')")
+        second_insert = connection.exec_insert("INSERT INTO [posts] ([id],[title],[body]) values(113, 'Body', 'Body'), (114, 'Body', 'Body')")
 
-      assert_equal Post.count, 4
-
-      assert_equal first_insert.rows.map(&:first), [1, 2]
-      assert_equal second_insert.rows.map(&:first), [13, 14]
+        assert_equal first_insert.rows.map(&:first), [100, 102]
+        assert_equal second_insert.rows.map(&:first), [113, 114]
+      end
     end
   end
 end
