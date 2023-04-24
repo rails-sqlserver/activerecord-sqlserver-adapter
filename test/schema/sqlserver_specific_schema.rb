@@ -316,6 +316,7 @@ ActiveRecord::Schema.define do
   execute "IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'aliens' and TABLE_SCHEMA = 'test') DROP TABLE test.aliens"
   execute <<-TABLE_IN_OTHER_SCHEMA_USED_BY_MODEL
     CREATE TABLE test.aliens(
+      id int IDENTITY NOT NULL primary key,
       name varchar(255)
     )
   TABLE_IN_OTHER_SCHEMA_USED_BY_MODEL

@@ -402,7 +402,7 @@ module ActiveRecord
           raw_table_name = get_raw_table_name(sql)
           id_column = identity_columns(raw_table_name).first
 
-          id_column && sql =~ /^\s*(INSERT|EXEC sp_executesql N'INSERT)[^(]+\([^)]*\b(#{id_column.name})\b,?[^)]*\)/i ? SQLServer::Utils.extract_identifiers(raw_table_name).object : false
+          id_column && sql =~ /^\s*(INSERT|EXEC sp_executesql N'INSERT)[^(]+\([^)]*\b(#{id_column.name})\b,?[^)]*\)/i ? SQLServer::Utils.extract_identifiers(raw_table_name).quoted : false
         end
 
         def insert_sql?(sql)
