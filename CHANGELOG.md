@@ -1,6 +1,8 @@
 ## Unreleased
 
-[#933](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/933) Conditionally apply SQL Server monkey patches to ActiveRecord so that it is safe to use this gem alongside other database adapters (e.g. PostgreSQL) in a multi-database Rails app
+#### Fixed
+
+[#1054](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1054) Conditionally apply SQL Server monkey patches to ActiveRecord so that it is safe to use this gem alongside other database adapters (e.g. PostgreSQL) in a multi-database Rails app
 
 ## v6.0.2
 
