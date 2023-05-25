@@ -15,7 +15,7 @@ Interested in older versions? We follow a rational versioning policy that tracks
 |-----------------| ------------- | ------------------------------------------------------------------------------------------- |
 | `7.0.1.0`       | `7.0.x`       | [active](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/tree/main)   |
 | `6.1.2.1`       | `6.1.x`       | [active](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/tree/6-1-stable) |
-| `6.0.2`         | `6.0.x`       | [active](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/tree/6-0-stable) |
+| `6.0.3`         | `6.0.x`       | [active](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/tree/6-0-stable) |
 | `5.2.1`         | `5.2.x`       | [ended](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/tree/5-2-stable) |
 | `5.1.6`         | `5.1.x`       | [ended](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/tree/5-1-stable)  |
 | `4.2.18`        | `4.2.x`       | [ended](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/tree/4-2-stable)  |
