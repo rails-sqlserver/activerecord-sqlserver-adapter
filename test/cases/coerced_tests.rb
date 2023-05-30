@@ -543,7 +543,7 @@ module ActiveRecord
         assert_equal "hello", five.default
       end
 
-      # Rails adds precision 6 by default, sql server uses datetime2 for datetimes with precision
+      # Use precision 6 by default for datetime/timestamp columns. SQL Server uses `datetime2` for date-times with precision.
       coerce_tests! :test_add_column_with_postgresql_datetime_type
       def test_add_column_with_postgresql_datetime_type_coerced
         connection.create_table :testings do |t|
@@ -556,7 +556,7 @@ module ActiveRecord
         assert_equal "datetime2(6)", column.sql_type
       end
 
-      # timestamp is datetime with default limit
+      # Use precision 6 by default for datetime/timestamp columns. SQL Server uses `datetime2` for date-times with precision.
       coerce_tests! :test_change_column_with_timestamp_type
       def test_change_column_with_timestamp_type_coerced
         connection.create_table :testings do |t|
@@ -568,7 +568,20 @@ module ActiveRecord
         column = connection.columns(:testings).find { |c| c.name == "foo" }
 
         assert_equal :datetime, column.type
-        assert_equal "datetime", column.sql_type
+        assert_equal "datetime2(6)", column.sql_type
+      end
+
+      # Use precision 6 by default for datetime/timestamp columns. SQL Server uses `datetime2` for date-times with precision.
+      coerce_tests! :test_add_column_with_timestamp_type
+      def test_add_column_with_timestamp_type_coerced
+        connection.create_table :testings do |t|
+          t.column :foo, :timestamp
+        end
+
+        column = connection.columns(:testings).find { |c| c.name == "foo" }
+
+        assert_equal :datetime, column.type
+        assert_equal "datetime2(6)", column.sql_type
       end
     end
   end

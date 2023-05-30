@@ -14,8 +14,9 @@ ActiveRecord::Schema.define do
     t.float     :float_col
     t.string    :string_col
     t.text      :text_col
-    t.datetime  :datetime_col
-    t.timestamp :timestamp_col
+    t.datetime  :datetime_nil_precision_col, precision: nil
+    t.datetime  :datetime_col  # Precision defaults to 6
+    t.timestamp :timestamp_col # Precision defaults to 6
     t.time      :time_col
     t.date      :date_col
     t.binary    :binary_col

@@ -5,6 +5,10 @@
 - [#1052](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1052) Ignore casing of VALUES clause when inserting records using SQL
 - [#1053](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1053) Fix insertion of records to non-default schema table using raw SQL
 
+#### Changed
+
+- [#1057](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1057) Set precision 6 by default for timestamps.
+
 ## v7.0.2.0
 
 [Full changelog](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/compare/v7.0.1.0...v7.0.2.0)

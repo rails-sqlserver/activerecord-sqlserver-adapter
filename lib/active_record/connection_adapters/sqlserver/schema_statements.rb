@@ -346,7 +346,7 @@ module ActiveRecord
             datetime2: { name: "datetime2" },
             datetimeoffset: { name: "datetimeoffset" },
             smalldatetime: { name: "smalldatetime" },
-            timestamp: { name: "datetime" },
+            timestamp: { name: "datetime2(6)" },
             time: { name: "time" },
             char: { name: "char" },
             varchar: { name: "varchar", limit: 8000 },
