@@ -450,7 +450,7 @@ class CalculationsTest < ActiveRecord::TestCase
       FROM companies
       INNER JOIN accounts ON companies.id = accounts.firm_id
       WHERE companies.id = ?
-      GROUP BY companies.id, companies.type, companies.firm_id, companies.firm_name, companies.name, companies.client_of, companies.rating, companies.account_id, companies.description
+      GROUP BY companies.id, companies.type, companies.firm_id, companies.firm_name, companies.name, companies.client_of, companies.rating, companies.account_id, companies.description, companies.status
       ORDER BY companies.id
       OFFSET 0 ROWS FETCH NEXT 1 ROWS ONLY
     SQL
@@ -476,7 +476,7 @@ class CalculationsTest < ActiveRecord::TestCase
              .select("companies.*", "AVG(CAST(accounts.credit_limit AS DECIMAL)) AS avg_credit_limit")
              .where(id: rails_core)
              .joins(:account)
-             .group(:id, :type, :firm_id, :firm_name, :name, :client_of, :rating, :account_id, :description)
+             .group(:id, :type, :firm_id, :firm_name, :name, :client_of, :rating, :account_id, :description, :status)
              .take!
 
     # all the DependentFirm attributes should be present
