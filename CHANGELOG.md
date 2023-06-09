@@ -4,6 +4,7 @@
 
 - [#1052](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1052) Ignore casing of VALUES clause when inserting records using SQL
 - [#1053](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1053) Fix insertion of records to non-default schema table using raw SQL
+- [#1059](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1059) Fix enums defined on string columns
 
 ## v7.0.2.0
 
