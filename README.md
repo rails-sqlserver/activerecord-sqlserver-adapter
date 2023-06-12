@@ -13,7 +13,7 @@ Interested in older versions? We follow a rational versioning policy that tracks
 
 | Adapter Version | Rails Version | Support                                                                                     |
 |-----------------| ------------- | ------------------------------------------------------------------------------------------- |
-| `7.0.2.0`       | `7.0.x`       | [active](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/tree/main)   |
+| `7.0.3.0`       | `7.0.x`       | [active](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/tree/main)   |
 | `6.1.2.1`       | `6.1.x`       | [active](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/tree/6-1-stable) |
 | `6.0.3`         | `6.0.x`       | [active](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/tree/6-0-stable) |
 | `5.2.1`         | `5.2.x`       | [ended](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/tree/5-2-stable) |
@@ -29,7 +29,11 @@ We support every data type supported by FreeTDS. All simplified Rails types in m
 
 The following types (`date`, `datetime2`, `datetimeoffset`, `time`) all require TDS version `7.3` with TinyTDS. We recommend using FreeTDS 1.0 or higher which default to using `TDSVER` to `7.3`. The adapter also sets TinyTDS's `tds_version` to this as well if non is specified.
 
-The Rails v5 adapter supports ActiveRecord's `datetime_with_precision` setting. This means that passing `:precision` to a datetime column is supported. Using a precision with the `:datetime` type will signal the adapter to use the `datetime2` type under the hood.
+The adapter supports ActiveRecord's `datetime_with_precision` setting. This means that passing `:precision` to a datetime column is supported.
+
+By default, precision 6 is used for `:datetime` types if precision is not specified. Any non-nil precision will tell
+the adapter to use the `datetime2` column type. To create a `datetime` column using a migration a precision of `nil`
+should be specified, otherwise the precision will default to 6 and a `datetime2` column will be created.
 
 
 #### Identity Inserts with Triggers
