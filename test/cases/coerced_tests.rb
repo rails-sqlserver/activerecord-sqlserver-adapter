@@ -1310,9 +1310,26 @@ class RelationTest < ActiveRecord::TestCase
   # We are not doing order duplicate removal anymore.
   coerce_tests! :test_default_scope_order_with_scope_order
 
-  # Leave it up to users to format selects/functions so HAVING works correctly.
+  # Order column must be in the GROUP clause.
   coerce_tests! :test_multiple_where_and_having_clauses
+  def test_multiple_where_and_having_clauses_coerced
+    post = Post.first
+    having_then_where = Post.having(id: post.id).where(title: post.title)
+                            .having(id: post.id).where(title: post.title).group(:id).select(:id)
+
+    assert_equal [post], having_then_where
+  end
+
+  # Order column must be in the GROUP clause.
   coerce_tests! :test_having_with_binds_for_both_where_and_having
+  def test_having_with_binds_for_both_where_and_having
+    post = Post.first
+    having_then_where = Post.having(id: post.id).where(title: post.title).group(:id).select(:id)
+    where_then_having = Post.where(title: post.title).having(id: post.id).group(:id).select(:id)
+
+    assert_equal [post], having_then_where
+    assert_equal [post], where_then_having
+  end
 
   # Find any limit via our expression.
   coerce_tests! %r{relations don't load all records in #inspect}
@@ -1322,10 +1339,18 @@ class RelationTest < ActiveRecord::TestCase
     end
   end
 
-  # I wanted to add `.order("author_id")` scope to avoid error: Column "posts.id" is invalid in the ORDER BY
-  # However, this pull request on Rails core drops order on exists relation. https://github.com/rails/rails/pull/28699
-  # so we are skipping all together.
+  # Order column must be in the GROUP clause.
   coerce_tests! :test_empty_complex_chained_relations
+  def test_empty_complex_chained_relations_coerced
+    posts = Post.select("comments_count").where("id is not null").group("author_id", "id").where("legacy_comments_count > 0")
+
+    assert_queries(1) { assert_equal false, posts.empty? }
+    assert_not_predicate posts, :loaded?
+
+    no_posts = posts.where(title: "")
+    assert_queries(1) { assert_equal true, no_posts.empty? }
+    assert_not_predicate no_posts, :loaded?
+  end
 
   # Can't apply offset without ORDER
   coerce_tests! %r{using a custom table affects the wheres}
