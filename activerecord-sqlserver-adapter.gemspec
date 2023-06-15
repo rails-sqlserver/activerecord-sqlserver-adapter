@@ -10,7 +10,7 @@ Gem::Specification.new do |spec|
   spec.required_ruby_version = ">= 2.7.0"
 
   spec.license       = "MIT"
-  spec.authors       = ["Ken Collins", "Anna Carey", "Will Bond", "Murray Steele", "Shawn Balestracci", "Joe Rafaniello", "Tom Ward"]
+  spec.authors       = ["Ken Collins", "Anna Carey", "Will Bond", "Murray Steele", "Shawn Balestracci", "Joe Rafaniello", "Tom Ward", "Aidan Haran"]
   spec.email         = ["ken@metaskills.net", "will@wbond.net"]
   spec.homepage      = "http://github.com/rails-sqlserver/activerecord-sqlserver-adapter"
   spec.summary       = "ActiveRecord SQL Server Adapter."
