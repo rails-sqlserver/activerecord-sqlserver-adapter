@@ -29,7 +29,7 @@ module ActiveRecord
           end
         end
 
-        def exec_query(sql, name = "SQL", binds = [], prepare: false, async: false)
+        def internal_exec_query(sql, name = "SQL", binds = [], prepare: false, async: false)
           sql = transform_query(sql)
           if preventing_writes? && write_query?(sql)
             raise ActiveRecord::ReadOnlyError, "Write query attempted while in readonly mode: #{sql}"
@@ -301,6 +301,8 @@ module ActiveRecord
         # === SQLServer Specific (Executing) ============================ #
 
         def do_execute(sql, name = "SQL")
+          connect if @connection.nil?
+
           materialize_transactions
           mark_transaction_written_if_write(sql)
 
@@ -328,6 +330,7 @@ module ActiveRecord
         end
 
         def sp_executesql_sql_type(attr)
+          return "nvarchar(max)".freeze if attr.is_a?(Symbol)
           return attr.type.sqlserver_type if attr.type.respond_to?(:sqlserver_type)
 
           case value = attr.value_for_database
@@ -339,6 +342,8 @@ module ActiveRecord
         end
 
         def sp_executesql_sql_param(attr)
+          return quote(attr) if attr.is_a?(Symbol)
+
           case value = attr.value_for_database
           when Type::Binary::Data,
                ActiveRecord::Type::SQLServer::Data

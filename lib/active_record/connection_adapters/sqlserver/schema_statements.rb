@@ -26,7 +26,7 @@ module ActiveRecord
               do_execute "DELETE FROM #{quote_table_name(fktable)} WHERE #{quote_column_name(fkcolmn)} IN ( SELECT #{quote_column_name(pkcolmn)} FROM #{quote_table_name(pktable)} )"
             end
           end
-          if options[:if_exists] && @version_year < 2016
+          if options[:if_exists] && version_year < 2016
             execute "IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = #{quote(table_name)}) DROP TABLE #{quote_table_name(table_name)}", "SCHEMA"
           else
             super
