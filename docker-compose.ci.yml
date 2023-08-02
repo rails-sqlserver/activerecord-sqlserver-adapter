@@ -9,7 +9,6 @@ services:
       context: .
       dockerfile: Dockerfile.ci
     command:
-      - wait-for sqlserver:1433 -- echo "Ready..."
-      - RAILS_MAIN=1 bundle exec rake test
+      - wait-for sqlserver:1433 -- bundle exec rake test
     depends_on:
       - "sqlserver"
