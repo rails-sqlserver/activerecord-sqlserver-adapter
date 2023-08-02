@@ -16,6 +16,8 @@ gem "msgpack", ">= 1.7.0"
 
 if ENV["RAILS_SOURCE"]
   gemspec path: ENV["RAILS_SOURCE"]
+elsif ENV["RAILS_MAIN"]
+  gem "rails", github: "rails/rails", branch: 'main'
 else
   # Need to get rails source because the gem doesn't include tests
   version = ENV["RAILS_VERSION"] || begin

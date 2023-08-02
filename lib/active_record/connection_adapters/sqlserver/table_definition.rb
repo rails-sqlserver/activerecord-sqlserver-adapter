@@ -113,6 +113,12 @@ module ActiveRecord
 
           super
         end
+
+        private
+
+        def valid_column_definition_options
+          super + [:is_identity]
+        end
       end
 
       class Table < ActiveRecord::ConnectionAdapters::Table

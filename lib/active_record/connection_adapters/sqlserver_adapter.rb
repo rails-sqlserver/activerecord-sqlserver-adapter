@@ -312,7 +312,7 @@ module ActiveRecord
         @collation = nil
       end
 
-      def clear_cache!
+      def clear_cache!(...)
         @view_information = nil
         super
       end
