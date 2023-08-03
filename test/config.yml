@@ -1,7 +1,7 @@
 
 default_connection_info: &default_connection_info
   adapter: sqlserver
-  mode: <%= ENV['ARCONN'] || 'dblib' %>
+  mode: <%= ENV['ARCONN_MODE'] || 'dblib' %>
   host: <%= ENV['ACTIVERECORD_UNITTEST_HOST'] || 'localhost' %>
   port: <%= ENV['ACTIVERECORD_UNITTEST_PORT'] %>
   database: activerecord_unittest
@@ -12,7 +12,7 @@ default_connection_info: &default_connection_info
 
 connections:
 
-  dblib:
+  sqlserver:
     arunit:
       <<: *default_connection_info
       appname: SQLServerAdptrUnit
