@@ -12,9 +12,12 @@ gem "sqlite3", "~> 1.4"
 gem "tzinfo-data", platforms: [:mingw, :mswin, :x64_mingw, :jruby]
 gem "benchmark-ips"
 gem "minitest", ">= 5.15.0", "< 5.16"
+gem "msgpack", ">= 1.7.0"
 
 if ENV["RAILS_SOURCE"]
   gemspec path: ENV["RAILS_SOURCE"]
+elsif ENV["RAILS_MAIN"]
+  gem "rails", github: "rails/rails", branch: 'main'
 else
   # Need to get rails source because the gem doesn't include tests
   version = ENV["RAILS_VERSION"] || begin

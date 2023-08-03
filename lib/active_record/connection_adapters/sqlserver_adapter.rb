@@ -154,10 +154,14 @@ module ActiveRecord
         end
       end
 
-      def initialize(connection, logger, _connection_options, config)
-        super(connection, logger, config)
-        @connection_options = config
-        perform_connection_configuration
+      def initialize(...)
+        super
+
+        @config = @config.symbolize_keys
+        @config.reverse_merge!(mode: :dblib)
+        @config[:mode] = @config[:mode].to_s.downcase.underscore.to_sym
+
+        @connection_options ||= @config
       end
 
       # === Abstract Adapter ========================================== #
@@ -229,7 +233,7 @@ module ActiveRecord
       end
 
       def supports_json?
-        @version_year >= 2016
+        version_year >= 2016
       end
 
       def supports_comments?
@@ -253,7 +257,7 @@ module ActiveRecord
       end
 
       def supports_in_memory_oltp?
-        @version_year >= 2014
+        version_year >= 2014
       end
 
       def supports_insert_returning?
@@ -308,7 +312,7 @@ module ActiveRecord
         @collation = nil
       end
 
-      def clear_cache!
+      def clear_cache!(...)
         @view_information = nil
         super
       end
@@ -534,11 +538,15 @@ module ActiveRecord
       end
 
       def version_year
-        return 2016 if sqlserver_version =~ /vNext/
-
-        /SQL Server (\d+)/.match(sqlserver_version).to_a.last.to_s.to_i
-      rescue StandardError
-        2016
+        @version_year ||= begin
+          if sqlserver_version =~ /vNext/
+            2016
+          else
+            /SQL Server (\d+)/.match(sqlserver_version).to_a.last.to_s.to_i
+          end
+        rescue StandardError
+          2016
+        end
       end
 
       def sqlserver_version
@@ -559,7 +567,6 @@ module ActiveRecord
 
       def configure_connection_defaults
         @spid = _raw_select("SELECT @@SPID", fetch: :rows).first.first
-        @version_year = version_year
 
         initialize_dateformatter
         use_database
