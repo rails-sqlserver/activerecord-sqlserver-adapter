@@ -6,7 +6,7 @@ default_connection_info: &default_connection_info
   port: <%= ENV['ACTIVERECORD_UNITTEST_PORT'] %>
   database: activerecord_unittest
   username: <%= ENV['ACTIVERECORD_UNITTEST_USER'] || 'rails' %>
-  password: <%= ENV['ACTIVERECORD_UNITTEST_PASS'] || '' %>
+  password: <%= ENV['ACTIVERECORD_UNITTEST_PASS'] || 'password' %>
   collation: <%= ENV['ACTIVERECORD_UNITTEST_COLLATION'] || nil %>
   encoding: utf8
 
