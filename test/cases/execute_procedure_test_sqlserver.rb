@@ -43,7 +43,7 @@ class ExecuteProcedureTestSQLServer < ActiveRecord::TestCase
   end
 
   it 'test deprecation with transaction return when executing procedure' do
-    assert_deprecated do
+    assert_deprecated(ActiveRecord.deprecator) do
       ActiveRecord::Base.transaction do
         connection.execute_procedure("my_getutcdate")
         return
