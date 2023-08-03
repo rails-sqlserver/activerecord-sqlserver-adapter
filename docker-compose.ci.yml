@@ -5,7 +5,7 @@ services:
   ci:
     environment:
       - ACTIVERECORD_UNITTEST_HOST=sqlserver
-      - RAILS_MAIN=true
+      - RAILS_MAIN=1
     build:
       context: .
       dockerfile: Dockerfile.ci

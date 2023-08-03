@@ -9,6 +9,6 @@ WORKDIR $WORKDIR
 
 COPY . $WORKDIR
 
-RUN RAILS_MAIN=true bundle install --jobs `expr $(cat /proc/cpuinfo | grep -c "cpu cores") - 1` --retry 3
+RUN RAILS_MAIN=1 bundle install --jobs `expr $(cat /proc/cpuinfo | grep -c "cpu cores") - 1` --retry 3
 
 CMD ["sh"]
