@@ -16,7 +16,7 @@ gem "msgpack", ">= 1.7.0"
 
 if ENV["RAILS_SOURCE"]
   gemspec path: ENV["RAILS_SOURCE"]
-elsif true # TODO: Remove when `RAILS_MAIN` environment variable works on CI.
+elsif ENV["RAILS_MAIN"].present?
   gem "rails", github: "rails/rails", branch: 'main'
 else
   # Need to get rails source because the gem doesn't include tests
