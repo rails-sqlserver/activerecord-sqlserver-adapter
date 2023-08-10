@@ -425,9 +425,6 @@ module ActiveRecord
         end
 
         def _raw_select(sql, options = {})
-
-          puts "** sql=#{sql}"
-
           handle = raw_connection_run(sql)
           handle_to_names_and_values(handle, options)
         ensure
@@ -459,7 +456,6 @@ module ActiveRecord
             qo[:timezone] = ActiveRecord.default_timezone || :utc
             qo[:as] = (options[:ar_result] || options[:fetch] == :rows) ? :array : :hash
           end
-
           results = handle.each(query_options)
           columns = lowercase_schema_reflection ? handle.fields.map { |c| c.downcase } : handle.fields
           options[:ar_result] ? ActiveRecord::Result.new(columns, results) : results
