@@ -371,6 +371,15 @@ module ActiveRecord
           view_exists = view_exists?(table_name)
           view_tblnm  = view_table_name(table_name) if view_exists
 
+          if view_exists
+            results = sp_executesql %{
+              SELECT c.COLUMN_NAME AS [name], c.COLUMN_DEFAULT AS [default]
+              FROM #{database}.INFORMATION_SCHEMA.COLUMNS c
+              WHERE c.TABLE_NAME = #{quote(view_tblnm)}
+            }.squish, "SCHEMA", []
+            default_functions = results.each.with_object({}) {|row, out| out[row["name"]] = row["default"] }.compact
+          end
+
           sql = column_definitions_sql(database, identifier)
 
           binds = []
@@ -402,13 +411,8 @@ module ActiveRecord
             ci[:default_function] = begin
               default = ci[:default_value]
               if default.nil? && view_exists
-                default = select_value %{
-                  SELECT c.COLUMN_DEFAULT
-                  FROM #{database}.INFORMATION_SCHEMA.COLUMNS c
-                  WHERE
-                    c.TABLE_NAME = '#{view_tblnm}'
-                    AND c.COLUMN_NAME = '#{views_real_column_name(table_name, ci[:name])}'
-                }.squish, "SCHEMA"
+                view_column = views_real_column_name(table_name, ci[:name])
+                default = default_functions[view_column] if view_column.present?
               end
               case default
               when nil
