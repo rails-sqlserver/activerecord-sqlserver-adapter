@@ -1,3 +1,9 @@
+## Unreleased
+
+#### Changed
+
+- [#1073](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1073) Improve performance of view default function lookup
+
 ## v7.0.3.0
 
 #### Fixed
