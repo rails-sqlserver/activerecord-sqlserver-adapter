@@ -8,20 +8,20 @@ module ActiveRecord
           SQLSERVER_STATEMENT_PREFIX = "EXEC sp_executesql "
           SQLSERVER_STATEMENT_REGEXP = /N'(.+)', N'(.+)', (.+)/
 
-          def exec_explain(queries)
+          def exec_explain(queries, options = [])
             return super unless connection.adapter_name == "SQLServer"
 
             unprepared_queries = queries.map do |(sql, binds)|
               [unprepare_sqlserver_statement(sql, binds), binds]
             end
-            super(unprepared_queries)
+            super(unprepared_queries, options)
           end
 
           private
 
-          # This is somewhat hacky, but it should reliably reformat our prepared sql statment
+          # This is somewhat hacky, but it should reliably reformat our prepared sql statement
           # which uses sp_executesql to just the first argument, then unquote it. Likewise our
-          # `sp_executesql` method should substitude the @n args with the quoted values.
+          # `sp_executesql` method should substitute the @n args with the quoted values.
           def unprepare_sqlserver_statement(sql, binds)
             return sql unless sql.start_with?(SQLSERVER_STATEMENT_PREFIX)
 

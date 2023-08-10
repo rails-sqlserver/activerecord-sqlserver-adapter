@@ -12,11 +12,15 @@ module ActiveRecord
         OPTION_XML  = "SHOWPLAN_XML"
         OPTIONS = [OPTION_ALL, OPTION_TEXT, OPTION_XML]
 
-        def explain(arel, binds = [])
-          sql = to_sql(arel)
+        def explain(arel, binds = [], options = [])
+          sql = build_explain_clause(options) + " " + to_sql(arel)
           result = with_showplan_on { sp_executesql(sql, "EXPLAIN", binds) }
           printer = showplan_printer.new(result)
           printer.pp
+        end
+
+        def build_explain_clause(options)
+          "EXPLAIN #{options.join(", ").upcase}".squish
         end
 
         protected
