@@ -12,7 +12,7 @@ module ActiveRecord
         OPTION_XML  = "SHOWPLAN_XML"
         OPTIONS = [OPTION_ALL, OPTION_TEXT, OPTION_XML]
 
-        def explain(arel, binds = [])
+        def explain(arel, binds = [], options = [])
           sql = to_sql(arel)
           result = with_showplan_on { sp_executesql(sql, "EXPLAIN", binds) }
           printer = showplan_printer.new(result)
