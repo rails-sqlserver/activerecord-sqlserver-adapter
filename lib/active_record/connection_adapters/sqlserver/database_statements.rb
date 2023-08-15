@@ -43,9 +43,9 @@ module ActiveRecord
 
         def exec_insert(sql, name = nil, binds = [], pk = nil, _sequence_name = nil, returning: nil)
           if id_insert_table_name = exec_insert_requires_identity?(sql, pk, binds)
-            with_identity_insert_enabled(id_insert_table_name) { super(sql, name, binds, pk) }
+            with_identity_insert_enabled(id_insert_table_name) { super(sql, name, binds, pk, returning) }
           else
-            super(sql, name, binds, pk)
+            super(sql, name, binds, pk, returning)
           end
         end
 
