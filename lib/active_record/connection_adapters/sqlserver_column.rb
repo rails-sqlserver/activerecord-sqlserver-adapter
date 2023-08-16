@@ -17,6 +17,7 @@ module ActiveRecord
         def is_identity?
           is_identity
         end
+        alias_method :auto_incremented_by_db?, :is_identity?
 
         def is_primary?
           is_primary
