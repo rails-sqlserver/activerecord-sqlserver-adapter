@@ -1425,7 +1425,7 @@ class SanitizeTest < ActiveRecord::TestCase
   end
 
   # Use nvarchar string (N'') in assert
-  coerce_tests! test_named_bind_with_literal_colons
+  coerce_tests! :test_named_bind_with_literal_colons
   def test_named_bind_with_literal_colons_coerced
     assert_equal "TO_TIMESTAMP(N'2017/08/02 10:59:00', 'YYYY/MM/DD HH12:MI:SS')", bind("TO_TIMESTAMP(:date, 'YYYY/MM/DD HH12\\:MI\\:SS')", date: "2017/08/02 10:59:00")
     assert_raise(ActiveRecord::PreparedStatementInvalid) { bind "TO_TIMESTAMP(:date, 'YYYY/MM/DD HH12:MI:SS')", date: "2017/08/02 10:59:00" }
