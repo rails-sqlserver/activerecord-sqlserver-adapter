@@ -309,6 +309,7 @@ module ActiveRecord
           log(sql, name) { raw_connection_do(sql) }
         end
 
+        # TODO: Adapter should be refactored to use `with_raw_connection` to translate exceptions.
         def sp_executesql(sql, name, binds, options = {})
           options[:ar_result] = true if options[:fetch] != :rows
           unless without_prepared_statement?(binds)
@@ -316,6 +317,9 @@ module ActiveRecord
             sql = sp_executesql_sql(sql, types, params, name)
           end
           raw_select sql, name, binds, options
+        rescue => original_exception
+          translated_exception = translate_exception_class(original_exception, sql, binds)
+          raise translated_exception
         end
 
         def sp_executesql_types_and_parameters(binds)
