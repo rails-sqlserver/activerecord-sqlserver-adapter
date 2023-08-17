@@ -1423,6 +1423,13 @@ class SanitizeTest < ActiveRecord::TestCase
       searchable_post.search_as_scope("20% _reduction_!").to_a
     end
   end
+
+  # Use nvarchar string (N'') in assert
+  coerce_tests! test_named_bind_with_literal_colons
+  def test_named_bind_with_literal_colons_coerced
+    assert_equal "TO_TIMESTAMP(N'2017/08/02 10:59:00', 'YYYY/MM/DD HH12:MI:SS')", bind("TO_TIMESTAMP(:date, 'YYYY/MM/DD HH12\\:MI\\:SS')", date: "2017/08/02 10:59:00")
+    assert_raise(ActiveRecord::PreparedStatementInvalid) { bind "TO_TIMESTAMP(:date, 'YYYY/MM/DD HH12:MI:SS')", date: "2017/08/02 10:59:00" }
+  end
 end
 
 class SchemaDumperTest < ActiveRecord::TestCase
