@@ -31,14 +31,47 @@ module ActiveRecord
 
         def internal_exec_query(sql, name = "SQL", binds = [], prepare: false, async: false)
           sql = transform_query(sql)
-          if preventing_writes? && write_query?(sql)
-            raise ActiveRecord::ReadOnlyError, "Write query attempted while in readonly mode: #{sql}"
-          end
-
-          materialize_transactions
+          check_if_write_query(sql)
           mark_transaction_written_if_write(sql)
 
-          sp_executesql(sql, name, binds, prepare: prepare, async: async)
+          # TODO: Can be removed when using `with_raw_connection`.
+          # materialize_transactions
+
+
+
+
+          # TODO: Should this be renamed?
+          # sp_executesql(sql, name, binds, prepare: prepare, async: async)
+
+
+          type_casted_binds = type_casted_binds(binds)
+
+          log(sql, name, binds, type_casted_binds, async: async) do
+            with_raw_connection do |conn|
+              options = { ar_result: true }
+
+              unless without_prepared_statement?(binds)
+                types, params = sp_executesql_types_and_parameters(binds)
+                sql = sp_executesql_sql(sql, types, params, name)
+              end
+
+              begin
+                handle = conn.execute(sql).tap do |result|
+                  # TinyTDS returns false instead of raising an exception if connection fails.
+                  # Getting around this by raising an exception ourselves while this PR
+                  # https://github.com/rails-sqlserver/tiny_tds/pull/469 is not released.
+                  raise TinyTds::Error, "failed to execute statement" if result.is_a?(FalseClass)
+                end
+                handle_to_names_and_values(handle, options)
+              ensure
+                finish_statement_handle(handle)
+              end
+
+              # raw_select(sql, name, binds, options)
+            end
+          end
+
+
         end
 
         def exec_insert(sql, name = nil, binds = [], pk = nil, _sequence_name = nil, returning: nil)
@@ -309,10 +342,12 @@ module ActiveRecord
         # TODO: Adapter should be refactored to use `with_raw_connection` to translate exceptions.
         def sp_executesql(sql, name, binds, options = {})
           options[:ar_result] = true if options[:fetch] != :rows
+
           unless without_prepared_statement?(binds)
             types, params = sp_executesql_types_and_parameters(binds)
             sql = sp_executesql_sql(sql, types, params, name)
           end
+
           raw_select sql, name, binds, options
         rescue => original_exception
           translated_exception = translate_exception_class(original_exception, sql, binds)

@@ -101,16 +101,18 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
   it "test bad connection" do
     assert_raise ActiveRecord::NoDatabaseError do
       db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
-      configuration = db_config.configuration_hash.merge(database: "inexistent_activerecord_unittest")
-      ActiveRecord::Base.sqlserver_connection configuration
+      configuration = db_config.configuration_hash.merge(database: "nonexistent_activerecord_unittest")
+
+      connection = ActiveRecord::Base.sqlserver_connection configuration
+      connection.exec_query("SELECT 1")
     end
   end
 
   it "test database exists returns false if database does not exist" do
     db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
-    configuration = db_config.configuration_hash.merge(database: "inexistent_activerecord_unittest")
+    configuration = db_config.configuration_hash.merge(database: "nonexistent_activerecord_unittest")
     assert_not ActiveRecord::ConnectionAdapters::SQLServerAdapter.database_exists?(configuration),
-               "expected database to not exist"
+               "expected database #{configuration[:database]} to not exist"
   end
 
   it "test database exists returns true when the database exists" do
@@ -305,7 +307,7 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
   end
 
   describe "database statements" do
-    it "run the database consistency checker useroptions command" do
+    it "run the database consistency checker 'user_options' command" do
       skip "on azure" if connection_sqlserver_azure?
       keys = [:textsize, :language, :isolation_level, :dateformat]
       user_options = connection.user_options
@@ -344,7 +346,7 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
       assert_equal "tinyint", connection.type_to_sql(:integer, limit: 1)
     end
 
-    it "create bigints when limit is greateer than 4" do
+    it "create bigints when limit is greater than 4" do
       assert_equal "bigint", connection.type_to_sql(:integer, limit: 5)
       assert_equal "bigint", connection.type_to_sql(:integer, limit: 6)
       assert_equal "bigint", connection.type_to_sql(:integer, limit: 7)

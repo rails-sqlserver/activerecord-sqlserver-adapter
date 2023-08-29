@@ -120,11 +120,11 @@ module ActiveRecord
         SQLServer::SchemaCreation.new(self)
       end
 
-      def self.database_exists?(config)
-        !!ActiveRecord::Base.sqlserver_connection(config)
-      rescue ActiveRecord::NoDatabaseError
-        false
-      end
+      # def self.database_exists?(config)
+      #   !!ActiveRecord::Base.sqlserver_connection(config)
+      # rescue ActiveRecord::NoDatabaseError
+      #   false
+      # end
 
       def supports_ddl_transactions?
         true
@@ -237,9 +237,12 @@ module ActiveRecord
         false
       end
 
-      def reconnect!
-        super
-        disconnect!
+      def reconnect
+        @raw_connection.close rescue nil
+        @raw_connection = nil
+        @spid = nil
+        @collation = nil
+
         connect
       end
 
