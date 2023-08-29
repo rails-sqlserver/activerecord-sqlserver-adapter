@@ -172,18 +172,15 @@ module ActiveRecord
                    variables.map { |v| quote(v) }
                  end.join(", ")
           sql = "EXEC #{proc_name} #{vars}".strip
-          name = "Execute Procedure"
-          log(sql, name) do
-            case @connection_options[:mode]
-            when :dblib
-              result = ensure_established_connection! { dblib_execute(sql) }
-              options = { as: :hash, cache_rows: true, timezone: ActiveRecord.default_timezone || :utc }
-              result.each(options) do |row|
-                r = row.with_indifferent_access
-                yield(r) if block_given?
-              end
-              result.each.map { |row| row.is_a?(Hash) ? row.with_indifferent_access : row }
+
+          log(sql, "Execute Procedure") do
+            result = ensure_established_connection! { dblib_execute(sql) }
+            options = { as: :hash, cache_rows: true, timezone: ActiveRecord.default_timezone || :utc }
+            result.each(options) do |row|
+              r = row.with_indifferent_access
+              yield(r) if block_given?
             end
+            result.each.map { |row| row.is_a?(Hash) ? row.with_indifferent_access : row }
           end
         end
 
@@ -198,7 +195,7 @@ module ActiveRecord
         def use_database(database = nil)
           return if sqlserver_azure?
 
-          name = SQLServer::Utils.extract_identifiers(database || @connection_options[:database]).quoted
+          name = SQLServer::Utils.extract_identifiers(database || @connection_parameters[:database]).quoted
           do_execute "USE #{name}" unless name.blank?
         end
 
@@ -373,11 +370,8 @@ module ActiveRecord
         end
 
         def raw_connection_do(sql)
-          case @connection_options[:mode]
-          when :dblib
-            result = ensure_established_connection! { dblib_execute(sql) }
-            result.do
-          end
+          result = ensure_established_connection! { dblib_execute(sql) }
+          result.do
         ensure
           @update_sql = false
         end
@@ -436,23 +430,11 @@ module ActiveRecord
         end
 
         def raw_connection_run(sql)
-          case @connection_options[:mode]
-          when :dblib
-            ensure_established_connection! { dblib_execute(sql) }
-          end
-        end
-
-        def handle_more_results?(handle)
-          case @connection_options[:mode]
-          when :dblib
-          end
+          ensure_established_connection! { dblib_execute(sql) }
         end
 
         def handle_to_names_and_values(handle, options = {})
-          case @connection_options[:mode]
-          when :dblib
-            handle_to_names_and_values_dblib(handle, options)
-          end
+          handle_to_names_and_values_dblib(handle, options)
         end
 
         def handle_to_names_and_values_dblib(handle, options = {})
@@ -466,10 +448,7 @@ module ActiveRecord
         end
 
         def finish_statement_handle(handle)
-          case @connection_options[:mode]
-          when :dblib
-            handle.cancel if handle
-          end
+          handle.cancel if handle
           handle
         end
 

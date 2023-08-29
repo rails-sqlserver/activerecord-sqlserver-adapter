@@ -19,13 +19,7 @@ namespace :test do
       t.verbose = false
     end
   end
-
-  task "dblib:env" do
-    ENV["ARCONN_MODE"] = "dblib"
-  end
 end
-
-task "test:dblib" => "test:dblib:env"
 
 namespace :profile do
   ["dblib"].each do |mode|

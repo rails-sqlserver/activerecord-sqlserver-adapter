@@ -33,7 +33,7 @@ module ActiveRecord
 
         def create_database_options(options = {})
           keys  = [:collate]
-          copts = @connection_options
+          copts = @connection_parameters
           options = {
             collate: copts[:collation]
           }.merge(options.symbolize_keys).select { |_, v|
@@ -46,7 +46,7 @@ module ActiveRecord
 
         def create_database_edition_options(options = {})
           keys  = [:maxsize, :edition, :service_objective]
-          copts = @connection_options
+          copts = @connection_parameters
           edition_options = {
             maxsize: copts[:azure_maxsize],
             edition: copts[:azure_edition],

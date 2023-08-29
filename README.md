@@ -90,13 +90,16 @@ end
 
 #### Configure Connection
 
-We currently conform to an unpublished and non-standard AbstractAdapter interface to configure connections made to the database. To do so, just implement the `configure_connection` method in an initializer like so. In this case below we are setting the `TEXTSIZE` to 64 megabytes.
+The adapter conforms to the AbstractAdapter interface to configure connections. If you require additional connection
+configuration then implement the `configure_connection` method in an initializer like so. In the following
+example we are setting the `TEXTSIZE` to 64 megabytes.
 
 ```ruby
 module ActiveRecord
   module ConnectionAdapters
     class SQLServerAdapter < AbstractAdapter
       def configure_connection
+        super
         raw_connection_do "SET TEXTSIZE #{64.megabytes}"
       end
     end
