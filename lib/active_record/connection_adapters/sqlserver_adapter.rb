@@ -229,7 +229,7 @@ module ActiveRecord
       # === Abstract Adapter (Connection Management) ================== #
 
       def active?
-        return false unless @connection
+        return false unless @raw_connection
 
         raw_connection_do "SELECT 1"
         true
@@ -246,8 +246,8 @@ module ActiveRecord
       def disconnect!
         super
 
-        @connection.close rescue nil
-        @connection = nil
+        @raw_connection.close rescue nil
+        @raw_connection = nil
         @spid = nil
         @collation = nil
       end
@@ -457,7 +457,7 @@ module ActiveRecord
       # === SQLServer Specific (Connection Management) ================ #
 
       def connection_errors
-        @connection_errors ||= [].tap do |errors|
+        @raw_connection_errors ||= [].tap do |errors|
           errors << TinyTds::Error if defined?(TinyTds::Error)
         end
       end
@@ -496,7 +496,7 @@ module ActiveRecord
       private
 
       def connect
-        @connection = self.class.new_client(@connection_parameters)
+        @raw_connection = self.class.new_client(@connection_parameters)
 
         # TODO: Should not need to manually call this once adapter is using `with_raw_connection`.
         configure_connection
@@ -504,19 +504,19 @@ module ActiveRecord
 
       def configure_connection
         if @config[:azure]
-          @connection.execute("SET ANSI_NULLS ON").do
-          @connection.execute("SET ANSI_NULL_DFLT_ON ON").do
-          @connection.execute("SET ANSI_PADDING ON").do
-          @connection.execute("SET ANSI_WARNINGS ON").do
+          @raw_connection.execute("SET ANSI_NULLS ON").do
+          @raw_connection.execute("SET ANSI_NULL_DFLT_ON ON").do
+          @raw_connection.execute("SET ANSI_PADDING ON").do
+          @raw_connection.execute("SET ANSI_WARNINGS ON").do
         else
-          @connection.execute("SET ANSI_DEFAULTS ON").do
+          @raw_connection.execute("SET ANSI_DEFAULTS ON").do
         end
 
-        @connection.execute("SET QUOTED_IDENTIFIER ON").do
-        @connection.execute("SET CURSOR_CLOSE_ON_COMMIT OFF").do
-        @connection.execute("SET IMPLICIT_TRANSACTIONS OFF").do
-        @connection.execute("SET TEXTSIZE 2147483647").do
-        @connection.execute("SET CONCAT_NULL_YIELDS_NULL ON").do
+        @raw_connection.execute("SET QUOTED_IDENTIFIER ON").do
+        @raw_connection.execute("SET CURSOR_CLOSE_ON_COMMIT OFF").do
+        @raw_connection.execute("SET IMPLICIT_TRANSACTIONS OFF").do
+        @raw_connection.execute("SET TEXTSIZE 2147483647").do
+        @raw_connection.execute("SET CONCAT_NULL_YIELDS_NULL ON").do
 
         @spid = _raw_select("SELECT @@SPID", fetch: :rows).first.first
 

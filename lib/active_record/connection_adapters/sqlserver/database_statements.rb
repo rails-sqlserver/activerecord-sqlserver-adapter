@@ -298,7 +298,7 @@ module ActiveRecord
         # === SQLServer Specific (Executing) ============================ #
 
         def do_execute(sql, name = "SQL")
-          connect if @connection.nil?
+          connect if @raw_connection.nil?
 
           materialize_transactions
           mark_transaction_written_if_write(sql)
@@ -453,7 +453,7 @@ module ActiveRecord
         end
 
         def dblib_execute(sql)
-          @connection.execute(sql).tap do |result|
+          @raw_connection.execute(sql).tap do |result|
             # TinyTDS returns false instead of raising an exception if connection fails.
             # Getting around this by raising an exception ourselves while this PR
             # https://github.com/rails-sqlserver/tiny_tds/pull/469 is not released.
@@ -462,7 +462,7 @@ module ActiveRecord
         end
 
         def ensure_established_connection!
-          raise TinyTds::Error, 'SQL Server client is not connected' unless @connection
+          raise TinyTds::Error, 'SQL Server client is not connected' unless @raw_connection
 
           yield
         end
