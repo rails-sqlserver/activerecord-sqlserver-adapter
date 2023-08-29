@@ -2145,6 +2145,17 @@ class FieldOrderedValuesTest < ActiveRecord::TestCase
     Book.where(author_id: nil, name: nil).delete_all
     Book.connection.add_index(:books, [:author_id, :name], unique: true)
   end
+
+  # Need to remove index as SQL Server considers NULLs on a unique-index to be equal unlike PostgreSQL/MySQL/SQLite.
+  coerce_tests! :test_in_order_of_with_nil
+  def test_in_order_of_with_nil_coerced
+    Book.connection.remove_index(:books, column: [:author_id, :name])
+    
+    original_test_in_order_of_with_nil
+  ensure
+    Book.where(author_id: nil, name: nil).delete_all
+    Book.connection.add_index(:books, [:author_id, :name], unique: true)
+  end
 end
 
 require "models/dashboard"
