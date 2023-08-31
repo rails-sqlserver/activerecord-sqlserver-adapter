@@ -56,12 +56,7 @@ module ActiveRecord
               end
 
               begin
-                handle = conn.execute(sql).tap do |result|
-                  # TinyTDS returns false instead of raising an exception if connection fails.
-                  # Getting around this by raising an exception ourselves while this PR
-                  # https://github.com/rails-sqlserver/tiny_tds/pull/469 is not released.
-                  raise TinyTds::Error, "failed to execute statement" if result.is_a?(FalseClass)
-                end
+                handle = _execute(sql, conn)
                 handle_to_names_and_values(handle, options)
               ensure
                 finish_statement_handle(handle)
@@ -197,7 +192,7 @@ module ActiveRecord
         # === SQLServer Specific ======================================== #
 
         def execute_procedure(proc_name, *variables)
-          materialize_transactions
+          # materialize_transactions
 
           vars = if variables.any? && variables.first.is_a?(Hash)
                    variables.first.map { |k, v| "@#{k} = #{quote(v)}" }
@@ -207,14 +202,19 @@ module ActiveRecord
           sql = "EXEC #{proc_name} #{vars}".strip
 
           log(sql, "Execute Procedure") do
-            result = ensure_established_connection! { dblib_execute(sql) }
-            options = { as: :hash, cache_rows: true, timezone: ActiveRecord.default_timezone || :utc }
-            result.each(options) do |row|
-              r = row.with_indifferent_access
-              yield(r) if block_given?
+            with_raw_connection do |conn|
+              result = _execute(sql, conn)
+              options = { as: :hash, cache_rows: true, timezone: ActiveRecord.default_timezone || :utc }
+
+              result.each(options) do |row|
+                r = row.with_indifferent_access
+                yield(r) if block_given?
+              end
+
+              result.each.map { |row| row.is_a?(Hash) ? row.with_indifferent_access : row }
             end
-            result.each.map { |row| row.is_a?(Hash) ? row.with_indifferent_access : row }
           end
+
         end
 
         def with_identity_insert_enabled(table_name)
@@ -469,16 +469,13 @@ module ActiveRecord
         end
 
         def handle_to_names_and_values(handle, options = {})
-          handle_to_names_and_values_dblib(handle, options)
-        end
-
-        def handle_to_names_and_values_dblib(handle, options = {})
           query_options = {}.tap do |qo|
             qo[:timezone] = ActiveRecord.default_timezone || :utc
             qo[:as] = (options[:ar_result] || options[:fetch] == :rows) ? :array : :hash
           end
           results = handle.each(query_options)
           columns = lowercase_schema_reflection ? handle.fields.map { |c| c.downcase } : handle.fields
+
           options[:ar_result] ? ActiveRecord::Result.new(columns, results) : results
         end
 
@@ -487,6 +484,17 @@ module ActiveRecord
           handle
         end
 
+        # TODO: Rename
+        def _execute(sql, conn)
+          conn.execute(sql).tap do |result|
+            # TinyTDS returns false instead of raising an exception if connection fails.
+            # Getting around this by raising an exception ourselves while this PR
+            # https://github.com/rails-sqlserver/tiny_tds/pull/469 is not released.
+            raise TinyTds::Error, "failed to execute statement" if result.is_a?(FalseClass)
+          end
+        end
+
+        # TODO: Remove
         def dblib_execute(sql)
           @raw_connection.execute(sql).tap do |result|
             # TinyTDS returns false instead of raising an exception if connection fails.

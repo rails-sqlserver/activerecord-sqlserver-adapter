@@ -175,7 +175,7 @@ To then connect the application to your SQL Server instance edit the `config/dat
 ## Installation
 
 The adapter has no strict gem dependencies outside of `ActiveRecord` and
-[TinyTDS](https://github.com/rails-sqlserver/tiny_tds). 
+[TinyTDS](https://github.com/rails-sqlserver/tiny_tds).
 
 ```ruby
 gem 'activerecord-sqlserver-adapter'
