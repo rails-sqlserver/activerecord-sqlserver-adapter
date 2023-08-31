@@ -44,18 +44,20 @@ module ActiveRecord
           # sp_executesql(sql, name, binds, prepare: prepare, async: async)
 
 
+
+
+          unless without_prepared_statement?(binds)
+            types, params = sp_executesql_types_and_parameters(binds)
+            sql = sp_executesql_sql(sql, types, params, name)
+          end
+
           type_casted_binds = type_casted_binds(binds)
 
           log(sql, name, binds, type_casted_binds, async: async) do
             with_raw_connection do |conn|
-              options = { ar_result: true }
-
-              unless without_prepared_statement?(binds)
-                types, params = sp_executesql_types_and_parameters(binds)
-                sql = sp_executesql_sql(sql, types, params, name)
-              end
-
               begin
+                options = { ar_result: true }
+
                 handle = _execute(sql, conn)
                 handle_to_names_and_values(handle, options)
               ensure
