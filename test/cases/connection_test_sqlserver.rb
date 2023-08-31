@@ -44,9 +44,9 @@ class ConnectionTestSQLServer < ActiveRecord::TestCase
       assert connection.spid.nil?
     end
 
-    it "reset the connection" do
+    it "reset raw connection on disconnect!" do
       connection.disconnect!
-      _(connection.raw_connection).must_be_nil
+      _(connection.instance_variable_get(:@raw_connection)).must_be_nil
     end
 
     it "be able to disconnect and reconnect at will" do
