@@ -13,20 +13,51 @@ module ActiveRecord
           !READ_QUERY.match?(sql.b)
         end
 
-        def execute(sql, name = nil)
+        def raw_execute(sql, name, async: false, allow_retry: false, materialize_transactions: true)
+
+          # binding.pry
+
           sql = transform_query(sql)
-          if preventing_writes? && write_query?(sql)
-            raise ActiveRecord::ReadOnlyError, "Write query attempted while in readonly mode: #{sql}"
+
+          log(sql, name, async: async) do
+            with_raw_connection(allow_retry: allow_retry, materialize_transactions: materialize_transactions) do |conn|
+
+              if id_insert_table_name = query_requires_identity_insert?(sql)
+                handle = with_identity_insert_enabled(id_insert_table_name) { _execute(sql, conn) }
+              else
+                handle = _execute(sql, conn)
+              end
+
+              begin
+                handle_to_names_and_values(handle)
+              ensure
+                finish_statement_handle(handle)
+
+              end
+              # handle = _execute(sql, conn)
+
+
+              # # sync_timezone_changes(conn)
+              # result = conn.query(sql)
+              # # handle_warnings(sql)
+              # result
+            end
           end
 
-          materialize_transactions
-          mark_transaction_written_if_write(sql)
 
-          if id_insert_table_name = query_requires_identity_insert?(sql)
-            with_identity_insert_enabled(id_insert_table_name) { do_execute(sql, name) }
-          else
-            do_execute(sql, name)
-          end
+          #
+          # if preventing_writes? && write_query?(sql)
+          #   raise ActiveRecord::ReadOnlyError, "Write query attempted while in readonly mode: #{sql}"
+          # end
+          #
+          # materialize_transactions
+          # mark_transaction_written_if_write(sql)
+
+          # if id_insert_table_name = query_requires_identity_insert?(sql)
+          #   with_identity_insert_enabled(id_insert_table_name) { do_execute(sql, name) }
+          # else
+          #   do_execute(sql, name)
+          # end
         end
 
         def internal_exec_query(sql, name = "SQL", binds = [], prepare: false, async: false)
@@ -332,13 +363,16 @@ module ActiveRecord
 
         # === SQLServer Specific (Executing) ============================ #
 
+        # TODO: Remove 'do_execute' and just use `execute`.
         def do_execute(sql, name = "SQL")
-          connect if @raw_connection.nil?
+          execute(sql, name)
 
-          materialize_transactions
-          mark_transaction_written_if_write(sql)
-
-          log(sql, name) { raw_connection_do(sql) }
+          # connect if @raw_connection.nil?
+          #
+          # materialize_transactions
+          # mark_transaction_written_if_write(sql)
+          #
+          # log(sql, name) { raw_connection_do(sql) }
         end
 
         # TODO: Adapter should be refactored to use `with_raw_connection` to translate exceptions.
