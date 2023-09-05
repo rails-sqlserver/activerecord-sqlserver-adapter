@@ -218,6 +218,10 @@ module ActiveRecord
         false
       end
 
+      def return_value_after_insert?(column) # :nodoc:
+        column.is_primary?
+      end
+
       def disable_referential_integrity
         tables = tables_with_referential_integrity
         tables.each { |t| do_execute "ALTER TABLE #{quote_table_name(t)} NOCHECK CONSTRAINT ALL" }

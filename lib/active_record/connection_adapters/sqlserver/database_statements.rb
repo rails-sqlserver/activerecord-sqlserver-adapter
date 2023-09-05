@@ -64,6 +64,8 @@ module ActiveRecord
         end
 
         def internal_exec_query(sql, name = "SQL", binds = [], prepare: false, async: false)
+          result = nil
+
           sql = transform_query(sql)
           check_if_write_query(sql)
           mark_transaction_written_if_write(sql)
@@ -93,23 +95,21 @@ module ActiveRecord
                 options = { ar_result: true }
 
                 handle = _execute(sql, conn)
-                handle_to_names_and_values(handle, options)
+                result = handle_to_names_and_values(handle, options)
               ensure
                 finish_statement_handle(handle)
               end
-
-              # raw_select(sql, name, binds, options)
             end
           end
 
-
+          result
         end
 
         def exec_insert(sql, name = nil, binds = [], pk = nil, _sequence_name = nil, returning: nil)
           if id_insert_table_name = exec_insert_requires_identity?(sql, pk, binds)
-            with_identity_insert_enabled(id_insert_table_name) { super(sql, name, binds, pk, returning) }
+            with_identity_insert_enabled(id_insert_table_name) { super }
           else
-            super(sql, name, binds, pk, returning)
+            super
           end
         end
 
