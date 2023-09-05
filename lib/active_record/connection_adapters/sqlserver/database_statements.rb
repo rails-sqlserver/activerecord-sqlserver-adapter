@@ -16,6 +16,7 @@ module ActiveRecord
         def raw_execute(sql, name, async: false, allow_retry: false, materialize_transactions: true)
 
           # binding.pry
+          result = nil
 
           sql = transform_query(sql)
 
@@ -28,12 +29,13 @@ module ActiveRecord
                 handle = _execute(sql, conn)
               end
 
-              begin
-                handle_to_names_and_values(handle)
-              ensure
-                finish_statement_handle(handle)
-
-              end
+              # begin
+                result = handle.do
+                # handle_to_names_and_values(handle)
+              # ensure
+              #   finish_statement_handle(handle)
+              #
+              # end
               # handle = _execute(sql, conn)
 
 
@@ -44,6 +46,7 @@ module ActiveRecord
             end
           end
 
+          result
 
           #
           # if preventing_writes? && write_query?(sql)
