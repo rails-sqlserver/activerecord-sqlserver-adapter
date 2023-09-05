@@ -219,7 +219,7 @@ module ActiveRecord
       end
 
       def return_value_after_insert?(column) # :nodoc:
-        column.is_primary?
+        column.is_primary? || column.is_identity?
       end
 
       def disable_referential_integrity
