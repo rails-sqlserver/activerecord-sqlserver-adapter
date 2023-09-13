@@ -336,11 +336,12 @@ module ActiveRecord
           end
 
           sql = if pk && use_output_inserted? && !database_prefix_remote_server?
-                  quoted_pk = SQLServer::Utils.extract_identifiers(pk).quoted
                   table_name ||= get_table_name(sql)
                   exclude_output_inserted = exclude_output_inserted_table_name?(table_name, sql)
 
                   if exclude_output_inserted
+                    quoted_pk = SQLServer::Utils.extract_identifiers(pk).quoted
+
                     id_sql_type = exclude_output_inserted.is_a?(TrueClass) ? "bigint" : exclude_output_inserted
                     <<~SQL.squish
                       DECLARE @ssaIdInsertTable table (#{quoted_pk} #{id_sql_type});
@@ -348,7 +349,9 @@ module ActiveRecord
                       SELECT CAST(#{quoted_pk} AS #{id_sql_type}) FROM @ssaIdInsertTable
                     SQL
                   else
-                    sql.dup.insert sql.index(/ (DEFAULT )?VALUES/i), " OUTPUT INSERTED.#{quoted_pk}"
+                    inserted_keys = Array(pk).map { |primary_key| " INSERTED.#{SQLServer::Utils.extract_identifiers(primary_key).quoted}" }
+
+                    sql.dup.insert sql.index(/ (DEFAULT )?VALUES/i), " OUTPUT" + inserted_keys.join(",")
                   end
                 else
                   "#{sql}; SELECT CAST(SCOPE_IDENTITY() AS bigint) AS Ident"
