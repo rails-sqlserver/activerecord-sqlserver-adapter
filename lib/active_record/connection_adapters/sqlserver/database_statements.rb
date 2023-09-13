@@ -14,82 +14,37 @@ module ActiveRecord
         end
 
         def raw_execute(sql, name, async: false, allow_retry: false, materialize_transactions: true)
-
-          # binding.pry
           result = nil
-
           sql = transform_query(sql)
 
           log(sql, name, async: async) do
             with_raw_connection(allow_retry: allow_retry, materialize_transactions: materialize_transactions) do |conn|
+              handle = if id_insert_table_name = query_requires_identity_insert?(sql)
+                         with_identity_insert_enabled(id_insert_table_name) { _execute(sql, conn) }
+                       else
+                         _execute(sql, conn)
+                       end
 
-              if id_insert_table_name = query_requires_identity_insert?(sql)
-                handle = with_identity_insert_enabled(id_insert_table_name) { _execute(sql, conn) }
-              else
-                handle = _execute(sql, conn)
-              end
-
-              # begin
-                result = handle.do
-                # handle_to_names_and_values(handle)
-              # ensure
-              #   finish_statement_handle(handle)
-              #
-              # end
-              # handle = _execute(sql, conn)
-
-
-              # # sync_timezone_changes(conn)
-              # result = conn.query(sql)
-              # # handle_warnings(sql)
-              # result
+              result = handle.do
             end
           end
 
           result
-
-          #
-          # if preventing_writes? && write_query?(sql)
-          #   raise ActiveRecord::ReadOnlyError, "Write query attempted while in readonly mode: #{sql}"
-          # end
-          #
-          # materialize_transactions
-          # mark_transaction_written_if_write(sql)
-
-          # if id_insert_table_name = query_requires_identity_insert?(sql)
-          #   with_identity_insert_enabled(id_insert_table_name) { do_execute(sql, name) }
-          # else
-          #   do_execute(sql, name)
-          # end
         end
 
         def internal_exec_query(sql, name = "SQL", binds = [], prepare: false, async: false)
           result = nil
-
           sql = transform_query(sql)
+
           check_if_write_query(sql)
           mark_transaction_written_if_write(sql)
-
-          # TODO: Can be removed when using `with_raw_connection`.
-          # materialize_transactions
-
-
-
-
-          # TODO: Should this be renamed?
-          # sp_executesql(sql, name, binds, prepare: prepare, async: async)
-
-
-
 
           unless without_prepared_statement?(binds)
             types, params = sp_executesql_types_and_parameters(binds)
             sql = sp_executesql_sql(sql, types, params, name)
           end
 
-          type_casted_binds = type_casted_binds(binds)
-
-          log(sql, name, binds, type_casted_binds, async: async) do
+          log(sql, name, binds, async: async) do
             with_raw_connection do |conn|
               begin
                 options = { ar_result: true }
@@ -124,7 +79,7 @@ module ActiveRecord
         end
 
         def begin_db_transaction
-          do_execute "BEGIN TRANSACTION", "TRANSACTION"
+          execute "BEGIN TRANSACTION", "TRANSACTION"
         end
 
         def transaction_isolation_levels
@@ -137,25 +92,25 @@ module ActiveRecord
         end
 
         def set_transaction_isolation_level(isolation_level)
-          do_execute "SET TRANSACTION ISOLATION LEVEL #{isolation_level}", "TRANSACTION"
+          execute "SET TRANSACTION ISOLATION LEVEL #{isolation_level}", "TRANSACTION"
         end
 
         def commit_db_transaction
-          do_execute "COMMIT TRANSACTION", "TRANSACTION"
+          execute "COMMIT TRANSACTION", "TRANSACTION"
         end
 
         def exec_rollback_db_transaction
-          do_execute "IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION", "TRANSACTION"
+          execute "IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION", "TRANSACTION"
         end
 
         include Savepoints
 
         def create_savepoint(name = current_savepoint_name)
-          do_execute "SAVE TRANSACTION #{name}", "TRANSACTION"
+          execute "SAVE TRANSACTION #{name}", "TRANSACTION"
         end
 
         def exec_rollback_to_savepoint(name = current_savepoint_name)
-          do_execute "ROLLBACK TRANSACTION #{name}", "TRANSACTION"
+          execute "ROLLBACK TRANSACTION #{name}", "TRANSACTION"
         end
 
         def release_savepoint(name = current_savepoint_name)
@@ -228,8 +183,6 @@ module ActiveRecord
         # === SQLServer Specific ======================================== #
 
         def execute_procedure(proc_name, *variables)
-          # materialize_transactions
-
           vars = if variables.any? && variables.first.is_a?(Hash)
                    variables.first.map { |k, v| "@#{k} = #{quote(v)}" }
                  else
@@ -265,7 +218,7 @@ module ActiveRecord
           return if sqlserver_azure?
 
           name = SQLServer::Utils.extract_identifiers(database || @connection_parameters[:database]).quoted
-          do_execute "USE #{name}" unless name.blank?
+          execute "USE #{name}" unless name.blank?
         end
 
         def user_options
@@ -362,24 +315,12 @@ module ActiveRecord
         # === SQLServer Specific ======================================== #
 
         def set_identity_insert(table_name, enable = true)
-          do_execute "SET IDENTITY_INSERT #{table_name} #{enable ? 'ON' : 'OFF'}"
+          execute "SET IDENTITY_INSERT #{table_name} #{enable ? 'ON' : 'OFF'}"
         rescue Exception
           raise ActiveRecordError, "IDENTITY_INSERT could not be turned #{enable ? 'ON' : 'OFF'} for table #{table_name}"
         end
 
         # === SQLServer Specific (Executing) ============================ #
-
-        # TODO: Remove 'do_execute' and just use `execute`.
-        def do_execute(sql, name = "SQL")
-          execute(sql, name)
-
-          # connect if @raw_connection.nil?
-          #
-          # materialize_transactions
-          # mark_transaction_written_if_write(sql)
-          #
-          # log(sql, name) { raw_connection_do(sql) }
-        end
 
         # TODO: Adapter should be refactored to use `with_raw_connection` to translate exceptions.
         def sp_executesql(sql, name, binds, options = {})

@@ -13,8 +13,8 @@ module ActiveRecord
 
         def drop_database(database)
           name = SQLServer::Utils.extract_identifiers(database)
-          do_execute "ALTER DATABASE #{name} SET SINGLE_USER WITH ROLLBACK IMMEDIATE"
-          do_execute "DROP DATABASE #{name}"
+          execute "ALTER DATABASE #{name} SET SINGLE_USER WITH ROLLBACK IMMEDIATE"
+          execute "DROP DATABASE #{name}"
         end
 
         def current_database

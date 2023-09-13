@@ -120,12 +120,6 @@ module ActiveRecord
         SQLServer::SchemaCreation.new(self)
       end
 
-      # def self.database_exists?(config)
-      #   !!ActiveRecord::Base.sqlserver_connection(config)
-      # rescue ActiveRecord::NoDatabaseError
-      #   false
-      # end
-
       def supports_ddl_transactions?
         true
       end
@@ -224,10 +218,10 @@ module ActiveRecord
 
       def disable_referential_integrity
         tables = tables_with_referential_integrity
-        tables.each { |t| do_execute "ALTER TABLE #{quote_table_name(t)} NOCHECK CONSTRAINT ALL" }
+        tables.each { |t| execute "ALTER TABLE #{quote_table_name(t)} NOCHECK CONSTRAINT ALL" }
         yield
       ensure
-        tables.each { |t| do_execute "ALTER TABLE #{quote_table_name(t)} CHECK CONSTRAINT ALL" }
+        tables.each { |t| execute "ALTER TABLE #{quote_table_name(t)} CHECK CONSTRAINT ALL" }
       end
 
       # === Abstract Adapter (Connection Management) ================== #
@@ -266,7 +260,7 @@ module ActiveRecord
 
       def reset!
         reset_transaction
-        do_execute "IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION"
+        execute "IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION"
       end
 
       # === Abstract Adapter (Misc Support) =========================== #
@@ -504,9 +498,6 @@ module ActiveRecord
 
       def connect
         @raw_connection = self.class.new_client(@connection_parameters)
-
-        # TODO: Should not need to manually call this once adapter is using `with_raw_connection`.
-        configure_connection
       end
 
       def configure_connection

@@ -23,7 +23,7 @@ module ActiveRecord
               pktable = fkdata["PKTABLE_NAME"]
               pkcolmn = fkdata["PKCOLUMN_NAME"]
               remove_foreign_key fktable, name: fkdata["FK_NAME"]
-              do_execute "DELETE FROM #{quote_table_name(fktable)} WHERE #{quote_column_name(fkcolmn)} IN ( SELECT #{quote_column_name(pkcolmn)} FROM #{quote_table_name(pktable)} )"
+              execute "DELETE FROM #{quote_table_name(fktable)} WHERE #{quote_column_name(fkcolmn)} IN ( SELECT #{quote_column_name(pkcolmn)} FROM #{quote_table_name(pktable)} )"
             end
           end
           if options[:if_exists] && version_year < 2016
@@ -129,7 +129,7 @@ module ActiveRecord
           validate_table_length!(new_name) unless options[:_uses_legacy_table_name]
           schema_cache.clear_data_source_cache!(table_name.to_s)
           schema_cache.clear_data_source_cache!(new_name.to_s)
-          do_execute "EXEC sp_rename '#{table_name}', '#{new_name}'"
+          execute "EXEC sp_rename '#{table_name}', '#{new_name}'"
           rename_table_indexes(table_name, new_name)
         end
 
@@ -140,7 +140,7 @@ module ActiveRecord
           remove_check_constraints(table_name, column_name)
           remove_default_constraint(table_name, column_name)
           remove_indexes(table_name, column_name)
-          do_execute "ALTER TABLE #{quote_table_name(table_name)} DROP COLUMN #{quote_column_name(column_name)}"
+          execute "ALTER TABLE #{quote_table_name(table_name)} DROP COLUMN #{quote_column_name(column_name)}"
         end
 
         def change_column(table_name, column_name, type, options = {})
@@ -171,7 +171,7 @@ module ActiveRecord
           indexes.each do |index|
             sql_commands << "CREATE INDEX #{quote_table_name(index.name)} ON #{quote_table_name(table_name)} (#{index.columns.map { |c| quote_column_name(c) }.join(', ')})"
           end
-          sql_commands.each { |c| do_execute(c) }
+          sql_commands.each { |c| execute(c) }
           clear_cache!
         end
 
@@ -182,7 +182,7 @@ module ActiveRecord
 
           remove_default_constraint(table_name, column_name)
           default = extract_new_default_value(default_or_changes)
-          do_execute "ALTER TABLE #{quote_table_name(table_name)} ADD CONSTRAINT #{default_constraint_name(table_name, column_name)} DEFAULT #{quote_default_expression(default, column)} FOR #{quote_column_name(column_name)}"
+          execute "ALTER TABLE #{quote_table_name(table_name)} ADD CONSTRAINT #{default_constraint_name(table_name, column_name)} DEFAULT #{quote_default_expression(default, column)} FOR #{quote_column_name(column_name)}"
           clear_cache!
         end
 
@@ -202,7 +202,7 @@ module ActiveRecord
         end
 
         def remove_index!(table_name, index_name)
-          do_execute "DROP INDEX #{quote_column_name(index_name)} ON #{quote_table_name(table_name)}"
+          execute "DROP INDEX #{quote_column_name(index_name)} ON #{quote_table_name(table_name)}"
         end
 
         def foreign_keys(table_name)
@@ -275,11 +275,11 @@ module ActiveRecord
           column_id = SQLServer::Utils.extract_identifiers(column_name)
           column = column_for(table_name, column_name)
           if !allow_null.nil? && allow_null == false && !default.nil?
-            do_execute("UPDATE #{table_id} SET #{column_id}=#{quote(default)} WHERE #{column_id} IS NULL")
+            execute("UPDATE #{table_id} SET #{column_id}=#{quote(default)} WHERE #{column_id} IS NULL")
           end
           sql = "ALTER TABLE #{table_id} ALTER COLUMN #{column_id} #{type_to_sql column.type, limit: column.limit, precision: column.precision, scale: column.scale}"
           sql += " NOT NULL" if !allow_null.nil? && allow_null == false
-          do_execute sql
+          execute sql
         end
 
         def create_schema_dumper(options)
@@ -531,7 +531,7 @@ module ActiveRecord
         def remove_check_constraints(table_name, column_name)
           constraints = select_values "SELECT CONSTRAINT_NAME FROM INFORMATION_SCHEMA.CONSTRAINT_COLUMN_USAGE where TABLE_NAME = '#{quote_string(table_name)}' and COLUMN_NAME = '#{quote_string(column_name)}'", "SCHEMA"
           constraints.each do |constraint|
-            do_execute "ALTER TABLE #{quote_table_name(table_name)} DROP CONSTRAINT #{quote_column_name(constraint)}"
+            execute "ALTER TABLE #{quote_table_name(table_name)} DROP CONSTRAINT #{quote_column_name(constraint)}"
           end
         end
 
@@ -540,7 +540,7 @@ module ActiveRecord
           execute_procedure(:sp_helpconstraint, table_name, "nomsg").flatten.select do |row|
             row["constraint_type"] == "DEFAULT on column #{column_name}"
           end.each do |row|
-            do_execute "ALTER TABLE #{quote_table_name(table_name)} DROP CONSTRAINT #{row['constraint_name']}"
+            execute "ALTER TABLE #{quote_table_name(table_name)} DROP CONSTRAINT #{row['constraint_name']}"
           end
         end
 
