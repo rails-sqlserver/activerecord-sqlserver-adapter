@@ -8,13 +8,13 @@ module ActiveRecord
           name = SQLServer::Utils.extract_identifiers(database)
           db_options = create_database_options(options)
           edition_options = create_database_edition_options(options)
-          do_execute "CREATE DATABASE #{name} #{db_options} #{edition_options}"
+          execute "CREATE DATABASE #{name} #{db_options} #{edition_options}"
         end
 
         def drop_database(database)
           name = SQLServer::Utils.extract_identifiers(database)
-          do_execute "ALTER DATABASE #{name} SET SINGLE_USER WITH ROLLBACK IMMEDIATE"
-          do_execute "DROP DATABASE #{name}"
+          execute "ALTER DATABASE #{name} SET SINGLE_USER WITH ROLLBACK IMMEDIATE"
+          execute "DROP DATABASE #{name}"
         end
 
         def current_database
@@ -33,7 +33,7 @@ module ActiveRecord
 
         def create_database_options(options = {})
           keys  = [:collate]
-          copts = @connection_options
+          copts = @connection_parameters
           options = {
             collate: copts[:collation]
           }.merge(options.symbolize_keys).select { |_, v|
@@ -46,7 +46,7 @@ module ActiveRecord
 
         def create_database_edition_options(options = {})
           keys  = [:maxsize, :edition, :service_objective]
-          copts = @connection_options
+          copts = @connection_parameters
           edition_options = {
             maxsize: copts[:azure_maxsize],
             edition: copts[:azure_edition],

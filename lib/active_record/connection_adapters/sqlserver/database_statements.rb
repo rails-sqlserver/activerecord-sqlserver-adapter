@@ -13,39 +13,58 @@ module ActiveRecord
           !READ_QUERY.match?(sql.b)
         end
 
-        def execute(sql, name = nil)
+        def raw_execute(sql, name, async: false, allow_retry: false, materialize_transactions: true)
+          result = nil
           sql = transform_query(sql)
-          if preventing_writes? && write_query?(sql)
-            raise ActiveRecord::ReadOnlyError, "Write query attempted while in readonly mode: #{sql}"
+
+          log(sql, name, async: async) do
+            with_raw_connection(allow_retry: allow_retry, materialize_transactions: materialize_transactions) do |conn|
+              handle = if id_insert_table_name = query_requires_identity_insert?(sql)
+                         with_identity_insert_enabled(id_insert_table_name) { _execute(sql, conn) }
+                       else
+                         _execute(sql, conn)
+                       end
+
+              result = handle.do
+            end
           end
 
-          materialize_transactions
-          mark_transaction_written_if_write(sql)
-
-          if id_insert_table_name = query_requires_identity_insert?(sql)
-            with_identity_insert_enabled(id_insert_table_name) { do_execute(sql, name) }
-          else
-            do_execute(sql, name)
-          end
+          result
         end
 
         def internal_exec_query(sql, name = "SQL", binds = [], prepare: false, async: false)
+          result = nil
           sql = transform_query(sql)
-          if preventing_writes? && write_query?(sql)
-            raise ActiveRecord::ReadOnlyError, "Write query attempted while in readonly mode: #{sql}"
-          end
 
-          materialize_transactions
+          check_if_write_query(sql)
           mark_transaction_written_if_write(sql)
 
-          sp_executesql(sql, name, binds, prepare: prepare, async: async)
+          unless without_prepared_statement?(binds)
+            types, params = sp_executesql_types_and_parameters(binds)
+            sql = sp_executesql_sql(sql, types, params, name)
+          end
+
+          log(sql, name, binds, async: async) do
+            with_raw_connection do |conn|
+              begin
+                options = { ar_result: true }
+
+                handle = _execute(sql, conn)
+                result = handle_to_names_and_values(handle, options)
+              ensure
+                finish_statement_handle(handle)
+              end
+            end
+          end
+
+          result
         end
 
         def exec_insert(sql, name = nil, binds = [], pk = nil, _sequence_name = nil, returning: nil)
           if id_insert_table_name = exec_insert_requires_identity?(sql, pk, binds)
-            with_identity_insert_enabled(id_insert_table_name) { super(sql, name, binds, pk, returning) }
+            with_identity_insert_enabled(id_insert_table_name) { super }
           else
-            super(sql, name, binds, pk, returning)
+            super
           end
         end
 
@@ -60,7 +79,7 @@ module ActiveRecord
         end
 
         def begin_db_transaction
-          do_execute "BEGIN TRANSACTION", "TRANSACTION"
+          execute "BEGIN TRANSACTION", "TRANSACTION"
         end
 
         def transaction_isolation_levels
@@ -73,25 +92,25 @@ module ActiveRecord
         end
 
         def set_transaction_isolation_level(isolation_level)
-          do_execute "SET TRANSACTION ISOLATION LEVEL #{isolation_level}", "TRANSACTION"
+          execute "SET TRANSACTION ISOLATION LEVEL #{isolation_level}", "TRANSACTION"
         end
 
         def commit_db_transaction
-          do_execute "COMMIT TRANSACTION", "TRANSACTION"
+          execute "COMMIT TRANSACTION", "TRANSACTION"
         end
 
         def exec_rollback_db_transaction
-          do_execute "IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION", "TRANSACTION"
+          execute "IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION", "TRANSACTION"
         end
 
         include Savepoints
 
         def create_savepoint(name = current_savepoint_name)
-          do_execute "SAVE TRANSACTION #{name}", "TRANSACTION"
+          execute "SAVE TRANSACTION #{name}", "TRANSACTION"
         end
 
         def exec_rollback_to_savepoint(name = current_savepoint_name)
-          do_execute "ROLLBACK TRANSACTION #{name}", "TRANSACTION"
+          execute "ROLLBACK TRANSACTION #{name}", "TRANSACTION"
         end
 
         def release_savepoint(name = current_savepoint_name)
@@ -164,27 +183,27 @@ module ActiveRecord
         # === SQLServer Specific ======================================== #
 
         def execute_procedure(proc_name, *variables)
-          materialize_transactions
-
           vars = if variables.any? && variables.first.is_a?(Hash)
                    variables.first.map { |k, v| "@#{k} = #{quote(v)}" }
                  else
                    variables.map { |v| quote(v) }
                  end.join(", ")
           sql = "EXEC #{proc_name} #{vars}".strip
-          name = "Execute Procedure"
-          log(sql, name) do
-            case @connection_options[:mode]
-            when :dblib
-              result = ensure_established_connection! { dblib_execute(sql) }
+
+          log(sql, "Execute Procedure") do
+            with_raw_connection do |conn|
+              result = _execute(sql, conn)
               options = { as: :hash, cache_rows: true, timezone: ActiveRecord.default_timezone || :utc }
+
               result.each(options) do |row|
                 r = row.with_indifferent_access
                 yield(r) if block_given?
               end
+
               result.each.map { |row| row.is_a?(Hash) ? row.with_indifferent_access : row }
             end
           end
+
         end
 
         def with_identity_insert_enabled(table_name)
@@ -198,8 +217,8 @@ module ActiveRecord
         def use_database(database = nil)
           return if sqlserver_azure?
 
-          name = SQLServer::Utils.extract_identifiers(database || @connection_options[:database]).quoted
-          do_execute "USE #{name}" unless name.blank?
+          name = SQLServer::Utils.extract_identifiers(database || @connection_parameters[:database]).quoted
+          execute "USE #{name}" unless name.blank?
         end
 
         def user_options
@@ -270,11 +289,12 @@ module ActiveRecord
           end
 
           sql = if pk && use_output_inserted? && !database_prefix_remote_server?
-                  quoted_pk = SQLServer::Utils.extract_identifiers(pk).quoted
                   table_name ||= get_table_name(sql)
                   exclude_output_inserted = exclude_output_inserted_table_name?(table_name, sql)
 
                   if exclude_output_inserted
+                    quoted_pk = SQLServer::Utils.extract_identifiers(pk).quoted
+
                     id_sql_type = exclude_output_inserted.is_a?(TrueClass) ? "bigint" : exclude_output_inserted
                     <<~SQL.squish
                       DECLARE @ssaIdInsertTable table (#{quoted_pk} #{id_sql_type});
@@ -282,7 +302,9 @@ module ActiveRecord
                       SELECT CAST(#{quoted_pk} AS #{id_sql_type}) FROM @ssaIdInsertTable
                     SQL
                   else
-                    sql.dup.insert sql.index(/ (DEFAULT )?VALUES/i), " OUTPUT INSERTED.#{quoted_pk}"
+                    inserted_keys = Array(pk).map { |primary_key| " INSERTED.#{SQLServer::Utils.extract_identifiers(primary_key).quoted}" }
+
+                    sql.dup.insert sql.index(/ (DEFAULT )?VALUES/i), " OUTPUT" + inserted_keys.join(",")
                   end
                 else
                   "#{sql}; SELECT CAST(SCOPE_IDENTITY() AS bigint) AS Ident"
@@ -293,29 +315,22 @@ module ActiveRecord
         # === SQLServer Specific ======================================== #
 
         def set_identity_insert(table_name, enable = true)
-          do_execute "SET IDENTITY_INSERT #{table_name} #{enable ? 'ON' : 'OFF'}"
+          execute "SET IDENTITY_INSERT #{table_name} #{enable ? 'ON' : 'OFF'}"
         rescue Exception
           raise ActiveRecordError, "IDENTITY_INSERT could not be turned #{enable ? 'ON' : 'OFF'} for table #{table_name}"
         end
 
         # === SQLServer Specific (Executing) ============================ #
 
-        def do_execute(sql, name = "SQL")
-          connect if @connection.nil?
-
-          materialize_transactions
-          mark_transaction_written_if_write(sql)
-
-          log(sql, name) { raw_connection_do(sql) }
-        end
-
         # TODO: Adapter should be refactored to use `with_raw_connection` to translate exceptions.
         def sp_executesql(sql, name, binds, options = {})
           options[:ar_result] = true if options[:fetch] != :rows
+
           unless without_prepared_statement?(binds)
             types, params = sp_executesql_types_and_parameters(binds)
             sql = sp_executesql_sql(sql, types, params, name)
           end
+
           raw_select sql, name, binds, options
         rescue => original_exception
           translated_exception = translate_exception_class(original_exception, sql, binds)
@@ -373,11 +388,8 @@ module ActiveRecord
         end
 
         def raw_connection_do(sql)
-          case @connection_options[:mode]
-          when :dblib
-            result = ensure_established_connection! { dblib_execute(sql) }
-            result.do
-          end
+          result = ensure_established_connection! { dblib_execute(sql) }
+          result.do
         ensure
           @update_sql = false
         end
@@ -436,45 +448,38 @@ module ActiveRecord
         end
 
         def raw_connection_run(sql)
-          case @connection_options[:mode]
-          when :dblib
-            ensure_established_connection! { dblib_execute(sql) }
-          end
-        end
-
-        def handle_more_results?(handle)
-          case @connection_options[:mode]
-          when :dblib
-          end
+          ensure_established_connection! { dblib_execute(sql) }
         end
 
         def handle_to_names_and_values(handle, options = {})
-          case @connection_options[:mode]
-          when :dblib
-            handle_to_names_and_values_dblib(handle, options)
-          end
-        end
-
-        def handle_to_names_and_values_dblib(handle, options = {})
           query_options = {}.tap do |qo|
             qo[:timezone] = ActiveRecord.default_timezone || :utc
             qo[:as] = (options[:ar_result] || options[:fetch] == :rows) ? :array : :hash
           end
           results = handle.each(query_options)
           columns = lowercase_schema_reflection ? handle.fields.map { |c| c.downcase } : handle.fields
+
           options[:ar_result] ? ActiveRecord::Result.new(columns, results) : results
         end
 
         def finish_statement_handle(handle)
-          case @connection_options[:mode]
-          when :dblib
-            handle.cancel if handle
-          end
+          handle.cancel if handle
           handle
         end
 
+        # TODO: Rename
+        def _execute(sql, conn)
+          conn.execute(sql).tap do |result|
+            # TinyTDS returns false instead of raising an exception if connection fails.
+            # Getting around this by raising an exception ourselves while this PR
+            # https://github.com/rails-sqlserver/tiny_tds/pull/469 is not released.
+            raise TinyTds::Error, "failed to execute statement" if result.is_a?(FalseClass)
+          end
+        end
+
+        # TODO: Remove
         def dblib_execute(sql)
-          @connection.execute(sql).tap do |result|
+          @raw_connection.execute(sql).tap do |result|
             # TinyTDS returns false instead of raising an exception if connection fails.
             # Getting around this by raising an exception ourselves while this PR
             # https://github.com/rails-sqlserver/tiny_tds/pull/469 is not released.
@@ -483,7 +488,7 @@ module ActiveRecord
         end
 
         def ensure_established_connection!
-          raise TinyTds::Error, 'SQL Server client is not connected' unless @connection
+          raise TinyTds::Error, 'SQL Server client is not connected' unless @raw_connection
 
           yield
         end

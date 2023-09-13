@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "tiny_tds"
 require "base64"
 require "active_record"
 require "arel_sqlserver"
@@ -77,62 +78,13 @@ module ActiveRecord
         end
 
         def new_client(config)
-          case config[:mode]
-          when :dblib
-            require "tiny_tds"
-            dblib_connect(config)
+          TinyTds::Client.new(config)
+        rescue TinyTds::Error => error
+          if error.message.match(/database .* does not exist/i)
+            raise ActiveRecord::NoDatabaseError
           else
-            raise ArgumentError, "Unknown connection mode in #{config.inspect}."
+            raise
           end
-        end
-
-        def dblib_connect(config)
-          TinyTds::Client.new(
-            dataserver:    config[:dataserver],
-            host:          config[:host],
-            port:          config[:port],
-            username:      config[:username],
-            password:      config[:password],
-            database:      config[:database],
-            tds_version:   config[:tds_version] || "7.3",
-            appname:       config_appname(config),
-            login_timeout: config_login_timeout(config),
-            timeout:       config_timeout(config),
-            encoding:      config_encoding(config),
-            azure:         config[:azure],
-            contained:     config[:contained]
-          ).tap do |client|
-            if config[:azure]
-              client.execute("SET ANSI_NULLS ON").do
-              client.execute("SET ANSI_NULL_DFLT_ON ON").do
-              client.execute("SET ANSI_PADDING ON").do
-              client.execute("SET ANSI_WARNINGS ON").do
-            else
-              client.execute("SET ANSI_DEFAULTS ON").do
-            end
-            client.execute("SET QUOTED_IDENTIFIER ON").do
-            client.execute("SET CURSOR_CLOSE_ON_COMMIT OFF").do
-            client.execute("SET IMPLICIT_TRANSACTIONS OFF").do
-            client.execute("SET TEXTSIZE 2147483647").do
-            client.execute("SET CONCAT_NULL_YIELDS_NULL ON").do
-          end
-        rescue TinyTds::Error => e
-          raise ActiveRecord::NoDatabaseError if e.message.match(/database .* does not exist/i)
-          raise e
-        end
-
-        def config_appname(config)
-          if instance_methods.include?(:configure_application_name)
-            ActiveSupport::Deprecation.warn <<~MSG.squish
-            Configuring the application name used by TinyTDS by overriding the
-            `ActiveRecord::ConnectionAdapters::SQLServerAdapter#configure_application_name`
-            instance method is no longer supported. The application name should configured
-            using the `appname` setting in the `database.yml` file instead. Consult the
-            README for further information."
-            MSG
-          end
-
-          config[:appname] || rails_application_name
         end
 
         def rails_application_name
@@ -140,34 +92,24 @@ module ActiveRecord
         rescue
           nil # Might not be in a Rails context so we fallback to `nil`.
         end
-
-        def config_login_timeout(config)
-          config[:login_timeout].present? ? config[:login_timeout].to_i : nil
-        end
-
-        def config_timeout(config)
-          config[:timeout].present? ? config[:timeout].to_i / 1000 : nil
-        end
-
-        def config_encoding(config)
-          config[:encoding].present? ? config[:encoding] : nil
-        end
       end
 
       def initialize(...)
         super
 
-        @config = @config.symbolize_keys
-        @config.reverse_merge!(mode: :dblib)
-        @config[:mode] = @config[:mode].to_s.downcase.underscore.to_sym
+        @config[:tds_version] = "7.3" unless @config[:tds_version]
+        @config[:appname] = rails_application_name unless @config[:appname]
+        @config[:login_timeout] = @config[:login_timeout].present? ? @config[:login_timeout].to_i : nil
+        @config[:timeout] = @config[:timeout].present? ? @config[:timeout].to_i / 1000 : nil
+        @config[:encoding] = @config[:encoding].present? ? @config[:encoding] : nil
 
-        @connection_options ||= @config
+        @connection_parameters ||= @config
       end
 
       # === Abstract Adapter ========================================== #
 
       def arel_visitor
-        Arel::Visitors::SQLServer.new self
+        Arel::Visitors::SQLServer.new(self)
       end
 
       def valid_type?(type)
@@ -175,13 +117,7 @@ module ActiveRecord
       end
 
       def schema_creation
-        SQLServer::SchemaCreation.new self
-      end
-
-      def self.database_exists?(config)
-        !!ActiveRecord::Base.sqlserver_connection(config)
-      rescue ActiveRecord::NoDatabaseError
-        false
+        SQLServer::SchemaCreation.new(self)
       end
 
       def supports_ddl_transactions?
@@ -276,18 +212,22 @@ module ActiveRecord
         false
       end
 
+      def return_value_after_insert?(column) # :nodoc:
+        column.is_primary? || column.is_identity?
+      end
+
       def disable_referential_integrity
         tables = tables_with_referential_integrity
-        tables.each { |t| do_execute "ALTER TABLE #{quote_table_name(t)} NOCHECK CONSTRAINT ALL" }
+        tables.each { |t| execute "ALTER TABLE #{quote_table_name(t)} NOCHECK CONSTRAINT ALL" }
         yield
       ensure
-        tables.each { |t| do_execute "ALTER TABLE #{quote_table_name(t)} CHECK CONSTRAINT ALL" }
+        tables.each { |t| execute "ALTER TABLE #{quote_table_name(t)} CHECK CONSTRAINT ALL" }
       end
 
       # === Abstract Adapter (Connection Management) ================== #
 
       def active?
-        return false unless @connection
+        return false unless @raw_connection
 
         raw_connection_do "SELECT 1"
         true
@@ -295,19 +235,20 @@ module ActiveRecord
         false
       end
 
-      def reconnect!
-        super
-        disconnect!
+      def reconnect
+        @raw_connection.close rescue nil
+        @raw_connection = nil
+        @spid = nil
+        @collation = nil
+
         connect
       end
 
       def disconnect!
         super
-        case @connection_options[:mode]
-        when :dblib
-          @connection.close rescue nil
-        end
-        @connection = nil
+
+        @raw_connection.close rescue nil
+        @raw_connection = nil
         @spid = nil
         @collation = nil
       end
@@ -319,7 +260,7 @@ module ActiveRecord
 
       def reset!
         reset_transaction
-        do_execute "IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION"
+        execute "IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION"
       end
 
       # === Abstract Adapter (Misc Support) =========================== #
@@ -360,7 +301,7 @@ module ActiveRecord
       end
 
       def database_prefix
-        @connection_options[:database_prefix]
+        @connection_parameters[:database_prefix]
       end
 
       def database_prefix_identifier(name)
@@ -376,7 +317,7 @@ module ActiveRecord
       end
 
       def inspect
-        "#<#{self.class} version: #{version}, mode: #{@connection_options[:mode]}, azure: #{sqlserver_azure?.inspect}>"
+        "#<#{self.class} version: #{version}, azure: #{sqlserver_azure?.inspect}>"
       end
 
       def combine_bind_parameters(from_clause: [], join_clause: [], where_clause: [], having_clause: [], limit: nil, offset: nil)
@@ -517,7 +458,7 @@ module ActiveRecord
       # === SQLServer Specific (Connection Management) ================ #
 
       def connection_errors
-        @connection_errors ||= [].tap do |errors|
+        @raw_connection_errors ||= [].tap do |errors|
           errors << TinyTds::Error if defined?(TinyTds::Error)
         end
       end
@@ -556,16 +497,25 @@ module ActiveRecord
       private
 
       def connect
-        @connection = self.class.new_client(@connection_options)
-        perform_connection_configuration
+        @raw_connection = self.class.new_client(@connection_parameters)
       end
 
-      def perform_connection_configuration
-        configure_connection_defaults
-        configure_connection if self.respond_to?(:configure_connection)
-      end
+      def configure_connection
+        if @config[:azure]
+          @raw_connection.execute("SET ANSI_NULLS ON").do
+          @raw_connection.execute("SET ANSI_NULL_DFLT_ON ON").do
+          @raw_connection.execute("SET ANSI_PADDING ON").do
+          @raw_connection.execute("SET ANSI_WARNINGS ON").do
+        else
+          @raw_connection.execute("SET ANSI_DEFAULTS ON").do
+        end
 
-      def configure_connection_defaults
+        @raw_connection.execute("SET QUOTED_IDENTIFIER ON").do
+        @raw_connection.execute("SET CURSOR_CLOSE_ON_COMMIT OFF").do
+        @raw_connection.execute("SET IMPLICIT_TRANSACTIONS OFF").do
+        @raw_connection.execute("SET TEXTSIZE 2147483647").do
+        @raw_connection.execute("SET CONCAT_NULL_YIELDS_NULL ON").do
+
         @spid = _raw_select("SELECT @@SPID", fetch: :rows).first.first
 
         initialize_dateformatter

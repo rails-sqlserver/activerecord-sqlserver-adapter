@@ -27,13 +27,13 @@ class SchemaDumperTestSQLServer < ActiveRecord::TestCase
     # Date and Time
     assert_line :date,              type: "date",                                                       default: "01-01-0001"
     assert_line :datetime,          type: "datetime",                    precision: nil,                default: "01-01-1753 00:00:00.123"
-    if connection_dblib_73?
+    if connection_tds_73
       assert_line :datetime2_7,     type: "datetime",                    precision: 7,                  default: "12-31-9999 23:59:59.9999999"
       assert_line :datetime2_3,     type: "datetime",                    precision: 3
       assert_line :datetime2_1,     type: "datetime",                    precision: 1
     end
     assert_line :smalldatetime,     type: "smalldatetime",                                              default: "01-01-1901 15:45:00.0"
-    if connection_dblib_73?
+    if connection_tds_73
       assert_line :time_7,          type: "time",                        precision: 7,                  default: "04:20:00.2883215"
       assert_line :time_2,          type: "time",                        precision: 2
       assert_line :time_default,    type: "time",                        precision: 7,                  default: "15:03:42.0621978"

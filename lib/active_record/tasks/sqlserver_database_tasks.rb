@@ -10,8 +10,7 @@ module ActiveRecord
     class SQLServerDatabaseTasks
       DEFAULT_COLLATION = "SQL_Latin1_General_CP1_CI_AS"
 
-      delegate :connection, :establish_connection, :clear_active_connections!,
-               to: ActiveRecord::Base
+      delegate :connection, :establish_connection, to: ActiveRecord::Base
 
       def self.using_database_configurations?
         true
@@ -51,6 +50,10 @@ module ActiveRecord
         clear_active_connections!
         drop
         create true
+      end
+
+      def clear_active_connections!
+        ActiveRecord::Base.connection_handler.clear_active_connections!
       end
 
       def structure_dump(filename, extra_flags)
