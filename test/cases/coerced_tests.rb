@@ -1766,6 +1766,27 @@ class UnsafeRawSqlTest < ActiveRecord::TestCase
     assert_equal ids_expected, ids
   end
 
+  # Use LEN() vs length() function.
+  coerce_tests! %r{order: allows nested functions}
+  test "order: allows nested functions" do
+    ids_expected = Post.order(Arel.sql("author_id, len(trim(title))")).pluck(:id)
+
+    # $DEBUG = true
+    ids = Post.order("author_id, len(trim(title))").pluck(:id)
+
+    assert_equal ids_expected, ids
+  end
+
+  # Use LEN() vs length() function.
+  coerce_tests! %r{pluck: allows nested functions}
+  test "pluck: allows nested functions" do
+    title_lengths_expected = Post.pluck(Arel.sql("len(trim(title))"))
+
+    title_lengths = Post.pluck("len(trim(title))")
+
+    assert_equal title_lengths_expected, title_lengths
+  end
+
   test "order: allows string column names that are quoted" do
     ids_expected = Post.order(Arel.sql("id")).pluck(:id)
 
@@ -2157,7 +2178,7 @@ class FieldOrderedValuesTest < ActiveRecord::TestCase
   coerce_tests! :test_in_order_of_with_nil
   def test_in_order_of_with_nil_coerced
     Book.connection.remove_index(:books, column: [:author_id, :name])
-    
+
     original_test_in_order_of_with_nil
   ensure
     Book.where(author_id: nil, name: nil).delete_all
