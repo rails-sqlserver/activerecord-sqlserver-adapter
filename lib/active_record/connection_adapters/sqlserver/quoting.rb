@@ -100,6 +100,7 @@ module ActiveRecord
               # [database_name].[database_owner].[table_name].[column_name] | function(one or no argument)
               ((?:\w+\.|\[\w+\]\.)?(?:\w+\.|\[\w+\]\.)?(?:\w+\.|\[\w+\]\.)?(?:\w+|\[\w+\]) | \w+\((?:|\g<2>)\))
             )
+            (?:\s+COLLATE\s+\w+)?
             (?:\s+ASC|\s+DESC)?
             (?:\s+NULLS\s+(?:FIRST|LAST))?
           )

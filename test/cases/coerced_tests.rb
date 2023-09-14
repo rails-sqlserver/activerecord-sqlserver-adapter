@@ -1850,6 +1850,18 @@ class UnsafeRawSqlTest < ActiveRecord::TestCase
 
     assert_equal titles_expected, titles
   end
+
+  # Collation name should not be quoted. Hardcoded values for different adapters.
+  coerce_tests! %r{order: allows valid arguments with COLLATE}
+  test "order: allows valid arguments with COLLATE" do
+    collation_name = "Latin1_General_CS_AS_WS"
+
+    ids_expected = Post.order(Arel.sql(%Q'author_id, title COLLATE #{collation_name} DESC')).pluck(:id)
+
+    ids = Post.order(["author_id", %Q'title COLLATE #{collation_name} DESC']).pluck(:id)
+
+    assert_equal ids_expected, ids
+  end
 end
 
 class ReservedWordTest < ActiveRecord::TestCase
