@@ -854,22 +854,22 @@ require "models/post"
 require "models/subscriber"
 class EachTest < ActiveRecord::TestCase
   # Quoting in tests does not cope with bracket quoting.
-  coerce_tests! :test_find_in_batches_should_quote_batch_order
-  def test_find_in_batches_should_quote_batch_order_coerced
-    Post.connection
-    assert_sql(/ORDER BY \[posts\]\.\[id\]/) do
-      Post.find_in_batches(:batch_size => 1) do |batch|
-        assert_kind_of Array, batch
-        assert_kind_of Post, batch.first
-      end
+  # TODO: Remove coerced test when https://github.com/rails/rails/pull/49269 merged.
+  coerce_tests! :test_in_batches_no_subqueries_for_whole_tables_batching
+  def test_in_batches_no_subqueries_for_whole_tables_batching_coerced
+    c = Post.connection
+    quoted_posts_id = Regexp.escape(c.quote_table_name("posts.id"))
+    assert_sql(/DELETE FROM #{Regexp.escape(c.quote_table_name("posts"))} WHERE #{quoted_posts_id} > .+ AND #{quoted_posts_id} <=/i) do
+      Post.in_batches(of: 2).delete_all
     end
   end
 
   # Quoting in tests does not cope with bracket quoting.
+  # TODO: Remove coerced test when https://github.com/rails/rails/pull/49269 merged.
   coerce_tests! :test_in_batches_should_quote_batch_order
   def test_in_batches_should_quote_batch_order_coerced
     Post.connection
-    assert_sql(/ORDER BY \[posts\]\.\[id\]/) do
+    assert_sql(/ORDER BY #{Regexp.escape(c.quote_table_name('posts'))}\.#{Regexp.escape(c.quote_column_name('id'))}/) do
       Post.in_batches(of: 1) do |relation|
         assert_kind_of ActiveRecord::Relation, relation
         assert_kind_of Post, relation.first
