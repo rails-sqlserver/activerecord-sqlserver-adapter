@@ -256,6 +256,13 @@ module ActiveRecord
           end
         end
 
+        # In SQL Server only the first column added should have the `ADD` keyword.
+        def add_timestamps(table_name, **options)
+          fragments = add_timestamps_for_alter(table_name, **options)
+          fragments[1..].each { |fragment| fragment.sub!('ADD ', '') }
+          execute "ALTER TABLE #{quote_table_name(table_name)} #{fragments.join(', ')}"
+        end
+
         def columns_for_distinct(columns, orders)
           order_columns = orders.reject(&:blank?).map { |s|
                             s = s.to_sql unless s.is_a?(String)
