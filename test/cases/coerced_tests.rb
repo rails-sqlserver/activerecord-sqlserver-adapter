@@ -1441,6 +1441,26 @@ class SanitizeTest < ActiveRecord::TestCase
 end
 
 class SchemaDumperTest < ActiveRecord::TestCase
+  # Use nvarchar string (N'') in assert
+  coerce_tests! :test_dump_schema_information_outputs_lexically_reverse_ordered_versions_regardless_of_database_order
+  def test_dump_schema_information_outputs_lexically_reverse_ordered_versions_regardless_of_database_order_coerced
+    versions = %w{ 20100101010101 20100201010101 20100301010101 }
+    versions.shuffle.each do |v|
+      @schema_migration.create_version(v)
+    end
+
+    schema_info = ActiveRecord::Base.connection.dump_schema_information
+    expected = <<~STR
+    INSERT INTO #{ActiveRecord::Base.connection.quote_table_name("schema_migrations")} (version) VALUES
+    (N'20100301010101'),
+    (N'20100201010101'),
+    (N'20100101010101');
+    STR
+    assert_equal expected.strip, schema_info
+  ensure
+    @schema_migration.delete_all_versions
+  end
+
   # We have precision to 38.
   coerce_tests! :test_schema_dump_keeps_large_precision_integer_columns_as_decimal
   def test_schema_dump_keeps_large_precision_integer_columns_as_decimal_coerced
