@@ -513,6 +513,9 @@ class CalculationsTest < ActiveRecord::TestCase
 
   # Leave it up to users to format selects/functions so HAVING works correctly.
   coerce_tests! :test_having_with_strong_parameters
+  
+  # SELECT columns must be in the GROUP clause. Since since `ids` only selects the primary key you cannot perform this query in SQL Server.
+  coerce_tests! :test_ids_with_includes_and_non_primary_key_order
 end
 
 module ActiveRecord
