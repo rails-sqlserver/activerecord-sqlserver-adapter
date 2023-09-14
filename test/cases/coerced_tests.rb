@@ -2104,7 +2104,7 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
 end
 
 class PreloaderTest < ActiveRecord::TestCase
-  # SQL format for `order_id_constraint` different.
+  # Need to handle query parameters in SQL regex.
   coerce_tests! :test_preloads_has_many_on_model_with_a_composite_primary_key_through_id_attribute
   def test_preloads_has_many_on_model_with_a_composite_primary_key_through_id_attribute_coerced
     order = cpk_orders(:cpk_groceries_order_2)
@@ -2129,6 +2129,30 @@ class PreloaderTest < ActiveRecord::TestCase
 
     assert_match(expectation, preload_sql)
     assert_equal order_agreements.sort, loaded_order.order_agreements.sort
+  end
+
+  # Need to handle query parameters in SQL regex.
+  coerce_tests! :test_preloads_belongs_to_a_composite_primary_key_model_through_id_attribute
+  def test_preloads_belongs_to_a_composite_primary_key_model_through_id_attribute_coerced
+    order_agreement = cpk_order_agreements(:order_agreement_three)
+    order = cpk_orders(:cpk_groceries_order_2)
+    assert_equal order, order_agreement.order
+
+    loaded_order_agreement = nil
+    sql = capture_sql do
+      loaded_order_agreement = Cpk::OrderAgreement.where(id: order_agreement.id).includes(:order).to_a.first
+    end
+
+    assert_equal 2, sql.size
+    preload_sql = sql.last
+
+    c = Cpk::Order.connection
+    order_id = Regexp.escape(c.quote_table_name("cpk_orders.id"))
+    order_constraint = /#{order_id} = @0.*@0 = \d+$/
+    expectation = /SELECT.*WHERE.* #{order_constraint}/
+
+    assert_match(expectation, preload_sql)
+    assert_equal order, loaded_order_agreement.order
   end
 end
 
