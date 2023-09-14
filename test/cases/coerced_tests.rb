@@ -879,7 +879,7 @@ class EachTest < ActiveRecord::TestCase
 end
 
 class EagerAssociationTest < ActiveRecord::TestCase
-  # Use LEN() vs length() function.
+  # Use LEN() instead of LENGTH() function.
   coerce_tests! :test_count_with_include
   def test_count_with_include_coerced
     assert_equal 3, authors(:david).posts_with_comments.where("LEN(comments.body) > 15").references(:comments).count
@@ -1263,14 +1263,14 @@ end
 
 require "models/post"
 class RelationTest < ActiveRecord::TestCase
-  # Use LEN vs LENGTH function.
+  # Use LEN() instead of LENGTH() function.
   coerce_tests! :test_reverse_order_with_function
   def test_reverse_order_with_function_coerced
     topics = Topic.order(Arel.sql("LEN(title)")).reverse_order
     assert_equal topics(:second).title, topics.first.title
   end
 
-  # Use LEN vs LENGTH function.
+  # Use LEN() instead of LENGTH() function.
   coerce_tests! :test_reverse_order_with_function_other_predicates
   def test_reverse_order_with_function_other_predicates_coerced
     topics = Topic.order(Arel.sql("author_name, LEN(title), id")).reverse_order
@@ -1339,6 +1339,14 @@ class RelationTest < ActiveRecord::TestCase
     end
   end
 
+  # Find any limit via our expression.
+  coerce_tests! %r{relations don't load all records in #pretty_print}
+  def test_relations_dont_load_all_records_in_pretty_print_coerced
+    assert_sql(/FETCH NEXT @(\d) ROWS ONLY/) do
+      PP.pp Post.all, StringIO.new # avoid outputting.
+    end
+  end
+
   # Order column must be in the GROUP clause.
   coerce_tests! :test_empty_complex_chained_relations
   def test_empty_complex_chained_relations_coerced
@@ -1368,7 +1376,7 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal post, custom_post_relation.joins(:author).where!(title: post.title).order(:id).take
   end
 
-  # Use LEN() vs length() function.
+  # Use LEN() instead of LENGTH() function.
   coerce_tests! :test_reverse_arel_assoc_order_with_function
   def test_reverse_arel_assoc_order_with_function_coerced
     topics = Topic.order(Arel.sql("LEN(title)") => :asc).reverse_order
@@ -1739,7 +1747,7 @@ require "models/comment"
 class UnsafeRawSqlTest < ActiveRecord::TestCase
   fixtures :posts
 
-  # Use LEN() vs length() function.
+  # Use LEN() instead of LENGTH() function.
   coerce_tests! %r{order: always allows Arel}
   test "order: always allows Arel" do
     titles = Post.order(Arel.sql("len(title)")).pluck(:title)
@@ -1747,7 +1755,7 @@ class UnsafeRawSqlTest < ActiveRecord::TestCase
     assert_not_empty titles
   end
 
-  # Use LEN() vs length() function.
+  # Use LEN() instead of LENGTH() function.
   coerce_tests! %r{pluck: always allows Arel}
   test "pluck: always allows Arel" do
     excepted_values = Post.includes(:comments).pluck(:title).map { |title| [title, title.size] }
@@ -1756,7 +1764,7 @@ class UnsafeRawSqlTest < ActiveRecord::TestCase
     assert_equal excepted_values, values
   end
 
-  # Use LEN() vs length() function.
+  # Use LEN() instead of LENGTH() function.
   coerce_tests! %r{order: allows valid Array arguments}
   test "order: allows valid Array arguments" do
     ids_expected = Post.order(Arel.sql("author_id, len(title)")).pluck(:id)
@@ -1766,7 +1774,7 @@ class UnsafeRawSqlTest < ActiveRecord::TestCase
     assert_equal ids_expected, ids
   end
 
-  # Use LEN() vs length() function.
+  # Use LEN() instead of LENGTH() function.
   coerce_tests! %r{order: allows nested functions}
   test "order: allows nested functions" do
     ids_expected = Post.order(Arel.sql("author_id, len(trim(title))")).pluck(:id)
@@ -1777,7 +1785,7 @@ class UnsafeRawSqlTest < ActiveRecord::TestCase
     assert_equal ids_expected, ids
   end
 
-  # Use LEN() vs length() function.
+  # Use LEN() instead of LENGTH() function.
   coerce_tests! %r{pluck: allows nested functions}
   test "pluck: allows nested functions" do
     title_lengths_expected = Post.pluck(Arel.sql("len(trim(title))"))
