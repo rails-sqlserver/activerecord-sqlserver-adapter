@@ -92,6 +92,7 @@ module ActiveRecord
       original_test_errors_when_an_insert_query_prefixed_by_a_double_dash_comment_is_called_while_preventing_writes
     end
 
+    # Invalid character encoding causes `ActiveRecord::StatementInvalid` error similar to Postgres.
     coerce_tests! :test_doesnt_error_when_a_select_query_has_encoding_errors
     def test_doesnt_error_when_a_select_query_has_encoding_errors_coerced
       ActiveRecord::Base.while_preventing_writes do
@@ -2218,42 +2219,51 @@ end
 
 require "models/dashboard"
 class QueryLogsTest < ActiveRecord::TestCase
-  # Same as original coerced test except our SQL ends with binding.
-  # TODO: Remove coerce after Rails 7.1.0 (see https://github.com/rails/rails/pull/44053)
-  coerce_tests! :test_custom_basic_tags, :test_custom_proc_tags, :test_multiple_custom_tags, :test_custom_proc_context_tags
-  def test_custom_basic_tags_coerced
-    ActiveRecord::QueryLogs.tags = [ :application, { custom_string: "test content" } ]
-
-    assert_sql(%r{/\*application:active_record,custom_string:test content\*/}) do
+  # SQL requires double single-quotes.
+  coerce_tests! :test_sql_commenter_format
+  def test_sql_commenter_format_coerced
+    ActiveRecord::QueryLogs.update_formatter(:sqlcommenter)
+    assert_sql(%r{/\*application=''active_record''\*/}) do
       Dashboard.first
     end
   end
 
-  def test_custom_proc_tags_coerced
-    ActiveRecord::QueryLogs.tags = [ :application, { custom_proc: -> { "test content" } } ]
+  # SQL requires double single-quotes.
+  coerce_tests! :test_sqlcommenter_format_value
+  def test_sqlcommenter_format_value_coerced
+    ActiveRecord::QueryLogs.update_formatter(:sqlcommenter)
 
-    assert_sql(%r{/\*application:active_record,custom_proc:test content\*/}) do
-      Dashboard.first
-    end
-  end
-
-  def test_multiple_custom_tags_coerced
     ActiveRecord::QueryLogs.tags = [
       :application,
-      { custom_proc: -> { "test content" }, another_proc: -> { "more test content" } },
+      { tracestate: "congo=t61rcWkgMzE,rojo=00f067aa0ba902b7", custom_proc: -> { "Joe's Shack" } },
     ]
 
-    assert_sql(%r{/\*application:active_record,custom_proc:test content,another_proc:more test content\*/}) do
+    assert_sql(%r{custom_proc=''Joe%27s%20Shack'',tracestate=''congo%3Dt61rcWkgMzE%2Crojo%3D00f067aa0ba902b7''\*/}) do
       Dashboard.first
     end
   end
 
-  def test_custom_proc_context_tags_coerced
-    ActiveSupport::ExecutionContext[:foo] = "bar"
-    ActiveRecord::QueryLogs.tags = [ :application, { custom_context_proc: ->(context) { context[:foo] } } ]
+  # SQL requires double single-quotes.
+  coerce_tests! :test_sqlcommenter_format_value_string_coercible
+  def test_sqlcommenter_format_value_string_coercible_coerced
+    ActiveRecord::QueryLogs.update_formatter(:sqlcommenter)
 
-    assert_sql(%r{/\*application:active_record,custom_context_proc:bar\*/}) do
+    ActiveRecord::QueryLogs.tags = [
+      :application,
+      { custom_proc: -> { 1234 } },
+    ]
+
+    assert_sql(%r{custom_proc=''1234''\*/}) do
       Dashboard.first
+    end
+  end
+
+  # Invalid character encoding causes `ActiveRecord::StatementInvalid` error similar to Postgres.
+  coerce_tests! :test_invalid_encoding_query
+  def test_invalid_encoding_query_coerced
+    ActiveRecord::QueryLogs.tags = [ :application ]
+    assert_raises ActiveRecord::StatementInvalid do
+      ActiveRecord::Base.connection.execute "select 1 as '\xFF'"
     end
   end
 end

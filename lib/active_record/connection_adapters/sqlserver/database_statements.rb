@@ -15,7 +15,6 @@ module ActiveRecord
 
         def raw_execute(sql, name, async: false, allow_retry: false, materialize_transactions: true)
           result = nil
-          sql = transform_query(sql)
 
           log(sql, name, async: async) do
             with_raw_connection(allow_retry: allow_retry, materialize_transactions: materialize_transactions) do |conn|
