@@ -107,38 +107,6 @@ module ActiveRecord
 end
 
 module ActiveRecord
-  class AdapterPreventWritesLegacyTest < ActiveRecord::TestCase
-    # Fix randomly failing test. The loading of the model's schema was affecting the test.
-    coerce_tests! :test_errors_when_an_insert_query_is_called_while_preventing_writes
-    def test_errors_when_an_insert_query_is_called_while_preventing_writes_coerced
-      Subscriber.send(:load_schema!)
-      original_test_errors_when_an_insert_query_is_called_while_preventing_writes
-    end
-
-    # Fix randomly failing test. The loading of the model's schema was affecting the test.
-    coerce_tests! :test_errors_when_an_insert_query_prefixed_by_a_slash_star_comment_is_called_while_preventing_writes
-    def test_errors_when_an_insert_query_prefixed_by_a_slash_star_comment_is_called_while_preventing_writes_coerced
-      Subscriber.send(:load_schema!)
-      original_test_errors_when_an_insert_query_prefixed_by_a_slash_star_comment_is_called_while_preventing_writes
-    end
-
-    # Fix randomly failing test. The loading of the model's schema was affecting the test.
-    coerce_tests! :test_errors_when_an_insert_query_prefixed_by_a_double_dash_comment_is_called_while_preventing_writes
-    def test_errors_when_an_insert_query_prefixed_by_a_double_dash_comment_is_called_while_preventing_writes_coerced
-      Subscriber.send(:load_schema!)
-      original_test_errors_when_an_insert_query_prefixed_by_a_double_dash_comment_is_called_while_preventing_writes
-    end
-
-    # Fix randomly failing test. The loading of the model's schema was affecting the test.
-    coerce_tests! :test_errors_when_an_insert_query_prefixed_by_a_double_dash_comment_containing_read_command_is_called_while_preventing_writes
-    def test_errors_when_an_insert_query_prefixed_by_a_double_dash_comment_containing_read_command_is_called_while_preventing_writes_coerced
-      Subscriber.send(:load_schema!)
-      original_test_errors_when_an_insert_query_prefixed_by_a_double_dash_comment_containing_read_command_is_called_while_preventing_writes
-    end
-  end
-end
-
-module ActiveRecord
   class AdapterTestWithoutTransaction < ActiveRecord::TestCase
     # SQL Server does not allow truncation of tables that are referenced by foreign key
     # constraints. So manually remove/add foreign keys in test.
@@ -513,7 +481,7 @@ class CalculationsTest < ActiveRecord::TestCase
 
   # Leave it up to users to format selects/functions so HAVING works correctly.
   coerce_tests! :test_having_with_strong_parameters
-  
+
   # SELECT columns must be in the GROUP clause. Since since `ids` only selects the primary key you cannot perform this query in SQL Server.
   coerce_tests! :test_ids_with_includes_and_non_primary_key_order
 end
