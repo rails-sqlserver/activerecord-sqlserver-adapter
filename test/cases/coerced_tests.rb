@@ -2103,6 +2103,35 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
   end
 end
 
+class PreloaderTest < ActiveRecord::TestCase
+  # SQL format for `order_id_constraint` different.
+  coerce_tests! :test_preloads_has_many_on_model_with_a_composite_primary_key_through_id_attribute
+  def test_preloads_has_many_on_model_with_a_composite_primary_key_through_id_attribute_coerced
+    order = cpk_orders(:cpk_groceries_order_2)
+    _shop_id, order_id = order.id
+    order_agreements = Cpk::OrderAgreement.where(order_id: order_id).to_a
+
+    assert_not_empty order_agreements
+    assert_equal order_agreements.sort, order.order_agreements.sort
+
+    loaded_order = nil
+    sql = capture_sql do
+      loaded_order = Cpk::Order.where(id: order_id).includes(:order_agreements).to_a.first
+    end
+
+    assert_equal 2, sql.size
+    preload_sql = sql.last
+
+    c = Cpk::OrderAgreement.connection
+    order_id_column = Regexp.escape(c.quote_table_name("cpk_order_agreements.order_id"))
+    order_id_constraint = /#{order_id_column} = @0.*@0 = \d+$/
+    expectation = /SELECT.*WHERE.* #{order_id_constraint}/
+
+    assert_match(expectation, preload_sql)
+    assert_equal order_agreements.sort, loaded_order.order_agreements.sort
+  end
+end
+
 class BasePreventWritesTest < ActiveRecord::TestCase
   # SQL Server does not have query for release_savepoint
   coerce_tests! %r{an empty transaction does not raise if preventing writes}
