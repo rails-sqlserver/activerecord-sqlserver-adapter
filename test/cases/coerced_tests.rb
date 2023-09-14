@@ -96,8 +96,7 @@ module ActiveRecord
     def test_doesnt_error_when_a_select_query_has_encoding_errors_coerced
       ActiveRecord::Base.while_preventing_writes do
         # TinyTDS fail on encoding errors.
-        # But at least we can assert it fails in the client and not before when trying to
-        # match the query.
+        # But at least we can assert it fails in the client and not before when trying to match the query.
         assert_raises ActiveRecord::StatementInvalid do
           @connection.select_all("SELECT '\xC8'")
         end
@@ -1395,15 +1394,6 @@ module ActiveRecord
       expected = "SELECT #{escaped_table}.* FROM #{escaped_table} OPTION (OMGHINT)"
       query = Post.optimizer_hints("OMGHINT").merge(Post.optimizer_hints("OMGHINT")).to_sql
       assert_equal expected, query
-    end
-
-    # Workaround for randomly failing test. Ordering of results not guaranteed.
-    # TODO: Remove coerced test when https://github.com/rails/rails/pull/44168 merged.
-    coerce_tests! :test_select_quotes_when_using_from_clause
-    def test_select_quotes_when_using_from_clause_coerced
-      quoted_join = ActiveRecord::Base.connection.quote_table_name("join")
-      selected = Post.select(:join).from(Post.select("id as #{quoted_join}")).map(&:join)
-      assert_equal Post.pluck(:id).sort, selected.sort
     end
   end
 end
