@@ -7,6 +7,7 @@
 #### Fixed
 
 - [#1088](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1088) Fix creation of stored procedures that contain insert statements
+- [#1089](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1089) When changing columns set date-time columns to datetime(6) by default
 
 ## v7.0.3.0
 
