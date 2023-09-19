@@ -42,7 +42,9 @@ module ActiveRecord
                   relation.select_values = [ klass.primary_key || table[Arel.star] ]
                 end
                 # PostgreSQL: ORDER BY expressions must appear in SELECT list when using DISTINCT
+                # Start of monkey-patch
                 # relation.order_values = [] if group_values.empty?
+                # End of monkey-patch
               end
 
               relation.calculate(operation, column_name)
