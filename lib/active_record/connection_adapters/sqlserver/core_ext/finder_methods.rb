@@ -10,18 +10,26 @@ module ActiveRecord
         module FinderMethods
           private
 
-          # Same as original except we order by values in distinct select if present.
           def construct_relation_for_exists(conditions)
-            return super unless klass.connection.adapter_name == "SQLServer"
+            if klass.connection.sqlserver?
+              _construct_relation_for_exists(conditions)
+            else
+              super
+            end
+          end
 
+          # Same as original except we order by values in distinct select if present.
+          def _construct_relation_for_exists(conditions)
             conditions = sanitize_forbidden_attributes(conditions)
 
             if distinct_value && offset_value
+              # Start of monkey-patch
               if select_values.present?
                 relation = order(*select_values).limit!(1)
               else
                 relation = except(:order).limit!(1)
               end
+              # End of monkey-patch
             else
               relation = except(:select, :distinct, :order)._select!(::ActiveRecord::FinderMethods::ONE_AS_ONE).limit!(1)
             end
