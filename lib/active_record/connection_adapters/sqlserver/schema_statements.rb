@@ -143,6 +143,15 @@ module ActiveRecord
         def change_column(table_name, column_name, type, options = {})
           sql_commands = []
           indexes = []
+
+          if type == :datetime
+            # If no precision then default it to 6.
+            options[:precision] = 6 unless options.key?(:precision)
+
+            # If there is precision then column must be of type 'datetime2'.
+            type = :datetime2 unless options[:precision].nil?
+          end
+
           column_object = schema_cache.columns(table_name).find { |c| c.name.to_s == column_name.to_s }
           without_constraints = options.key?(:default) || options.key?(:limit)
           default = if !options.key?(:default) && column_object
@@ -150,24 +159,29 @@ module ActiveRecord
                     else
                       options[:default]
                     end
+
           if without_constraints || (column_object && column_object.type != type.to_sym)
             remove_default_constraint(table_name, column_name)
             indexes = indexes(table_name).select { |index| index.columns.include?(column_name.to_s) }
             remove_indexes(table_name, column_name)
           end
+
           sql_commands << "UPDATE #{quote_table_name(table_name)} SET #{quote_column_name(column_name)}=#{quote_default_expression(options[:default], column_object)} WHERE #{quote_column_name(column_name)} IS NULL" if !options[:null].nil? && options[:null] == false && !options[:default].nil?
           alter_command = "ALTER TABLE #{quote_table_name(table_name)} ALTER COLUMN #{quote_column_name(column_name)} #{type_to_sql(type, limit: options[:limit], precision: options[:precision], scale: options[:scale])}"
           alter_command += " COLLATE #{options[:collation]}" if options[:collation].present?
           alter_command += " NOT NULL" if !options[:null].nil? && options[:null] == false
           sql_commands << alter_command
+
           if without_constraints
             default = quote_default_expression(default, column_object || column_for(table_name, column_name))
             sql_commands << "ALTER TABLE #{quote_table_name(table_name)} ADD CONSTRAINT #{default_constraint_name(table_name, column_name)} DEFAULT #{default} FOR #{quote_column_name(column_name)}"
           end
+
           # Add any removed indexes back
           indexes.each do |index|
             sql_commands << "CREATE INDEX #{quote_table_name(index.name)} ON #{quote_table_name(table_name)} (#{index.columns.map { |c| quote_column_name(c) }.join(', ')})"
           end
+
           sql_commands.each { |c| do_execute(c) }
           clear_cache!
         end
@@ -229,6 +243,7 @@ module ActiveRecord
         def type_to_sql(type, limit: nil, precision: nil, scale: nil, **)
           type_limitable = %w(string integer float char nchar varchar nvarchar).include?(type.to_s)
           limit = nil unless type_limitable
+
           case type.to_s
           when "integer"
             case limit
