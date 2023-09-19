@@ -406,7 +406,7 @@ module ActiveRecord
         end
 
         def insert_sql?(sql)
-          !(sql =~ /^\s*(INSERT|EXEC sp_executesql N'INSERT)/i).nil?
+          !(sql =~ /\A\s*(INSERT|EXEC sp_executesql N'INSERT)/i).nil?
         end
 
         def identity_columns(table_name)

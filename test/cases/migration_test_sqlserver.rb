@@ -115,4 +115,22 @@ class MigrationTestSQLServer < ActiveRecord::TestCase
       refute_includes schemas, { "name" => "some schema" }
     end
   end
+
+  describe 'creating stored procedure' do
+    it 'stored procedure contains inserts are created successfully' do
+      sql = <<-SQL
+          CREATE OR ALTER PROCEDURE do_some_task
+          AS
+          IF NOT EXISTS(SELECT * FROM sys.objects WHERE type = 'U' AND name = 'SomeTableName')
+          BEGIN
+            CREATE TABLE SomeTableName (SomeNum int PRIMARY KEY CLUSTERED);
+            INSERT INTO SomeTableName(SomeNum) VALUES(1);
+          END
+        SQL
+
+      assert_nothing_raised { connection.execute(sql) }
+    ensure
+      connection.execute("DROP PROCEDURE IF EXISTS dbo.do_some_task;")
+    end
+  end
 end

@@ -4,6 +4,10 @@
 
 - [#1073](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1073) Improve performance of view default function lookup
 
+#### Fixed
+
+- [#1088](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1088) Fix creation of stored procedures that contain insert statements
+
 ## v7.0.3.0
 
 #### Fixed
