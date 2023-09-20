@@ -982,6 +982,83 @@ class FinderTest < ActiveRecord::TestCase
     end
   end
 
+  # Check for `FETCH NEXT x ROWS` rather then `LIMIT`.
+  coerce_tests! :test_implicit_order_column_prepends_query_constraints
+  def test_implicit_order_column_prepends_query_constraints_coerced
+    c = ClothingItem.connection
+    ClothingItem.implicit_order_column = "description"
+    quoted_type = Regexp.escape(c.quote_table_name("clothing_items.clothing_type"))
+    quoted_color = Regexp.escape(c.quote_table_name("clothing_items.color"))
+    quoted_descrption = Regexp.escape(c.quote_table_name("clothing_items.description"))
+
+    assert_sql(/ORDER BY #{quoted_descrption} ASC, #{quoted_type} ASC, #{quoted_color} ASC OFFSET 0 ROWS FETCH NEXT @(\d) ROWS ONLY.*@\1 = 1/i) do
+      assert_kind_of ClothingItem, ClothingItem.first
+    end
+  ensure
+    ClothingItem.implicit_order_column = nil
+  end
+
+  # Check for `FETCH NEXT x ROWS` rather then `LIMIT`.
+  coerce_tests! %r{#last for a model with composite query constraints}
+  test "#last for a model with composite query constraints coerced" do
+    c = ClothingItem.connection
+    quoted_type = Regexp.escape(c.quote_table_name("clothing_items.clothing_type"))
+    quoted_color = Regexp.escape(c.quote_table_name("clothing_items.color"))
+
+    assert_sql(/ORDER BY #{quoted_type} DESC, #{quoted_color} DESC OFFSET 0 ROWS FETCH NEXT @(\d) ROWS ONLY.*@\1 = 1/i) do
+      assert_kind_of ClothingItem, ClothingItem.last
+    end
+  end
+
+  # Check for `FETCH NEXT x ROWS` rather then `LIMIT`.
+  coerce_tests! %r{#first for a model with composite query constraints}
+  test "#first for a model with composite query constraints coerced" do
+    c = ClothingItem.connection
+    quoted_type = Regexp.escape(c.quote_table_name("clothing_items.clothing_type"))
+    quoted_color = Regexp.escape(c.quote_table_name("clothing_items.color"))
+
+    assert_sql(/ORDER BY #{quoted_type} ASC, #{quoted_color} ASC OFFSET 0 ROWS FETCH NEXT @(\d) ROWS ONLY.*@\1 = 1/i) do
+      assert_kind_of ClothingItem, ClothingItem.first
+    end
+  end
+
+  # Check for `FETCH NEXT x ROWS` rather then `LIMIT`.
+  coerce_tests! :test_implicit_order_column_reorders_query_constraints
+  def test_implicit_order_column_reorders_query_constraints_coerced
+    c = ClothingItem.connection
+    ClothingItem.implicit_order_column = "color"
+    quoted_type = Regexp.escape(c.quote_table_name("clothing_items.clothing_type"))
+    quoted_color = Regexp.escape(c.quote_table_name("clothing_items.color"))
+
+    assert_sql(/ORDER BY #{quoted_color} ASC, #{quoted_type} ASC OFFSET 0 ROWS FETCH NEXT @(\d) ROWS ONLY.*@\1 = 1/i) do
+      assert_kind_of ClothingItem, ClothingItem.first
+    end
+  ensure
+    ClothingItem.implicit_order_column = nil
+  end
+
+  # Check for `FETCH NEXT x ROWS` rather then `LIMIT`.
+  coerce_tests! :test_include_on_unloaded_relation_with_composite_primary_key
+  def test_include_on_unloaded_relation_with_composite_primary_key_coerced
+    assert_sql(/1 AS one.*OFFSET 0 ROWS FETCH NEXT @(\d) ROWS ONLY.*@\1 = 1/) do
+      book = cpk_books(:cpk_great_author_first_book)
+      assert Cpk::Book.where(title: "The first book").include?(book)
+    end
+  end
+
+  # Check for `FETCH NEXT x ROWS` rather then `LIMIT`.
+  coerce_tests! :test_nth_to_last_with_order_uses_limit
+  def test_nth_to_last_with_order_uses_limit_coerced
+    c = Topic.connection
+    assert_sql(/ORDER BY #{Regexp.escape(c.quote_table_name("topics.id"))} DESC OFFSET @(\d) ROWS FETCH NEXT @(\d) ROWS ONLY.*@\1 = 1.*@\2 = 1/i) do
+      Topic.second_to_last
+    end
+
+    assert_sql(/ORDER BY #{Regexp.escape(c.quote_table_name("topics.updated_at"))} DESC OFFSET @(\d) ROWS FETCH NEXT @(\d) ROWS ONLY.*@\1 = 1.*@\2 = 1/i) do
+      Topic.order(:updated_at).second_to_last
+    end
+  end
+
   # SQL Server is unable to use aliased SELECT in the HAVING clause.
   coerce_tests! :test_include_on_unloaded_relation_with_having_referencing_aliased_select
 end
