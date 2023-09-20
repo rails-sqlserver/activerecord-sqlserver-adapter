@@ -1252,7 +1252,7 @@ class RelationTest < ActiveRecord::TestCase
     sql_log = capture_sql do
       assert Post.order(:title).reorder(nil).take
     end
-    assert sql_log.none? { |sql| /order by [posts].[title]/i.match?(sql) }, "ORDER BY title was used in the query: #{sql_log}"
+    assert sql_log.none? { |sql| /order by \[posts\]\.\[title\]/i.match?(sql) }, "ORDER BY title was used in the query: #{sql_log}"
     assert sql_log.all?  { |sql| /order by \[posts\]\.\[id\]/i.match?(sql) }, "default ORDER BY ID was not used in the query: #{sql_log}"
   end
 
@@ -1264,7 +1264,7 @@ class RelationTest < ActiveRecord::TestCase
       post = Post.order(:title).reorder(nil).first
     end
     assert_equal posts(:welcome), post
-    assert sql_log.none? { |sql| /order by [posts].[title]/i.match?(sql) }, "ORDER BY title was used in the query: #{sql_log}"
+    assert sql_log.none? { |sql| /order by \[posts\]\.\[title\]/i.match?(sql) }, "ORDER BY title was used in the query: #{sql_log}"
     assert sql_log.all?  { |sql| /order by \[posts\]\.\[id\]/i.match?(sql) }, "default ORDER BY ID was not used in the query: #{sql_log}"
   end
 
