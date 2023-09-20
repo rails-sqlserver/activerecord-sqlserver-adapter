@@ -870,14 +870,6 @@ class FinderTest < ActiveRecord::TestCase
   coerce_tests! %r{doesn't have implicit ordering},
                 :test_find_doesnt_have_implicit_ordering
 
-  # Square brackets around column name
-  coerce_tests! :test_exists_does_not_select_columns_without_alias
-  def test_exists_does_not_select_columns_without_alias_coerced
-    assert_sql(/SELECT\s+1 AS one FROM \[topics\].*OFFSET 0 ROWS FETCH NEXT @0 ROWS ONLY.*@0 = 1/i) do
-      Topic.exists?
-    end
-  end
-
   # Assert SQL Server limit implementation
   coerce_tests! :test_take_and_first_and_last_with_integer_should_use_sql_limit
   def test_take_and_first_and_last_with_integer_should_use_sql_limit_coerced
@@ -989,6 +981,15 @@ class FinderTest < ActiveRecord::TestCase
     NonPrimaryKey.implicit_order_column = old_implicit_order_column
   end
 
+  # Check for `FETCH NEXT x ROWS` rather then `LIMIT`.
+  coerce_tests! :test_member_on_unloaded_relation_with_composite_primary_key
+  def test_member_on_unloaded_relation_with_composite_primary_key_coerced
+    assert_sql(/1 AS one.* FETCH NEXT @(\d) ROWS ONLY.*@\1 = 1/) do
+      book = cpk_books(:cpk_great_author_first_book)
+      assert Cpk::Book.where(title: "The first book").member?(book)
+    end
+  end
+
   # SQL Server is unable to use aliased SELECT in the HAVING clause.
   coerce_tests! :test_include_on_unloaded_relation_with_having_referencing_aliased_select
 end
@@ -1066,7 +1067,7 @@ class InheritanceTest < ActiveRecord::TestCase
   def test_eager_load_belongs_to_primary_key_quoting_coerced
     Account.connection
     assert_sql(/\[companies\]\.\[id\] = @0.* @0 = 1/) do
-      Account.all.merge!(:includes => :firm).find(1)
+      Account.all.merge!(includes: :firm).find(1)
     end
   end
 end
