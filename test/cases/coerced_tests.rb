@@ -839,7 +839,7 @@ class EachTest < ActiveRecord::TestCase
   # TODO: Remove coerced test when https://github.com/rails/rails/pull/49269 merged.
   coerce_tests! :test_in_batches_should_quote_batch_order
   def test_in_batches_should_quote_batch_order_coerced
-    Post.connection
+    c = Post.connection
     assert_sql(/ORDER BY #{Regexp.escape(c.quote_table_name('posts'))}\.#{Regexp.escape(c.quote_column_name('id'))}/) do
       Post.in_batches(of: 1) do |relation|
         assert_kind_of ActiveRecord::Relation, relation
