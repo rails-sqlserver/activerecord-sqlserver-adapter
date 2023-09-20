@@ -4,7 +4,7 @@ module ActiveRecord
   module ConnectionAdapters
     module SQLServer
       module DatabaseStatements
-        READ_QUERY = ActiveRecord::ConnectionAdapters::AbstractAdapter.build_read_query_regexp(:begin, :commit, :dbcc, :explain, :save, :select, :set, :rollback, :waitfor) # :nodoc:
+        READ_QUERY = ActiveRecord::ConnectionAdapters::AbstractAdapter.build_read_query_regexp(:begin, :commit, :dbcc, :explain, :save, :select, :set, :rollback, :waitfor, :use) # :nodoc:
         private_constant :READ_QUERY
 
         def write_query?(sql) # :nodoc:
@@ -217,7 +217,7 @@ module ActiveRecord
           return if sqlserver_azure?
 
           name = SQLServer::Utils.extract_identifiers(database || @connection_parameters[:database]).quoted
-          execute "USE #{name}" unless name.blank?
+          execute("USE #{name}", "SCHEMA") unless name.blank?
         end
 
         def user_options
