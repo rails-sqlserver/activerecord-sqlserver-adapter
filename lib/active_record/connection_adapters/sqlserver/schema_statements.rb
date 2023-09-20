@@ -118,10 +118,12 @@ module ActiveRecord
             AND TC.CONSTRAINT_TYPE = N'PRIMARY KEY'
             ORDER BY KCU.ORDINAL_POSITION ASC
           }.gsub(/[[:space:]]/, " ")
+
           binds = []
           nv128 = SQLServer::Type::UnicodeVarchar.new limit: 128
           binds << Relation::QueryAttribute.new("TABLE_NAME", identifier.object, nv128)
           binds << Relation::QueryAttribute.new("TABLE_SCHEMA", identifier.schema, nv128) unless identifier.schema.blank?
+
           sp_executesql(sql, "SCHEMA", binds).map { |r| r["name"] }
         end
 
