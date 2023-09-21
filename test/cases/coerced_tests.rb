@@ -850,6 +850,23 @@ class EagerAssociationTest < ActiveRecord::TestCase
 
   # Use TOP (1) in scope vs limit 1.
   coerce_tests! %r{including association based on sql condition and no database column}
+
+  # Table name not regex escaped in original test. Remove coerced test when https://github.com/rails/rails/pull/49345 merged.
+  coerce_tests! %r{preloading belongs_to association SQL}
+  test "preloading belongs_to association SQL coerced" do
+    blog_ids = [sharded_blogs(:sharded_blog_one).id, sharded_blogs(:sharded_blog_two).id]
+    posts = Sharded::BlogPost.where(blog_id: blog_ids).includes(:comments)
+
+    sql = capture_sql do
+      comments_collection = posts.map(&:comments)
+      assert_equal 3, comments_collection.size
+    end.last
+
+    c = Sharded::BlogPost.connection
+    quoted_blog_id = Regexp.escape(c.quote_table_name("sharded_comments.blog_id"))
+    quoted_blog_post_id = Regexp.escape(c.quote_table_name("sharded_comments.blog_post_id"))
+    assert_match(/WHERE #{quoted_blog_id} IN \(.+\) AND #{quoted_blog_post_id} IN \(.+\)/, sql)
+  end
 end
 
 require "models/topic"
