@@ -2379,55 +2379,37 @@ class QueryLogsTest < ActiveRecord::TestCase
   end
 end
 
-# SQL Server does not support upsert yet
-# TODO: Remove coerce after Rails 7.1.0 (see https://github.com/rails/rails/pull/44050)
 class InsertAllTest < ActiveRecord::TestCase
-  coerce_tests! :test_upsert_all_only_updates_the_column_provided_via_update_only
-  def test_upsert_all_only_updates_the_column_provided_via_update_only_coerced
+  # Same as original but using INSERTED.name as UPPER argument
+  coerce_tests! :test_insert_all_returns_requested_sql_fields
+  def test_insert_all_returns_requested_sql_fields_coerced
+    skip unless supports_insert_returning?
+
+    result = Book.insert_all! [{ name: "Rework", author_id: 1 }], returning: Arel.sql("UPPER(INSERTED.name) as name")
+    assert_equal %w[ REWORK ], result.pluck("name")
+  end
+
+  # SQL Server does not support upsert. Coerce can be removed after https://github.com/rails/rails/pull/49344
+  coerce_tests! :test_insert_all_should_handle_empty_arrays
+  def test_insert_all_should_handle_empty_arrays_coerced
     assert_raises(ArgumentError, /does not support upsert/) do
-      original_test_upsert_all_only_updates_the_column_provided_via_update_only
+      original_test_insert_all_should_handle_empty_arrays
     end
   end
 
-  coerce_tests! :test_upsert_all_only_updates_the_list_of_columns_provided_via_update_only
-  def test_upsert_all_only_updates_the_list_of_columns_provided_via_update_only_coerced
+  # SQL Server does not support upsert. Coerce can be removed after https://github.com/rails/rails/pull/49344
+  coerce_tests! :test_insert_all_and_upsert_all_with_aliased_attributes
+  def test_insert_all_and_upsert_all_with_aliased_attributes_coerced
     assert_raises(ArgumentError, /does not support upsert/) do
-      original_test_upsert_all_only_updates_the_list_of_columns_provided_via_update_only
+      original_test_insert_all_and_upsert_all_with_aliased_attributes
     end
   end
 
-  coerce_tests! :test_upsert_all_implicitly_sets_timestamps_on_create_when_model_record_timestamps_is_true
-  def test_upsert_all_implicitly_sets_timestamps_on_create_when_model_record_timestamps_is_true_coerced
+  # SQL Server does not support upsert. Coerce can be removed after https://github.com/rails/rails/pull/49344
+  coerce_tests! :test_insert_all_and_upsert_all_with_sti
+  def test_insert_all_and_upsert_all_with_sti_coerced
     assert_raises(ArgumentError, /does not support upsert/) do
-      original_test_upsert_all_implicitly_sets_timestamps_on_create_when_model_record_timestamps_is_true
-    end
-  end
-
-  coerce_tests! :test_upsert_all_respects_created_at_precision_when_touched_implicitly
-  def test_upsert_all_respects_created_at_precision_when_touched_implicitly_coerced
-    assert_raises(ArgumentError, /does not support upsert/) do
-      original_test_upsert_all_respects_created_at_precision_when_touched_implicitly
-    end
-  end
-
-  coerce_tests! :test_upsert_all_does_not_implicitly_set_timestamps_on_create_when_model_record_timestamps_is_true_but_overridden
-  def test_upsert_all_does_not_implicitly_set_timestamps_on_create_when_model_record_timestamps_is_true_but_overridden_coerced
-    assert_raises(ArgumentError, /does not support upsert/) do
-      original_test_upsert_all_does_not_implicitly_set_timestamps_on_create_when_model_record_timestamps_is_true_but_overridden
-    end
-  end
-
-  coerce_tests! :test_upsert_all_does_not_implicitly_set_timestamps_on_create_when_model_record_timestamps_is_false
-  def test_upsert_all_does_not_implicitly_set_timestamps_on_create_when_model_record_timestamps_is_false_coerced
-    assert_raises(ArgumentError, /does not support upsert/) do
-      original_test_upsert_all_does_not_implicitly_set_timestamps_on_create_when_model_record_timestamps_is_false
-    end
-  end
-
-  coerce_tests! :test_upsert_all_implicitly_sets_timestamps_on_create_when_model_record_timestamps_is_false_but_overridden
-  def test_upsert_all_implicitly_sets_timestamps_on_create_when_model_record_timestamps_is_false_but_overridden_coerced
-    assert_raises(ArgumentError, /does not support upsert/) do
-      original_test_upsert_all_implicitly_sets_timestamps_on_create_when_model_record_timestamps_is_false_but_overridden
+      original_test_insert_all_and_upsert_all_with_sti
     end
   end
 end
@@ -2451,17 +2433,6 @@ class HasOneThroughDisableJoinsAssociationsTest < ActiveRecord::TestCase
   end
 end
 
-class InsertAllTest < ActiveRecord::TestCase
-  coerce_tests! :test_insert_all_returns_requested_sql_fields
-  # Same as original but using INSERTED.name as UPPER argument
-  def test_insert_all_returns_requested_sql_fields_coerced
-    skip unless supports_insert_returning?
-
-    result = Book.insert_all! [{ name: "Rework", author_id: 1 }], returning: Arel.sql("UPPER(INSERTED.name) as name")
-    assert_equal %w[ REWORK ], result.pluck("name")
-  end
-end
-
 class ActiveRecord::Encryption::EncryptableRecordTest < ActiveRecord::EncryptionTestCase
   # TODO: Remove coerce after Rails 7.1.0 (see https://github.com/rails/rails/pull/44052)
   # Same as original but SQL Server string is varchar(4000), not varchar(255) as other adapters. Produce invalid strings with 4001 characters
@@ -2472,4 +2443,7 @@ class ActiveRecord::Encryption::EncryptableRecordTest < ActiveRecord::Encryption
     author = EncryptedAuthor.create(name: "a" * 4001)
     assert_not author.valid?
   end
+
+  # SQL Server does not support upsert. Coerce can be removed after https://github.com/rails/rails/pull/49344
+  coerce_tests! %r{loading records with encrypted attributes defined on columns with default values}
 end
