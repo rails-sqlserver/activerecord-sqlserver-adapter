@@ -44,7 +44,7 @@ module ActiveRecord
             else
               name    = index[:index_name]
               unique  = index[:index_description] =~ /unique/
-              where   = select_value("SELECT [filter_definition] FROM sys.indexes WHERE name = #{quote(name)}")
+              where   = select_value("SELECT [filter_definition] FROM sys.indexes WHERE name = #{quote(name)}", "SCHEMA")
               orders  = {}
               columns = []
 
