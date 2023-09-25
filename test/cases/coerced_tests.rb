@@ -2447,3 +2447,17 @@ class ActiveRecord::Encryption::EncryptableRecordTest < ActiveRecord::Encryption
   # SQL Server does not support upsert. Coerce can be removed after https://github.com/rails/rails/pull/49344
   coerce_tests! %r{loading records with encrypted attributes defined on columns with default values}
 end
+
+module ActiveRecord
+  class Migration
+    class InvalidOptionsTest < ActiveRecord::TestCase
+      # Include the additional SQL Server migration options.
+      def invalid_add_column_option_exception_message(key)
+        default_keys = [":limit", ":precision", ":scale", ":default", ":null", ":collation", ":comment", ":primary_key", ":if_exists", ":if_not_exists"]
+        default_keys.concat([":is_identity"]) # SQL Server additional valid keys
+
+        "Unknown key: :#{key}. Valid keys are: #{default_keys.join(", ")}"
+      end
+    end
+  end
+end
