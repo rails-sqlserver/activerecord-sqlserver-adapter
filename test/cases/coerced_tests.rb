@@ -45,6 +45,19 @@ class UniquenessValidationTest < ActiveRecord::TestCase
     assert_equal 1, Topic.where(author_email_address: "david@loudthinking.com").count
     assert_equal 1, Topic.where(author_email_address: "David@loudthinking.com").count
   end
+
+  # Need to explicitly set the WHERE clause to truthy.
+  coerce_tests! :test_partial_index
+  def test_partial_index_coerced
+    Topic.validates_uniqueness_of(:title)
+    @connection.add_index(:topics, :title, unique: true, where: "approved=1", name: :topics_index)
+
+    t = Topic.create!(title: "abc")
+    t.author_name = "John"
+    assert_queries(1) do
+      t.valid?
+    end
+  end
 end
 
 require "models/event"
