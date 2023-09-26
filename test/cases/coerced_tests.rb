@@ -2474,3 +2474,18 @@ module ActiveRecord
     end
   end
 end
+
+# SQL Server does not support upsert. Removed dependency on `insert_all` that uses upsert.
+class ActiveRecord::Encryption::ConcurrencyTest < ActiveRecord::EncryptionTestCase
+  def thread_encrypting_and_decrypting(thread_label)
+    posts = 100.times.collect { |index| EncryptedPost.create! title: "Article #{index} (#{thread_label})", body: "Body #{index} (#{thread_label})" }
+
+    Thread.new do
+      posts.each.with_index do |article, index|
+        assert_encrypted_attribute article, :title, "Article #{index} (#{thread_label})"
+        article.decrypt
+        assert_not_encrypted_attribute article, :title, "Article #{index} (#{thread_label})"
+      end
+    end
+  end
+end
