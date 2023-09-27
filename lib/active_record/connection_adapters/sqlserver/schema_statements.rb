@@ -39,11 +39,11 @@ module ActiveRecord
           data.reduce([]) do |indexes, index|
             index = index.with_indifferent_access
 
-            if index[:index_description] =~ /primary key/
+            if index[:index_description].match?(/primary key/)
               indexes
             else
               name    = index[:index_name]
-              unique  = index[:index_description] =~ /unique/
+              unique  = index[:index_description].match?(/unique/)
               where   = select_value("SELECT [filter_definition] FROM sys.indexes WHERE name = #{quote(name)}", "SCHEMA")
               orders  = {}
               columns = []
