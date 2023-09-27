@@ -648,11 +648,11 @@ class MigrationTest < ActiveRecord::TestCase
       end
     }.new
 
-    ActiveRecord::Migrator.new(:up, [migration_a], @schema_migration, 100).migrate
+    ActiveRecord::Migrator.new(:up, [migration_a], @schema_migration, @internal_metadata, 100).migrate
     assert_column Person, :last_name, "migration_a should have created the last_name column on people"
 
     assert_nothing_raised do
-      ActiveRecord::Migrator.new(:up, [migration_b], @schema_migration, 101).migrate
+      ActiveRecord::Migrator.new(:up, [migration_b], @schema_migration, @internal_metadata, 101).migrate
     end
   ensure
     Person.reset_column_information
