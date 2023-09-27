@@ -45,7 +45,9 @@ class UniquenessValidationTest < ActiveRecord::TestCase
     assert_equal 1, Topic.where(author_email_address: "david@loudthinking.com").count
     assert_equal 1, Topic.where(author_email_address: "David@loudthinking.com").count
   end
+end
 
+class UniquenessValidationWithIndexTest < ActiveRecord::TestCase
   # Need to explicitly set the WHERE clause to truthy.
   coerce_tests! :test_partial_index
   def test_partial_index_coerced
