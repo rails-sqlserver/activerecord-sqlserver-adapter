@@ -2153,14 +2153,15 @@ class LogSubscriberTest < ActiveRecord::TestCase
   end
 end
 
-class ActiveRecordSchemaTest < ActiveRecord::TestCase
-  # Workaround for randomly failing test.
-  coerce_tests! :test_has_primary_key
-  def test_has_primary_key_coerced
-    @schema_migration.reset_column_information
-    original_test_has_primary_key
-  end
-end
+# TODO: Method `reset_column_information` does not exist. Comment out the test for the time being.
+# class ActiveRecordSchemaTest < ActiveRecord::TestCase
+#   # Workaround for randomly failing test.
+#   coerce_tests! :test_has_primary_key
+#   def test_has_primary_key_coerced
+#     @schema_migration.reset_column_information
+#     original_test_has_primary_key
+#   end
+# end
 
 class ReloadModelsTest < ActiveRecord::TestCase
   # Skip test on Windows. The number of arguments passed to `IO.popen` in
