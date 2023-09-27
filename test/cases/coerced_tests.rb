@@ -1096,7 +1096,7 @@ end
 module ActiveRecord
   class Migration
     class ForeignKeyTest < ActiveRecord::TestCase
-      # We do not support :restrict.
+      # SQL Server does not support 'restrict' for 'on_update' or 'on_delete'.
       coerce_tests! :test_add_on_delete_restrict_foreign_key
       def test_add_on_delete_restrict_foreign_key_coerced
         assert_raises ArgumentError do
@@ -2485,28 +2485,6 @@ class ActiveRecord::Encryption::ConcurrencyTest < ActiveRecord::EncryptionTestCa
         assert_encrypted_attribute article, :title, "Article #{index} (#{thread_label})"
         article.decrypt
         assert_not_encrypted_attribute article, :title, "Article #{index} (#{thread_label})"
-      end
-    end
-  end
-end
-
-module ActiveRecord
-  class Migration
-    class ForeignKeyTest < ActiveRecord::TestCase
-      # SQL Server does not support 'restrict' for 'on_update' or 'on_delete'.
-      coerce_tests! :test_add_on_delete_restrict_foreign_key
-
-      # Match different error message.
-      coerce_tests! :test_add_foreign_key_with_if_not_exists_not_set
-      def test_add_foreign_key_with_if_not_exists_not_set_coerced
-        @connection.add_foreign_key :astronauts, :rockets
-        assert_equal 1, @connection.foreign_keys("astronauts").size
-
-        error = assert_raises do
-          @connection.add_foreign_key :astronauts, :rockets
-        end
-
-        assert_match(/There is already an object named \'.*\' in the database/, error.message)
       end
     end
   end
