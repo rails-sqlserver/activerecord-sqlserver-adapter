@@ -2492,7 +2492,7 @@ end
 
 module ActiveRecord
   class Migration
-    class ForeignKeyTest
+    class ForeignKeyTest < ActiveRecord::TestCase
       # SQL Server does not support 'restrict' for 'on_update' or 'on_delete'.
       coerce_tests! :test_add_on_delete_restrict_foreign_key
 
