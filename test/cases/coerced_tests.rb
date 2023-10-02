@@ -662,6 +662,32 @@ class MigrationTest < ActiveRecord::TestCase
   end
 end
 
+module ActiveRecord
+  class Migration
+    class CompatibilityTest < ActiveRecord::TestCase
+      # Error message depends on the database adapter.
+      coerce_tests! :test_create_table_on_7_0
+      def test_create_table_on_7_0_coerced
+        long_table_name = "a" * (connection.table_name_length + 1)
+        migration = Class.new(ActiveRecord::Migration[7.0]) {
+          @@long_table_name = long_table_name
+          def version; 100 end
+          def migrate(x)
+            create_table @@long_table_name
+          end
+        }.new
+
+        error = assert_raises(StandardError) do
+          ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
+        end
+        assert_match(/The identifier that starts with '#{long_table_name[0..-2]}' is too long/i, error.message)
+      ensure
+        connection.drop_table(long_table_name) rescue nil
+      end
+    end
+  end
+end
+
 class CoreTest < ActiveRecord::TestCase
   # I think fixtures are using the wrong time zone and the `:first`
   # `topics`.`bonus_time` attribute of 2005-01-30t15:28:00.00+01:00 is
