@@ -46,8 +46,16 @@ module ActiveRecord
               begin
                 options = { ar_result: true }
 
-                handle = _execute(sql, conn)
-                result = handle_to_names_and_values(handle, options)
+                # TODO: Look into refactoring this.
+                if id_insert_table_name = query_requires_identity_insert?(sql)
+                  with_identity_insert_enabled(id_insert_table_name, conn) do
+                    handle = _execute(sql, conn)
+                    result = handle_to_names_and_values(handle, options)
+                  end
+                else
+                  handle = _execute(sql, conn)
+                  result = handle_to_names_and_values(handle, options)
+                end
               ensure
                 finish_statement_handle(handle)
               end
@@ -55,14 +63,6 @@ module ActiveRecord
           end
 
           result
-        end
-
-        def exec_insert(sql, name = nil, binds = [], pk = nil, _sequence_name = nil, returning: nil)
-          if id_insert_table_name = exec_insert_requires_identity?(sql, pk, binds)
-            with_identity_insert_enabled(id_insert_table_name) { super }
-          else
-            super
-          end
         end
 
         def exec_delete(sql, name, binds)
@@ -408,10 +408,6 @@ module ActiveRecord
           return false unless table_name
 
           self.class.exclude_output_inserted_table_names[table_name]
-        end
-
-        def exec_insert_requires_identity?(sql, _pk, _binds)
-          query_requires_identity_insert?(sql)
         end
 
         def query_requires_identity_insert?(sql)
