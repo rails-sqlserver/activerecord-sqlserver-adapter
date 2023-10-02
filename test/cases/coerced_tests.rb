@@ -1601,7 +1601,7 @@ class TransactionTest < ActiveRecord::TestCase
   def test_releasing_named_savepoints_coerced
     Topic.transaction do
       Topic.connection.materialize_transactions
-      
+
       Topic.connection.create_savepoint("another")
       Topic.connection.release_savepoint("another")
       # We do not have a notion of releasing, so this does nothing vs raise an error.
@@ -1638,6 +1638,44 @@ class TransactionTest < ActiveRecord::TestCase
       /BEGIN/i,
       /DELETE/i,
       /^SAVE TRANSACTION/i,
+      /DELETE/i,
+      /COMMIT/i,
+    ]
+
+    assert_equal expected_queries.size, actual_queries.size
+    expected_queries.zip(actual_queries) do |expected, actual|
+      assert_match expected, actual
+    end
+  end
+
+  # SQL Server does not have query for release_savepoint.
+  coerce_tests! :test_nested_transactions_skip_excess_savepoints
+  def test_nested_transactions_skip_excess_savepoints_coerced
+    capture_sql do
+      # RealTransaction (begin..commit)
+      Topic.transaction(requires_new: true) do
+        # ResetParentTransaction (no queries)
+        Topic.transaction(requires_new: true) do
+          Topic.delete_all
+          # SavepointTransaction (savepoint..release)
+          Topic.transaction(requires_new: true) do
+            # ResetParentTransaction (no queries)
+            Topic.transaction(requires_new: true) do
+              Topic.delete_all
+            end
+          end
+        end
+        Topic.delete_all
+      end
+    end
+
+    actual_queries = ActiveRecord::SQLCounter.log_all
+
+    expected_queries = [
+      /BEGIN/i,
+      /DELETE/i,
+      /^SAVE TRANSACTION/i,
+      /DELETE/i,
       /DELETE/i,
       /COMMIT/i,
     ]
