@@ -308,7 +308,8 @@ module ActiveRecord
                 else
                   "#{sql}; SELECT CAST(SCOPE_IDENTITY() AS bigint) AS Ident"
                 end
-          super
+
+          [sql, binds]
         end
 
         # === SQLServer Specific ======================================== #
