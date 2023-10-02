@@ -2390,30 +2390,6 @@ class InsertAllTest < ActiveRecord::TestCase
     result = Book.insert_all! [{ name: "Rework", author_id: 1 }], returning: Arel.sql("UPPER(INSERTED.name) as name")
     assert_equal %w[ REWORK ], result.pluck("name")
   end
-
-  # SQL Server does not support upsert. Coerce can be removed after https://github.com/rails/rails/pull/49344
-  coerce_tests! :test_insert_all_should_handle_empty_arrays
-  def test_insert_all_should_handle_empty_arrays_coerced
-    assert_raises(ArgumentError, /does not support upsert/) do
-      original_test_insert_all_should_handle_empty_arrays
-    end
-  end
-
-  # SQL Server does not support upsert. Coerce can be removed after https://github.com/rails/rails/pull/49344
-  coerce_tests! :test_insert_all_and_upsert_all_with_aliased_attributes
-  def test_insert_all_and_upsert_all_with_aliased_attributes_coerced
-    assert_raises(ArgumentError, /does not support upsert/) do
-      original_test_insert_all_and_upsert_all_with_aliased_attributes
-    end
-  end
-
-  # SQL Server does not support upsert. Coerce can be removed after https://github.com/rails/rails/pull/49344
-  coerce_tests! :test_insert_all_and_upsert_all_with_sti
-  def test_insert_all_and_upsert_all_with_sti_coerced
-    assert_raises(ArgumentError, /does not support upsert/) do
-      original_test_insert_all_and_upsert_all_with_sti
-    end
-  end
 end
 
 class HasOneThroughDisableJoinsAssociationsTest < ActiveRecord::TestCase
@@ -2445,9 +2421,6 @@ class ActiveRecord::Encryption::EncryptableRecordTest < ActiveRecord::Encryption
     author = EncryptedAuthor.create(name: "a" * 4001)
     assert_not author.valid?
   end
-
-  # SQL Server does not support upsert. Coerce can be removed after https://github.com/rails/rails/pull/49344
-  coerce_tests! %r{loading records with encrypted attributes defined on columns with default values}
 end
 
 module ActiveRecord
