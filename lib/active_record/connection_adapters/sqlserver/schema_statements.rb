@@ -221,6 +221,14 @@ module ActiveRecord
           execute "DROP INDEX #{quote_column_name(index_name)} ON #{quote_table_name(table_name)}"
         end
 
+        def build_change_column_default_definition(table_name, column_name, default_or_changes) # :nodoc:
+          column = column_for(table_name, column_name)
+          return unless column
+
+          default = extract_new_default_value(default_or_changes)
+          ChangeColumnDefaultDefinition.new(column, default)
+        end
+
         def foreign_keys(table_name)
           identifier = SQLServer::Utils.extract_identifiers(table_name)
           fk_info = execute_procedure :sp_fkeys, nil, identifier.schema, nil, identifier.object, identifier.schema
