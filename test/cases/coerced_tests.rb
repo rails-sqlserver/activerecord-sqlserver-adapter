@@ -1178,18 +1178,6 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
   end
 end
 
-require "models/company"
-class InheritanceTest < ActiveRecord::TestCase
-  # Use Square brackets around column name
-  coerce_tests! :test_eager_load_belongs_to_primary_key_quoting
-  def test_eager_load_belongs_to_primary_key_quoting_coerced
-    Account.connection
-    assert_sql(/\[companies\]\.\[id\] = @0.* @0 = 1/) do
-      Account.all.merge!(includes: :firm).find(1)
-    end
-  end
-end
-
 class LeftOuterJoinAssociationTest < ActiveRecord::TestCase
   # Uses || operator in SQL. Just trust core gets value out of this test.
   coerce_tests! :test_does_not_override_select
