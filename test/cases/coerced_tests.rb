@@ -1596,14 +1596,55 @@ end
 
 require "models/topic"
 class TransactionTest < ActiveRecord::TestCase
-  # SQL Server does not have query for release_savepoint
+  # SQL Server does not have query for release_savepoint.
   coerce_tests! :test_releasing_named_savepoints
   def test_releasing_named_savepoints_coerced
     Topic.transaction do
+      Topic.connection.materialize_transactions
+      
       Topic.connection.create_savepoint("another")
       Topic.connection.release_savepoint("another")
       # We do not have a notion of releasing, so this does nothing vs raise an error.
       Topic.connection.release_savepoint("another")
+    end
+  end
+
+  # SQL Server does not have query for release_savepoint.
+  coerce_tests! :test_nested_transactions_after_disable_lazy_transactions
+  def test_nested_transactions_after_disable_lazy_transactions_coerced
+    Topic.connection.disable_lazy_transactions!
+
+    capture_sql do
+      # RealTransaction (begin..commit)
+      Topic.transaction(requires_new: true) do
+        # ResetParentTransaction (no queries)
+        Topic.transaction(requires_new: true) do
+          Topic.delete_all
+          # SavepointTransaction (savepoint..release)
+          Topic.transaction(requires_new: true) do
+            # ResetParentTransaction (no queries)
+            Topic.transaction(requires_new: true) do
+              # no-op
+            end
+          end
+        end
+        Topic.delete_all
+      end
+    end
+
+    actual_queries = ActiveRecord::SQLCounter.log_all
+
+    expected_queries = [
+      /BEGIN/i,
+      /DELETE/i,
+      /^SAVE TRANSACTION/i,
+      /DELETE/i,
+      /COMMIT/i,
+    ]
+
+    assert_equal expected_queries.size, actual_queries.size
+    expected_queries.zip(actual_queries) do |expected, actual|
+      assert_match expected, actual
     end
   end
 end
