@@ -18,13 +18,11 @@ module ActiveRecord
 
           log(sql, name, async: async) do
             with_raw_connection(allow_retry: allow_retry, materialize_transactions: materialize_transactions) do |conn|
-              handle = if id_insert_table_name = query_requires_identity_insert?(sql)
-                         with_identity_insert_enabled(id_insert_table_name) { _execute(sql, conn) }
+              result = if id_insert_table_name = query_requires_identity_insert?(sql)
+                         with_identity_insert_enabled(id_insert_table_name, conn) { _execute(sql, conn, perform_do: true) }
                        else
-                         _execute(sql, conn)
+                         _execute(sql, conn, perform_do: true)
                        end
-
-              result = handle.do
             end
           end
 
@@ -205,12 +203,12 @@ module ActiveRecord
 
         end
 
-        def with_identity_insert_enabled(table_name)
+        def with_identity_insert_enabled(table_name, conn)
           table_name = quote_table_name(table_name)
-          set_identity_insert(table_name, true)
+          set_identity_insert(table_name, conn, true)
           yield
         ensure
-          set_identity_insert(table_name, false)
+          set_identity_insert(table_name, conn, false)
         end
 
         def use_database(database = nil)
@@ -313,8 +311,8 @@ module ActiveRecord
 
         # === SQLServer Specific ======================================== #
 
-        def set_identity_insert(table_name, enable = true)
-          execute "SET IDENTITY_INSERT #{table_name} #{enable ? 'ON' : 'OFF'}"
+        def set_identity_insert(table_name, conn, enable)
+          _execute("SET IDENTITY_INSERT #{table_name} #{enable ? 'ON' : 'OFF'}", conn , perform_do: true)
         rescue Exception
           raise ActiveRecordError, "IDENTITY_INSERT could not be turned #{enable ? 'ON' : 'OFF'} for table #{table_name}"
         end
@@ -467,13 +465,15 @@ module ActiveRecord
         end
 
         # TODO: Rename
-        def _execute(sql, conn)
-          conn.execute(sql).tap do |result|
+        def _execute(sql, conn, perform_do: false)
+          result = conn.execute(sql).tap do |_result|
             # TinyTDS returns false instead of raising an exception if connection fails.
-            # Getting around this by raising an exception ourselves while this PR
+            # Getting around this by raising an exception ourselves while PR
             # https://github.com/rails-sqlserver/tiny_tds/pull/469 is not released.
-            raise TinyTds::Error, "failed to execute statement" if result.is_a?(FalseClass)
+            raise TinyTds::Error, "failed to execute statement" if _result.is_a?(FalseClass)
           end
+
+          perform_do ? result.do : result
         end
 
         # TODO: Remove
