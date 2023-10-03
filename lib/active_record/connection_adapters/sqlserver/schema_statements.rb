@@ -310,15 +310,18 @@ module ActiveRecord
           SQLServer::Table.new(table_name, base)
         end
 
-        def change_column_null(table_name, column_name, allow_null, default = nil)
+        def change_column_null(table_name, column_name, null, default = nil)
+          validate_change_column_null_argument!(null)
+
           table_id = SQLServer::Utils.extract_identifiers(table_name)
           column_id = SQLServer::Utils.extract_identifiers(column_name)
           column = column_for(table_name, column_name)
-          if !allow_null.nil? && allow_null == false && !default.nil?
+          if !null.nil? && null == false && !default.nil?
             execute("UPDATE #{table_id} SET #{column_id}=#{quote(default)} WHERE #{column_id} IS NULL")
           end
           sql = "ALTER TABLE #{table_id} ALTER COLUMN #{column_id} #{type_to_sql column.type, limit: column.limit, precision: column.precision, scale: column.scale}"
-          sql += " NOT NULL" if !allow_null.nil? && allow_null == false
+          sql += " NOT NULL" if !null.nil? && null == false
+
           execute sql
         end
 
