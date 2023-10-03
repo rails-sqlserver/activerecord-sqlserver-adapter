@@ -680,9 +680,76 @@ module ActiveRecord
         error = assert_raises(StandardError) do
           ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
         end
-        assert_match(/The identifier that starts with '#{long_table_name[0..-2]}' is too long/i, error.message)
+        assert_match(/The identifier that starts with '#{long_table_name[0...-1]}' is too long/i, error.message)
       ensure
         connection.drop_table(long_table_name) rescue nil
+      end
+
+      # Error message depends on the database adapter.
+      coerce_tests! :test_rename_table_on_7_0
+      def test_rename_table_on_7_0_coerced
+        long_table_name = "a" * (connection.table_name_length + 1)
+        connection.create_table(:more_testings)
+
+        migration = Class.new(ActiveRecord::Migration[7.0]) {
+          @@long_table_name = long_table_name
+          def version; 100 end
+          def migrate(x)
+            rename_table :more_testings, @@long_table_name
+          end
+        }.new
+
+        error = assert_raises(StandardError) do
+          ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
+        end
+        assert_match(/The new name '#{long_table_name[0...-1]}' is already in use as a object name and would cause a duplicate that is not permitted/i, error.message)
+      ensure
+        connection.drop_table(:more_testings) rescue nil
+        connection.drop_table(long_table_name) rescue nil
+      end
+
+      # SQL Server has a different maximum index name length.
+      coerce_tests! :test_add_index_errors_on_too_long_name_7_0
+      def test_add_index_errors_on_too_long_name_7_0_coerced
+        long_index_name = 'a' * (connection.index_name_length + 1)
+
+        migration = Class.new(ActiveRecord::Migration[7.0]) {
+          @@long_index_name = long_index_name
+          def migrate(x)
+            add_column :testings, :very_long_column_name_to_test_with, :string
+            add_index :testings, [:foo, :bar, :very_long_column_name_to_test_with], name: @@long_index_name
+          end
+        }.new
+
+        error = assert_raises(StandardError) do
+          ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
+        end
+        assert_match(/Index name \'#{long_index_name}\' on table \'testings\' is too long/i, error.message)
+      end
+
+      # SQL Server has a different maximum index name length.
+      coerce_tests! :test_create_table_add_index_errors_on_too_long_name_7_0
+      def test_create_table_add_index_errors_on_too_long_name_7_0_coerced
+        long_index_name = 'a' * (connection.index_name_length + 1)
+
+        migration = Class.new(ActiveRecord::Migration[7.0]) {
+          @@long_index_name = long_index_name
+          def migrate(x)
+            create_table :more_testings do |t|
+              t.integer :foo
+              t.integer :bar
+              t.integer :very_long_column_name_to_test_with
+              t.index [:foo, :bar, :very_long_column_name_to_test_with], name: @@long_index_name
+            end
+          end
+        }.new
+
+        error = assert_raises(StandardError) do
+          ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
+        end
+        assert_match(/Index name \'#{long_index_name}\' on table \'more_testings\' is too long/i, error.message)
+      ensure
+        connection.drop_table :more_testings rescue nil
       end
     end
   end
