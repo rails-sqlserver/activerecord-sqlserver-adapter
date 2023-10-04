@@ -279,7 +279,7 @@ module ActiveRecord
 
         protected
 
-        def sql_for_insert(sql, pk, binds, _returning)
+        def sql_for_insert(sql, pk, binds, returning)
           if pk.nil?
             table_name = query_requires_identity_insert?(sql)
             pk = primary_key(table_name)
@@ -299,9 +299,12 @@ module ActiveRecord
                       SELECT CAST(#{quoted_pk} AS #{id_sql_type}) FROM @ssaIdInsertTable
                     SQL
                   else
-                    inserted_keys = Array(pk).map { |primary_key| " INSERTED.#{SQLServer::Utils.extract_identifiers(primary_key).quoted}" }
+                    returning_columns = returning || Array(pk)
 
-                    sql.dup.insert sql.index(/ (DEFAULT )?VALUES/i), " OUTPUT" + inserted_keys.join(",")
+                    if returning_columns.any?
+                      returning_columns_statements = returning_columns.map { |c| " INSERTED.#{SQLServer::Utils.extract_identifiers(c).quoted}" }
+                      sql.dup.insert sql.index(/ (DEFAULT )?VALUES/i), " OUTPUT" + returning_columns_statements.join(",")
+                    end
                   end
                 else
                   "#{sql}; SELECT CAST(SCOPE_IDENTITY() AS bigint) AS Ident"
