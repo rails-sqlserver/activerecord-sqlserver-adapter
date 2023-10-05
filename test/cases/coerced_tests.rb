@@ -1863,8 +1863,8 @@ class DefaultNumbersTest < ActiveRecord::TestCase
   coerce_tests! :test_default_negative_integer
   def test_default_negative_integer_coerced
     record = DefaultNumber.new
-    assert_equal -5, record.negative_integer
-    assert_equal -5, record.negative_integer_before_type_cast
+    assert_equal (-5), record.negative_integer
+    assert_equal (-5), record.negative_integer_before_type_cast
   end
 
   # We do better with native types and do not return strings for everything.
