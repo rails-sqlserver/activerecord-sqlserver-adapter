@@ -304,6 +304,8 @@ module ActiveRecord
                     if returning_columns.any?
                       returning_columns_statements = returning_columns.map { |c| " INSERTED.#{SQLServer::Utils.extract_identifiers(c).quoted}" }
                       sql.dup.insert sql.index(/ (DEFAULT )?VALUES/i), " OUTPUT" + returning_columns_statements.join(",")
+                    else
+                      sql
                     end
                   end
                 else
