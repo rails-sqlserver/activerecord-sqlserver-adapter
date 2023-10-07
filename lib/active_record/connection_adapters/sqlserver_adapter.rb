@@ -17,6 +17,7 @@ require "active_record/connection_adapters/sqlserver/type"
 require "active_record/connection_adapters/sqlserver/database_limits"
 require "active_record/connection_adapters/sqlserver/database_statements"
 require "active_record/connection_adapters/sqlserver/database_tasks"
+require "active_record/connection_adapters/sqlserver/savepoints"
 require "active_record/connection_adapters/sqlserver/transaction"
 require "active_record/connection_adapters/sqlserver/errors"
 require "active_record/connection_adapters/sqlserver/schema_creation"
@@ -40,7 +41,8 @@ module ActiveRecord
               SQLServer::Showplan,
               SQLServer::SchemaStatements,
               SQLServer::DatabaseLimits,
-              SQLServer::DatabaseTasks
+              SQLServer::DatabaseTasks,
+              SQLServer::Savepoints
 
       ADAPTER_NAME = "SQLServer".freeze
 
