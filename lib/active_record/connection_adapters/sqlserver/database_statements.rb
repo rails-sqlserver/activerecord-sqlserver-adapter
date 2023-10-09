@@ -76,7 +76,7 @@ module ActiveRecord
         end
 
         def begin_db_transaction
-          execute "BEGIN TRANSACTION", "TRANSACTION"
+          internal_execute("BEGIN TRANSACTION", "TRANSACTION", allow_retry: true, materialize_transactions: false)
         end
 
         def transaction_isolation_levels
@@ -84,20 +84,20 @@ module ActiveRecord
         end
 
         def begin_isolated_db_transaction(isolation)
-          set_transaction_isolation_level transaction_isolation_levels.fetch(isolation)
+          set_transaction_isolation_level(transaction_isolation_levels.fetch(isolation))
           begin_db_transaction
         end
 
         def set_transaction_isolation_level(isolation_level)
-          execute "SET TRANSACTION ISOLATION LEVEL #{isolation_level}", "TRANSACTION"
+          internal_execute("SET TRANSACTION ISOLATION LEVEL #{isolation_level}", "TRANSACTION", allow_retry: true, materialize_transactions: false)
         end
 
         def commit_db_transaction
-          execute "COMMIT TRANSACTION", "TRANSACTION"
+          internal_execute("COMMIT TRANSACTION", "TRANSACTION", allow_retry: false, materialize_transactions: true)
         end
 
         def exec_rollback_db_transaction
-          execute "IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION", "TRANSACTION"
+          internal_execute("IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION", "TRANSACTION", allow_retry: false, materialize_transactions: true)
         end
 
         def case_sensitive_comparison(attribute, value)
