@@ -2585,3 +2585,8 @@ class ActiveRecord::Encryption::ConcurrencyTest < ActiveRecord::EncryptionTestCa
     end
   end
 end
+
+# TODO: Need to uncoerce the 'SerializedAttributeTest' tests before releasing adapter for Rails 7.1
+class SerializedAttributeTest < ActiveRecord::TestCase
+  coerce_all_tests!
+end
