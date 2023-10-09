@@ -100,19 +100,6 @@ module ActiveRecord
           execute "IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION", "TRANSACTION"
         end
 
-        include Savepoints
-
-        def create_savepoint(name = current_savepoint_name)
-          execute "SAVE TRANSACTION #{name}", "TRANSACTION"
-        end
-
-        def exec_rollback_to_savepoint(name = current_savepoint_name)
-          execute "ROLLBACK TRANSACTION #{name}", "TRANSACTION"
-        end
-
-        def release_savepoint(name = current_savepoint_name)
-        end
-
         def case_sensitive_comparison(attribute, value)
           column = column_for_attribute(attribute)
 
