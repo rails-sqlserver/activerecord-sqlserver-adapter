@@ -2585,3 +2585,8 @@ class ActiveRecord::Encryption::ConcurrencyTest < ActiveRecord::EncryptionTestCa
     end
   end
 end
+
+# TODO: Remove coercing of these tests. 
+class SerializedAttributeTest < ActiveRecord::TestCase
+  coerce_all_tests!
+end
