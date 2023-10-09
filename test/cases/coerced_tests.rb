@@ -685,7 +685,7 @@ module ActiveRecord
         connection.drop_table(long_table_name) rescue nil
       end
 
-      # Error message depends on the database adapter.
+      # SQL Server truncates long table names when renaming (https://learn.microsoft.com/en-us/sql/relational-databases/system-stored-procedures/sp-rename-transact-sql?view=sql-server-ver16).
       coerce_tests! :test_rename_table_on_7_0
       def test_rename_table_on_7_0_coerced
         long_table_name = "a" * (connection.table_name_length + 1)
@@ -699,13 +699,13 @@ module ActiveRecord
           end
         }.new
 
-        error = assert_raises(StandardError) do
-          ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
-        end
-        assert_match(/The new name '#{long_table_name[0...-1]}' is already in use as a object name and would cause a duplicate that is not permitted/i, error.message)
+        ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
+        assert connection.table_exists?(long_table_name[0...-1])
+        assert_not connection.table_exists?(:more_testings)
+        assert connection.table_exists?(long_table_name[0...-1])
       ensure
         connection.drop_table(:more_testings) rescue nil
-        connection.drop_table(long_table_name) rescue nil
+        connection.drop_table(long_table_name[0...-1]) rescue nil
       end
 
       # SQL Server has a different maximum index name length.
