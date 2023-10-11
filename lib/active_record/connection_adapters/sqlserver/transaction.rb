@@ -5,14 +5,12 @@ require "active_record/connection_adapters/abstract/transaction"
 module ActiveRecord
   module ConnectionAdapters
     module SQLServerTransaction
+      delegate :sqlserver?, to: :connection, prefix: true
+
       private
 
-      def sqlserver?
-        connection.respond_to?(:sqlserver?) && connection.sqlserver?
-      end
-
       def current_isolation_level
-        return unless sqlserver?
+        return unless connection_sqlserver?
 
         level = connection.user_options_isolation_level
         # When READ_COMMITTED_SNAPSHOT is set to ON,
@@ -50,7 +48,7 @@ module ActiveRecord
       private
 
       def reset_starting_isolation_level
-        if sqlserver? && starting_isolation_level
+        if connection_sqlserver? && starting_isolation_level
           connection.set_transaction_isolation_level(starting_isolation_level)
         end
       end

@@ -12,6 +12,7 @@ require "active_record/connection_adapters/sqlserver/core_ext/explain_subscriber
 require "active_record/connection_adapters/sqlserver/core_ext/attribute_methods"
 require "active_record/connection_adapters/sqlserver/core_ext/finder_methods"
 require "active_record/connection_adapters/sqlserver/core_ext/preloader"
+require "active_record/connection_adapters/sqlserver/core_ext/abstract_adapter"
 require "active_record/connection_adapters/sqlserver/version"
 require "active_record/connection_adapters/sqlserver/type"
 require "active_record/connection_adapters/sqlserver/database_limits"
@@ -100,7 +101,7 @@ module ActiveRecord
         super
 
         @config[:tds_version] = "7.3" unless @config[:tds_version]
-        @config[:appname] = rails_application_name unless @config[:appname]
+        @config[:appname] = self.class.rails_application_name unless @config[:appname]
         @config[:login_timeout] = @config[:login_timeout].present? ? @config[:login_timeout].to_i : nil
         @config[:timeout] = @config[:timeout].present? ? @config[:timeout].to_i / 1000 : nil
         @config[:encoding] = @config[:encoding].present? ? @config[:encoding] : nil
