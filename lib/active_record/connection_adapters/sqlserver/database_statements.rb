@@ -467,12 +467,15 @@ module ActiveRecord
 
         # TODO: Remove
         def dblib_execute(sql)
-          @raw_connection.execute(sql).tap do |result|
-            # TinyTDS returns false instead of raising an exception if connection fails.
-            # Getting around this by raising an exception ourselves while this PR
-            # https://github.com/rails-sqlserver/tiny_tds/pull/469 is not released.
-            raise TinyTds::Error, "failed to execute statement" if result.is_a?(FalseClass)
-          end
+          throw NotImplementedError
+
+
+          # @raw_connection.execute(sql).tap do |result|
+          #   # TinyTDS returns false instead of raising an exception if connection fails.
+          #   # Getting around this by raising an exception ourselves while this PR
+          #   # https://github.com/rails-sqlserver/tiny_tds/pull/469 is not released.
+          #   raise TinyTds::Error, "failed to execute statement" if result.is_a?(FalseClass)
+          # end
         end
 
         def ensure_established_connection!
