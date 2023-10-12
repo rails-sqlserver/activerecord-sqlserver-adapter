@@ -2599,6 +2599,11 @@ class ActiveRecordMessagePackTest < ActiveRecord::TestCase
   end
 end
 
+class StoreTest < ActiveRecord::TestCase
+  # Set the attribute as JSON type for the `StoreTest#saved changes tracking for accessors with json column` test.
+  Admin::User.attribute :json_options, ActiveRecord::Type::SQLServer::Json.new
+end
+
 # TODO: Need to uncoerce the 'SerializedAttributeTest' tests before releasing adapter for Rails 7.1
 class SerializedAttributeTest < ActiveRecord::TestCase
   coerce_all_tests!
