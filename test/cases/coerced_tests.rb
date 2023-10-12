@@ -2586,6 +2586,19 @@ class ActiveRecord::Encryption::ConcurrencyTest < ActiveRecord::EncryptionTestCa
   end
 end
 
+# Need to use `install_unregistered_type_fallback` instead of `install_unregistered_type_error` so that message-pack
+# can read and write `ActiveRecord::ConnectionAdapters::SQLServer::Type::Data` objects.
+class ActiveRecordMessagePackTest < ActiveRecord::TestCase
+  private
+  def serializer
+    @serializer ||= ::MessagePack::Factory.new.tap do |factory|
+      ActiveRecord::MessagePack::Extensions.install(factory)
+      ActiveSupport::MessagePack::Extensions.install(factory)
+      ActiveSupport::MessagePack::Extensions.install_unregistered_type_fallback(factory)
+    end
+  end
+end
+
 # TODO: Need to uncoerce the 'SerializedAttributeTest' tests before releasing adapter for Rails 7.1
 class SerializedAttributeTest < ActiveRecord::TestCase
   coerce_all_tests!
