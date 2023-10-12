@@ -1,3 +1,9 @@
+## Unreleased
+
+#### Fixed
+
+- [#1113](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1113) Fix issue with default view value not being found because of case sensitivity
+
 ## v7.0.4.0
 
 #### Changed

@@ -388,7 +388,7 @@ module ActiveRecord
 
           if view_exists
             results = sp_executesql %{
-              SELECT c.COLUMN_NAME AS [name], c.COLUMN_DEFAULT AS [default]
+              SELECT LOWER(c.COLUMN_NAME) AS [name], c.COLUMN_DEFAULT AS [default]
               FROM #{database}.INFORMATION_SCHEMA.COLUMNS c
               WHERE c.TABLE_NAME = #{quote(view_tblnm)}
             }.squish, "SCHEMA", []
@@ -426,7 +426,7 @@ module ActiveRecord
             ci[:default_function] = begin
               default = ci[:default_value]
               if default.nil? && view_exists
-                view_column = views_real_column_name(table_name, ci[:name])
+                view_column = views_real_column_name(table_name, ci[:name]).downcase
                 default = default_functions[view_column] if view_column.present?
               end
               case default
