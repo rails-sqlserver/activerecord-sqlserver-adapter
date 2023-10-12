@@ -2586,6 +2586,18 @@ class ActiveRecord::Encryption::ConcurrencyTest < ActiveRecord::EncryptionTestCa
   end
 end
 
+
+class StoreTest < ActiveRecord::TestCase
+  Admin::User.attribute :json_options, ActiveRecord::Type::SQLServer::Json.new
+end
+
+# Need to `StoreTest#saved changes tracking for accessors with json column`
+# class Admin::User < ActiveRecord::Base
+#   attribute :json_options, ActiveRecord::Type::SQLServer::Json.new
+# end
+
+
+
 # Need to use `install_unregistered_type_fallback` instead of `install_unregistered_type_error` so that message-pack
 # can read and write `ActiveRecord::ConnectionAdapters::SQLServer::Type::Data` objects.
 class ActiveRecordMessagePackTest < ActiveRecord::TestCase
