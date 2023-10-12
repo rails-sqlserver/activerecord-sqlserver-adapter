@@ -16,3 +16,4 @@ coverage/*
 .flooignore
 .floo
 .byebug_history
+tmp/*
