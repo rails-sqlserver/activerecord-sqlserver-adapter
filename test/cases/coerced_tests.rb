@@ -2586,6 +2586,11 @@ class ActiveRecord::Encryption::ConcurrencyTest < ActiveRecord::EncryptionTestCa
   end
 end
 
+# Need to `StoreTest#saved changes tracking for accessors with json column`
+class Admin::User < ActiveRecord::Base
+  attribute :json_options, ActiveRecord::Type::SQLServer::Json.new
+end
+
 # TODO: Need to uncoerce the 'SerializedAttributeTest' tests before releasing adapter for Rails 7.1
 class SerializedAttributeTest < ActiveRecord::TestCase
   coerce_all_tests!
