@@ -1912,24 +1912,12 @@ module ActiveRecord
   end
 end
 
+# TODO: Check if SchemaCacheTest tests still need to coerced. Ruby <3.0 are not longer supported.
 module ActiveRecord
   module ConnectionAdapters
     class SchemaCacheTest < ActiveRecord::TestCase
-      # Tests fail on Windows AppVeyor CI with 'Permission denied' error when renaming file during `File.atomic_write` call.
-      coerce_tests! :test_yaml_dump_and_load, :test_yaml_dump_and_load_with_gzip if RbConfig::CONFIG["host_os"] =~ /mswin|mingw/
-
       # Ruby 2.5 and 2.6 have issues to marshal Time before 1900. 2012.sql has one column with default value 1753
       coerce_tests! :test_marshal_dump_and_load_with_gzip, :test_marshal_dump_and_load_via_disk
-
-      # Tests fail on Windows AppVeyor CI with 'Permission denied' error when renaming file during `File.atomic_write` call.
-      unless RbConfig::CONFIG["host_os"] =~ /mswin|mingw/
-        def test_marshal_dump_and_load_with_gzip_coerced
-          with_marshable_time_defaults { original_test_marshal_dump_and_load_with_gzip }
-        end
-        def test_marshal_dump_and_load_via_disk_coerced
-          with_marshable_time_defaults { original_test_marshal_dump_and_load_via_disk }
-        end
-      end
 
       private
 
@@ -2405,16 +2393,6 @@ class BasePreventWritesTest < ActiveRecord::TestCase
       end
     end
   end
-end
-
-class MigratorTest < ActiveRecord::TestCase
-  # Test fails on Windows AppVeyor CI for unknown reason.
-  coerce_tests! :test_migrator_db_has_no_schema_migrations_table if RbConfig::CONFIG["host_os"] =~ /mswin|mingw/
-end
-
-class MultiDbMigratorTest < ActiveRecord::TestCase
-  # Test fails on Windows AppVeyor CI for unknown reason.
-  coerce_tests! :test_migrator_db_has_no_schema_migrations_table if RbConfig::CONFIG["host_os"] =~ /mswin|mingw/
 end
 
 require "models/book"
