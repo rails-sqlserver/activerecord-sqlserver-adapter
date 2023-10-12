@@ -243,7 +243,7 @@ module ActiveRecord
       end
 
       def reconnect
-        @raw_connection.close rescue nil
+        @raw_connection&.close rescue nil
         @raw_connection = nil
         @spid = nil
         @collation = nil
@@ -254,7 +254,7 @@ module ActiveRecord
       def disconnect!
         super
 
-        @raw_connection.close rescue nil
+        @raw_connection&.close rescue nil
         @raw_connection = nil
         @spid = nil
         @collation = nil
@@ -336,6 +336,12 @@ module ActiveRecord
 
       def get_database_version # :nodoc:
         version_year
+      end
+
+      def check_version # :nodoc:
+        if schema_cache.database_version < 2012
+          raise "Your version of SQL Server (#{database_version}) is too old. SQL Server Active Record supports 2012 or higher."
+        end
       end
 
       class << self
