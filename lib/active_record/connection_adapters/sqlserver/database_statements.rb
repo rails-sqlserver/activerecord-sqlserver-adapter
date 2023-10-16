@@ -381,12 +381,12 @@ module ActiveRecord
         end
 
 
-        def raw_connection_do(sql)
-          result = ensure_established_connection! { dblib_execute(sql) }
-          result.do
-        ensure
-          @update_sql = false
-        end
+        # def raw_connection_do(sql)
+        #   result = ensure_established_connection! { dblib_execute(sql) }
+        #   result.do
+        # ensure
+        #   @update_sql = false
+        # end
 
         # === SQLServer Specific (Identity Inserts) ===================== #
 
