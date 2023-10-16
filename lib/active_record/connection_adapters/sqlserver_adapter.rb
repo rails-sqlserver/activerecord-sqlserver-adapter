@@ -234,10 +234,7 @@ module ActiveRecord
       # === Abstract Adapter (Connection Management) ================== #
 
       def active?
-        return false unless @raw_connection
-
-        raw_connection_do "SELECT 1"
-        true
+        @raw_connection&.active?
       rescue *connection_errors
         false
       end
@@ -504,7 +501,7 @@ module ActiveRecord
       end
 
       def sqlserver_version
-        @sqlserver_version ||= _raw_select("SELECT @@version", fetch: :rows).first.first.to_s
+        @sqlserver_version ||= _raw_select("SELECT @@version", @raw_connection, fetch: :rows).first.first.to_s
       end
 
       private
@@ -529,7 +526,11 @@ module ActiveRecord
         @raw_connection.execute("SET TEXTSIZE 2147483647").do
         @raw_connection.execute("SET CONCAT_NULL_YIELDS_NULL ON").do
 
-        @spid = _raw_select("SELECT @@SPID", fetch: :rows).first.first
+        # binding.pry
+
+        # result = @raw_connection.execute("SELECT @@SPID")
+
+        @spid = _raw_select("SELECT @@SPID", @raw_connection, fetch: :rows).first.first
 
         initialize_dateformatter
         use_database

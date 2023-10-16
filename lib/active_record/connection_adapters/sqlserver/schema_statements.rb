@@ -124,7 +124,13 @@ module ActiveRecord
           binds << Relation::QueryAttribute.new("TABLE_NAME", identifier.object, nv128)
           binds << Relation::QueryAttribute.new("TABLE_SCHEMA", identifier.schema, nv128) unless identifier.schema.blank?
 
-          sp_executesql(sql, "SCHEMA", binds).map { |r| r["name"] }
+
+
+          # binding.pry
+
+          internal_exec_query(sql, "SCHEMA", binds).map { |row| row["name"] }
+
+          # sp_executesql(sql, "SCHEMA", binds).map { |r| r["name"] }
         end
 
         def rename_table(table_name, new_name, **options)
@@ -424,12 +430,14 @@ module ActiveRecord
           view_tblnm  = view_table_name(table_name) if view_exists
 
           if view_exists
-            results = sp_executesql %{
+            sql = %{
               SELECT LOWER(c.COLUMN_NAME) AS [name], c.COLUMN_DEFAULT AS [default]
               FROM #{database}.INFORMATION_SCHEMA.COLUMNS c
               WHERE c.TABLE_NAME = #{quote(view_tblnm)}
-            }.squish, "SCHEMA", []
-            default_functions = results.each.with_object({}) {|row, out| out[row["name"]] = row["default"] }.compact
+            }.squish
+
+            results = internal_exec_query(sql, "SCHEMA", [])
+            default_functions = results.each.with_object({}) { |row, out| out[row["name"]] = row["default"] }.compact
           end
 
           sql = column_definitions_sql(database, identifier)
@@ -438,7 +446,8 @@ module ActiveRecord
           nv128 = SQLServer::Type::UnicodeVarchar.new limit: 128
           binds << Relation::QueryAttribute.new("TABLE_NAME", identifier.object, nv128)
           binds << Relation::QueryAttribute.new("TABLE_SCHEMA", identifier.schema, nv128) unless identifier.schema.blank?
-          results = sp_executesql(sql, "SCHEMA", binds)
+          results = internal_exec_query(sql, "SCHEMA", binds)
+
           columns = results.map do |ci|
             ci = ci.symbolize_keys
             ci[:_type] = ci[:type]

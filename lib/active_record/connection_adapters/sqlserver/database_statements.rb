@@ -312,20 +312,23 @@ module ActiveRecord
 
         # === SQLServer Specific (Executing) ============================ #
 
-        # TODO: Adapter should be refactored to use `with_raw_connection` to translate exceptions.
-        def sp_executesql(sql, name, binds, options = {})
-          options[:ar_result] = true if options[:fetch] != :rows
-
-          unless without_prepared_statement?(binds)
-            types, params = sp_executesql_types_and_parameters(binds)
-            sql = sp_executesql_sql(sql, types, params, name)
-          end
-
-          raw_select sql, name, binds, options
-        rescue => original_exception
-          translated_exception = translate_exception_class(original_exception, sql, binds)
-          raise translated_exception
-        end
+        # # TODO: Adapter should be refactored to use `with_raw_connection` to translate exceptions.
+        # def sp_executesql(sql, name, binds)
+        #
+        #   internal_exec_query(sql, name, binds)
+        #
+        # #   options[:ar_result] = true if options[:fetch] != :rows
+        # #
+        # #   unless without_prepared_statement?(binds)
+        # #     types, params = sp_executesql_types_and_parameters(binds)
+        # #     sql = sp_executesql_sql(sql, types, params, name)
+        # #   end
+        # #
+        # #   raw_select sql, name, binds, options
+        # # rescue => original_exception
+        # #   translated_exception = translate_exception_class(original_exception, sql, binds)
+        # #   raise translated_exception
+        # end
 
         def sp_executesql_types_and_parameters(binds)
           types, params = [], []
@@ -377,6 +380,7 @@ module ActiveRecord
           sql.freeze
         end
 
+
         def raw_connection_do(sql)
           result = ensure_established_connection! { dblib_execute(sql) }
           result.do
@@ -422,20 +426,25 @@ module ActiveRecord
 
         # === SQLServer Specific (Selecting) ============================ #
 
-        def raw_select(sql, name = "SQL", binds = [], options = {})
-          log(sql, name, binds, async: options[:async]) { _raw_select(sql, options) }
-        end
+        # TODO: Need to remove?
+        # def raw_select(sql, name = "SQL", binds = [], options = {})
+        #   log(sql, name, binds, async: options[:async]) { _raw_select(sql, options) }
+        # end
 
-        def _raw_select(sql, options = {})
-          handle = raw_connection_run(sql)
+        # TODO: Rename to `raw_select`?
+        def _raw_select(sql, conn, options = {})
+          # handle = raw_connection_run(sql, conn)
+
+          handle = _execute(sql, conn)
+
           handle_to_names_and_values(handle, options)
         ensure
           finish_statement_handle(handle)
         end
 
-        def raw_connection_run(sql)
-          ensure_established_connection! { dblib_execute(sql) }
-        end
+        # def raw_connection_run(sql, connection)
+        #   dblib_execute(sql, connection)
+        # end
 
         def handle_to_names_and_values(handle, options = {})
           query_options = {}.tap do |qo|
@@ -453,7 +462,7 @@ module ActiveRecord
           handle
         end
 
-        # TODO: Rename
+        # TODO: Rename to `raw_execute`?
         def _execute(sql, conn, perform_do: false)
           result = conn.execute(sql).tap do |_result|
             # TinyTDS returns false instead of raising an exception if connection fails.
@@ -465,18 +474,18 @@ module ActiveRecord
           perform_do ? result.do : result
         end
 
-        # TODO: Remove
-        def dblib_execute(sql)
-          throw NotImplementedError
-
-
-          # @raw_connection.execute(sql).tap do |result|
-          #   # TinyTDS returns false instead of raising an exception if connection fails.
-          #   # Getting around this by raising an exception ourselves while this PR
-          #   # https://github.com/rails-sqlserver/tiny_tds/pull/469 is not released.
-          #   raise TinyTds::Error, "failed to execute statement" if result.is_a?(FalseClass)
-          # end
-        end
+        # # TODO: Remove
+        # def dblib_execute(sql, connection)
+        #   # throw NotImplementedError
+        #
+        #
+        #   connection.execute(sql).tap do |result|
+        #     # TinyTDS returns false instead of raising an exception if connection fails.
+        #     # Getting around this by raising an exception ourselves while this PR
+        #     # https://github.com/rails-sqlserver/tiny_tds/pull/469 is not released.
+        #     raise TinyTds::Error, "failed to execute statement" if result.is_a?(FalseClass)
+        #   end
+        # end
 
         def ensure_established_connection!
           raise TinyTds::Error, 'SQL Server client is not connected' unless @raw_connection
