@@ -434,12 +434,6 @@ module ActiveRecord
 
           perform_do ? result.do : result
         end
-
-        def ensure_established_connection!
-          raise TinyTds::Error, 'SQL Server client is not connected' unless @raw_connection
-
-          yield
-        end
       end
     end
   end
