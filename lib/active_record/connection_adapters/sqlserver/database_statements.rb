@@ -400,7 +400,7 @@ module ActiveRecord
 
         # === SQLServer Specific (Selecting) ============================ #
 
-        def raw_select(sql, conn, options = {})
+        def _raw_select(sql, conn, options = {})
           handle = internal_raw_execute(sql, conn)
 
           handle_to_names_and_values(handle, options)
