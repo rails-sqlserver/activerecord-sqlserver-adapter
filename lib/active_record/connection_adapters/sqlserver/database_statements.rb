@@ -19,9 +19,9 @@ module ActiveRecord
           log(sql, name, async: async) do
             with_raw_connection(allow_retry: allow_retry, materialize_transactions: materialize_transactions) do |conn|
               result = if id_insert_table_name = query_requires_identity_insert?(sql)
-                         with_identity_insert_enabled(id_insert_table_name, conn) { _execute(sql, conn, perform_do: true) }
+                         with_identity_insert_enabled(id_insert_table_name, conn) { internal_raw_execute(sql, conn, perform_do: true) }
                        else
-                         _execute(sql, conn, perform_do: true)
+                         internal_raw_execute(sql, conn, perform_do: true)
                        end
             end
           end
@@ -49,11 +49,11 @@ module ActiveRecord
                 # TODO: Look into refactoring this.
                 if id_insert_table_name = query_requires_identity_insert?(sql)
                   with_identity_insert_enabled(id_insert_table_name, conn) do
-                    handle = _execute(sql, conn)
+                    handle = internal_raw_execute(sql, conn)
                     result = handle_to_names_and_values(handle, options)
                   end
                 else
-                  handle = _execute(sql, conn)
+                  handle = internal_raw_execute(sql, conn)
                   result = handle_to_names_and_values(handle, options)
                 end
               ensure
@@ -176,7 +176,7 @@ module ActiveRecord
 
           log(sql, "Execute Procedure") do
             with_raw_connection do |conn|
-              result = _execute(sql, conn)
+              result = internal_raw_execute(sql, conn)
               options = { as: :hash, cache_rows: true, timezone: ActiveRecord.default_timezone || :utc }
 
               result.each(options) do |row|
@@ -305,30 +305,12 @@ module ActiveRecord
         # === SQLServer Specific ======================================== #
 
         def set_identity_insert(table_name, conn, enable)
-          _execute("SET IDENTITY_INSERT #{table_name} #{enable ? 'ON' : 'OFF'}", conn , perform_do: true)
+          internal_raw_execute("SET IDENTITY_INSERT #{table_name} #{enable ? 'ON' : 'OFF'}", conn , perform_do: true)
         rescue Exception
           raise ActiveRecordError, "IDENTITY_INSERT could not be turned #{enable ? 'ON' : 'OFF'} for table #{table_name}"
         end
 
         # === SQLServer Specific (Executing) ============================ #
-
-        # # TODO: Adapter should be refactored to use `with_raw_connection` to translate exceptions.
-        # def sp_executesql(sql, name, binds)
-        #
-        #   internal_exec_query(sql, name, binds)
-        #
-        # #   options[:ar_result] = true if options[:fetch] != :rows
-        # #
-        # #   unless without_prepared_statement?(binds)
-        # #     types, params = sp_executesql_types_and_parameters(binds)
-        # #     sql = sp_executesql_sql(sql, types, params, name)
-        # #   end
-        # #
-        # #   raw_select sql, name, binds, options
-        # # rescue => original_exception
-        # #   translated_exception = translate_exception_class(original_exception, sql, binds)
-        # #   raise translated_exception
-        # end
 
         def sp_executesql_types_and_parameters(binds)
           types, params = [], []
@@ -380,14 +362,6 @@ module ActiveRecord
           sql.freeze
         end
 
-
-        # def raw_connection_do(sql)
-        #   result = ensure_established_connection! { dblib_execute(sql) }
-        #   result.do
-        # ensure
-        #   @update_sql = false
-        # end
-
         # === SQLServer Specific (Identity Inserts) ===================== #
 
         def use_output_inserted?
@@ -426,25 +400,13 @@ module ActiveRecord
 
         # === SQLServer Specific (Selecting) ============================ #
 
-        # TODO: Need to remove?
-        # def raw_select(sql, name = "SQL", binds = [], options = {})
-        #   log(sql, name, binds, async: options[:async]) { _raw_select(sql, options) }
-        # end
-
-        # TODO: Rename to `raw_select`?
-        def _raw_select(sql, conn, options = {})
-          # handle = raw_connection_run(sql, conn)
-
-          handle = _execute(sql, conn)
+        def raw_select(sql, conn, options = {})
+          handle = internal_raw_execute(sql, conn)
 
           handle_to_names_and_values(handle, options)
         ensure
           finish_statement_handle(handle)
         end
-
-        # def raw_connection_run(sql, connection)
-        #   dblib_execute(sql, connection)
-        # end
 
         def handle_to_names_and_values(handle, options = {})
           query_options = {}.tap do |qo|
@@ -462,30 +424,16 @@ module ActiveRecord
           handle
         end
 
-        # TODO: Rename to `raw_execute`?
-        def _execute(sql, conn, perform_do: false)
+        # TinyTDS returns false instead of raising an exception if connection fails.
+        # Getting around this by raising an exception ourselves while PR
+        # https://github.com/rails-sqlserver/tiny_tds/pull/469 is not released.
+        def internal_raw_execute(sql, conn, perform_do: false)
           result = conn.execute(sql).tap do |_result|
-            # TinyTDS returns false instead of raising an exception if connection fails.
-            # Getting around this by raising an exception ourselves while PR
-            # https://github.com/rails-sqlserver/tiny_tds/pull/469 is not released.
             raise TinyTds::Error, "failed to execute statement" if _result.is_a?(FalseClass)
           end
 
           perform_do ? result.do : result
         end
-
-        # # TODO: Remove
-        # def dblib_execute(sql, connection)
-        #   # throw NotImplementedError
-        #
-        #
-        #   connection.execute(sql).tap do |result|
-        #     # TinyTDS returns false instead of raising an exception if connection fails.
-        #     # Getting around this by raising an exception ourselves while this PR
-        #     # https://github.com/rails-sqlserver/tiny_tds/pull/469 is not released.
-        #     raise TinyTds::Error, "failed to execute statement" if result.is_a?(FalseClass)
-        #   end
-        # end
 
         def ensure_established_connection!
           raise TinyTds::Error, 'SQL Server client is not connected' unless @raw_connection
