@@ -14,7 +14,7 @@ module ActiveRecord
 
         def explain(arel, binds = [], options = [])
           sql = to_sql(arel)
-          result = with_showplan_on { sp_executesql(sql, "EXPLAIN", binds) }
+          result = with_showplan_on { internal_exec_query(sql, "EXPLAIN", binds) }
           printer = showplan_printer.new(result)
           printer.pp
         end
@@ -30,7 +30,7 @@ module ActiveRecord
 
         def set_showplan_option(enable = true)
           sql = "SET #{showplan_option} #{enable ? 'ON' : 'OFF'}"
-          raw_connection_do(sql)
+          raw_execute(sql, "SCHEMA")
         rescue Exception
           raise ActiveRecordError, "#{showplan_option} could not be turned #{enable ? 'ON' : 'OFF'}, perhaps you do not have SHOWPLAN permissions?"
         end
