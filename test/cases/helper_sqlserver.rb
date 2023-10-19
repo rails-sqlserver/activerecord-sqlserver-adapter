@@ -38,7 +38,7 @@ module ActiveRecord
     def remove_backtrace_silencers
       Rails.backtrace_cleaner.remove_silencers!
     end
-    
+
     # Cleanup the SQLite database created by previous runs of the Rails ActiveRecord test suite.
     def cleanup_sqlite_databases
       sqlite_db_dir = File.join(ARTest::SQLServer.test_root_sqlserver, "db")

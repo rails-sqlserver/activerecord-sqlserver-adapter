@@ -1,5 +1,5 @@
 nbproject/
-debug.log
+debug.log*
 .DS_Store
 pkg/
 doc/

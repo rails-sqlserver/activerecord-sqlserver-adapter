@@ -778,6 +778,7 @@ end
 module ActiveRecord
   # The original module is hardcoded for PostgreSQL/SQLite/MySQL tests.
   module DatabaseTasksSetupper
+    undef_method :setup
     def setup
       @sqlserver_tasks =
         Class.new do
@@ -800,6 +801,7 @@ module ActiveRecord
       $stderr, @original_stderr = StringIO.new, $stderr
     end
 
+    undef_method :with_stubbed_new
     def with_stubbed_new
       ActiveRecord::Tasks::SQLServerDatabaseTasks.stub(:new, @sqlserver_tasks) do
         yield
@@ -1953,8 +1955,9 @@ module ActiveRecord
       end
 
       # We need to give the full path for this to work.
+      undef_method :schema_dump_path
       def schema_dump_path
-        File.join ARTest::SQLServer.root_activerecord, "test/assets/schema_dump_5_1.yml"
+        File.join(ARTest::SQLServer.root_activerecord, "test/assets/schema_dump_5_1.yml")
       end
     end
   end
@@ -2306,6 +2309,7 @@ end
 class MarshalSerializationTest < ActiveRecord::TestCase
   private
 
+  undef_method :marshal_fixture_path
   def marshal_fixture_path(file_name)
     File.expand_path(
       "support/marshal_compatibility_fixtures/#{ActiveRecord::Base.connection.adapter_name}/#{file_name}.dump",
@@ -2561,6 +2565,7 @@ module ActiveRecord
   class Migration
     class InvalidOptionsTest < ActiveRecord::TestCase
       # Include the additional SQL Server migration options.
+      undef_method :invalid_add_column_option_exception_message
       def invalid_add_column_option_exception_message(key)
         default_keys = [":limit", ":precision", ":scale", ":default", ":null", ":collation", ":comment", ":primary_key", ":if_exists", ":if_not_exists"]
         default_keys.concat([":is_identity"]) # SQL Server additional valid keys
@@ -2573,6 +2578,7 @@ end
 
 # SQL Server does not support upsert. Removed dependency on `insert_all` that uses upsert.
 class ActiveRecord::Encryption::ConcurrencyTest < ActiveRecord::EncryptionTestCase
+  undef_method :thread_encrypting_and_decrypting
   def thread_encrypting_and_decrypting(thread_label)
     posts = 100.times.collect { |index| EncryptedPost.create! title: "Article #{index} (#{thread_label})", body: "Body #{index} (#{thread_label})" }
 
@@ -2590,6 +2596,7 @@ end
 # can read and write `ActiveRecord::ConnectionAdapters::SQLServer::Type::Data` objects.
 class ActiveRecordMessagePackTest < ActiveRecord::TestCase
   private
+  undef_method :serializer
   def serializer
     @serializer ||= ::MessagePack::Factory.new.tap do |factory|
       ActiveRecord::MessagePack::Extensions.install(factory)

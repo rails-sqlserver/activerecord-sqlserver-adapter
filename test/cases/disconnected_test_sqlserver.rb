@@ -5,6 +5,7 @@ require "cases/helper_sqlserver"
 class TestDisconnectedAdapter < ActiveRecord::TestCase
   self.use_transactional_tests = false
 
+  undef_method :setup
   def setup
     @connection = ActiveRecord::Base.connection
   end
