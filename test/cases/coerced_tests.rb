@@ -1605,6 +1605,9 @@ class SchemaDumperTest < ActiveRecord::TestCase
     output = dump_all_table_schema([/^[^n]/])
     assert_match %r{precision: 3,[[:space:]]+scale: 2,[[:space:]]+default: 2\.78}, output
   end
+
+  # Tests are not about a specific adapter.
+  coerce_tests! :test_do_not_dump_foreign_keys_when_bypassed_by_config
 end
 
 class SchemaDumperDefaultsTest < ActiveRecord::TestCase
@@ -2609,6 +2612,47 @@ end
 class StoreTest < ActiveRecord::TestCase
   # Set the attribute as JSON type for the `StoreTest#saved changes tracking for accessors with json column` test.
   Admin::User.attribute :json_options, ActiveRecord::Type::SQLServer::Json.new
+end
+
+class TestDatabasesTest < ActiveRecord::TestCase
+  # Tests are not about a specific adapter.
+  coerce_all_tests!
+end
+
+module ActiveRecord
+  module ConnectionAdapters
+    class ConnectionHandlersShardingDbTest  < ActiveRecord::TestCase
+      # Tests are not about a specific adapter.
+      coerce_all_tests!
+    end
+  end
+end
+
+module ActiveRecord
+  module ConnectionAdapters
+    class ConnectionSwappingNestedTest < ActiveRecord::TestCase
+      # Tests are not about a specific adapter.
+      coerce_all_tests!
+    end
+  end
+end
+
+module ActiveRecord
+  module ConnectionAdapters
+    class ConnectionHandlersMultiDbTest < ActiveRecord::TestCase
+      # Tests are not about a specific adapter.
+      coerce_tests! :test_switching_connections_via_handler
+    end
+  end
+end
+
+module ActiveRecord
+  module ConnectionAdapters
+    class ConnectionHandlersMultiPoolConfigTest < ActiveRecord::TestCase
+      # Tests are not about a specific adapter.
+      coerce_all_tests!
+    end
+  end
 end
 
 # TODO: Need to uncoerce the 'SerializedAttributeTest' tests before releasing adapter for Rails 7.1
