@@ -13,7 +13,7 @@ Interested in older versions? We follow a rational versioning policy that tracks
 
 | Adapter Version | Rails Version | Support        | Branch                                                                                          |
 |-----------------|---------------|----------------|-------------------------------------------------------------------------------------------------|
-| `v7.1.0.beta1`  | `7.1.0`       | In development | [main](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/tree/main)       |
+| `v7.1.0.beta1`  | `7.1.x`       | In development | [main](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/tree/main)       |
 | `7.0.4.0`       | `7.0.x`       | Active         | [7-0-stable](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/tree/7-0-stable) |
 | `6.1.2.1`       | `6.1.x`       | Active         | [6-1-stable](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/tree/6-1-stable) |
 | `6.0.3`         | `6.0.x`       | Active         | [6-0-stable](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/tree/6-0-stable) |
