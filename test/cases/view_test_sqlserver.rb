@@ -11,10 +11,18 @@ class ViewTestSQLServer < ActiveRecord::TestCase
       connection.create_table :view_casing_table, force: true do |t|
         t.boolean :Default_Falsey, null: false, default: false
         t.boolean :Default_Truthy, null: false, default: true
+        t.string  :default_string, null: false, default: "abc"
       end
 
       connection.execute("DROP VIEW IF EXISTS view_casing_table_view;")
-      connection.execute("CREATE VIEW view_casing_table_view AS SELECT id AS id, default_falsey AS falsey, default_truthy AS truthy FROM view_casing_table")
+      connection.execute <<-SQL
+        CREATE VIEW view_casing_table_view AS
+              SELECT id AS id,
+                     default_falsey AS falsey,
+                     default_truthy AS truthy,
+                     default_string AS s
+              FROM view_casing_table
+      SQL
     end
 
     it "default values are correct when column casing used in tables and views are different" do
@@ -25,11 +33,13 @@ class ViewTestSQLServer < ActiveRecord::TestCase
       obj = klass.new
       assert_equal false, obj.falsey
       assert_equal true, obj.truthy
+      assert_equal "abc", obj.s
       assert_equal 0, klass.count
 
       obj.save!
       assert_equal false, obj.falsey
       assert_equal true, obj.truthy
+      assert_equal "abc", obj.s
       assert_equal 1, klass.count
     end
   end

@@ -3,6 +3,7 @@
 #### Fixed
 
 - [#1113](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1113) Fix issue with default view value not being found because of case sensitivity
+- [#1126](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1113) Fix view issue with default column value not found
 
 ## v7.0.4.0
 
