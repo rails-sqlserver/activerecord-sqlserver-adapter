@@ -54,7 +54,7 @@ class TransactionTestSQLServer < ActiveRecord::TestCase
 
   describe "when READ_COMMITTED_SNAPSHOT is set" do
     it "should use READ COMMITTED as an isolation level" do
-      skip "This test sometimes causes subsequent tests to fail with error 'DBPROCESS is dead or not enabled'. The test passes if run alone."
+      skip "This test sometimes causes subsequent tests to fail with error 'DBPROCESS is dead or not enabled'. The test passes if run alone." if ENV["CI"]
 
       connection.execute "ALTER DATABASE [#{connection.current_database}] SET ALLOW_SNAPSHOT_ISOLATION ON"
       connection.execute "ALTER DATABASE [#{connection.current_database}] SET READ_COMMITTED_SNAPSHOT ON WITH ROLLBACK IMMEDIATE"
