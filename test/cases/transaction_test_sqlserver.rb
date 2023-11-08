@@ -53,17 +53,10 @@ class TransactionTestSQLServer < ActiveRecord::TestCase
   end
 
   describe "when READ_COMMITTED_SNAPSHOT is set" do
-    before do
+    it "should use READ COMMITTED as an isolation level" do
       connection.execute "ALTER DATABASE [#{connection.current_database}] SET ALLOW_SNAPSHOT_ISOLATION ON"
       connection.execute "ALTER DATABASE [#{connection.current_database}] SET READ_COMMITTED_SNAPSHOT ON WITH ROLLBACK IMMEDIATE"
-    end
 
-    after do
-      connection.execute "ALTER DATABASE [#{connection.current_database}] SET ALLOW_SNAPSHOT_ISOLATION OFF"
-      connection.execute "ALTER DATABASE [#{connection.current_database}] SET READ_COMMITTED_SNAPSHOT OFF WITH ROLLBACK IMMEDIATE"
-    end
-
-    it "should use READ COMMITTED as an isolation level" do
       _(connection.user_options_isolation_level).must_match "read committed snapshot"
 
       Ship.transaction(isolation: :serializable) do
@@ -74,6 +67,12 @@ class TransactionTestSQLServer < ActiveRecord::TestCase
       # "READ COMMITTED", and that no exception was raised (it's reported back
       # by SQL Server as "read committed snapshot").
       _(connection.user_options_isolation_level).must_match "read committed snapshot"
+    ensure
+      connection.execute "ALTER DATABASE [#{connection.current_database}] SET ALLOW_SNAPSHOT_ISOLATION OFF"
+      connection.execute "ALTER DATABASE [#{connection.current_database}] SET READ_COMMITTED_SNAPSHOT OFF WITH ROLLBACK IMMEDIATE"
+
+      # Reset all connections. Otherwise, the next test may fail with error 'DBPROCESS is dead or not enabled'. Not sure why.
+      ActiveRecord::Base.connection_handler.clear_all_connections!
     end
   end
 
