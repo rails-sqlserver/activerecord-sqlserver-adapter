@@ -1,3 +1,9 @@
+## Unreleased
+
+#### Fixed
+
+- [#1133](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1133) Fix matching view's real column name
+
 ## v7.0.5.0
 
 #### Fixed
