@@ -72,7 +72,7 @@ class TransactionTestSQLServer < ActiveRecord::TestCase
       connection.execute "ALTER DATABASE [#{connection.current_database}] SET READ_COMMITTED_SNAPSHOT OFF WITH ROLLBACK IMMEDIATE"
 
       # Reset all connections. Otherwise, the next test may fail with error 'DBPROCESS is dead or not enabled'. Not sure why.
-      ActiveRecord::Base.connection_handler.clear_all_connections!
+      ActiveRecord::Base.connection_handler.clear_all_connections!(:all)
     end
   end
 
