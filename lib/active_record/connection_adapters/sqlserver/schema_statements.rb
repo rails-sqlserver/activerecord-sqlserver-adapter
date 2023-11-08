@@ -640,17 +640,19 @@ module ActiveRecord
             identifier = SQLServer::Utils.extract_identifiers(table_name)
             information_query_table = identifier.database.present? ? "[#{identifier.database}].[INFORMATION_SCHEMA].[VIEWS]" :  "[INFORMATION_SCHEMA].[VIEWS]"
             view_info = select_one "SELECT * FROM #{information_query_table} WITH (NOLOCK) WHERE TABLE_NAME = #{quote(identifier.object)}", "SCHEMA"
+
             if view_info
               view_info = view_info.with_indifferent_access
               if view_info[:VIEW_DEFINITION].blank? || view_info[:VIEW_DEFINITION].length == 4000
                 view_info[:VIEW_DEFINITION] = begin
-                  select_values("EXEC sp_helptext #{identifier.object_quoted}", "SCHEMA").join
+                                                select_values("EXEC sp_helptext #{identifier.object_quoted}", "SCHEMA").join
                                               rescue
                                                 warn "No view definition found, possible permissions problem.\nPlease run GRANT VIEW DEFINITION TO your_user;"
                                                 nil
-                end
+                                              end
               end
             end
+
             view_info
           end
         end
@@ -659,7 +661,8 @@ module ActiveRecord
           view_definition = view_information(table_name)[:VIEW_DEFINITION]
           return column_name unless view_definition
 
-          match_data = view_definition.match(/CREATE\s+VIEW.*AS\s+SELECT.*\W([\w-]*)\s+AS\s+#{column_name}/im)
+          # Remove "CREATE VIEW ... AS SELECT ..." and then match the column name.
+          match_data = view_definition.sub(/CREATE\s+VIEW.*AS\s+SELECT\s/, '').match(/([\w-]*)\s+AS\s+#{column_name}\W/im)
           match_data ? match_data[1] : column_name
         end
 
