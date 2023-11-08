@@ -13,12 +13,12 @@ Default testing uses DBLIB with TinyTDS.
 
 * Setup two databases in SQL Server, [activerecord_unittest] and [activerecord_unittest2]
 * Create a [rails] user with an empty password and give it a [db_owner] role to both DBs. Some tests require a server role of [sysadmin] too. More details below with DDL SQL examples.
-* $ bundle install
-* $ bundle exec rake test ACTIVERECORD_UNITTEST_HOST='my.db.net'
+* `bundle install`
+* `bundle exec rake test ACTIVERECORD_UNITTEST_HOST='my.db.net'`
 
 Focusing tests. Use the `ONLY_` env vars to run either ours or the ActiveRecord cases. Use the `TEST_FILES` env variants to focus on specific test(s), use commas for multiple cases. Note, you have to use different env vars to focus only on ours or a core ActiveRecord case. There may be failures when focusing on an ActiveRecord case since our coereced test files is not loaded in this scenerio.
 
-```
+```console
 $ bundle exec rake test ONLY_SQLSERVER=1
 $ bundle exec rake test ONLY_ACTIVERECORD=1
 
@@ -49,13 +49,13 @@ GO
 
 The tests of this adapter depend on the existence of the Rails which are automatically cloned for you with bundler. However you can clone Rails from git://github.com/rails/rails.git and set the `RAILS_SOURCE` environment variable so bundler will use another local path instead.
 
-```
+```console
 $ git clone git://github.com/rails-sqlserver/activerecord-sqlserver-adapter.git
 ```
 
 Suggest just letting bundler do all the work and assuming there is a git tag for the Rails version, you can set `RAILS_VERSION` before bundling.
 
-```
+```console
 $ export RAILS_VERSION='4.2.0'
 $ bundle install
 ```
@@ -65,20 +65,20 @@ $ bundle install
 
 Please consult the `test/config.yml` file which is used to parse the configuration options for the DB connections when running tests. This file has overrides for any connection mode that you can set using simple environment variables. Assuming you are using FreeTDS 0.91 and above
 
-```
+```console
 $ export ACTIVERECORD_UNITTEST_HOST='my.db.net'   # Defaults to localhost
 $ export ACTIVERECORD_UNITTEST_PORT='1533'        # Defaults to 1433
 ```
 
 If you have FreeTDS installed and/or want to use a named dataserver in your freetds.conf file
 
-```
+```console
 $ export ACTIVERECORD_UNITTEST_DATASERVER='mydbname'
 ```
 
 These can be passed down to rake too.
 
-```
+```console
 $ bundle exec rake test ACTIVERECORD_UNITTEST_HOST='my.db.net'
 ```
 
@@ -87,16 +87,30 @@ $ bundle exec rake test ACTIVERECORD_UNITTEST_HOST='my.db.net'
 
 Now with that out of the way you can run "bundle install" to hook everything up. Our tests use bundler to setup the load paths correctly. The default mode is DBLIB using TinyTDS. It is important to use bundle exec so we can wire up the ActiveRecord test libs correctly.
 
-```
+```console
 $ bundle exec rake test
 ```
 
 
 ## Testing Options
 
-
 By default, Bundler will download the Rails git repo and use the git tag that matches the dependency version in our gemspec. If you want to test another version of Rails, you can either temporarily change the :tag for Rails in the Gemfile. Likewise, you can clone the Rails repo your self to another directory and use the `RAILS_SOURCE` environment variable.
 
+```console
+$ RAILS_SOURCE='/vagrant/rails' bundle exec rake test
+```
+
+If you want to use a specific seed for the tests use the `TESTOPTS` env variable like:
+
+```console
+$ bundle exec rake test TESTOPTS="--seed=45250"
+```
+
+And to make the tests fail-fast use:
+
+```console
+$ bundle exec rake test TESTOPTS="-f"
+```
 
 ## Troubleshooting
 
