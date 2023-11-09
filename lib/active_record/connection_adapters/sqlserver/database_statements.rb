@@ -43,26 +43,24 @@ module ActiveRecord
 
           log(sql, name, binds, async: async) do
             with_raw_connection do |conn|
-              begin
-                options = { ar_result: true }
-
-                # TODO: Look into refactoring this.
-                if id_insert_table_name = query_requires_identity_insert?(sql)
-                  with_identity_insert_enabled(id_insert_table_name, conn) do
-                    handle = internal_raw_execute(sql, conn)
-                    result = handle_to_names_and_values(handle, options)
-                  end
-                else
-                  handle = internal_raw_execute(sql, conn)
-                  result = handle_to_names_and_values(handle, options)
+              if id_insert_table_name = query_requires_identity_insert?(sql)
+                with_identity_insert_enabled(id_insert_table_name, conn) do
+                  result = internal_exec_sql_query(sql, conn)
                 end
-              ensure
-                finish_statement_handle(handle)
+              else
+                result = internal_exec_sql_query(sql, conn)
               end
             end
           end
 
           result
+        end
+
+        def internal_exec_sql_query(sql, conn)
+          handle = internal_raw_execute(sql, conn)
+          handle_to_names_and_values(handle, ar_result: true)
+        ensure
+          finish_statement_handle(handle)
         end
 
         def exec_delete(sql, name, binds)
@@ -400,10 +398,9 @@ module ActiveRecord
 
         # === SQLServer Specific (Selecting) ============================ #
 
-        def _raw_select(sql, conn, options = {})
+        def _raw_select(sql, conn)
           handle = internal_raw_execute(sql, conn)
-
-          handle_to_names_and_values(handle, options)
+          handle_to_names_and_values(handle, fetch: :rows)
         ensure
           finish_statement_handle(handle)
         end

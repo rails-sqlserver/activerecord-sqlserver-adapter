@@ -501,7 +501,7 @@ module ActiveRecord
       end
 
       def sqlserver_version
-        @sqlserver_version ||= _raw_select("SELECT @@version", @raw_connection, fetch: :rows).first.first.to_s
+        @sqlserver_version ||= _raw_select("SELECT @@version", @raw_connection).first.first.to_s
       end
 
       private
@@ -526,7 +526,7 @@ module ActiveRecord
         @raw_connection.execute("SET TEXTSIZE 2147483647").do
         @raw_connection.execute("SET CONCAT_NULL_YIELDS_NULL ON").do
 
-        @spid = _raw_select("SELECT @@SPID", @raw_connection, fetch: :rows).first.first
+        @spid = _raw_select("SELECT @@SPID", @raw_connection).first.first
 
         initialize_dateformatter
         use_database
