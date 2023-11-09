@@ -42,6 +42,9 @@ class TransactionTestSQLServer < ActiveRecord::TestCase
     after_level = connection.user_options_isolation_level
     _(in_level).must_match %r{serializable}i
     _(after_level).must_match %r{read committed}i
+  ensure
+    # Reset all connections. Otherwise, the next test may fail with error 'DBPROCESS is dead or not enabled'. Not sure why.
+    ActiveRecord::Base.connection_handler.clear_all_connections!(:all)
   end
 
   it "can use an isolation level and reverts back to starting isolation level under exceptions" do
@@ -50,6 +53,9 @@ class TransactionTestSQLServer < ActiveRecord::TestCase
       Ship.transaction(isolation: :serializable) { Ship.create! }
     }).must_raise(ActiveRecord::RecordInvalid)
     _(connection.user_options_isolation_level).must_match %r{read committed}i
+  ensure
+    # Reset all connections. Otherwise, the next test may fail with error 'DBPROCESS is dead or not enabled'. Not sure why.
+    ActiveRecord::Base.connection_handler.clear_all_connections!(:all)
   end
 
   describe "when READ_COMMITTED_SNAPSHOT is set" do
