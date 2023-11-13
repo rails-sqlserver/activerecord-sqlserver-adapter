@@ -67,7 +67,7 @@ module Arel
       def visit_Arel_Nodes_HomogeneousIn(o, collector)
         collector.preparable = false
 
-        collector = visit o.left, collector
+        visit o.left, collector
 
         if o.type == :in
           collector << " IN ("
@@ -90,7 +90,7 @@ module Arel
           collector.add_binds(attrs, &bind_block)
           # Monkey-patch end.
         else
-          collector.add_binds(values, &bind_block)
+          collector.add_binds(values, o.proc_for_binds, &bind_block)
         end
 
         collector << ")"
