@@ -83,11 +83,14 @@ module Arel
           # Monkey-patch start. Add query attribute bindings rather than just values.
           column_name = o.attribute.name
           column_type = o.attribute.relation.type_for_attribute(column_name)
-          # Use cast_type on encrypted attributes. Don't encrypt them again
-          column_type = column_type.cast_type if column_type.is_a?(ActiveRecord::Encryption::EncryptedAttributeType)
-          attrs = values.map { |value| ActiveRecord::Relation::QueryAttribute.new(column_name, value, column_type) }
+          column_type = column_type.cast_type if column_type.is_a?(ActiveRecord::Encryption::EncryptedAttributeType) # Use cast_type on encrypted attributes. Don't encrypt them again
 
-          collector.add_binds(attrs, &bind_block)
+          if column_type.serialized?
+            collector.add_binds(values, o.proc_for_binds, &bind_block)
+          else
+            attrs = values.map { |value| ActiveRecord::Relation::QueryAttribute.new(column_name, value, column_type) }
+            collector.add_binds(attrs, &bind_block)
+          end
           # Monkey-patch end.
         else
           collector.add_binds(values, o.proc_for_binds, &bind_block)

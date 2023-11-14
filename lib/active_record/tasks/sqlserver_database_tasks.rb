@@ -53,7 +53,7 @@ module ActiveRecord
       end
 
       def clear_active_connections!
-        ActiveRecord::Base.connection_handler.clear_active_connections!
+        ActiveRecord::Base.connection_handler.clear_active_connections!(:all)
       end
 
       def structure_dump(filename, extra_flags)
