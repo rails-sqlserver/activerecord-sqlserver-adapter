@@ -23,6 +23,7 @@ module ActiveRecord
                        else
                          internal_raw_execute(sql, conn, perform_do: true)
                        end
+              verified!
             end
           end
 
@@ -50,6 +51,7 @@ module ActiveRecord
               else
                 result = internal_exec_sql_query(sql, conn)
               end
+              verified!
             end
           end
 
@@ -175,6 +177,7 @@ module ActiveRecord
           log(sql, "Execute Procedure") do
             with_raw_connection do |conn|
               result = internal_raw_execute(sql, conn)
+              verified!
               options = { as: :hash, cache_rows: true, timezone: ActiveRecord.default_timezone || :utc }
 
               result.each(options) do |row|
