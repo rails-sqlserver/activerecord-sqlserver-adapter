@@ -6,13 +6,9 @@ module ActiveRecord
   module ConnectionAdapters
     module SQLServer
       module Utils
-        QUOTED_STRING_PREFIX = "N"
-
         # Value object to return identifiers from SQL Server names http://bit.ly/1CZ3EiL
         # Inspired from Rails PostgreSQL::Name adapter object in their own Utils.
-        #
         class Name
-          SEPARATOR = "."
           UNQUOTED_SCANNER = /\]?\./
           QUOTED_SCANNER   = /\A\[.*?\]\./
           QUOTED_CHECKER   = /\A\[/
@@ -42,7 +38,7 @@ module ActiveRecord
           end
 
           def fully_qualified_database_quoted
-            [server_quoted, database_quoted].compact.join(SEPARATOR)
+            [server_quoted, database_quoted].compact.join('.')
           end
 
           def fully_qualified?
@@ -69,7 +65,7 @@ module ActiveRecord
           end
 
           def quoted
-            parts.map { |p| quote(p) if p }.join SEPARATOR
+            parts.map { |p| quote(p) if p }.join('.')
           end
 
           def quoted_raw
@@ -132,7 +128,7 @@ module ActiveRecord
         extend self
 
         def quote_string(s)
-          s.to_s.gsub /\'/, "''"
+          s.to_s.gsub(/\'/, "''")
         end
 
         def quote_string_single(s)
@@ -140,7 +136,7 @@ module ActiveRecord
         end
 
         def quote_string_single_national(s)
-          "#{QUOTED_STRING_PREFIX}'#{quote_string(s)}'"
+          "N'#{quote_string(s)}'"
         end
 
         def quoted_raw(name)
