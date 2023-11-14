@@ -1,4 +1,4 @@
-## Unreleased
+## v7.1.0.rc2
 
 #### Added
 
