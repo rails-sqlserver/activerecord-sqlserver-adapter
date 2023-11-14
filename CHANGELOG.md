@@ -3,6 +3,7 @@
 #### Added
 
 - [#1136](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1136) Prevent marking broken connections as verified
+- [#1138](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1138) Cache quoted names
 
 ## v7.1.0.rc1
 
