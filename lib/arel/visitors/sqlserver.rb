@@ -64,6 +64,38 @@ module Arel
         super
       end
 
+      def visit_Arel_Nodes_HomogeneousIn(o, collector)
+        collector.preparable = false
+
+        visit o.left, collector
+
+        if o.type == :in
+          collector << " IN ("
+        else
+          collector << " NOT IN ("
+        end
+
+        values = o.casted_values
+
+        # Monkey-patch start.
+        column_name = o.attribute.name
+        column_type = o.attribute.relation.type_for_attribute(column_name)
+        column_type = column_type.cast_type if column_type.is_a?(ActiveRecord::Encryption::EncryptedAttributeType) # Use cast_type on encrypted attributes. Don't encrypt them again
+
+        if values.empty?
+          collector << @connection.quote(nil)
+        elsif @connection.prepared_statements && !column_type.serialized?
+          # Add query attribute bindings rather than just values.
+          attrs = values.map { |value| ActiveRecord::Relation::QueryAttribute.new(column_name, value, column_type) }
+          collector.add_binds(attrs, &bind_block)
+        else
+          collector.add_binds(values, o.proc_for_binds, &bind_block)
+        end
+        # Monkey-patch end.
+
+        collector << ")"
+      end
+
       def visit_Arel_Nodes_SelectStatement(o, collector)
         @select_statement = o
         distinct_One_As_One_Is_So_Not_Fetch o
