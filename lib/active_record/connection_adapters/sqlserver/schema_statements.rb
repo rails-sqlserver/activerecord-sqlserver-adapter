@@ -250,7 +250,7 @@ module ActiveRecord
             st.name = '#{table_name}'
           SQL
 
-          chk_info = internal_exec_query(sql, "SCHEMA")
+          chk_info = exec_query(sql, "SCHEMA")
 
           chk_info.map do |row|
             options = {
