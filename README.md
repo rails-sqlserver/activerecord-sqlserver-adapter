@@ -12,11 +12,11 @@ The SQL Server adapter for ActiveRecord using SQL Server 2012 or higher.
 Interested in older versions? We follow a rational versioning policy that tracks Rails. That means that our 7.x version of the adapter is only for the latest 7.x version of Rails. If you need the adapter for SQL Server 2008 or 2005, you are still in the right spot. Just install the latest 3.2.x to 4.1.x version of the adapter that matches your Rails version. We also have stable branches for each major/minor release of ActiveRecord.
 
 | Adapter Version | Rails Version | Support                                                                                     |
-|-----------------| ------------- | ------------------------------------------------------------------------------------------- |
-| `7.0.5.1`       | `7.0.x`       | [active](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/tree/main)   |
+|-----------------| ------------- |---------------------------------------------------------------------------------------------|
+| `7.0.6`         | `7.0.x`       | [active](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/tree/7-0-stable) |
 | `6.1.2.1`       | `6.1.x`       | [active](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/tree/6-1-stable) |
 | `6.0.3`         | `6.0.x`       | [active](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/tree/6-0-stable) |
-| `5.2.1`         | `5.2.x`       | [ended](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/tree/5-2-stable) |
+| `5.2.1`         | `5.2.x`       | [ended](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/tree/5-2-stable)  |
 | `5.1.6`         | `5.1.x`       | [ended](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/tree/5-1-stable)  |
 | `4.2.18`        | `4.2.x`       | [ended](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/tree/4-2-stable)  |
 | `4.1.8`         | `4.1.x`       | [ended](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/tree/4-1-stable)  |
