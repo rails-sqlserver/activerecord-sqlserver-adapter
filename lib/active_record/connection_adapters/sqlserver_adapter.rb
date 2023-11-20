@@ -228,6 +228,10 @@ module ActiveRecord
         true
       end
 
+      def supports_check_constraints?
+        true
+      end
+
       def supports_json?
         @version_year >= 2016
       end
