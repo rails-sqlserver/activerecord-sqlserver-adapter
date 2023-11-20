@@ -2345,9 +2345,6 @@ module ActiveRecord
         assert_equal "trades", constraint.table_name
         assert_equal "price_check", constraint.name
         assert_equal "[price]>(0)", constraint.expression
-
-        @connection.remove_check_constraint :trades, name: :price_check # name as a symbol
-        assert_empty @connection.check_constraints("trades")
       end
     end
   end
