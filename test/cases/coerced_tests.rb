@@ -1449,6 +1449,13 @@ class SchemaDumperTest < ActiveRecord::TestCase
     output = dump_all_table_schema([/^[^n]/])
     assert_match %r{precision: 3,[[:space:]]+scale: 2,[[:space:]]+default: 2\.78}, output
   end
+
+  # SQL Server formats the check constraint expression differently.
+  coerce_tests! :test_schema_dumps_check_constraints
+  def test_schema_dumps_check_constraints_coerced
+    constraint_definition = dump_table_schema("products").split(/\n/).grep(/t.check_constraint.*products_price_check/).first.strip
+    assert_equal 't.check_constraint "[price]>[discounted_price]", name: "products_price_check"', constraint_definition
+  end
 end
 
 class SchemaDumperDefaultsTest < ActiveRecord::TestCase
@@ -2150,7 +2157,7 @@ class FieldOrderedValuesTest < ActiveRecord::TestCase
   coerce_tests! :test_in_order_of_with_nil
   def test_in_order_of_with_nil_coerced
     Book.connection.remove_index(:books, column: [:author_id, :name])
-    
+
     original_test_in_order_of_with_nil
   ensure
     Book.where(author_id: nil, name: nil).delete_all
@@ -2292,5 +2299,56 @@ class ActiveRecord::Encryption::EncryptableRecordTest < ActiveRecord::Encryption
     assert_not EncryptedAuthor.new(name: "a" * 4001).valid?
     author = EncryptedAuthor.create(name: "a" * 4001)
     assert_not author.valid?
+  end
+end
+
+module ActiveRecord
+  class Migration
+    class CheckConstraintTest < ActiveRecord::TestCase
+      # SQL Server formats the check constraint expression differently.
+      coerce_tests! :test_check_constraints
+      def test_check_constraints_coerced
+        check_constraints = @connection.check_constraints("products")
+        assert_equal 1, check_constraints.size
+
+        constraint = check_constraints.first
+        assert_equal "products", constraint.table_name
+        assert_equal "products_price_check", constraint.name
+        assert_equal "[price]>[discounted_price]", constraint.expression
+      end
+
+      # SQL Server formats the check constraint expression differently.
+      coerce_tests! :test_add_check_constraint
+      def test_add_check_constraint_coerced
+        @connection.add_check_constraint :trades, "quantity > 0"
+
+        check_constraints = @connection.check_constraints("trades")
+        assert_equal 1, check_constraints.size
+
+        constraint = check_constraints.first
+        assert_equal "trades", constraint.table_name
+        assert_equal "chk_rails_2189e9f96c", constraint.name
+        assert_equal "[quantity]>(0)", constraint.expression
+      end
+
+      # SQL Server formats the check constraint expression differently.
+      coerce_tests! :test_remove_check_constraint
+      def test_remove_check_constraint_coerced
+        @connection.add_check_constraint :trades, "price > 0", name: "price_check"
+        @connection.add_check_constraint :trades, "quantity > 0", name: "quantity_check"
+
+        assert_equal 2, @connection.check_constraints("trades").size
+        @connection.remove_check_constraint :trades, name: "quantity_check"
+        assert_equal 1, @connection.check_constraints("trades").size
+
+        constraint = @connection.check_constraints("trades").first
+        assert_equal "trades", constraint.table_name
+        assert_equal "price_check", constraint.name
+        assert_equal "[price]>(0)", constraint.expression
+
+        @connection.remove_check_constraint :trades, name: :price_check # name as a symbol
+        assert_empty @connection.check_constraints("trades")
+      end
+    end
   end
 end
