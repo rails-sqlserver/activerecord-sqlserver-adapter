@@ -2585,3 +2585,54 @@ module ActiveRecord
     end
   end
 end
+
+module ActiveRecord
+  class Migration
+    class CheckConstraintTest < ActiveRecord::TestCase
+      # SQL Server formats the constraint expression differently.
+      coerce_tests! :test_check_constraints
+      def test_check_constraints_coerced
+        check_constraints = @connection.check_constraints("products")
+        assert_equal 1, check_constraints.size
+
+        constraint = check_constraints.first
+        assert_equal "products", constraint.table_name
+        assert_equal "products_price_check", constraint.name
+        assert_equal "[price]>[discounted_price]", constraint.expression
+      end
+
+      # SQL Server formats the constraint expression differently.
+      coerce_tests! :test_add_check_constraint
+      def test_add_check_constraint_coerced
+        @connection.add_check_constraint :trades, "quantity > 0"
+
+        check_constraints = @connection.check_constraints("trades")
+        assert_equal 1, check_constraints.size
+
+        constraint = check_constraints.first
+        assert_equal "trades", constraint.table_name
+        assert_equal "chk_rails_2189e9f96c", constraint.name
+        assert_equal "[quantity]>(0)", constraint.expression
+      end
+
+      # SQL Server formats the constraint expression differently.
+      coerce_tests! :test_remove_check_constraint
+      def test_remove_check_constraint_coerced
+        @connection.add_check_constraint :trades, "price > 0", name: "price_check"
+        @connection.add_check_constraint :trades, "quantity > 0", name: "quantity_check"
+
+        assert_equal 2, @connection.check_constraints("trades").size
+        @connection.remove_check_constraint :trades, name: "quantity_check"
+        assert_equal 1, @connection.check_constraints("trades").size
+
+        constraint = @connection.check_constraints("trades").first
+        assert_equal "trades", constraint.table_name
+        assert_equal "price_check", constraint.name
+        assert_equal "[price]>(0)", constraint.expression
+
+        @connection.remove_check_constraint :trades, name: :price_check # name as a symbol
+        assert_empty @connection.check_constraints("trades")
+      end
+    end
+  end
+end

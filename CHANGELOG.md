@@ -1,3 +1,9 @@
+## Unreleased
+
+#### Added
+
+- [#](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/) Added support for check constraints.
+
 ## v7.1.0.rc2
 
 #### Added
