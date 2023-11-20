@@ -267,6 +267,29 @@ module ActiveRecord
           end
         end
 
+        def check_constraints(table_name)
+          sql = <<~SQL
+            select chk.name AS 'name',
+                   chk.definition AS 'expression'
+            from sys.check_constraints chk
+            inner join sys.tables st on chk.parent_object_id = st.object_id
+            where
+            st.name = '#{table_name}'
+          SQL
+
+          chk_info = internal_exec_query(sql, "SCHEMA")
+
+          chk_info.map do |row|
+            options = {
+              name: row["name"]
+            }
+            expression = row["expression"]
+            expression = expression[1..-2] if expression.start_with?("(") && expression.end_with?(")")
+
+            CheckConstraintDefinition.new(table_name, expression, options)
+          end
+        end
+
         def type_to_sql(type, limit: nil, precision: nil, scale: nil, **)
           type_limitable = %w(string integer float char nchar varchar nvarchar).include?(type.to_s)
           limit = nil unless type_limitable
