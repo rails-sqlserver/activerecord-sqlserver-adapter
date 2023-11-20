@@ -1,5 +1,5 @@
 nbproject/
-debug.log
+debug.log*
 .DS_Store
 pkg/
 doc/
@@ -16,3 +16,5 @@ coverage/*
 .flooignore
 .floo
 .byebug_history
+tmp/*
+test/storage/test.sqlite3*
