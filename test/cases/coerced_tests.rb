@@ -1580,6 +1580,13 @@ class SchemaDumperTest < ActiveRecord::TestCase
 
   # Tests are not about a specific adapter.
   coerce_tests! :test_do_not_dump_foreign_keys_when_bypassed_by_config
+
+  # SQL Server formats the check constraint expression differently.
+  coerce_tests! :test_schema_dumps_check_constraints
+  def test_schema_dumps_check_constraints_coerced
+    constraint_definition = dump_table_schema("products").split(/\n/).grep(/t.check_constraint.*products_price_check/).first.strip
+    assert_equal 't.check_constraint "[price]>[discounted_price]", name: "products_price_check"', constraint_definition
+  end
 end
 
 class SchemaDumperDefaultsTest < ActiveRecord::TestCase
@@ -2589,7 +2596,7 @@ end
 module ActiveRecord
   class Migration
     class CheckConstraintTest < ActiveRecord::TestCase
-      # SQL Server formats the constraint expression differently.
+      # SQL Server formats the check constraint expression differently.
       coerce_tests! :test_check_constraints
       def test_check_constraints_coerced
         check_constraints = @connection.check_constraints("products")
@@ -2601,7 +2608,7 @@ module ActiveRecord
         assert_equal "[price]>[discounted_price]", constraint.expression
       end
 
-      # SQL Server formats the constraint expression differently.
+      # SQL Server formats the check constraint expression differently.
       coerce_tests! :test_add_check_constraint
       def test_add_check_constraint_coerced
         @connection.add_check_constraint :trades, "quantity > 0"
@@ -2615,7 +2622,7 @@ module ActiveRecord
         assert_equal "[quantity]>(0)", constraint.expression
       end
 
-      # SQL Server formats the constraint expression differently.
+      # SQL Server formats the check constraint expression differently.
       coerce_tests! :test_remove_check_constraint
       def test_remove_check_constraint_coerced
         @connection.add_check_constraint :trades, "price > 0", name: "price_check"
