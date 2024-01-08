@@ -100,7 +100,7 @@ module ActiveRecord
     class SQLServerAdapter < AbstractAdapter
       def configure_connection
         super
-        raw_connection_do "SET TEXTSIZE #{64.megabytes}"
+        @raw_connection.execute("SET TEXTSIZE #{64.megabytes}").do
       end
     end
   end
