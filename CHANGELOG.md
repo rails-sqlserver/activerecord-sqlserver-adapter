@@ -1,3 +1,9 @@
+## Unreleased
+
+#### Fixed
+
+- [#1145](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1145) Ensure correct order of COLLATE and NOT NULL in CREATE TABLE statements
+
 ## v7.1.0
 
 #### Added
