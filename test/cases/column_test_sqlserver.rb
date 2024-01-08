@@ -435,13 +435,15 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       _(type.limit).must_be_nil
       _(type.precision).must_equal 7
       _(type.scale).must_be_nil
-      # Can save 100 nanosecond precisoins and return again.
+
+      # Can save 100 nanosecond precisions and return again.
       obj.datetimeoffset_7 = Time.new(2010, 4, 1, 12, 34, 56, +18000).change(nsec: 123456755)
       _(obj.datetimeoffset_7).must_equal Time.new(2010, 4, 1, 12, 34, 56, +18000).change(nsec: 123456800), "Nanoseconds were <#{obj.datetimeoffset_7.nsec}> vs <123456800>"
       obj.save!
       _(obj.datetimeoffset_7).must_equal Time.new(2010, 4, 1, 12, 34, 56, +18000).change(nsec: 123456800), "Nanoseconds were <#{obj.datetimeoffset_7.nsec}> vs <123456800>"
       obj.reload
       _(obj.datetimeoffset_7).must_equal Time.new(2010, 4, 1, 12, 34, 56, +18000).change(nsec: 123456800), "Nanoseconds were <#{obj.datetimeoffset_7.nsec}> vs <123456800>"
+
       # Maintains the timezone
       time = ActiveSupport::TimeZone["America/Los_Angeles"].local 2010, 12, 31, 23, 59, 59, Rational(123456800, 1000)
       obj.datetimeoffset_7 = time
@@ -449,6 +451,7 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       obj.save!
       _(obj.datetimeoffset_7).must_equal time
       _(obj.reload.datetimeoffset_7).must_equal time
+
       # With other precisions.
       time = ActiveSupport::TimeZone["America/Los_Angeles"].local 2010, 12, 31, 23, 59, 59, Rational(123456755, 1000)
       col = column("datetimeoffset_3")

@@ -4,7 +4,6 @@ require "cases/helper_sqlserver"
 
 class ActiveSchemaTestSQLServer < ActiveRecord::TestCase
   describe "indexes" do
-
     before do
       connection.create_table :schema_test_table, force: true, id: false do |t|
         t.column :foo, :string, limit: 100
@@ -54,13 +53,45 @@ class ActiveSchemaTestSQLServer < ActiveRecord::TestCase
     end
   end
 
-  it "create column with NOT NULL and COLLATE" do
-    assert_nothing_raised do
-      connection.create_table :not_null_with_collation_table, force: true, id: false do |t|
-        t.text :not_null_text_with_collation, null: false, collation: "Latin1_General_CS_AS"
+  describe 'collation' do
+    it "create column with NOT NULL and COLLATE" do
+      assert_nothing_raised do
+        connection.create_table :not_null_with_collation_table, force: true, id: false do |t|
+          t.text :not_null_text_with_collation, null: false, collation: "Latin1_General_CS_AS"
+        end
       end
+    ensure
+      connection.drop_table :not_null_with_collation_table rescue nil
     end
-  ensure
-    connection.drop_table :not_null_with_collation_table rescue nil
+  end
+
+  describe 'datetimeoffset precision' do
+    it 'valid precisions are correct' do
+      assert_nothing_raised do
+        connection.create_table :datetimeoffset_precisions do |t|
+          t.datetimeoffset :precision_default
+          t.datetimeoffset :precision_5, precision: 5
+          t.datetimeoffset :precision_7, precision: 7
+        end
+      end
+
+      columns = connection.columns("datetimeoffset_precisions")
+
+      assert_equal columns.find { |column| column.name == "precision_default" }.precision, 7
+      assert_equal columns.find { |column| column.name == "precision_5" }.precision, 5
+      assert_equal columns.find { |column| column.name == "precision_7" }.precision, 7
+    ensure
+      connection.drop_table :datetimeoffset_precisions rescue nil
+    end
+
+    it 'invalid precision raises exception' do
+      assert_raise(ActiveRecord::ActiveRecordError) do
+        connection.create_table :datetimeoffset_precisions do |t|
+          t.datetimeoffset :precision_8, precision: 8
+        end
+      end
+    ensure
+      connection.drop_table :datetimeoffset_precisions rescue nil
+    end
   end
 end
