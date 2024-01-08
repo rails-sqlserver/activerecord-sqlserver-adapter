@@ -303,6 +303,16 @@ module ActiveRecord
             when 5..8       then  "bigint"
             else raise(ActiveRecordError, "No integer type has byte size #{limit}. Use a numeric with precision 0 instead.")
             end
+          when "time" # https://learn.microsoft.com/en-us/sql/t-sql/data-types/time-transact-sql
+            column_type_sql = type.to_s
+            if precision
+              if (0..7) === precision
+                column_type_sql << "(#{precision})"
+              else
+                raise(ActiveRecordError, "The time type has precision of #{precision}. The allowed range of precision is from 0 to 7")
+              end
+            end
+            column_type_sql
           when "datetime2"
             column_type_sql = super
             if precision
@@ -319,7 +329,7 @@ module ActiveRecord
               if (0..7) === precision
                 column_type_sql << "(#{precision})"
               else
-                raise(ActiveRecordError, "The datetimeoffset type has precision of #{precision}. The allowed range of precision is from 0 to 7.")
+                raise(ActiveRecordError, "The datetimeoffset type has precision of #{precision}. The allowed range of precision is from 0 to 7")
               end
             end
             column_type_sql

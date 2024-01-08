@@ -1832,6 +1832,9 @@ class TimePrecisionTest < ActiveRecord::TestCase
 
   # SQL Server uses default precision for time.
   coerce_tests! :test_no_time_precision_isnt_truncated_on_assignment
+
+  # SQL Server accepts precision of 7 for time.
+  coerce_tests! :test_invalid_time_precision_raises_error
 end
 
 class DefaultNumbersTest < ActiveRecord::TestCase
