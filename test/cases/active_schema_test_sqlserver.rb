@@ -94,4 +94,34 @@ class ActiveSchemaTestSQLServer < ActiveRecord::TestCase
       connection.drop_table :datetimeoffset_precisions rescue nil
     end
   end
+
+  describe 'time precision' do
+    it 'valid precisions are correct' do
+      assert_nothing_raised do
+        connection.create_table :time_precisions do |t|
+          t.time :precision_default
+          t.time :precision_5, precision: 5
+          t.time :precision_7, precision: 7
+        end
+      end
+
+      columns = connection.columns("time_precisions")
+
+      assert_equal columns.find { |column| column.name == "precision_default" }.precision, 7
+      assert_equal columns.find { |column| column.name == "precision_5" }.precision, 5
+      assert_equal columns.find { |column| column.name == "precision_7" }.precision, 7
+    ensure
+      connection.drop_table :time_precisions rescue nil
+    end
+
+    it 'invalid precision raises exception' do
+      assert_raise(ActiveRecord::ActiveRecordError) do
+        connection.create_table :time_precisions do |t|
+          t.time :precision_8, precision: 8
+        end
+      end
+    ensure
+      connection.drop_table :time_precisions rescue nil
+    end
+  end
 end

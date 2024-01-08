@@ -3,6 +3,7 @@
 #### Fixed
 
 - [#1145](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1145) Ensure correct order of COLLATE and NOT NULL in CREATE TABLE statements
+- [#1144](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1144) Fix precision handling in time migration
 - [#1143](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1143) Fix precision handling for datetimeoffset migration
 
 ## v7.1.0
