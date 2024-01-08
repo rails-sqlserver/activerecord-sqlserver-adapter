@@ -322,6 +322,16 @@ module ActiveRecord
               end
             end
             column_type_sql
+          when "datetimeoffset"
+            column_type_sql = super
+            if precision
+              if (0..7) === precision
+                column_type_sql << "(#{precision})"
+              else
+                raise(ActiveRecordError, "The datetimeoffset type has precision of #{precision}. The allowed range of precision is from 0 to 7.")
+              end
+            end
+            column_type_sql
           else
             super
           end
