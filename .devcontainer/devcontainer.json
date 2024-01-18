@@ -1,0 +1,44 @@
+// For format details, see https://aka.ms/devcontainer.json.
+{
+	"name": "ActiveRecord SQL Server Adapter project development",
+	"dockerComposeFile": "docker-compose.yml",
+	"service": "activerecord-sqlserver-adapter",
+	"workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
+
+	// Features to add to the dev container. More info: https://containers.dev/features.
+	"features": {
+		"ghcr.io/devcontainers/features/github-cli:1": {
+			"version": "latest"
+		}
+	},
+
+	"containerEnv": {
+    "ACTIVERECORD_UNITTEST_HOST": "sqlserver"
+//		"PGHOST": "postgres",
+//		"PGUSER": "postgres",
+//		"PGPASSWORD": "postgres",
+//		"MYSQL_HOST": "mariadb",
+//		"REDIS_URL": "redis://redis/0",
+//		"MEMCACHE_SERVERS": "memcached:11211"
+	},
+
+	// Use 'forwardPorts' to make a list of ports inside the container available locally.
+	// This can be used to network with other containers or the host.
+	// "forwardPorts": [3000, 5432],
+
+	// Use 'postCreateCommand' to run commands after the container is created.
+	"postCreateCommand": ".devcontainer/boot.sh",
+
+	// Configure tool-specific properties.
+	"customizations": {
+		"vscode": {
+			// Add the IDs of extensions you want installed when the container is created.
+			"extensions": [
+				"Shopify.ruby-lsp"
+			]
+		}
+	},
+
+	// Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
+	// "remoteUser": "root"
+}

@@ -1,5 +1,5 @@
 
-# How To Run The Test!
+# How To Run The Tests
 
 This process is much easier than it has been before!
 
