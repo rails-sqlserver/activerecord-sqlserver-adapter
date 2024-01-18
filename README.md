@@ -189,7 +189,8 @@ setup your development environment.
 
 ## Setting Up Your Development Environment
 
-To run the test suite you can use any of the following methods.
+To run the test suite you can use any of the following methods below. See [RUNNING_UNIT_TESTS](RUNNING_UNIT_TESTS.md) for
+more detailed information on running unit tests.
 
 ### Dev Container CLI
 

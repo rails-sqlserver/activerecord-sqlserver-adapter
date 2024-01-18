@@ -4,13 +4,6 @@
 ARG VARIANT="3"
 FROM mcr.microsoft.com/devcontainers/ruby:${VARIANT}
 
-# [Optional] Uncomment this section to install additional OS packages.
-RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
-    && apt-get -y install --no-install-recommends \
-        mariadb-client libmariadb-dev \
-        postgresql-client postgresql-contrib libpq-dev \
-        ffmpeg mupdf mupdf-tools libvips poppler-utils
-
 # TinyTDS
 RUN apt-get -y install libc6-dev \
     && wget http://www.freetds.org/files/stable/freetds-1.1.32.tar.gz \
