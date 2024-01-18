@@ -195,7 +195,7 @@ more detailed information on running unit tests.
 ### Dev Container CLI
 
 With [Docker](https://www.docker.com) and [npm](https://github.com/npm/cli) installed, you can run [Dev Container CLI](https://github.com/devcontainers/cli) to
-utilize the [`.devcontainer`](https://github.com/rails/rails/tree/main/.devcontainer) configuration from the command line.
+utilize the [`.devcontainer`](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/tree/main/.devcontainer) configuration from the command line.
 
 ```bash
 $ npm install -g @devcontainers/cli
