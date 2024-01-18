@@ -18,10 +18,6 @@ services:
 
     depends_on:
       - sqlserver
-#      - postgres
-#      - mariadb
-#      - redis
-#      - memcached
 
     # Use "forwardPorts" in **devcontainer.json** to forward an app port locally.
     # (Adding the "ports" property to this file will not forward from a Codespace.)
@@ -35,47 +31,5 @@ services:
       MSSQL_SA_PASSWORD: MSSQLadmin!
       ACCEPT_EULA: Y
 
-#  postgres:
-#    image: postgres:latest
-#    restart: unless-stopped
-#    networks:
-#      - default
-#    volumes:
-#      - postgres-data:/var/lib/postgresql/data
-#    environment:
-#      POSTGRES_USER: postgres
-#      POSTGRES_DB: postgres
-#      POSTGRES_PASSWORD: postgres
-#
-#  mariadb:
-#    image: mariadb:latest
-#    restart: unless-stopped
-#    networks:
-#      - default
-#    volumes:
-#      - mariadb-data:/var/lib/mysql
-#    environment:
-#      MARIADB_ROOT_PASSWORD: root
-#
-#  redis:
-#    image: redis:latest
-#    restart: unless-stopped
-#    networks:
-#      - default
-#    volumes:
-#      - redis-data:/data
-#
-#  memcached:
-#    image: memcached:latest
-#    restart: unless-stopped
-#    command: ["-m", "1024"]
-#    networks:
-#      - default
-
 networks:
   default:
-
-#volumes:
-#  postgres-data:
-#  mariadb-data:
-#  redis-data:

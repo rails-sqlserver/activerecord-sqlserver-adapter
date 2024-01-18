@@ -14,12 +14,6 @@
 
 	"containerEnv": {
     "ACTIVERECORD_UNITTEST_HOST": "sqlserver"
-//		"PGHOST": "postgres",
-//		"PGUSER": "postgres",
-//		"PGPASSWORD": "postgres",
-//		"MYSQL_HOST": "mariadb",
-//		"REDIS_URL": "redis://redis/0",
-//		"MEMCACHE_SERVERS": "memcached:11211"
 	},
 
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
