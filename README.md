@@ -183,11 +183,49 @@ gem 'activerecord-sqlserver-adapter'
 
 ## Contributing
 
-If you would like to contribute a feature or bugfix, thanks! To make sure your fix/feature has a high chance of being added, please read the following guidelines. First, ask on the Gitter, or post a ticket on github issues. Second, make sure there are tests! We will not accept any patch that is not tested. Please read the [`RUNNING_UNIT_TESTS`](RUNNING_UNIT_TESTS.md) file for the details of how to run the unit tests.
+Please contribute to the project by submitting bug fixes and features. To make sure your fix/feature has
+a high chance of being added, please include tests in your pull request. To run the tests you will need to
+setup your development environment.
 
-* Github: http://github.com/rails-sqlserver/activerecord-sqlserver-adapter
-* Gitter: https://gitter.im/rails-sqlserver/activerecord-sqlserver-adapter
+## Setting Up Your Development Environment
 
+To run the test suite you can use any of the following methods below. See [RUNNING_UNIT_TESTS](RUNNING_UNIT_TESTS.md) for
+more detailed information on running unit tests.
+
+### Dev Container CLI
+
+With [Docker](https://www.docker.com) and [npm](https://github.com/npm/cli) installed, you can run [Dev Container CLI](https://github.com/devcontainers/cli) to
+utilize the [`.devcontainer`](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/tree/main/.devcontainer) configuration from the command line.
+
+```bash
+$ npm install -g @devcontainers/cli
+$ cd rails
+$ devcontainer up --workspace-folder .
+$ devcontainer exec --workspace-folder . bash
+```
+
+From within the container, you can run the tests using the following command:
+
+```bash
+$ bundle install
+$ bundle exec rake test
+```
+
+_Note: The setup we use is based on the [Rails Dev Container setup.](https://guides.rubyonrails.org/contributing_to_ruby_on_rails.html#using-dev-container-cli)_
+
+### VirtualBox & Vagrant
+
+The [activerecord-sqlserver-adapter-dev-box](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter-dev-box)
+is a Vagrant/VirtualBox virtual machine that has MS SQL Server installed. However, the
+activerecord-sqlserver-adapter-dev-box uses Vagrant and Virtual Box which will not work on Macs with Apple silicon.
+
+### Local Development
+
+See the [RUNNING_UNIT_TESTS](RUNNING_UNIT_TESTS.md) file for the details of how to run the unit tests locally.
+
+## Community
+
+There is a [Gitter channel](https://gitter.im/rails-sqlserver/activerecord-sqlserver-adapter) for the project where you are free to ask questions about the project.
 
 ## Credits & Contributions
 

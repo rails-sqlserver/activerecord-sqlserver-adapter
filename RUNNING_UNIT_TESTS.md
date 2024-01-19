@@ -1,9 +1,8 @@
+# How To Run The Tests Locally
 
-# How To Run The Test!
+The following is a description of how to run the tests for the SQL Server adapter on a local environment.
 
-This process is much easier than it has been before!
-
-## MS SQL SERVER
+## MS SQL Server instance
 
 If you don't have easy access to MS SQL Server, you can set up a Vagrant/VirtualBox virtual machine with MS SQL Server. [Here's how](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter-dev-box).
 
