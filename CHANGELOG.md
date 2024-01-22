@@ -1,3 +1,9 @@
+## Unreleased
+
+#### Fixed
+
+- [#1151](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1151) FROM subquery should work if order provided
+
 ## v7.1.1
 
 #### Fixed
