@@ -213,7 +213,7 @@ module Arel
 
       def visit_Orders_And_Let_Fetch_Happen(o, collector)
         make_Fetch_Possible_And_Deterministic o
-        unless o.orders.empty?
+        if o.orders.any?
           collector << " ORDER BY "
           len = o.orders.length - 1
           o.orders.each_with_index { |x, i|
@@ -261,15 +261,14 @@ module Arel
 
       def make_Fetch_Possible_And_Deterministic(o)
         return if o.limit.nil? && o.offset.nil?
+        return if o.orders.any?
 
         t = table_From_Statement o
         pk = primary_Key_From_Table t
         return unless pk
 
-        if o.orders.empty?
-          # Prefer deterministic vs a simple `(SELECT NULL)` expr.
-          o.orders = [pk.asc]
-        end
+        # Prefer deterministic vs a simple `(SELECT NULL)` expr.
+        o.orders = [pk.asc]
       end
 
       def distinct_One_As_One_Is_So_Not_Fetch(o)
