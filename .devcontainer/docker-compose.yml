@@ -27,6 +27,8 @@ services:
     restart: unless-stopped
     networks:
       - default
+    ports:
+      - "1433:1433"
     environment:
       MSSQL_SA_PASSWORD: MSSQLadmin!
       ACCEPT_EULA: Y
