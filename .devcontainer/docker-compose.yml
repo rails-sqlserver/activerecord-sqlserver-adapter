@@ -27,6 +27,8 @@ services:
     restart: unless-stopped
     networks:
       - default
+    volumes:
+      - sqlserver-data:/var/opt/mssql
     ports:
       - "1433:1433"
     environment:
@@ -35,3 +37,6 @@ services:
 
 networks:
   default:
+
+volumes:
+  sqlserver-data:
