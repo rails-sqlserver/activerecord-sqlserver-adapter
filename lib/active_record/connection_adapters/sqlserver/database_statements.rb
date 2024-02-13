@@ -283,7 +283,7 @@ module ActiveRecord
                     id_sql_type = exclude_output_inserted.is_a?(TrueClass) ? "bigint" : exclude_output_inserted
                     <<~SQL.squish
                       DECLARE @ssaIdInsertTable table (#{quoted_pk.map { |subkey| "#{subkey} #{id_sql_type}"}.join(", ") });
-                      #{sql.dup.insert sql.index(/ (DEFAULT )?VALUES/), " OUTPUT INSERTED.#{quoted_pk.join(', INSERTED.')} INTO @ssaIdInsertTable"}
+                      #{sql.dup.insert sql.index(/ (DEFAULT )?VALUES/i), " OUTPUT #{ quoted_pk.map { |subkey| "INSERTED.#{subkey}" }.join(", ") } INTO @ssaIdInsertTable"}
                       SELECT #{quoted_pk.map {|subkey| "CAST(#{subkey} AS #{id_sql_type}) #{subkey}"}.join(", ")} FROM @ssaIdInsertTable
                     SQL
                   else
