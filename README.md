@@ -199,7 +199,7 @@ utilize the [`.devcontainer`](https://github.com/rails-sqlserver/activerecord-sq
 
 ```bash
 $ npm install -g @devcontainers/cli
-$ cd rails
+$ cd activerecord-sqlserver-adapter
 $ devcontainer up --workspace-folder .
 $ devcontainer exec --workspace-folder . bash
 ```
