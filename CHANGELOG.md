@@ -1,3 +1,9 @@
+## Unreleased
+
+#### Fixed
+
+- [#1152](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1152) Fix Composite Key Inserts with Triggers
+
 ## v7.1.2
 
 #### Fixed
