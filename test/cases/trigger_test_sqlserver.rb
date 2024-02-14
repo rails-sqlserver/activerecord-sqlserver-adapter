@@ -28,4 +28,14 @@ class SQLServerTriggerTest < ActiveRecord::TestCase
     _(obj.id).must_be :present?
     _(obj.id.to_s).must_equal SSTestTriggerHistory.first.id_source
   end
+
+  it "can insert into a table with composite pk with output inserted - with a true setting for table name" do
+    exclude_output_inserted_table_names["sst_table_with_composite_pk_trigger"] = true
+    assert SSTestTriggerHistory.all.empty?
+    obj = SSTestTriggerCompositePk.create! pk_col_one: 123, pk_col_two: 42, event_name: "test trigger"
+    _(obj.event_name).must_equal "test trigger"
+    _(obj.pk_col_one).must_equal 123
+    _(obj.pk_col_two).must_equal 42
+    _(obj.pk_col_one.to_s).must_equal SSTestTriggerHistory.first.id_source
+  end
 end
