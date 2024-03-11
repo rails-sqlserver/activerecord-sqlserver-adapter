@@ -2,7 +2,7 @@
 
 require "cases/helper_sqlserver"
 
-if ActiveRecord::Base.connection.supports_json?
+if ActiveRecord::Base.lease_connection.supports_json?
   class JsonTestSQLServer < ActiveRecord::TestCase
     before do
       @o1 = SSTestDatatypeMigrationJson.create! json_col: { "a" => "a", "b" => "b", "c" => "c" }

@@ -197,7 +197,7 @@ class BasicsTest < ActiveRecord::TestCase
   # Use square brackets as SQL Server escaped character
   coerce_tests! :test_column_names_are_escaped
   def test_column_names_are_escaped_coerced
-    conn = ActiveRecord::Base.connection
+    conn = ActiveRecord::Base.lease_connection
     assert_equal "[t]]]", conn.quote_column_name("t]")
   end
 
@@ -236,7 +236,7 @@ class BasicsTest < ActiveRecord::TestCase
     ActiveRecord::Base.while_preventing_writes do
       assert_queries(1, ignore_none: true) do
         Bird.transaction do
-          ActiveRecord::Base.connection.materialize_transactions
+          ActiveRecord::Base.lease_connection.materialize_transactions
         end
       end
     end
@@ -1542,9 +1542,9 @@ class SchemaDumperTest < ActiveRecord::TestCase
       @schema_migration.create_version(v)
     end
 
-    schema_info = ActiveRecord::Base.connection.dump_schema_information
+    schema_info = ActiveRecord::Base.lease_connection.dump_schema_information
     expected = <<~STR
-    INSERT INTO #{ActiveRecord::Base.connection.quote_table_name("schema_migrations")} (version) VALUES
+    INSERT INTO #{ActiveRecord::Base.lease_connection.quote_table_name("schema_migrations")} (version) VALUES
     (N'20100301010101'),
     (N'20100201010101'),
     (N'20100101010101');
@@ -1602,7 +1602,7 @@ class SchemaDumperDefaultsCoerceTest < ActiveRecord::TestCase
   include SchemaDumpingHelper
 
   setup do
-    @connection = ActiveRecord::Base.connection
+    @connection = ActiveRecord::Base.lease_connection
     @connection.create_table :dump_defaults, force: true do |t|
       t.string   :string_with_default,   default: "Hello!"
       t.date     :date_with_default,     default: "2014-06-05"
@@ -2213,15 +2213,15 @@ class QueryCacheExpiryTest < ActiveRecord::TestCase
       Task.cache { Task.insert({ starting: Time.now }) }
     end
 
-    assert_called(ActiveRecord::Base.connection, :clear_query_cache, times: 2) do
+    assert_called(ActiveRecord::Base.lease_connection, :clear_query_cache, times: 2) do
       Task.cache { Task.insert_all!([{ starting: Time.now }]) }
     end
 
-    assert_called(ActiveRecord::Base.connection, :clear_query_cache, times: 2) do
+    assert_called(ActiveRecord::Base.lease_connection, :clear_query_cache, times: 2) do
       Task.cache { Task.insert!({ starting: Time.now }) }
     end
 
-    assert_called(ActiveRecord::Base.connection, :clear_query_cache, times: 2) do
+    assert_called(ActiveRecord::Base.lease_connection, :clear_query_cache, times: 2) do
       Task.cache { Task.insert_all!([{ starting: Time.now }]) }
     end
 
@@ -2287,7 +2287,7 @@ class MarshalSerializationTest < ActiveRecord::TestCase
   undef_method :marshal_fixture_path
   def marshal_fixture_path(file_name)
     File.expand_path(
-      "support/marshal_compatibility_fixtures/#{ActiveRecord::Base.connection.adapter_name}/#{file_name}.dump",
+      "support/marshal_compatibility_fixtures/#{ActiveRecord::Base.lease_connection.adapter_name}/#{file_name}.dump",
       ARTest::SQLServer.test_root_sqlserver
     )
   end
@@ -2379,7 +2379,7 @@ class BasePreventWritesTest < ActiveRecord::TestCase
     ActiveRecord::Base.while_preventing_writes do
       assert_queries(1, ignore_none: true) do
         Bird.transaction do
-          ActiveRecord::Base.connection.materialize_transactions
+          ActiveRecord::Base.lease_connection.materialize_transactions
         end
       end
     end
@@ -2489,7 +2489,7 @@ class QueryLogsTest < ActiveRecord::TestCase
   def test_invalid_encoding_query_coerced
     ActiveRecord::QueryLogs.tags = [ :application ]
     assert_raises ActiveRecord::StatementInvalid do
-      ActiveRecord::Base.connection.execute "select 1 as '\xFF'"
+      ActiveRecord::Base.lease_connection.execute "select 1 as '\xFF'"
     end
   end
 end
