@@ -35,6 +35,8 @@ require "active_record/tasks/sqlserver_database_tasks"
 
 module ActiveRecord
   module ConnectionAdapters
+    register "sqlserver", "ActiveRecord::ConnectionAdapters::SQLServerAdapter", "active_record/connection_adapters/sqlserver_adapter"
+
     class SQLServerAdapter < AbstractAdapter
       include SQLServer::Version,
               SQLServer::Quoting,
