@@ -9,7 +9,7 @@ module ActiveRecord
       module CoreExt
         module Calculations
           def calculate(operation, column_name)
-            if klass.connection.sqlserver?
+            if klass.lease_connection.sqlserver?
               _calculate(operation, column_name)
             else
               super
@@ -54,7 +54,7 @@ module ActiveRecord
           end
 
           def build_count_subquery(relation, column_name, distinct)
-            return super unless klass.connection.adapter_name == "SQLServer"
+            return super unless klass.lease_connection.adapter_name == "SQLServer"
 
             super(relation.unscope(:order), column_name, distinct)
           end

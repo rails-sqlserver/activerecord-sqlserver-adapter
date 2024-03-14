@@ -10,7 +10,7 @@ module ActiveRecord
           private
 
           def attributes_for_update(attribute_names)
-            return super unless self.class.connection.adapter_name == "SQLServer"
+            return super unless self.class.lease_connection.adapter_name == "SQLServer"
 
             super.reject do |name|
               column = self.class.columns_hash[name]
