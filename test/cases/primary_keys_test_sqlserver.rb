@@ -12,7 +12,7 @@ class PrimaryKeyUuidTypeTest < ActiveRecord::TestCase
   end
 
   setup do
-    @connection = ActiveRecord::Base.connection
+    @connection = ActiveRecord::Base.lease_connection
     @connection.create_table(:barcodes, primary_key: "code", id: :uuid, force: true)
   end
 
@@ -50,7 +50,7 @@ class PrimaryKeyIntegerTest < ActiveRecord::TestCase
   end
 
   setup do
-    @connection = ActiveRecord::Base.connection
+    @connection = ActiveRecord::Base.lease_connection
   end
 
   teardown do

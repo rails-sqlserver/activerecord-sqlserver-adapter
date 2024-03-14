@@ -5,7 +5,7 @@ require "cases/helper_sqlserver"
 class SchemaDumperTestSQLServer < ActiveRecord::TestCase
   before { all_tables }
 
-  let(:all_tables)   { ActiveRecord::Base.connection.tables }
+  let(:all_tables)   { ActiveRecord::Base.lease_connection.tables }
   let(:schema)       { @generated_schema }
 
   it "sst_datatypes" do
@@ -166,7 +166,7 @@ class SchemaDumperTestSQLServer < ActiveRecord::TestCase
 
     stream = StringIO.new
     ActiveRecord::SchemaDumper.ignore_tables = all_tables - table_names
-    ActiveRecord::SchemaDumper.dump(ActiveRecord::Base.connection, stream)
+    ActiveRecord::SchemaDumper.dump(ActiveRecord::Base.lease_connection, stream)
     @generated_schema = stream.string
     yield @generated_schema if block_given?
     @schema_lines = Hash.new

@@ -159,14 +159,14 @@ class SpecificSchemaTestSQLServer < ActiveRecord::TestCase
 
   it "returns a new id via connection newid_function" do
     acceptable_uuid = ActiveRecord::ConnectionAdapters::SQLServer::Type::Uuid::ACCEPTABLE_UUID
-    db_uuid = ActiveRecord::Base.connection.newid_function
+    db_uuid = ActiveRecord::Base.lease_connection.newid_function
     _(db_uuid).must_match(acceptable_uuid)
   end
 
   # with similar table definition in two schemas
 
   it "returns the correct primary columns" do
-    connection = ActiveRecord::Base.connection
+    connection = ActiveRecord::Base.lease_connection
     assert_equal "field_1", connection.columns("test.sst_schema_test_mulitple_schema").detect(&:is_primary?).name
     assert_equal "field_2", connection.columns("test2.sst_schema_test_mulitple_schema").detect(&:is_primary?).name
   end

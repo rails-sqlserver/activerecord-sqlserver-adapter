@@ -11,7 +11,7 @@ module ActiveRecord
           private
 
           def construct_relation_for_exists(conditions)
-            if klass.connection.sqlserver?
+            if klass.lease_connection.sqlserver?
               _construct_relation_for_exists(conditions)
             else
               super

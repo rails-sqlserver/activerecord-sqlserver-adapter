@@ -29,12 +29,13 @@ require "active_record/connection_adapters/sqlserver/showplan"
 require "active_record/connection_adapters/sqlserver/table_definition"
 require "active_record/connection_adapters/sqlserver/quoting"
 require "active_record/connection_adapters/sqlserver/utils"
-require "active_record/sqlserver_base"
 require "active_record/connection_adapters/sqlserver_column"
 require "active_record/tasks/sqlserver_database_tasks"
 
 module ActiveRecord
   module ConnectionAdapters
+    register "sqlserver", "ActiveRecord::ConnectionAdapters::SQLServerAdapter", "active_record/connection_adapters/sqlserver_adapter"
+
     class SQLServerAdapter < AbstractAdapter
       include SQLServer::Version,
               SQLServer::Quoting,

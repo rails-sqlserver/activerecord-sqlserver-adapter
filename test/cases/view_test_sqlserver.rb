@@ -3,7 +3,7 @@
 require "cases/helper_sqlserver"
 
 class ViewTestSQLServer < ActiveRecord::TestCase
-  let(:connection) { ActiveRecord::Base.connection }
+  let(:connection) { ActiveRecord::Base.lease_connection }
 
   describe 'view with default values' do
     before do
