@@ -2646,3 +2646,8 @@ module ActiveRecord
     end
   end
 end
+
+class InsertAllTest < ActiveRecord::TestCase
+  # Skip this until upsert is supported
+  coerce_tests! :test_insert
+end
