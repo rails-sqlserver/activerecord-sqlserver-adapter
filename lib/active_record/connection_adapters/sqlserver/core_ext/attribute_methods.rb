@@ -10,11 +10,13 @@ module ActiveRecord
           private
 
           def attributes_for_update(attribute_names)
-            return super unless self.class.lease_connection.adapter_name == "SQLServer"
+            self.class.with_connection do |connection|
+              return super(attribute_names) unless connection.sqlserver?
 
-            super.reject do |name|
-              column = self.class.columns_hash[name]
-              column && column.respond_to?(:is_identity?) && column.is_identity?
+              super(attribute_names).reject do |name|
+                column = self.class.columns_hash[name]
+                column && column.respond_to?(:is_identity?) && column.is_identity?
+              end
             end
           end
         end

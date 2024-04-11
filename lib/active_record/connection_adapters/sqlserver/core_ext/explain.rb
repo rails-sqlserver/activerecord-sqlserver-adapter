@@ -9,12 +9,14 @@ module ActiveRecord
           SQLSERVER_STATEMENT_REGEXP = /N'(.+)', N'(.+)', (.+)/
 
           def exec_explain(queries, options = [])
-            return super unless lease_connection.adapter_name == "SQLServer"
+            with_connection do |connection|
+              return super(queries, options) unless connection.sqlserver?
 
-            unprepared_queries = queries.map do |(sql, binds)|
-              [unprepare_sqlserver_statement(sql, binds), binds]
+              unprepared_queries = queries.map do |(sql, binds)|
+                [unprepare_sqlserver_statement(sql, binds), binds]
+              end
+              super(unprepared_queries, options)
             end
-            super(unprepared_queries, options)
           end
 
           private
