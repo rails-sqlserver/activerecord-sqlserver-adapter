@@ -56,7 +56,7 @@ class UniquenessValidationWithIndexTest < ActiveRecord::TestCase
 
     t = Topic.create!(title: "abc")
     t.author_name = "John"
-    assert_queries(1) do
+    assert_queries_count(1) do
       t.valid?
     end
   end
@@ -234,7 +234,7 @@ class BasicsTest < ActiveRecord::TestCase
   coerce_tests! %r{an empty transaction does not raise if preventing writes}
   test "an empty transaction does not raise if preventing writes coerced" do
     ActiveRecord::Base.while_preventing_writes do
-      assert_queries(1, ignore_none: true) do
+      assert_queries_count(1, ignore_none: true) do
         Bird.transaction do
           ActiveRecord::Base.lease_connection.materialize_transactions
         end
@@ -490,8 +490,8 @@ class CalculationsTest < ActiveRecord::TestCase
   coerce_tests! :test_distinct_count_all_with_custom_select_and_order
   def test_distinct_count_all_with_custom_select_and_order_coerced
     accounts = Account.distinct.select("credit_limit % 10 AS the_limit").order(Arel.sql("credit_limit % 10"))
-    assert_queries(1) { assert_equal 3, accounts.count(:all) }
-    assert_queries(1) { assert_equal 3, accounts.load.size }
+    assert_queries_count(1) { assert_equal 3, accounts.count(:all) }
+    assert_queries_count(1) { assert_equal 3, accounts.load.size }
   end
 
   # Leave it up to users to format selects/functions so HAVING works correctly.
@@ -1018,7 +1018,7 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal topics(:fifth), Topic.first
     assert_equal topics(:third), Topic.last
 
-    c = Topic.connection
+    c = Topic.lease_connection
     assert_sql(/ORDER BY #{Regexp.escape(c.quote_table_name("topics.title"))} DESC, #{Regexp.escape(c.quote_table_name("topics.id"))} DESC OFFSET 0 ROWS FETCH NEXT @0 ROWS ONLY.*@0 = 1/i) {
       Topic.last
     }
@@ -1032,7 +1032,7 @@ class FinderTest < ActiveRecord::TestCase
     old_implicit_order_column = Topic.implicit_order_column
     Topic.implicit_order_column = "id"
 
-    c = Topic.connection
+    c = Topic.lease_connection
     assert_sql(/ORDER BY #{Regexp.escape(c.quote_table_name("topics.id"))} DESC OFFSET 0 ROWS FETCH NEXT @0 ROWS ONLY.*@0 = 1/i) {
       Topic.last
     }
@@ -1046,7 +1046,7 @@ class FinderTest < ActiveRecord::TestCase
     old_implicit_order_column = NonPrimaryKey.implicit_order_column
     NonPrimaryKey.implicit_order_column = "created_at"
 
-    c = NonPrimaryKey.connection
+    c = NonPrimaryKey.lease_connection
 
     assert_sql(/ORDER BY #{Regexp.escape(c.quote_table_name("non_primary_keys.created_at"))} DESC OFFSET 0 ROWS FETCH NEXT @0 ROWS ONLY.*@0 = 1/i) {
       NonPrimaryKey.last
@@ -1067,7 +1067,7 @@ class FinderTest < ActiveRecord::TestCase
   # Check for `FETCH NEXT x ROWS` rather then `LIMIT`.
   coerce_tests! :test_implicit_order_column_prepends_query_constraints
   def test_implicit_order_column_prepends_query_constraints_coerced
-    c = ClothingItem.connection
+    c = ClothingItem.lease_connection
     ClothingItem.implicit_order_column = "description"
     quoted_type = Regexp.escape(c.quote_table_name("clothing_items.clothing_type"))
     quoted_color = Regexp.escape(c.quote_table_name("clothing_items.color"))
@@ -1083,7 +1083,7 @@ class FinderTest < ActiveRecord::TestCase
   # Check for `FETCH NEXT x ROWS` rather then `LIMIT`.
   coerce_tests! %r{#last for a model with composite query constraints}
   test "#last for a model with composite query constraints coerced" do
-    c = ClothingItem.connection
+    c = ClothingItem.lease_connection
     quoted_type = Regexp.escape(c.quote_table_name("clothing_items.clothing_type"))
     quoted_color = Regexp.escape(c.quote_table_name("clothing_items.color"))
 
@@ -1095,7 +1095,7 @@ class FinderTest < ActiveRecord::TestCase
   # Check for `FETCH NEXT x ROWS` rather then `LIMIT`.
   coerce_tests! %r{#first for a model with composite query constraints}
   test "#first for a model with composite query constraints coerced" do
-    c = ClothingItem.connection
+    c = ClothingItem.lease_connection
     quoted_type = Regexp.escape(c.quote_table_name("clothing_items.clothing_type"))
     quoted_color = Regexp.escape(c.quote_table_name("clothing_items.color"))
 
@@ -1107,7 +1107,7 @@ class FinderTest < ActiveRecord::TestCase
   # Check for `FETCH NEXT x ROWS` rather then `LIMIT`.
   coerce_tests! :test_implicit_order_column_reorders_query_constraints
   def test_implicit_order_column_reorders_query_constraints_coerced
-    c = ClothingItem.connection
+    c = ClothingItem.lease_connection
     ClothingItem.implicit_order_column = "color"
     quoted_type = Regexp.escape(c.quote_table_name("clothing_items.clothing_type"))
     quoted_color = Regexp.escape(c.quote_table_name("clothing_items.color"))
@@ -1131,7 +1131,7 @@ class FinderTest < ActiveRecord::TestCase
   # Check for `FETCH NEXT x ROWS` rather then `LIMIT`.
   coerce_tests! :test_nth_to_last_with_order_uses_limit
   def test_nth_to_last_with_order_uses_limit_coerced
-    c = Topic.connection
+    c = Topic.lease_connection
     assert_sql(/ORDER BY #{Regexp.escape(c.quote_table_name("topics.id"))} DESC OFFSET @(\d) ROWS FETCH NEXT @(\d) ROWS ONLY.*@\1 = 1.*@\2 = 1/i) do
       Topic.second_to_last
     end
@@ -1324,7 +1324,7 @@ class PrimaryKeysTest < ActiveRecord::TestCase
       self.table_name = "dashboards"
     end
     klass.create! # warmup schema cache
-    assert_queries(2, ignore_none: true) { klass.create! }
+    assert_queries_count(2, ignore_none: true) { klass.create! }
   end
 end
 
@@ -1354,7 +1354,7 @@ class QueryCacheTest < ActiveRecord::TestCase
       Task.initialize_find_by_cache
       Task.define_attribute_methods
 
-      assert_queries(1, ignore_none: true) do
+      assert_queries_count(1, ignore_none: true) do
         Task.find(1)
       end
 
@@ -1454,11 +1454,11 @@ class RelationTest < ActiveRecord::TestCase
   def test_empty_complex_chained_relations_coerced
     posts = Post.select("comments_count").where("id is not null").group("author_id", "id").where("legacy_comments_count > 0")
 
-    assert_queries(1) { assert_equal false, posts.empty? }
+    assert_queries_count(1) { assert_equal false, posts.empty? }
     assert_not_predicate posts, :loaded?
 
     no_posts = posts.where(title: "")
-    assert_queries(1) { assert_equal true, no_posts.empty? }
+    assert_queries_count(1) { assert_equal true, no_posts.empty? }
     assert_not_predicate no_posts, :loaded?
   end
 
@@ -2338,7 +2338,7 @@ class PreloaderTest < ActiveRecord::TestCase
     assert_equal 2, sql.size
     preload_sql = sql.last
 
-    c = Cpk::OrderAgreement.connection
+    c = Cpk::OrderAgreement.lease_connection
     order_id_column = Regexp.escape(c.quote_table_name("cpk_order_agreements.order_id"))
     order_id_constraint = /#{order_id_column} = @0.*@0 = \d+$/
     expectation = /SELECT.*WHERE.* #{order_id_constraint}/
@@ -2362,7 +2362,7 @@ class PreloaderTest < ActiveRecord::TestCase
     assert_equal 2, sql.size
     preload_sql = sql.last
 
-    c = Cpk::Order.connection
+    c = Cpk::Order.lease_connection
     order_id = Regexp.escape(c.quote_table_name("cpk_orders.id"))
     order_constraint = /#{order_id} = @0.*@0 = \d+$/
     expectation = /SELECT.*WHERE.* #{order_constraint}/
@@ -2377,7 +2377,7 @@ class BasePreventWritesTest < ActiveRecord::TestCase
   coerce_tests! %r{an empty transaction does not raise if preventing writes}
   test "an empty transaction does not raise if preventing writes coerced" do
     ActiveRecord::Base.while_preventing_writes do
-      assert_queries(1, ignore_none: true) do
+      assert_queries_count(1, ignore_none: true) do
         Bird.transaction do
           ActiveRecord::Base.lease_connection.materialize_transactions
         end
