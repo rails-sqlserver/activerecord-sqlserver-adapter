@@ -234,7 +234,7 @@ class BasicsTest < ActiveRecord::TestCase
   coerce_tests! %r{an empty transaction does not raise if preventing writes}
   test "an empty transaction does not raise if preventing writes coerced" do
     ActiveRecord::Base.while_preventing_writes do
-      assert_queries_count(1, ignore_none: true) do
+      assert_queries_count(1, include_schema: true) do
         Bird.transaction do
           ActiveRecord::Base.lease_connection.materialize_transactions
         end
@@ -1324,7 +1324,7 @@ class PrimaryKeysTest < ActiveRecord::TestCase
       self.table_name = "dashboards"
     end
     klass.create! # warmup schema cache
-    assert_queries_count(2, ignore_none: true) { klass.create! }
+    assert_queries_count(2, include_schema: true) { klass.create! }
   end
 end
 
@@ -1354,7 +1354,7 @@ class QueryCacheTest < ActiveRecord::TestCase
       Task.initialize_find_by_cache
       Task.define_attribute_methods
 
-      assert_queries_count(1, ignore_none: true) do
+      assert_queries_count(1, include_schema: true) do
         Task.find(1)
       end
 
@@ -2377,7 +2377,7 @@ class BasePreventWritesTest < ActiveRecord::TestCase
   coerce_tests! %r{an empty transaction does not raise if preventing writes}
   test "an empty transaction does not raise if preventing writes coerced" do
     ActiveRecord::Base.while_preventing_writes do
-      assert_queries_count(1, ignore_none: true) do
+      assert_queries_count(1, include_schema: true) do
         Bird.transaction do
           ActiveRecord::Base.lease_connection.materialize_transactions
         end
