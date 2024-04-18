@@ -11,10 +11,12 @@ module ActiveRecord
           private
 
           def construct_relation_for_exists(conditions)
-            if klass.lease_connection.sqlserver?
-              _construct_relation_for_exists(conditions)
-            else
-              super
+            klass.with_connection do |connection|
+              if connection.sqlserver?
+                _construct_relation_for_exists(conditions)
+              else
+                super
+              end
             end
           end
 
