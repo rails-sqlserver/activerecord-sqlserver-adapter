@@ -1018,7 +1018,7 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal topics(:fifth), Topic.first
     assert_equal topics(:third), Topic.last
 
-    c = Topic.connection
+    c = Topic.lease_connection
     assert_sql(/ORDER BY #{Regexp.escape(c.quote_table_name("topics.title"))} DESC, #{Regexp.escape(c.quote_table_name("topics.id"))} DESC OFFSET 0 ROWS FETCH NEXT @0 ROWS ONLY.*@0 = 1/i) {
       Topic.last
     }
@@ -1032,7 +1032,7 @@ class FinderTest < ActiveRecord::TestCase
     old_implicit_order_column = Topic.implicit_order_column
     Topic.implicit_order_column = "id"
 
-    c = Topic.connection
+    c = Topic.lease_connection
     assert_sql(/ORDER BY #{Regexp.escape(c.quote_table_name("topics.id"))} DESC OFFSET 0 ROWS FETCH NEXT @0 ROWS ONLY.*@0 = 1/i) {
       Topic.last
     }
@@ -1046,7 +1046,7 @@ class FinderTest < ActiveRecord::TestCase
     old_implicit_order_column = NonPrimaryKey.implicit_order_column
     NonPrimaryKey.implicit_order_column = "created_at"
 
-    c = NonPrimaryKey.connection
+    c = NonPrimaryKey.lease_connection
 
     assert_sql(/ORDER BY #{Regexp.escape(c.quote_table_name("non_primary_keys.created_at"))} DESC OFFSET 0 ROWS FETCH NEXT @0 ROWS ONLY.*@0 = 1/i) {
       NonPrimaryKey.last
@@ -1067,7 +1067,7 @@ class FinderTest < ActiveRecord::TestCase
   # Check for `FETCH NEXT x ROWS` rather then `LIMIT`.
   coerce_tests! :test_implicit_order_column_prepends_query_constraints
   def test_implicit_order_column_prepends_query_constraints_coerced
-    c = ClothingItem.connection
+    c = ClothingItem.lease_connection
     ClothingItem.implicit_order_column = "description"
     quoted_type = Regexp.escape(c.quote_table_name("clothing_items.clothing_type"))
     quoted_color = Regexp.escape(c.quote_table_name("clothing_items.color"))
@@ -1083,7 +1083,7 @@ class FinderTest < ActiveRecord::TestCase
   # Check for `FETCH NEXT x ROWS` rather then `LIMIT`.
   coerce_tests! %r{#last for a model with composite query constraints}
   test "#last for a model with composite query constraints coerced" do
-    c = ClothingItem.connection
+    c = ClothingItem.lease_connection
     quoted_type = Regexp.escape(c.quote_table_name("clothing_items.clothing_type"))
     quoted_color = Regexp.escape(c.quote_table_name("clothing_items.color"))
 
@@ -1095,7 +1095,7 @@ class FinderTest < ActiveRecord::TestCase
   # Check for `FETCH NEXT x ROWS` rather then `LIMIT`.
   coerce_tests! %r{#first for a model with composite query constraints}
   test "#first for a model with composite query constraints coerced" do
-    c = ClothingItem.connection
+    c = ClothingItem.lease_connection
     quoted_type = Regexp.escape(c.quote_table_name("clothing_items.clothing_type"))
     quoted_color = Regexp.escape(c.quote_table_name("clothing_items.color"))
 
@@ -1107,7 +1107,7 @@ class FinderTest < ActiveRecord::TestCase
   # Check for `FETCH NEXT x ROWS` rather then `LIMIT`.
   coerce_tests! :test_implicit_order_column_reorders_query_constraints
   def test_implicit_order_column_reorders_query_constraints_coerced
-    c = ClothingItem.connection
+    c = ClothingItem.lease_connection
     ClothingItem.implicit_order_column = "color"
     quoted_type = Regexp.escape(c.quote_table_name("clothing_items.clothing_type"))
     quoted_color = Regexp.escape(c.quote_table_name("clothing_items.color"))
@@ -1131,7 +1131,7 @@ class FinderTest < ActiveRecord::TestCase
   # Check for `FETCH NEXT x ROWS` rather then `LIMIT`.
   coerce_tests! :test_nth_to_last_with_order_uses_limit
   def test_nth_to_last_with_order_uses_limit_coerced
-    c = Topic.connection
+    c = Topic.lease_connection
     assert_sql(/ORDER BY #{Regexp.escape(c.quote_table_name("topics.id"))} DESC OFFSET @(\d) ROWS FETCH NEXT @(\d) ROWS ONLY.*@\1 = 1.*@\2 = 1/i) do
       Topic.second_to_last
     end
@@ -2338,7 +2338,7 @@ class PreloaderTest < ActiveRecord::TestCase
     assert_equal 2, sql.size
     preload_sql = sql.last
 
-    c = Cpk::OrderAgreement.connection
+    c = Cpk::OrderAgreement.lease_connection
     order_id_column = Regexp.escape(c.quote_table_name("cpk_order_agreements.order_id"))
     order_id_constraint = /#{order_id_column} = @0.*@0 = \d+$/
     expectation = /SELECT.*WHERE.* #{order_id_constraint}/
@@ -2362,7 +2362,7 @@ class PreloaderTest < ActiveRecord::TestCase
     assert_equal 2, sql.size
     preload_sql = sql.last
 
-    c = Cpk::Order.connection
+    c = Cpk::Order.lease_connection
     order_id = Regexp.escape(c.quote_table_name("cpk_orders.id"))
     order_constraint = /#{order_id} = @0.*@0 = \d+$/
     expectation = /SELECT.*WHERE.* #{order_constraint}/

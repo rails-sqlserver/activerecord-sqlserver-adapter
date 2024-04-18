@@ -61,8 +61,8 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
   end
 
   it "test table existence across database schemas" do
-    arunit_connection = Topic.connection
-    arunit2_connection = College.connection
+    arunit_connection = Topic.lease_connection
+    arunit2_connection = College.lease_connection
 
     arunit_database = arunit_connection.pool.db_config.database
     arunit2_database = arunit2_connection.pool.db_config.database
