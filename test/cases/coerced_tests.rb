@@ -56,7 +56,7 @@ class UniquenessValidationWithIndexTest < ActiveRecord::TestCase
 
     t = Topic.create!(title: "abc")
     t.author_name = "John"
-    assert_queries(1) do
+    assert_queries_count(1) do
       t.valid?
     end
   end
@@ -234,7 +234,7 @@ class BasicsTest < ActiveRecord::TestCase
   coerce_tests! %r{an empty transaction does not raise if preventing writes}
   test "an empty transaction does not raise if preventing writes coerced" do
     ActiveRecord::Base.while_preventing_writes do
-      assert_queries(1, ignore_none: true) do
+      assert_queries_count(1, ignore_none: true) do
         Bird.transaction do
           ActiveRecord::Base.lease_connection.materialize_transactions
         end
@@ -490,8 +490,8 @@ class CalculationsTest < ActiveRecord::TestCase
   coerce_tests! :test_distinct_count_all_with_custom_select_and_order
   def test_distinct_count_all_with_custom_select_and_order_coerced
     accounts = Account.distinct.select("credit_limit % 10 AS the_limit").order(Arel.sql("credit_limit % 10"))
-    assert_queries(1) { assert_equal 3, accounts.count(:all) }
-    assert_queries(1) { assert_equal 3, accounts.load.size }
+    assert_queries_count(1) { assert_equal 3, accounts.count(:all) }
+    assert_queries_count(1) { assert_equal 3, accounts.load.size }
   end
 
   # Leave it up to users to format selects/functions so HAVING works correctly.
@@ -1324,7 +1324,7 @@ class PrimaryKeysTest < ActiveRecord::TestCase
       self.table_name = "dashboards"
     end
     klass.create! # warmup schema cache
-    assert_queries(2, ignore_none: true) { klass.create! }
+    assert_queries_count(2, ignore_none: true) { klass.create! }
   end
 end
 
@@ -1354,7 +1354,7 @@ class QueryCacheTest < ActiveRecord::TestCase
       Task.initialize_find_by_cache
       Task.define_attribute_methods
 
-      assert_queries(1, ignore_none: true) do
+      assert_queries_count(1, ignore_none: true) do
         Task.find(1)
       end
 
@@ -1454,11 +1454,11 @@ class RelationTest < ActiveRecord::TestCase
   def test_empty_complex_chained_relations_coerced
     posts = Post.select("comments_count").where("id is not null").group("author_id", "id").where("legacy_comments_count > 0")
 
-    assert_queries(1) { assert_equal false, posts.empty? }
+    assert_queries_count(1) { assert_equal false, posts.empty? }
     assert_not_predicate posts, :loaded?
 
     no_posts = posts.where(title: "")
-    assert_queries(1) { assert_equal true, no_posts.empty? }
+    assert_queries_count(1) { assert_equal true, no_posts.empty? }
     assert_not_predicate no_posts, :loaded?
   end
 
@@ -2377,7 +2377,7 @@ class BasePreventWritesTest < ActiveRecord::TestCase
   coerce_tests! %r{an empty transaction does not raise if preventing writes}
   test "an empty transaction does not raise if preventing writes coerced" do
     ActiveRecord::Base.while_preventing_writes do
-      assert_queries(1, ignore_none: true) do
+      assert_queries_count(1, ignore_none: true) do
         Bird.transaction do
           ActiveRecord::Base.lease_connection.materialize_transactions
         end
