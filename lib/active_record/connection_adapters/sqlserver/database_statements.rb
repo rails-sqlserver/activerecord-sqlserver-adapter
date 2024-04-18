@@ -30,7 +30,7 @@ module ActiveRecord
           result
         end
 
-        def internal_exec_query(sql, name = "SQL", binds = [], prepare: false, async: false)
+        def internal_exec_query(sql, name = "SQL", binds = [], prepare: false, async: false, allow_retry: false)
           result = nil
           sql = transform_query(sql)
 
