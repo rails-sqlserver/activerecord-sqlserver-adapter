@@ -17,6 +17,7 @@ module ActiveRecord
                 column = self.class.columns_hash[name]
                 column && column.respond_to?(:is_identity?) && column.is_identity?
               end
+            end
           end
         end
       end
