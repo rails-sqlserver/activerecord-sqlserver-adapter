@@ -15,6 +15,7 @@ module ActiveRecord
               else
                 super
               end
+            end
           end
 
           private
