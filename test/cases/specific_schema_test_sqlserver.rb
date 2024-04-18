@@ -93,7 +93,7 @@ class SpecificSchemaTestSQLServer < ActiveRecord::TestCase
 
   it "use primary key for row table order in pagination sql" do
     sql = /ORDER BY \[sst_natural_pk_data\]\.\[legacy_id\] ASC OFFSET @0 ROWS FETCH NEXT @1 ROWS ONLY/
-    assert_sql(sql) { SSTestNaturalPkData.limit(5).offset(5).load }
+    assert_queries_match(sql) { SSTestNaturalPkData.limit(5).offset(5).load }
   end
 
   # Special quoted column
@@ -112,16 +112,16 @@ class SpecificSchemaTestSQLServer < ActiveRecord::TestCase
       end
     end
     # Using ActiveRecord's quoted_id feature for objects.
-    assert_sql(/@0 = 'T'/) { SSTestDatatypeMigration.where(char_col: value.new).first }
-    assert_sql(/@0 = 'T'/) { SSTestDatatypeMigration.where(varchar_col: value.new).first }
+    assert_queries_match(/@0 = 'T'/) { SSTestDatatypeMigration.where(char_col: value.new).first }
+    assert_queries_match(/@0 = 'T'/) { SSTestDatatypeMigration.where(varchar_col: value.new).first }
     # Using our custom char type data.
     type = ActiveRecord::Type::SQLServer::Char
     data = ActiveRecord::Type::SQLServer::Data
-    assert_sql(/@0 = 'T'/) { SSTestDatatypeMigration.where(char_col: data.new("T", type.new)).first }
-    assert_sql(/@0 = 'T'/) { SSTestDatatypeMigration.where(varchar_col: data.new("T", type.new)).first }
+    assert_queries_match(/@0 = 'T'/) { SSTestDatatypeMigration.where(char_col: data.new("T", type.new)).first }
+    assert_queries_match(/@0 = 'T'/) { SSTestDatatypeMigration.where(varchar_col: data.new("T", type.new)).first }
     # Taking care of everything.
-    assert_sql(/@0 = 'T'/) { SSTestDatatypeMigration.where(char_col: "T").first }
-    assert_sql(/@0 = 'T'/) { SSTestDatatypeMigration.where(varchar_col: "T").first }
+    assert_queries_match(/@0 = 'T'/) { SSTestDatatypeMigration.where(char_col: "T").first }
+    assert_queries_match(/@0 = 'T'/) { SSTestDatatypeMigration.where(varchar_col: "T").first }
   end
 
   it "can update and hence properly quoted non-national char/varchar columns" do

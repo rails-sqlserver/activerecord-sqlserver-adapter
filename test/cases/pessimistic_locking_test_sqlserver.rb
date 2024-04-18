@@ -88,7 +88,7 @@ class PessimisticLockingTestSQLServer < ActiveRecord::TestCase
     it "copes with eager loading un-locked paginated" do
       eager_ids_sql = /SELECT\s+DISTINCT \[people\].\[id\] FROM \[people\] WITH\(UPDLOCK\) LEFT OUTER JOIN \[readers\] WITH\(UPDLOCK\)\s+ON \[readers\].\[person_id\] = \[people\].\[id\]\s+ORDER BY \[people\].\[id\] ASC OFFSET @0 ROWS FETCH NEXT @1 ROWS ONLY/
       loader_sql = /SELECT.*FROM \[people\] WITH\(UPDLOCK\).*WHERE \[people\]\.\[id\] IN/
-      assert_sql(eager_ids_sql, loader_sql) do
+      assert_queries_match(eager_ids_sql, loader_sql) do
         people = Person.lock(true).limit(5).offset(10).includes(:readers).references(:readers).to_a
         _(people[0].first_name).must_equal "Thing_10"
         _(people[1].first_name).must_equal "Thing_11"

@@ -260,7 +260,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   def test_belongs_to_coerced
     client = Client.find(3)
     first_firm = companies(:first_firm)
-    assert_sql(/FETCH NEXT @(\d) ROWS ONLY(.)*@\1 = 1/) do
+    assert_queries_match(/FETCH NEXT @(\d) ROWS ONLY(.)*@\1 = 1/) do
       assert_equal first_firm, client.firm
       assert_equal first_firm.name, client.firm.name
     end
@@ -323,7 +323,7 @@ module ActiveRecord
 
       authors = Author.where(id: [1, 2, 3, nil])
       assert_equal sql_unprepared, @connection.to_sql(authors.arel)
-      assert_sql(prepared ? sql_prepared : sql_unprepared) { assert_equal 3, authors.length }
+      assert_queries_match(prepared ? sql_prepared : sql_unprepared) { assert_equal 3, authors.length }
 
       # prepared_statements: true
       #
@@ -338,7 +338,7 @@ module ActiveRecord
 
       authors = Author.where(id: [1, 2, 3, 9223372036854775808])
       assert_equal sql_unprepared, @connection.to_sql(authors.arel)
-      assert_sql(prepared ? sql_prepared : sql_unprepared) { assert_equal 3, authors.length }
+      assert_queries_match(prepared ? sql_prepared : sql_unprepared) { assert_equal 3, authors.length }
     end
   end
 end
@@ -947,9 +947,9 @@ class FinderTest < ActiveRecord::TestCase
   # Assert SQL Server limit implementation
   coerce_tests! :test_take_and_first_and_last_with_integer_should_use_sql_limit
   def test_take_and_first_and_last_with_integer_should_use_sql_limit_coerced
-    assert_sql(/OFFSET 0 ROWS FETCH NEXT @0 ROWS ONLY.* @0 = 3/) { Topic.take(3).entries }
-    assert_sql(/OFFSET 0 ROWS FETCH NEXT @0 ROWS ONLY.* @0 = 2/) { Topic.first(2).entries }
-    assert_sql(/OFFSET 0 ROWS FETCH NEXT @0 ROWS ONLY.* @0 = 5/) { Topic.last(5).entries }
+    assert_queries_match(/OFFSET 0 ROWS FETCH NEXT @0 ROWS ONLY.* @0 = 3/) { Topic.take(3).entries }
+    assert_queries_match(/OFFSET 0 ROWS FETCH NEXT @0 ROWS ONLY.* @0 = 2/) { Topic.first(2).entries }
+    assert_queries_match(/OFFSET 0 ROWS FETCH NEXT @0 ROWS ONLY.* @0 = 5/) { Topic.last(5).entries }
   end
 
   # This fails only when run in the full test suite task. Just taking it out of the mix.
@@ -980,7 +980,7 @@ class FinderTest < ActiveRecord::TestCase
   # Check for `FETCH NEXT x ROWS` rather then `LIMIT`.
   coerce_tests! :test_include_on_unloaded_relation_with_match
   def test_include_on_unloaded_relation_with_match_coerced
-    assert_sql(/1 AS one.*FETCH NEXT @2 ROWS ONLY.*@2 = 1/) do
+    assert_queries_match(/1 AS one.*FETCH NEXT @2 ROWS ONLY.*@2 = 1/) do
       assert_equal true, Customer.where(name: "David").include?(customers(:david))
     end
   end
@@ -988,7 +988,7 @@ class FinderTest < ActiveRecord::TestCase
   # Check for `FETCH NEXT x ROWS` rather then `LIMIT`.
   coerce_tests! :test_include_on_unloaded_relation_without_match
   def test_include_on_unloaded_relation_without_match_coerced
-    assert_sql(/1 AS one.*FETCH NEXT @2 ROWS ONLY.*@2 = 1/) do
+    assert_queries_match(/1 AS one.*FETCH NEXT @2 ROWS ONLY.*@2 = 1/) do
       assert_equal false, Customer.where(name: "David").include?(customers(:mary))
     end
   end
@@ -996,7 +996,7 @@ class FinderTest < ActiveRecord::TestCase
   # Check for `FETCH NEXT x ROWS` rather then `LIMIT`.
   coerce_tests! :test_member_on_unloaded_relation_with_match
   def test_member_on_unloaded_relation_with_match_coerced
-    assert_sql(/1 AS one.*FETCH NEXT @2 ROWS ONLY.*@2 = 1/) do
+    assert_queries_match(/1 AS one.*FETCH NEXT @2 ROWS ONLY.*@2 = 1/) do
       assert_equal true, Customer.where(name: "David").member?(customers(:david))
     end
   end
@@ -1004,7 +1004,7 @@ class FinderTest < ActiveRecord::TestCase
   # Check for `FETCH NEXT x ROWS` rather then `LIMIT`.
   coerce_tests! :test_member_on_unloaded_relation_without_match
   def test_member_on_unloaded_relation_without_match_coerced
-    assert_sql(/1 AS one.*FETCH NEXT @2 ROWS ONLY.*@2 = 1/) do
+    assert_queries_match(/1 AS one.*FETCH NEXT @2 ROWS ONLY.*@2 = 1/) do
       assert_equal false, Customer.where(name: "David").member?(customers(:mary))
     end
   end
@@ -1019,7 +1019,7 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal topics(:third), Topic.last
 
     c = Topic.lease_connection
-    assert_sql(/ORDER BY #{Regexp.escape(c.quote_table_name("topics.title"))} DESC, #{Regexp.escape(c.quote_table_name("topics.id"))} DESC OFFSET 0 ROWS FETCH NEXT @0 ROWS ONLY.*@0 = 1/i) {
+    assert_queries_match(/ORDER BY #{Regexp.escape(c.quote_table_name("topics.title"))} DESC, #{Regexp.escape(c.quote_table_name("topics.id"))} DESC OFFSET 0 ROWS FETCH NEXT @0 ROWS ONLY.*@0 = 1/i) {
       Topic.last
     }
   ensure
@@ -1033,7 +1033,7 @@ class FinderTest < ActiveRecord::TestCase
     Topic.implicit_order_column = "id"
 
     c = Topic.lease_connection
-    assert_sql(/ORDER BY #{Regexp.escape(c.quote_table_name("topics.id"))} DESC OFFSET 0 ROWS FETCH NEXT @0 ROWS ONLY.*@0 = 1/i) {
+    assert_queries_match(/ORDER BY #{Regexp.escape(c.quote_table_name("topics.id"))} DESC OFFSET 0 ROWS FETCH NEXT @0 ROWS ONLY.*@0 = 1/i) {
       Topic.last
     }
   ensure
@@ -1048,7 +1048,7 @@ class FinderTest < ActiveRecord::TestCase
 
     c = NonPrimaryKey.lease_connection
 
-    assert_sql(/ORDER BY #{Regexp.escape(c.quote_table_name("non_primary_keys.created_at"))} DESC OFFSET 0 ROWS FETCH NEXT @0 ROWS ONLY.*@0 = 1/i) {
+    assert_queries_match(/ORDER BY #{Regexp.escape(c.quote_table_name("non_primary_keys.created_at"))} DESC OFFSET 0 ROWS FETCH NEXT @0 ROWS ONLY.*@0 = 1/i) {
       NonPrimaryKey.last
     }
   ensure
@@ -1058,7 +1058,7 @@ class FinderTest < ActiveRecord::TestCase
   # Check for `FETCH NEXT x ROWS` rather then `LIMIT`.
   coerce_tests! :test_member_on_unloaded_relation_with_composite_primary_key
   def test_member_on_unloaded_relation_with_composite_primary_key_coerced
-    assert_sql(/1 AS one.* FETCH NEXT @(\d) ROWS ONLY.*@\1 = 1/) do
+    assert_queries_match(/1 AS one.* FETCH NEXT @(\d) ROWS ONLY.*@\1 = 1/) do
       book = cpk_books(:cpk_great_author_first_book)
       assert Cpk::Book.where(title: "The first book").member?(book)
     end
@@ -1073,7 +1073,7 @@ class FinderTest < ActiveRecord::TestCase
     quoted_color = Regexp.escape(c.quote_table_name("clothing_items.color"))
     quoted_descrption = Regexp.escape(c.quote_table_name("clothing_items.description"))
 
-    assert_sql(/ORDER BY #{quoted_descrption} ASC, #{quoted_type} ASC, #{quoted_color} ASC OFFSET 0 ROWS FETCH NEXT @(\d) ROWS ONLY.*@\1 = 1/i) do
+    assert_queries_match(/ORDER BY #{quoted_descrption} ASC, #{quoted_type} ASC, #{quoted_color} ASC OFFSET 0 ROWS FETCH NEXT @(\d) ROWS ONLY.*@\1 = 1/i) do
       assert_kind_of ClothingItem, ClothingItem.first
     end
   ensure
@@ -1087,7 +1087,7 @@ class FinderTest < ActiveRecord::TestCase
     quoted_type = Regexp.escape(c.quote_table_name("clothing_items.clothing_type"))
     quoted_color = Regexp.escape(c.quote_table_name("clothing_items.color"))
 
-    assert_sql(/ORDER BY #{quoted_type} DESC, #{quoted_color} DESC OFFSET 0 ROWS FETCH NEXT @(\d) ROWS ONLY.*@\1 = 1/i) do
+    assert_queries_match(/ORDER BY #{quoted_type} DESC, #{quoted_color} DESC OFFSET 0 ROWS FETCH NEXT @(\d) ROWS ONLY.*@\1 = 1/i) do
       assert_kind_of ClothingItem, ClothingItem.last
     end
   end
@@ -1099,7 +1099,7 @@ class FinderTest < ActiveRecord::TestCase
     quoted_type = Regexp.escape(c.quote_table_name("clothing_items.clothing_type"))
     quoted_color = Regexp.escape(c.quote_table_name("clothing_items.color"))
 
-    assert_sql(/ORDER BY #{quoted_type} ASC, #{quoted_color} ASC OFFSET 0 ROWS FETCH NEXT @(\d) ROWS ONLY.*@\1 = 1/i) do
+    assert_queries_match(/ORDER BY #{quoted_type} ASC, #{quoted_color} ASC OFFSET 0 ROWS FETCH NEXT @(\d) ROWS ONLY.*@\1 = 1/i) do
       assert_kind_of ClothingItem, ClothingItem.first
     end
   end
@@ -1112,7 +1112,7 @@ class FinderTest < ActiveRecord::TestCase
     quoted_type = Regexp.escape(c.quote_table_name("clothing_items.clothing_type"))
     quoted_color = Regexp.escape(c.quote_table_name("clothing_items.color"))
 
-    assert_sql(/ORDER BY #{quoted_color} ASC, #{quoted_type} ASC OFFSET 0 ROWS FETCH NEXT @(\d) ROWS ONLY.*@\1 = 1/i) do
+    assert_queries_match(/ORDER BY #{quoted_color} ASC, #{quoted_type} ASC OFFSET 0 ROWS FETCH NEXT @(\d) ROWS ONLY.*@\1 = 1/i) do
       assert_kind_of ClothingItem, ClothingItem.first
     end
   ensure
@@ -1122,7 +1122,7 @@ class FinderTest < ActiveRecord::TestCase
   # Check for `FETCH NEXT x ROWS` rather then `LIMIT`.
   coerce_tests! :test_include_on_unloaded_relation_with_composite_primary_key
   def test_include_on_unloaded_relation_with_composite_primary_key_coerced
-    assert_sql(/1 AS one.*OFFSET 0 ROWS FETCH NEXT @(\d) ROWS ONLY.*@\1 = 1/) do
+    assert_queries_match(/1 AS one.*OFFSET 0 ROWS FETCH NEXT @(\d) ROWS ONLY.*@\1 = 1/) do
       book = cpk_books(:cpk_great_author_first_book)
       assert Cpk::Book.where(title: "The first book").include?(book)
     end
@@ -1132,11 +1132,11 @@ class FinderTest < ActiveRecord::TestCase
   coerce_tests! :test_nth_to_last_with_order_uses_limit
   def test_nth_to_last_with_order_uses_limit_coerced
     c = Topic.lease_connection
-    assert_sql(/ORDER BY #{Regexp.escape(c.quote_table_name("topics.id"))} DESC OFFSET @(\d) ROWS FETCH NEXT @(\d) ROWS ONLY.*@\1 = 1.*@\2 = 1/i) do
+    assert_queries_match(/ORDER BY #{Regexp.escape(c.quote_table_name("topics.id"))} DESC OFFSET @(\d) ROWS FETCH NEXT @(\d) ROWS ONLY.*@\1 = 1.*@\2 = 1/i) do
       Topic.second_to_last
     end
 
-    assert_sql(/ORDER BY #{Regexp.escape(c.quote_table_name("topics.updated_at"))} DESC OFFSET @(\d) ROWS FETCH NEXT @(\d) ROWS ONLY.*@\1 = 1.*@\2 = 1/i) do
+    assert_queries_match(/ORDER BY #{Regexp.escape(c.quote_table_name("topics.updated_at"))} DESC OFFSET @(\d) ROWS FETCH NEXT @(\d) ROWS ONLY.*@\1 = 1.*@\2 = 1/i) do
       Topic.order(:updated_at).second_to_last
     end
   end
@@ -1184,7 +1184,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
   def test_has_one_coerced
     firm = companies(:first_firm)
     first_account = Account.find(1)
-    assert_sql(/FETCH NEXT @(\d) ROWS ONLY(.)*@\1 = 1/) do
+    assert_queries_match(/FETCH NEXT @(\d) ROWS ONLY(.)*@\1 = 1/) do
       assert_equal first_account, firm.account
       assert_equal first_account.credit_limit, firm.account.credit_limit
     end
@@ -1196,7 +1196,7 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
   coerce_tests! :test_has_one_through_executes_limited_query
   def test_has_one_through_executes_limited_query_coerced
     boring_club = clubs(:boring_club)
-    assert_sql(/FETCH NEXT @(\d) ROWS ONLY(.)*@\1 = 1/) do
+    assert_queries_match(/FETCH NEXT @(\d) ROWS ONLY(.)*@\1 = 1/) do
       assert_equal boring_club, @member.general_club
     end
   end
@@ -1257,7 +1257,7 @@ class UpdateAllTest < ActiveRecord::TestCase
     _(david.id).must_equal 1
     _(mary.id).must_equal 2
     _(david.name).wont_equal mary.name
-    assert_sql(/UPDATE.*\(SELECT \[authors\].\[id\] FROM \[authors\].*ORDER BY \[authors\].\[id\]/i) do
+    assert_queries_match(/UPDATE.*\(SELECT \[authors\].\[id\] FROM \[authors\].*ORDER BY \[authors\].\[id\]/i) do
       Author.where("[id] > 1").order(:id).update_all(name: "Test")
     end
     _(david.reload.name).must_equal "David"
@@ -1436,7 +1436,7 @@ class RelationTest < ActiveRecord::TestCase
   # Find any limit via our expression.
   coerce_tests! %r{relations don't load all records in #inspect}
   def test_relations_dont_load_all_records_in_inspect_coerced
-    assert_sql(/NEXT @0 ROWS.*@0 = \d+/) do
+    assert_queries_match(/NEXT @0 ROWS.*@0 = \d+/) do
       Post.all.inspect
     end
   end
@@ -1444,7 +1444,7 @@ class RelationTest < ActiveRecord::TestCase
   # Find any limit via our expression.
   coerce_tests! %r{relations don't load all records in #pretty_print}
   def test_relations_dont_load_all_records_in_pretty_print_coerced
-    assert_sql(/FETCH NEXT @(\d) ROWS ONLY/) do
+    assert_queries_match(/FETCH NEXT @(\d) ROWS ONLY/) do
       PP.pp Post.all, StringIO.new # avoid outputting.
     end
   end
@@ -1516,11 +1516,11 @@ class SanitizeTest < ActiveRecord::TestCase
       }
     end
 
-    assert_sql(/LIKE N'20!% !_reduction!_!!'/) do
+    assert_queries_match(/LIKE N'20!% !_reduction!_!!'/) do
       searchable_post.search_as_method("20% _reduction_!").to_a
     end
 
-    assert_sql(/LIKE N'20!% !_reduction!_!!'/) do
+    assert_queries_match(/LIKE N'20!% !_reduction!_!!'/) do
       searchable_post.search_as_scope("20% _reduction_!").to_a
     end
   end
@@ -2125,13 +2125,13 @@ class RelationMergingTest < ActiveRecord::TestCase
     non_mary_and_bob = Author.where.not(id: [mary, bob])
 
     author_id = Author.connection.quote_table_name("authors.id")
-    assert_sql(/WHERE #{Regexp.escape(author_id)} NOT IN \((@\d), \g<1>\)'/) do
+    assert_queries_match(/WHERE #{Regexp.escape(author_id)} NOT IN \((@\d), \g<1>\)'/) do
       assert_equal [david], non_mary_and_bob.merge(non_mary_and_bob)
     end
 
     only_david = Author.where("#{author_id} IN (?)", david)
 
-    assert_sql(/WHERE \(#{Regexp.escape(author_id)} IN \(1\)\)\z/) do
+    assert_queries_match(/WHERE \(#{Regexp.escape(author_id)} IN \(1\)\)\z/) do
       assert_equal [david], only_david.merge(only_david)
     end
   end
@@ -2253,7 +2253,7 @@ class EagerLoadingTooManyIdsTest < ActiveRecord::TestCase
 
     # Perform test
     citation_count = Citation.count
-    assert_sql(/WHERE \[citations\]\.\[id\] IN \(0, 1/) do
+    assert_queries_match(/WHERE \[citations\]\.\[id\] IN \(0, 1/) do
       assert_equal citation_count, Citation.eager_load(:citations).offset(0).size
     end
   end
@@ -2449,7 +2449,7 @@ class QueryLogsTest < ActiveRecord::TestCase
   coerce_tests! :test_sql_commenter_format
   def test_sql_commenter_format_coerced
     ActiveRecord::QueryLogs.update_formatter(:sqlcommenter)
-    assert_sql(%r{/\*application=''active_record''\*/}) do
+    assert_queries_match(%r{/\*application=''active_record''\*/}) do
       Dashboard.first
     end
   end
@@ -2464,7 +2464,7 @@ class QueryLogsTest < ActiveRecord::TestCase
       { tracestate: "congo=t61rcWkgMzE,rojo=00f067aa0ba902b7", custom_proc: -> { "Joe's Shack" } },
     ]
 
-    assert_sql(%r{custom_proc=''Joe%27s%20Shack'',tracestate=''congo%3Dt61rcWkgMzE%2Crojo%3D00f067aa0ba902b7''\*/}) do
+    assert_queries_match(%r{custom_proc=''Joe%27s%20Shack'',tracestate=''congo%3Dt61rcWkgMzE%2Crojo%3D00f067aa0ba902b7''\*/}) do
       Dashboard.first
     end
   end
@@ -2479,7 +2479,7 @@ class QueryLogsTest < ActiveRecord::TestCase
       { custom_proc: -> { 1234 } },
     ]
 
-    assert_sql(%r{custom_proc=''1234''\*/}) do
+    assert_queries_match(%r{custom_proc=''1234''\*/}) do
       Dashboard.first
     end
   end
