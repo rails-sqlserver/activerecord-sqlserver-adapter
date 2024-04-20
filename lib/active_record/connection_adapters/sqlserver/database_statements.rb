@@ -325,11 +325,15 @@ module ActiveRecord
         end
 
         def sp_executesql_sql_type(attr)
-          return "nvarchar(max)".freeze if attr.is_a?(Symbol) || attr.is_a?(String)
-          return attr.type.sqlserver_type if attr.type.respond_to?(:sqlserver_type)
+          return attr.type.sqlserver_type if attr.respond_to?(:type) && attr.type.respond_to?(:sqlserver_type)
 
-          case value = attr.value_for_database
-          when Numeric
+          value = if attr.is_a?(Symbol) || attr.is_a?(String) || attr.is_a?(Numeric)
+                    attr
+                  else
+                    attr.value_for_database
+                  end
+
+          if value.is_a?(Numeric)
             value > 2_147_483_647 ? "bigint".freeze : "int".freeze
           else
             "nvarchar(max)".freeze
@@ -337,11 +341,10 @@ module ActiveRecord
         end
 
         def sp_executesql_sql_param(attr)
-          return quote(attr) if attr.is_a?(Symbol) || attr.is_a?(String)
+          return quote(attr) if attr.is_a?(Symbol) || attr.is_a?(String) || attr.is_a?(Numeric)
 
           case value = attr.value_for_database
-          when Type::Binary::Data,
-               ActiveRecord::Type::SQLServer::Data
+          when Type::Binary::Data, ActiveRecord::Type::SQLServer::Data
             quote(value)
           else
             quote(type_cast(value))
