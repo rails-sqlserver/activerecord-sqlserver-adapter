@@ -657,7 +657,7 @@ class MigrationTest < ActiveRecord::TestCase
   ensure
     Person.reset_column_information
     if Person.column_names.include?("last_name")
-      Person.connection.remove_column("people", "last_name")
+      Person.lease_connection.remove_column("people", "last_name")
     end
   end
 end
@@ -1334,7 +1334,7 @@ class QueryCacheTest < ActiveRecord::TestCase
   coerce_tests! :test_cache_does_not_wrap_results_in_arrays
   def test_cache_does_not_wrap_results_in_arrays_coerced
     Task.cache do
-      assert_equal 2, Task.connection.select_value("SELECT count(*) AS count_all FROM tasks")
+      assert_equal 2, Task.lease_connection.select_value("SELECT count(*) AS count_all FROM tasks")
     end
   end
 
@@ -1493,7 +1493,7 @@ module ActiveRecord
 
     coerce_tests! :test_does_not_duplicate_optimizer_hints_on_merge
     def test_does_not_duplicate_optimizer_hints_on_merge_coerced
-      escaped_table = Post.connection.quote_table_name("posts")
+      escaped_table = Post.lease_connection.quote_table_name("posts")
       expected = "SELECT #{escaped_table}.* FROM #{escaped_table} OPTION (OMGHINT)"
       query = Post.optimizer_hints("OMGHINT").merge(Post.optimizer_hints("OMGHINT")).to_sql
       assert_equal expected, query
@@ -1634,19 +1634,19 @@ class TransactionTest < ActiveRecord::TestCase
   coerce_tests! :test_releasing_named_savepoints
   def test_releasing_named_savepoints_coerced
     Topic.transaction do
-      Topic.connection.materialize_transactions
+      Topic.lease_connection.materialize_transactions
 
-      Topic.connection.create_savepoint("another")
-      Topic.connection.release_savepoint("another")
+      Topic.lease_connection.create_savepoint("another")
+      Topic.lease_connection.release_savepoint("another")
       # We do not have a notion of releasing, so this does nothing vs raise an error.
-      Topic.connection.release_savepoint("another")
+      Topic.lease_connection.release_savepoint("another")
     end
   end
 
   # SQL Server does not have query for release_savepoint.
   coerce_tests! :test_nested_transactions_after_disable_lazy_transactions
   def test_nested_transactions_after_disable_lazy_transactions_coerced
-    Topic.connection.disable_lazy_transactions!
+    Topic.lease_connection.disable_lazy_transactions!
 
     capture_sql do
       # RealTransaction (begin..commit)
@@ -1889,12 +1889,12 @@ module ActiveRecord
     # Need to remove index as SQL Server considers NULLs on a unique-index to be equal unlike PostgreSQL/MySQL/SQLite.
     coerce_tests! :test_statement_cache_values_differ
     def test_statement_cache_values_differ_coerced
-      Book.connection.remove_index(:books, column: [:author_id, :name])
+      Book.lease_connection.remove_index(:books, column: [:author_id, :name])
 
       original_test_statement_cache_values_differ
     ensure
       Book.where(author_id: nil, name: 'my book').delete_all
-      Book.connection.add_index(:books, [:author_id, :name], unique: true)
+      Book.lease_connection.add_index(:books, [:author_id, :name], unique: true)
     end
   end
 end
@@ -2124,7 +2124,7 @@ class RelationMergingTest < ActiveRecord::TestCase
 
     non_mary_and_bob = Author.where.not(id: [mary, bob])
 
-    author_id = Author.connection.quote_table_name("authors.id")
+    author_id = Author.lease_connection.quote_table_name("authors.id")
     assert_queries_match(/WHERE #{Regexp.escape(author_id)} NOT IN \((@\d), \g<1>\)'/) do
       assert_equal [david], non_mary_and_bob.merge(non_mary_and_bob)
     end
@@ -2151,56 +2151,56 @@ class EnumTest < ActiveRecord::TestCase
   # Need to remove index as SQL Server considers NULLs on a unique-index to be equal unlike PostgreSQL/MySQL/SQLite.
   coerce_tests! %r{enums are distinct per class}
   test "enums are distinct per class coerced" do
-    Book.connection.remove_index(:books, column: [:author_id, :name])
+    Book.lease_connection.remove_index(:books, column: [:author_id, :name])
 
     send(:'original_enums are distinct per class')
   ensure
     Book.where(author_id: nil, name: nil).delete_all
-    Book.connection.add_index(:books, [:author_id, :name], unique: true)
+    Book.lease_connection.add_index(:books, [:author_id, :name], unique: true)
   end
 
   # Need to remove index as SQL Server considers NULLs on a unique-index to be equal unlike PostgreSQL/MySQL/SQLite.
   coerce_tests! %r{creating new objects with enum scopes}
   test "creating new objects with enum scopes coerced" do
-    Book.connection.remove_index(:books, column: [:author_id, :name])
+    Book.lease_connection.remove_index(:books, column: [:author_id, :name])
 
     send(:'original_creating new objects with enum scopes')
   ensure
     Book.where(author_id: nil, name: nil).delete_all
-    Book.connection.add_index(:books, [:author_id, :name], unique: true)
+    Book.lease_connection.add_index(:books, [:author_id, :name], unique: true)
   end
 
   # Need to remove index as SQL Server considers NULLs on a unique-index to be equal unlike PostgreSQL/MySQL/SQLite.
   coerce_tests! %r{enums are inheritable}
   test "enums are inheritable coerced" do
-    Book.connection.remove_index(:books, column: [:author_id, :name])
+    Book.lease_connection.remove_index(:books, column: [:author_id, :name])
 
     send(:'original_enums are inheritable')
   ensure
     Book.where(author_id: nil, name: nil).delete_all
-    Book.connection.add_index(:books, [:author_id, :name], unique: true)
+    Book.lease_connection.add_index(:books, [:author_id, :name], unique: true)
   end
 
   # Need to remove index as SQL Server considers NULLs on a unique-index to be equal unlike PostgreSQL/MySQL/SQLite.
   coerce_tests! %r{declare multiple enums at a time}
   test "declare multiple enums at a time coerced" do
-    Book.connection.remove_index(:books, column: [:author_id, :name])
+    Book.lease_connection.remove_index(:books, column: [:author_id, :name])
 
     send(:'original_declare multiple enums at a time')
   ensure
     Book.where(author_id: nil, name: nil).delete_all
-    Book.connection.add_index(:books, [:author_id, :name], unique: true)
+    Book.lease_connection.add_index(:books, [:author_id, :name], unique: true)
   end
 
   # Need to remove index as SQL Server considers NULLs on a unique-index to be equal unlike PostgreSQL/MySQL/SQLite.
   coerce_tests! %r{serializable\? with large number label}
   test "serializable? with large number label coerced" do
-    Book.connection.remove_index(:books, column: [:author_id, :name])
+    Book.lease_connection.remove_index(:books, column: [:author_id, :name])
 
     send(:'original_serializable\? with large number label')
   ensure
     Book.where(author_id: nil, name: nil).delete_all
-    Book.connection.add_index(:books, [:author_id, :name], unique: true)
+    Book.lease_connection.add_index(:books, [:author_id, :name], unique: true)
   end
 end
 
@@ -2401,45 +2401,45 @@ class FieldOrderedValuesTest < ActiveRecord::TestCase
   # Need to remove index as SQL Server considers NULLs on a unique-index to be equal unlike PostgreSQL/MySQL/SQLite.
   coerce_tests! :test_in_order_of_with_enums_values
   def test_in_order_of_with_enums_values_coerced
-    Book.connection.remove_index(:books, column: [:author_id, :name])
+    Book.lease_connection.remove_index(:books, column: [:author_id, :name])
 
     original_test_in_order_of_with_enums_values
   ensure
     Book.where(author_id: nil, name: nil).delete_all
-    Book.connection.add_index(:books, [:author_id, :name], unique: true)
+    Book.lease_connection.add_index(:books, [:author_id, :name], unique: true)
   end
 
   # Need to remove index as SQL Server considers NULLs on a unique-index to be equal unlike PostgreSQL/MySQL/SQLite.
   coerce_tests! :test_in_order_of_with_string_column
   def test_in_order_of_with_string_column_coerced
-    Book.connection.remove_index(:books, column: [:author_id, :name])
+    Book.lease_connection.remove_index(:books, column: [:author_id, :name])
 
     original_test_in_order_of_with_string_column
   ensure
     Book.where(author_id: nil, name: nil).delete_all
-    Book.connection.add_index(:books, [:author_id, :name], unique: true)
+    Book.lease_connection.add_index(:books, [:author_id, :name], unique: true)
   end
 
   # Need to remove index as SQL Server considers NULLs on a unique-index to be equal unlike PostgreSQL/MySQL/SQLite.
   coerce_tests! :test_in_order_of_with_enums_keys
   def test_in_order_of_with_enums_keys_coerced
-    Book.connection.remove_index(:books, column: [:author_id, :name])
+    Book.lease_connection.remove_index(:books, column: [:author_id, :name])
 
     original_test_in_order_of_with_enums_keys
   ensure
     Book.where(author_id: nil, name: nil).delete_all
-    Book.connection.add_index(:books, [:author_id, :name], unique: true)
+    Book.lease_connection.add_index(:books, [:author_id, :name], unique: true)
   end
 
   # Need to remove index as SQL Server considers NULLs on a unique-index to be equal unlike PostgreSQL/MySQL/SQLite.
   coerce_tests! :test_in_order_of_with_nil
   def test_in_order_of_with_nil_coerced
-    Book.connection.remove_index(:books, column: [:author_id, :name])
+    Book.lease_connection.remove_index(:books, column: [:author_id, :name])
 
     original_test_in_order_of_with_nil
   ensure
     Book.where(author_id: nil, name: nil).delete_all
-    Book.connection.add_index(:books, [:author_id, :name], unique: true)
+    Book.lease_connection.add_index(:books, [:author_id, :name], unique: true)
   end
 end
 

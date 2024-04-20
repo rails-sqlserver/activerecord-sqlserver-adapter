@@ -31,7 +31,7 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
   end
 
   it "raises invalid statement error for bad SQL" do
-    assert_raise(ActiveRecord::StatementInvalid) { Topic.connection.update("UPDATE XXX") }
+    assert_raise(ActiveRecord::StatementInvalid) { Topic.lease_connection.update("UPDATE XXX") }
   end
 
   it "is has our adapter_name" do
@@ -285,23 +285,23 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
     end
 
     it "NOT ALLOW by default the deletion of a referenced parent" do
-      SSTestHasPk.connection.disable_referential_integrity {}
+      SSTestHasPk.lease_connection.disable_referential_integrity {}
       assert_raise(ActiveRecord::StatementInvalid) { @parent.destroy }
     end
 
     it "ALLOW deletion of referenced parent using #disable_referential_integrity block" do
-      SSTestHasPk.connection.disable_referential_integrity { @parent.destroy }
+      SSTestHasPk.lease_connection.disable_referential_integrity { @parent.destroy }
     end
 
     it "again NOT ALLOW deletion of referenced parent after #disable_referential_integrity block" do
       assert_raise(ActiveRecord::StatementInvalid) do
-        SSTestHasPk.connection.disable_referential_integrity {}
+        SSTestHasPk.lease_connection.disable_referential_integrity {}
         @parent.destroy
       end
     end
 
     it "not disable referential integrity for the same table twice" do
-      tables = SSTestHasPk.connection.tables_with_referential_integrity
+      tables = SSTestHasPk.lease_connection.tables_with_referential_integrity
       assert_equal tables.size, tables.uniq.size
     end
   end
@@ -396,7 +396,7 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
 
     it "allows connection#view_information to work across databases when using qualified object names" do
       # College is defined in activerecord_unittest2 database.
-      view_info = College.connection.send(:view_information, "[activerecord_unittest].[dbo].[sst_customers_view]")
+      view_info = College.lease_connection.send(:view_information, "[activerecord_unittest].[dbo].[sst_customers_view]")
       assert_equal("sst_customers_view", view_info["TABLE_NAME"])
       assert_match(/CREATE VIEW sst_customers_view/, view_info["VIEW_DEFINITION"])
     end
@@ -407,8 +407,8 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
     end
 
     it "allow the connection#view_table_name method to return true table_name for the view for other connections" do
-      assert_equal "customers", College.connection.send(:view_table_name, "[activerecord_unittest].[dbo].[sst_customers_view]")
-      assert_equal "topics", College.connection.send(:view_table_name, "topics"), "No view here, the same table name should come back."
+      assert_equal "customers", College.lease_connection.send(:view_table_name, "[activerecord_unittest].[dbo].[sst_customers_view]")
+      assert_equal "topics", College.lease_connection.send(:view_table_name, "topics"), "No view here, the same table name should come back."
     end
     # With same column names
 
@@ -434,7 +434,7 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
     end
 
     it "respond true to data_source_exists?" do
-      assert SSTestCustomersView.connection.data_source_exists?(SSTestCustomersView.table_name)
+      assert SSTestCustomersView.lease_connection.data_source_exists?(SSTestCustomersView.table_name)
     end
 
     # With aliased column names
@@ -462,7 +462,7 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
     end
 
     it "respond true to data_source_exists?" do
-      assert SSTestStringDefaultsView.connection.data_source_exists?(SSTestStringDefaultsView.table_name)
+      assert SSTestStringDefaultsView.lease_connection.data_source_exists?(SSTestStringDefaultsView.table_name)
     end
 
     # That have more than 4000 chars for their defintion
@@ -554,7 +554,7 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
     end
 
     it 'records can be inserted using SQL' do
-      Alien.connection.exec_insert("insert into [test].[aliens] (id, name) VALUES(1, 'Trisolarans'), (2, 'Xenomorph')")
+      Alien.lease_connection.exec_insert("insert into [test].[aliens] (id, name) VALUES(1, 'Trisolarans'), (2, 'Xenomorph')")
     end
   end
 

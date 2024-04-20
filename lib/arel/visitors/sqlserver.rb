@@ -129,7 +129,7 @@ module Arel
         # github.com/rails-sqlserver/activerecord-sqlserver-adapter/issues/450
         table_name =
           begin
-            if o.class.engine.connection.respond_to?(:sqlserver?) && o.class.engine.connection.database_prefix_remote_server?
+            if o.class.engine.lease_connection.respond_to?(:sqlserver?) && o.class.engine.lease_connection.database_prefix_remote_server?
               remote_server_table_name(o)
             else
               quote_table_name(o.name)
@@ -316,7 +316,7 @@ module Arel
 
       def remote_server_table_name(o)
         ActiveRecord::ConnectionAdapters::SQLServer::Utils.extract_identifiers(
-          "#{o.class.engine.connection.database_prefix}#{o.name}"
+          "#{o.class.engine.lease_connection.database_prefix}#{o.name}"
         ).quoted
       end
 
