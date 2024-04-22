@@ -10,7 +10,7 @@ module ActiveRecord
     class SQLServerDatabaseTasks
       DEFAULT_COLLATION = "SQL_Latin1_General_CP1_CI_AS"
 
-      delegate :connection, :establish_connection, to: ActiveRecord::Base
+      delegate :lease_connection, :establish_connection, to: ActiveRecord::Base
 
       def self.using_database_configurations?
         true
@@ -23,7 +23,7 @@ module ActiveRecord
 
       def create(master_established = false)
         establish_master_connection unless master_established
-        connection.create_database configuration.database, configuration_hash.merge(collation: default_collation)
+        lease_connection.create_database configuration.database, configuration_hash.merge(collation: default_collation)
         establish_connection configuration
       rescue ActiveRecord::StatementInvalid => e
         if /database .* already exists/i === e.message
@@ -35,15 +35,15 @@ module ActiveRecord
 
       def drop
         establish_master_connection
-        connection.drop_database configuration.database
+        lease_connection.drop_database configuration.database
       end
 
       def charset
-        connection.charset
+        lease_connection.charset
       end
 
       def collation
-        connection.collation
+        lease_connection.collation
       end
 
       def purge
@@ -67,9 +67,9 @@ module ActiveRecord
           "-P #{Shellwords.escape(configuration_hash[:password])}",
           "-o #{Shellwords.escape(filename)}",
         ]
-        table_args = connection.tables.map { |t| Shellwords.escape(t) }
+        table_args = lease_connection.tables.map { |t| Shellwords.escape(t) }
         command.concat(table_args)
-        view_args = connection.views.map { |v| Shellwords.escape(v) }
+        view_args = lease_connection.views.map { |v| Shellwords.escape(v) }
         command.concat(view_args)
         raise "Error dumping database" unless Kernel.system(command.join(" "))
 
@@ -83,7 +83,7 @@ module ActiveRecord
       end
 
       def structure_load(filename, extra_flags)
-        connection.execute File.read(filename)
+        lease_connection.execute File.read(filename)
       end
 
       private
