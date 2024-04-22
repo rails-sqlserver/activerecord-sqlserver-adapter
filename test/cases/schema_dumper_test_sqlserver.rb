@@ -166,7 +166,8 @@ class SchemaDumperTestSQLServer < ActiveRecord::TestCase
 
     stream = StringIO.new
     ActiveRecord::SchemaDumper.ignore_tables = all_tables - table_names
-    ActiveRecord::SchemaDumper.dump(ActiveRecord::Base.lease_connection, stream)
+    ActiveRecord::SchemaDumper.dump(ActiveRecord::Base.connection_pool, stream)
+    
     @generated_schema = stream.string
     yield @generated_schema if block_given?
     @schema_lines = Hash.new
