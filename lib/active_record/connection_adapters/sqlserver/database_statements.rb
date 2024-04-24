@@ -278,13 +278,17 @@ module ActiveRecord
                   exclude_output_inserted = exclude_output_inserted_table_name?(table_name, sql)
 
                   if exclude_output_inserted
-                    quoted_pk = Array(pk).map { |subkey| SQLServer::Utils.extract_identifiers(subkey).quoted }
+                    pk_and_types = Array(pk).map do |subkey|
+                      {
+                        quoted: SQLServer::Utils.extract_identifiers(subkey).quoted,
+                        id_sql_type: exclude_output_inserted_id_sql_type(subkey, exclude_output_inserted)
+                      }
+                    end
 
-                    id_sql_type = exclude_output_inserted.is_a?(TrueClass) ? "bigint" : exclude_output_inserted
                     <<~SQL.squish
-                      DECLARE @ssaIdInsertTable table (#{quoted_pk.map { |subkey| "#{subkey} #{id_sql_type}"}.join(", ") });
-                      #{sql.dup.insert sql.index(/ (DEFAULT )?VALUES/i), " OUTPUT #{ quoted_pk.map { |subkey| "INSERTED.#{subkey}" }.join(", ") } INTO @ssaIdInsertTable"}
-                      SELECT #{quoted_pk.map {|subkey| "CAST(#{subkey} AS #{id_sql_type}) #{subkey}"}.join(", ")} FROM @ssaIdInsertTable
+                      DECLARE @ssaIdInsertTable table (#{pk_and_types.map { |pk_and_type| "#{pk_and_type[:quoted]} #{pk_and_type[:id_sql_type]}"}.join(", ") });
+                      #{sql.dup.insert sql.index(/ (DEFAULT )?VALUES/i), " OUTPUT #{ pk_and_types.map { |pk_and_type| "INSERTED.#{pk_and_type[:quoted]}" }.join(", ") } INTO @ssaIdInsertTable"}
+                      SELECT #{pk_and_types.map {|pk_and_type| "CAST(#{pk_and_type[:quoted]} AS #{pk_and_type[:id_sql_type]}) #{pk_and_type[:quoted]}"}.join(", ")} FROM @ssaIdInsertTable
                     SQL
                   else
                     returning_columns = returning || Array(pk)
@@ -380,6 +384,12 @@ module ActiveRecord
           return false unless table_name
 
           self.class.exclude_output_inserted_table_names[table_name]
+        end
+
+        def exclude_output_inserted_id_sql_type(pk, exclude_output_inserted)
+          return "bigint" if exclude_output_inserted.is_a?(TrueClass)
+          return exclude_output_inserted[pk.to_sym] if exclude_output_inserted.is_a?(Hash)
+          exclude_output_inserted
         end
 
         def query_requires_identity_insert?(sql)

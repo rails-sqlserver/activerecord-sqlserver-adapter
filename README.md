@@ -49,6 +49,10 @@ adapter.exclude_output_inserted_table_names['my_table_name'] = true
 
 # Explicitly set the data type for the temporary key table.
 adapter.exclude_output_inserted_table_names['my_uuid_table_name'] = 'uniqueidentifier'
+
+
+# Explicitly set data types when data type is different for composite primary keys.
+adapter.exclude_output_inserted_table_names['my_composite_pk_table_name'] = { pk_col_one: "uniqueidentifier", pk_col_two: "int" }
 ```
 
 
