@@ -1,3 +1,9 @@
+## Unreleased
+
+#### Fixed
+
+- [#1164](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1164) Fix composite primary key with different data type with triggers
+
 ## v7.1.3
 
 #### Fixed
