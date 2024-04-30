@@ -10,7 +10,6 @@ require "support/test_in_memory_oltp"
 require "cases/helper"
 require "support/load_schema_sqlserver"
 require "support/coerceable_test_sqlserver"
-require "support/sql_counter_sqlserver"
 require "support/connection_reflection"
 require "mocha/minitest"
 
@@ -20,7 +19,6 @@ module ActiveRecord
 
     include ARTest::SQLServer::CoerceableTest,
             ARTest::SQLServer::ConnectionReflection,
-            ARTest::SQLServer::SqlCounterSqlserver,
             ActiveSupport::Testing::Stream
 
     let(:logger) { ActiveRecord::Base.logger }
