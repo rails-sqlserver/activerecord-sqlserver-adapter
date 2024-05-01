@@ -473,7 +473,7 @@ class CalculationsTest < ActiveRecord::TestCase
   # Match SQL Server limit implementation
   coerce_tests! :test_limit_is_kept
   def test_limit_is_kept_coerced
-    queries = capture_sql_ss { Account.limit(1).count }
+    queries = capture_sql { Account.limit(1).count }
     assert_equal 1, queries.length
     assert_match(/ORDER BY \[accounts\]\.\[id\] ASC OFFSET 0 ROWS FETCH NEXT @0 ROWS ONLY.*@0 = 1/, queries.first)
   end
@@ -481,7 +481,7 @@ class CalculationsTest < ActiveRecord::TestCase
   # Match SQL Server limit implementation
   coerce_tests! :test_limit_with_offset_is_kept
   def test_limit_with_offset_is_kept_coerced
-    queries = capture_sql_ss { Account.limit(1).offset(1).count }
+    queries = capture_sql { Account.limit(1).offset(1).count }
     assert_equal 1, queries.length
     assert_match(/ORDER BY \[accounts\]\.\[id\] ASC OFFSET @0 ROWS FETCH NEXT @1 ROWS ONLY.*@0 = 1, @1 = 1/, queries.first)
   end
@@ -1337,30 +1337,6 @@ class QueryCacheTest < ActiveRecord::TestCase
       assert_equal 2, Task.lease_connection.select_value("SELECT count(*) AS count_all FROM tasks")
     end
   end
-
-  # Same as original test except that we expect one query to be performed to retrieve the table's primary key
-  # and we don't call `reload_type_map` because SQL Server adapter doesn't support it.
-  # When we generate the SQL for the `find` it includes ordering on the primary key. If we reset the column
-  # information then the primary key needs to be retrieved from the database again to generate the SQL causing the
-  # original test's `assert_no_queries` assertion to fail. Assert that the query was to get the primary key.
-  coerce_tests! :test_query_cached_even_when_types_are_reset
-  def test_query_cached_even_when_types_are_reset_coerced
-    Task.cache do
-      # Warm the cache
-      Task.find(1)
-
-      # Clear places where type information is cached
-      Task.reset_column_information
-      Task.initialize_find_by_cache
-      Task.define_attribute_methods
-
-      assert_queries_count(1, include_schema: true) do
-        Task.find(1)
-      end
-
-      assert_includes ActiveRecord::SQLCounter.log_all.first, "TC.CONSTRAINT_TYPE = N''PRIMARY KEY''"
-    end
-  end
 end
 
 require "models/post"
@@ -1648,7 +1624,7 @@ class TransactionTest < ActiveRecord::TestCase
   def test_nested_transactions_after_disable_lazy_transactions_coerced
     Topic.lease_connection.disable_lazy_transactions!
 
-    capture_sql do
+    actual_queries = capture_sql(include_schema: true) do
       # RealTransaction (begin..commit)
       Topic.transaction(requires_new: true) do
         # ResetParentTransaction (no queries)
@@ -1665,8 +1641,6 @@ class TransactionTest < ActiveRecord::TestCase
         Topic.delete_all
       end
     end
-
-    actual_queries = ActiveRecord::SQLCounter.log_all
 
     expected_queries = [
       /BEGIN/i,
@@ -1685,7 +1659,7 @@ class TransactionTest < ActiveRecord::TestCase
   # SQL Server does not have query for release_savepoint.
   coerce_tests! :test_nested_transactions_skip_excess_savepoints
   def test_nested_transactions_skip_excess_savepoints_coerced
-    capture_sql do
+    actual_queries = capture_sql(include_schema: true) do
       # RealTransaction (begin..commit)
       Topic.transaction(requires_new: true) do
         # ResetParentTransaction (no queries)
@@ -1702,8 +1676,6 @@ class TransactionTest < ActiveRecord::TestCase
         Topic.delete_all
       end
     end
-
-    actual_queries = ActiveRecord::SQLCounter.log_all
 
     expected_queries = [
       /BEGIN/i,
