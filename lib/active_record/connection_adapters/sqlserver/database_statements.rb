@@ -357,7 +357,8 @@ module ActiveRecord
             type.is_a?(Numeric) ||
             type.is_a?(Time) ||
             type.is_a?(TrueClass) ||
-            type.is_a?(FalseClass)
+            type.is_a?(FalseClass) ||
+            type.is_a?(NilClass)
         end
 
         def sp_executesql_sql(sql, types, params, name)
