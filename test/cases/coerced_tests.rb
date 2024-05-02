@@ -243,6 +243,25 @@ class BasicsTest < ActiveRecord::TestCase
   end
 end
 
+class HasManyThroughAssociationsTest < ActiveRecord::TestCase
+  # SQL Server does not have query for release_savepoint
+  coerce_tests! :test_associate_existing
+  def test_associate_existing_coerced
+    post   = posts(:thinking)
+    person = people(:david)
+
+    assert_queries_count(2) do
+      post.people << person
+    end
+
+    assert_queries_count(1) do
+      assert_includes post.people, person
+    end
+
+    assert_includes post.reload.people.reload, person
+  end
+end
+
 class BelongsToAssociationsTest < ActiveRecord::TestCase
   # Since @client.firm is a single first/top, and we use FETCH the order clause is used.
   coerce_tests! :test_belongs_to_does_not_use_order_by
