@@ -2122,7 +2122,7 @@ class RelationMergingTest < ActiveRecord::TestCase
 
     only_david = Author.where("#{author_id} IN (?)", david)
 
-    assert_queries_match(/WHERE \(#{Regexp.escape(author_id)} IN \(1\)\)\z/) do
+    assert_queries_match(/WHERE \(#{Regexp.escape(author_id)} IN \(@\d\)\)/) do
       assert_equal [david], only_david.merge(only_david)
     end
   end
