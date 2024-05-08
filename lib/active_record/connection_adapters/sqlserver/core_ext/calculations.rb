@@ -41,7 +41,7 @@ module ActiveRecord
               if operation == "count"
                 unless distinct_value || distinct_select?(column_name || select_for_count)
                   relation.distinct!
-                  relation.select_values = [ klass.primary_key || table[Arel.star] ]
+                  relation.select_values = Array(klass.primary_key || table[Arel.star])
                 end
                 # PostgreSQL: ORDER BY expressions must appear in SELECT list when using DISTINCT
                 # Start of monkey-patch
