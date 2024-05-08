@@ -243,6 +243,25 @@ class BasicsTest < ActiveRecord::TestCase
   end
 end
 
+class HasManyThroughAssociationsTest < ActiveRecord::TestCase
+  # SQL Server does not have query for release_savepoint
+  coerce_tests! :test_associate_existing
+  def test_associate_existing_coerced
+    post   = posts(:thinking)
+    person = people(:david)
+
+    assert_queries_count(2) do
+      post.people << person
+    end
+
+    assert_queries_count(1) do
+      assert_includes post.people, person
+    end
+
+    assert_includes post.reload.people.reload, person
+  end
+end
+
 class BelongsToAssociationsTest < ActiveRecord::TestCase
   # Since @client.firm is a single first/top, and we use FETCH the order clause is used.
   coerce_tests! :test_belongs_to_does_not_use_order_by
@@ -1492,11 +1511,11 @@ class SanitizeTest < ActiveRecord::TestCase
       }
     end
 
-    assert_queries_match(/LIKE N'20!% !_reduction!_!!'/) do
+    assert_queries_match(/LIKE @0/) do
       searchable_post.search_as_method("20% _reduction_!").to_a
     end
 
-    assert_queries_match(/LIKE N'20!% !_reduction!_!!'/) do
+    assert_queries_match(/LIKE @0/) do
       searchable_post.search_as_scope("20% _reduction_!").to_a
     end
   end
@@ -2103,7 +2122,7 @@ class RelationMergingTest < ActiveRecord::TestCase
 
     only_david = Author.where("#{author_id} IN (?)", david)
 
-    assert_queries_match(/WHERE \(#{Regexp.escape(author_id)} IN \(1\)\)\z/) do
+    assert_queries_match(/WHERE \(#{Regexp.escape(author_id)} IN \(@\d\)\)/) do
       assert_equal [david], only_david.merge(only_david)
     end
   end
@@ -2452,6 +2471,25 @@ class QueryLogsTest < ActiveRecord::TestCase
     ]
 
     assert_queries_match(%r{custom_proc=''1234''\*/}) do
+      Dashboard.first
+    end
+  end
+
+  # SQL requires double single-quotes.
+  coerce_tests! :test_sqlcommenter_format_allows_string_keys
+  def test_sqlcommenter_format_allows_string_keys_coerced
+    ActiveRecord::QueryLogs.update_formatter(:sqlcommenter)
+
+    ActiveRecord::QueryLogs.tags = [
+      :application,
+      {
+        "string" => "value",
+        tracestate: "congo=t61rcWkgMzE,rojo=00f067aa0ba902b7",
+        custom_proc: -> { "Joe's Shack" }
+      },
+    ]
+
+    assert_queries_match(%r{custom_proc=''Joe%27s%20Shack'',string=''value'',tracestate=''congo%3Dt61rcWkgMzE%2Crojo%3D00f067aa0ba902b7''\*/}) do
       Dashboard.first
     end
   end
