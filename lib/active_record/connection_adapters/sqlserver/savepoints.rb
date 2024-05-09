@@ -17,6 +17,7 @@ module ActiveRecord
         end
 
         def release_savepoint(_name)
+          internal_execute("/* release #{name} savepoint */", "TRANSACTION")
         end
       end
     end
