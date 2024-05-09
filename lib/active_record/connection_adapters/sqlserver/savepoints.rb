@@ -16,6 +16,8 @@ module ActiveRecord
           internal_execute("ROLLBACK TRANSACTION #{name}", "TRANSACTION")
         end
 
+        # SQL Server does require save-points to be explicitly released.
+        # See https://stackoverflow.com/questions/3101312/sql-server-2008-no-release-savepoint-for-current-transaction
         def release_savepoint(_name)
         end
       end

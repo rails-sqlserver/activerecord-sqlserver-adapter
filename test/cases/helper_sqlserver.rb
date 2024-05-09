@@ -11,6 +11,7 @@ require "cases/helper"
 require "support/load_schema_sqlserver"
 require "support/coerceable_test_sqlserver"
 require "support/connection_reflection"
+require "support/query_assertions"
 require "mocha/minitest"
 
 module ActiveRecord
@@ -19,7 +20,8 @@ module ActiveRecord
 
     include ARTest::SQLServer::CoerceableTest,
             ARTest::SQLServer::ConnectionReflection,
-            ActiveSupport::Testing::Stream
+            ActiveSupport::Testing::Stream,
+            ARTest::SQLServer::QueryAssertions
 
     let(:logger) { ActiveRecord::Base.logger }
 
