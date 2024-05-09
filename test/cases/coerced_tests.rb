@@ -243,25 +243,6 @@ class BasicsTest < ActiveRecord::TestCase
   end
 end
 
-class HasManyThroughAssociationsTest < ActiveRecord::TestCase
-  # SQL Server does not have query for release_savepoint
-  coerce_tests! :test_associate_existing
-  def test_associate_existing_coerced
-    post   = posts(:thinking)
-    person = people(:david)
-
-    assert_queries_count(2) do
-      post.people << person
-    end
-
-    assert_queries_count(1) do
-      assert_includes post.people, person
-    end
-
-    assert_includes post.reload.people.reload, person
-  end
-end
-
 class BelongsToAssociationsTest < ActiveRecord::TestCase
   # Since @client.firm is a single first/top, and we use FETCH the order clause is used.
   coerce_tests! :test_belongs_to_does_not_use_order_by
@@ -1335,18 +1316,6 @@ module ActiveRecord
   end
 end
 
-class PrimaryKeysTest < ActiveRecord::TestCase
-  # SQL Server does not have query for release_savepoint
-  coerce_tests! :test_create_without_primary_key_no_extra_query
-  def test_create_without_primary_key_no_extra_query_coerced
-    klass = Class.new(ActiveRecord::Base) do
-      self.table_name = "dashboards"
-    end
-    klass.create! # warmup schema cache
-    assert_queries_count(2, include_schema: true) { klass.create! }
-  end
-end
-
 require "models/task"
 class QueryCacheTest < ActiveRecord::TestCase
   # SQL Server adapter not in list of supported adapters in original test.
@@ -1633,8 +1602,11 @@ class TransactionTest < ActiveRecord::TestCase
 
       Topic.lease_connection.create_savepoint("another")
       Topic.lease_connection.release_savepoint("another")
-      # We do not have a notion of releasing, so this does nothing vs raise an error.
-      Topic.lease_connection.release_savepoint("another")
+
+      # We do not have a notion of releasing, so this does nothing and doesn't raise an error.
+      assert_nothing_raised do
+        Topic.lease_connection.release_savepoint("another")
+      end
     end
   end
 
