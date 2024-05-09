@@ -16,7 +16,7 @@ module ActiveRecord
           internal_execute("ROLLBACK TRANSACTION #{name}", "TRANSACTION")
         end
 
-        def release_savepoint(_name)
+        def release_savepoint(name)
           internal_execute("/* release #{name} savepoint */", "TRANSACTION")
         end
       end
