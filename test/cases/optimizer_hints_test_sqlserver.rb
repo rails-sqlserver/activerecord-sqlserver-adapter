@@ -10,13 +10,13 @@ class OptimizerHitsTestSQLServer < ActiveRecord::TestCase
     assert_queries_match(%r{\ASELECT .+ FROM .+ OPTION \(HASH GROUP\)\z}) do
       companies = Company.optimizer_hints("HASH GROUP")
       companies = companies.distinct.select("firm_id")
-      assert_includes companies.explain, "| Hash Match | Aggregate  |"
+      assert_includes companies.explain.inspect, "| Hash Match | Aggregate  |"
     end
 
     assert_queries_match(%r{\ASELECT .+ FROM .+ OPTION \(ORDER GROUP\)\z}) do
       companies = Company.optimizer_hints("ORDER GROUP")
       companies = companies.distinct.select("firm_id")
-      assert_includes companies.explain, "| Stream Aggregate | Aggregate  |"
+      assert_includes companies.explain.inspect, "| Stream Aggregate | Aggregate  |"
     end
   end
 
@@ -24,7 +24,7 @@ class OptimizerHitsTestSQLServer < ActiveRecord::TestCase
     assert_queries_match(%r{\ASELECT .+ FROM .+ OPTION \(HASH GROUP, FAST 1\)\z}) do
       companies = Company.optimizer_hints("HASH GROUP", "FAST 1")
       companies = companies.distinct.select("firm_id")
-      assert_includes companies.explain, "| Hash Match | Flow Distinct |"
+      assert_includes companies.explain.inspect, "| Hash Match | Flow Distinct |"
     end
   end
 
