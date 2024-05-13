@@ -102,8 +102,7 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
     assert_raise ActiveRecord::NoDatabaseError do
       db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
       configuration = db_config.configuration_hash.merge(database: "nonexistent_activerecord_unittest")
-
-      connection = ActiveRecord::Base.sqlserver_connection configuration
+      connection = ActiveRecord::ConnectionAdapters::SQLServerAdapter.new(configuration)
       connection.exec_query("SELECT 1")
     end
   end
