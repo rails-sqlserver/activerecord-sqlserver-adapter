@@ -364,6 +364,17 @@ module ActiveRecord
     end
 
     # Need to remove index as SQL Server considers NULLs on a unique-index to be equal unlike PostgreSQL/MySQL/SQLite.
+    coerce_tests! :test_payload_row_count_on_pluck
+    def test_payload_row_count_on_pluck_coerced
+      connection.remove_index(:books, column: [:author_id, :name])
+
+      original_test_payload_row_count_on_pluck
+    ensure
+      Book.where(author_id: nil, name: 'row count book 2').delete_all
+      Book.lease_connection.add_index(:books, [:author_id, :name], unique: true)
+    end
+    
+    # Need to remove index as SQL Server considers NULLs on a unique-index to be equal unlike PostgreSQL/MySQL/SQLite.
     coerce_tests! :test_payload_row_count_on_raw_sql
     def test_payload_row_count_on_raw_sql_coerced
       connection.remove_index(:books, column: [:author_id, :name])
