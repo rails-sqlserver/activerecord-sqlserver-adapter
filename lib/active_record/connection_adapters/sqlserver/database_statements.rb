@@ -14,7 +14,7 @@ module ActiveRecord
         end
 
         def raw_execute(sql, name, async: false, allow_retry: false, materialize_transactions: true)
-          log(sql, name, async: async) do
+          log(sql, name, async: async) do |notification_payload|
             with_raw_connection(allow_retry: allow_retry, materialize_transactions: materialize_transactions) do |conn|
               result = if id_insert_table_name = query_requires_identity_insert?(sql)
                          with_identity_insert_enabled(id_insert_table_name, conn) { internal_raw_execute(sql, conn, perform_do: true) }
@@ -22,6 +22,7 @@ module ActiveRecord
                          internal_raw_execute(sql, conn, perform_do: true)
                        end
               verified!
+              notification_payload[:row_count] = result
               result
             end
           end
