@@ -14,8 +14,6 @@ module ActiveRecord
         end
 
         def raw_execute(sql, name, async: false, allow_retry: false, materialize_transactions: true)
-          result = nil
-
           log(sql, name, async: async) do
             with_raw_connection(allow_retry: allow_retry, materialize_transactions: materialize_transactions) do |conn|
               result = if id_insert_table_name = query_requires_identity_insert?(sql)
@@ -24,14 +22,12 @@ module ActiveRecord
                          internal_raw_execute(sql, conn, perform_do: true)
                        end
               verified!
+              result
             end
           end
-
-          result
         end
 
         def internal_exec_query(sql, name = "SQL", binds = [], prepare: false, async: false, allow_retry: false)
-          result = nil
           sql = transform_query(sql)
 
           check_if_write_query(sql)
@@ -42,20 +38,21 @@ module ActiveRecord
             sql = sp_executesql_sql(sql, types, params, name)
           end
 
-          log(sql, name, binds, async: async) do
+          log(sql, name, binds, async: async) do |notification_payload|
             with_raw_connection do |conn|
-              if id_insert_table_name = query_requires_identity_insert?(sql)
-                with_identity_insert_enabled(id_insert_table_name, conn) do
-                  result = internal_exec_sql_query(sql, conn)
-                end
-              else
-                result = internal_exec_sql_query(sql, conn)
-              end
+              result = if id_insert_table_name = query_requires_identity_insert?(sql)
+                         with_identity_insert_enabled(id_insert_table_name, conn) do
+                           internal_exec_sql_query(sql, conn)
+                         end
+                       else
+                         internal_exec_sql_query(sql, conn)
+                       end
+
               verified!
+              notification_payload[:row_count] = result.count
+              result
             end
           end
-
-          result
         end
 
         def internal_exec_sql_query(sql, conn)
@@ -174,7 +171,7 @@ module ActiveRecord
                  end.join(", ")
           sql = "EXEC #{proc_name} #{vars}".strip
 
-          log(sql, "Execute Procedure") do
+          log(sql, "Execute Procedure") do |notification_payload|
             with_raw_connection do |conn|
               result = internal_raw_execute(sql, conn)
               verified!
@@ -185,10 +182,11 @@ module ActiveRecord
                 yield(r) if block_given?
               end
 
-              result.each.map { |row| row.is_a?(Hash) ? row.with_indifferent_access : row }
+              result = result.each.map { |row| row.is_a?(Hash) ? row.with_indifferent_access : row }
+              notification_payload[:row_count] = result.count
+              result
             end
           end
-
         end
 
         def with_identity_insert_enabled(table_name, conn)
