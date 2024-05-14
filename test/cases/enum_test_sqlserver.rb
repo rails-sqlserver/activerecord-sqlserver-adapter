@@ -13,7 +13,7 @@ class EnumTestSQLServer < ActiveRecord::TestCase
         Class.new(ActiveRecord::Base) do
           self.table_name = 'sst_datatypes'
 
-          enum col_name => { alpha: "A", beta: "B" }
+          enum col_name, { alpha: "A", beta: "B" }
         end
       end
 
