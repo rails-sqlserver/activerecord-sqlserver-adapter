@@ -229,18 +229,6 @@ class BasicsTest < ActiveRecord::TestCase
       end
     end
   end
-
-  # SQL Server does not have query for release_savepoint
-  coerce_tests! %r{an empty transaction does not raise if preventing writes}
-  test "an empty transaction does not raise if preventing writes coerced" do
-    ActiveRecord::Base.while_preventing_writes do
-      assert_queries_count(1, include_schema: true) do
-        Bird.transaction do
-          ActiveRecord::Base.lease_connection.materialize_transactions
-        end
-      end
-    end
-  end
 end
 
 class BelongsToAssociationsTest < ActiveRecord::TestCase
@@ -2365,20 +2353,6 @@ class PreloaderTest < ActiveRecord::TestCase
 
     assert_match(expectation, preload_sql)
     assert_equal order, loaded_order_agreement.order
-  end
-end
-
-class BasePreventWritesTest < ActiveRecord::TestCase
-  # SQL Server does not have query for release_savepoint
-  coerce_tests! %r{an empty transaction does not raise if preventing writes}
-  test "an empty transaction does not raise if preventing writes coerced" do
-    ActiveRecord::Base.while_preventing_writes do
-      assert_queries_count(1, include_schema: true) do
-        Bird.transaction do
-          ActiveRecord::Base.lease_connection.materialize_transactions
-        end
-      end
-    end
   end
 end
 
