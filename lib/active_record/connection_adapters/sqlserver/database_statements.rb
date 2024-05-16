@@ -432,7 +432,11 @@ module ActiveRecord
             qo[:as] = (options[:ar_result] || options[:fetch] == :rows) ? :array : :hash
           end
           results = handle.each(query_options)
-          columns = lowercase_schema_reflection ? handle.fields.map { |c| c.downcase } : handle.fields
+
+          columns = handle.fields
+          # If query returns multiple result sets, only return the columns of the last one.
+          columns = columns.last if columns.any? && columns.all? { |e| e.is_a?(Array) }
+          columns = columns.map(&:downcase) if lowercase_schema_reflection
 
           options[:ar_result] ? ActiveRecord::Result.new(columns, results) : results
         end
