@@ -132,7 +132,7 @@ module ActiveRecord
           schema_cache.clear_data_source_cache!(table_name.to_s)
           schema_cache.clear_data_source_cache!(new_name.to_s)
           execute "EXEC sp_rename '#{table_name}', '#{new_name}'"
-          rename_table_indexes(table_name, new_name)
+          rename_table_indexes(table_name, new_name, **options)
         end
 
         def remove_column(table_name, column_name, type = nil, **options)
