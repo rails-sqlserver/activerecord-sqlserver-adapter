@@ -2635,3 +2635,21 @@ module ActiveRecord
     end
   end
 end
+
+module ActiveRecord
+  module ConnectionAdapters
+    class PoolConfig
+      class ResolverTest < ActiveRecord::TestCase
+        # SQL Server was not included in the list of available adapters in the error message.
+        coerce_tests! :test_url_invalid_adapter
+        def test_url_invalid_adapter_coerced
+          error = assert_raises(AdapterNotFound) do
+            Base.connection_handler.establish_connection "ridiculous://foo?encoding=utf8"
+          end
+
+          assert_match "Database configuration specifies nonexistent 'ridiculous' adapter. Available adapters are: abstract, fake, mysql2, postgresql, sqlite3, sqlserver, trilogy. Ensure that the adapter is spelled correctly in config/database.yml and that you've added the necessary adapter gem to your Gemfile if it's not in the list of available adapters.", error.message
+        end
+      end
+    end
+  end
+end
