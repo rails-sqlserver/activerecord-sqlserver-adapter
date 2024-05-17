@@ -328,7 +328,13 @@ module ActiveRecord
         end
 
         def sp_executesql_sql_type(attr)
-          return attr.type.sqlserver_type if attr.respond_to?(:type) && attr.type.respond_to?(:sqlserver_type)
+          if attr.respond_to?(:type)
+            return attr.type.sqlserver_type if attr.type.respond_to?(:sqlserver_type)
+
+            if attr.type.is_a?(ActiveRecord::Encryption::EncryptedAttributeType) && attr.type.instance_variable_get(:@cast_type).respond_to?(:sqlserver_type)
+              return attr.type.instance_variable_get(:@cast_type).sqlserver_type
+            end
+          end
 
           value = basic_attribute_type?(attr) ? attr : attr.value_for_database
 
