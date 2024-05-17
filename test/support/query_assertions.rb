@@ -13,17 +13,17 @@ module ARTest
           # Rails tests expect a save-point to be created and released. SQL Server does not release
           # save-points and so the number of queries will be off. This monkey patch adds a placeholder queries
           # to replace the missing save-point releases.
-          grouped_savepoint_queries = [[]]
+          grouped_queries = [[]]
 
           queries.each do |query|
             if query =~ /SAVE TRANSACTION \S+/
-              grouped_savepoint_queries << [query]
+              grouped_queries << [query]
             else
-              grouped_savepoint_queries.last << query
+              grouped_queries.last << query
             end
           end
 
-          grouped_savepoint_queries.each do |group|
+          grouped_queries.each do |group|
             group.append "/* release savepoint placeholder for testing */" if group.first =~ /SAVE TRANSACTION \S+/
           end
 
