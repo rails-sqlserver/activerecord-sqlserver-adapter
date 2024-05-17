@@ -10,10 +10,24 @@ module ARTest
           queries = include_schema ? counter.log_all : counter.log
 
           # Start of monkey-patch
-          # Rails tests expect a save-point to be released at the end of the test. SQL Server does not release
-          # save-points and so the number of queries will be off by one. This monkey patch adds a placeholder query
-          # to the end of the queries array to account for the missing save-point release.
-          queries.append "/* release savepoint placeholder for testing */" if queries.first =~ /SAVE TRANSACTION \S+/
+          # Rails tests expect a save-point to be created and released. SQL Server does not release
+          # save-points and so the number of queries will be off. This monkey patch adds a placeholder queries
+          # to replace the missing save-point releases.
+          grouped_savepoint_queries = [[]]
+
+          queries.each do |query|
+            if query =~ /SAVE TRANSACTION \S+/
+              grouped_savepoint_queries << [query]
+            else
+              grouped_savepoint_queries.last << query
+            end
+          end
+
+          grouped_savepoint_queries.each do |group|
+            group.append "/* release savepoint placeholder for testing */" if group.first =~ /SAVE TRANSACTION \S+/
+          end
+
+          queries = grouped_queries.flatten
           # End of monkey-patch
 
           if count
