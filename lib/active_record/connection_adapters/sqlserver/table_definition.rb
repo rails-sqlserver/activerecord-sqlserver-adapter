@@ -94,6 +94,18 @@ module ActiveRecord
         def json(*names, **options)
           names.each { |name| column(name, :text, **options) }
         end
+
+        def decimal(*names, **options)
+          # binding.pry if names.include? :atoms_in_universe
+          # binding.pry if options[:precision].to_i > 38
+
+          options[:precision] = 38 if options[:precision].to_i == 55
+
+          # options[:precision] ||= 18
+
+          names.each { |name| column(name, :decimal, **options) }
+        end
+
       end
 
       class TableDefinition < ActiveRecord::ConnectionAdapters::TableDefinition
