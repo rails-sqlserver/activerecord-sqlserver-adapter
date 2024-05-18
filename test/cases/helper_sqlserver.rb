@@ -14,12 +14,17 @@ require "support/connection_reflection"
 require "support/query_assertions"
 require "mocha/minitest"
 
+module ActiveSupport
+  class TestCase < ::Minitest::Test
+    include ARTest::SQLServer::CoerceableTest
+  end
+end
+
 module ActiveRecord
   class TestCase < ActiveSupport::TestCase
     SQLServer = ActiveRecord::ConnectionAdapters::SQLServer
 
-    include ARTest::SQLServer::CoerceableTest,
-            ARTest::SQLServer::ConnectionReflection,
+    include ARTest::SQLServer::ConnectionReflection,
             ActiveSupport::Testing::Stream,
             ARTest::SQLServer::QueryAssertions
 
