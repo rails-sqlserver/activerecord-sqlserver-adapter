@@ -2653,3 +2653,34 @@ module ActiveRecord
     end
   end
 end
+
+module ActiveRecord
+  class TableMetadataTest < ActiveSupport::TestCase
+    # Adapter returns an object that is subclass of what is expected in the original test.
+    coerce_tests! %r{#associated_table creates the right type caster for joined table with different association name}
+    def associated_table_creates_the_right_type_caster_for_joined_table_with_different_association_name_coerced
+      base_table_metadata = TableMetadata.new(AuditRequiredDeveloper, Arel::Table.new("developers"))
+
+      associated_table_metadata = base_table_metadata.associated_table("audit_logs")
+
+      assert associated_table_metadata.arel_table.type_for_attribute(:message).is_a?(ActiveRecord::Type::String)
+    end
+  end
+end
+
+module ActiveRecord
+  module TypeCaster
+    class ConnectionTest < ActiveSupport::TestCase
+      # Adapter returns an object that is subclass of what is expected in the original test.
+      coerce_tests! %r{#type_for_attribute is not aware of custom types}
+      def type_for_attribute_is_not_aware_of_custom_types_coerced
+        type_caster = Connection.new(AttributedDeveloper, "developers")
+
+        type = type_caster.type_for_attribute(:name)
+
+        assert_not_equal DeveloperName, type.class
+        assert type.is_a?(ActiveRecord::Type::String)
+      end
+    end
+  end
+end
