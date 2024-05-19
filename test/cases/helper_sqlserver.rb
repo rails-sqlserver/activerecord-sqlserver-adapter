@@ -7,19 +7,7 @@ require "pry"
 require "support/core_ext/query_cache"
 require "support/minitest_sqlserver"
 require "support/test_in_memory_oltp"
-
-
 require "support/table_definition_sqlserver"
-module ActiveRecord
-  module ConnectionAdapters
-    module SQLServer
-      class TableDefinition < ::ActiveRecord::ConnectionAdapters::TableDefinition
-        include ARTest::SQLServer::TableDefinition
-      end
-    end
-  end
-end
-
 require "cases/helper"
 require "support/load_schema_sqlserver"
 require "support/coerceable_test_sqlserver"
