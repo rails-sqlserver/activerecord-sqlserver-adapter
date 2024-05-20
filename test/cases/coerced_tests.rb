@@ -2684,3 +2684,30 @@ module ActiveRecord
     end
   end
 end
+
+require "models/car"
+class ExplainTest < ActiveRecord::TestCase
+  # Expected query slightly different from because of 'sp_executesql' and query parameters.
+  coerce_tests! :test_relation_explain_with_first
+  def test_relation_explain_with_first_coerced
+    expected_query = capture_sql {
+      Car.all.first
+    }.first[/EXEC sp_executesql N'(.*?) NEXT/, 1]
+    message = Car.all.explain.first
+    assert_match(/^EXPLAIN/, message)
+    assert_match(expected_query, message)
+  end
+
+  # Expected query slightly different from because of 'sp_executesql' and query parameters.
+  coerce_tests! :test_relation_explain_with_last
+  def test_relation_explain_with_last_coerced
+    expected_query = capture_sql {
+      Car.all.last
+    }.first[/EXEC sp_executesql N'(.*?) NEXT/, 1]
+    expected_query = expected_query
+    message = Car.all.explain.last
+
+    assert_match(/^EXPLAIN/, message)
+    assert_match(expected_query, message)
+  end
+end
