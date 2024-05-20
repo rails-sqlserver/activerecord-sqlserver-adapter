@@ -2711,3 +2711,26 @@ class ExplainTest < ActiveRecord::TestCase
     assert_match(expected_query, message)
   end
 end
+
+module ActiveRecord
+  module Assertions
+    class QueryAssertionsTest < ActiveSupport::TestCase
+      # Query slightly different in original test.
+      coerce_tests! :test_assert_queries_match
+      def test_assert_queries_match_coerced
+        assert_queries_match(/ASC OFFSET 0 ROWS FETCH NEXT @0 ROWS ONLY/i, count: 1) { Post.first }
+        assert_queries_match(/ASC OFFSET 0 ROWS FETCH NEXT @0 ROWS ONLY/i) { Post.first }
+
+        error = assert_raises(Minitest::Assertion) {
+          assert_queries_match(/ASC OFFSET 0 ROWS FETCH NEXT @0 ROWS ONLY/i, count: 2) { Post.first }
+        }
+        assert_match(/1 instead of 2 queries/, error.message)
+
+        error = assert_raises(Minitest::Assertion) {
+          assert_queries_match(/ASC OFFSET 0 ROWS FETCH NEXT @0 ROWS ONLY/i, count: 0) { Post.first }
+        }
+        assert_match(/1 instead of 0 queries/, error.message)
+      end
+    end
+  end
+end
