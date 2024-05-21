@@ -2197,24 +2197,22 @@ class QueryCacheExpiryTest < ActiveRecord::TestCase
       Task.cache { Task.insert({ starting: Time.now }) }
     end
 
-    assert_called(ActiveRecord::Base.lease_connection, :clear_query_cache, times: 2) do
-      Task.cache { Task.insert_all!([{ starting: Time.now }]) }
-    end
-
-    assert_called(ActiveRecord::Base.lease_connection, :clear_query_cache, times: 2) do
-      Task.cache { Task.insert!({ starting: Time.now }) }
-    end
-
-    assert_called(ActiveRecord::Base.lease_connection, :clear_query_cache, times: 2) do
-      Task.cache { Task.insert_all!([{ starting: Time.now }]) }
-    end
-
     assert_raises(ArgumentError, /does not support upsert/) do
       Task.cache { Task.upsert({ starting: Time.now }) }
     end
 
     assert_raises(ArgumentError, /does not support upsert/) do
       Task.cache { Task.upsert_all([{ starting: Time.now }]) }
+    end
+
+    Task.cache do
+      assert_called(ActiveRecord::Base.connection_pool.query_cache, :clear, times: 1) do
+        Task.insert_all!([ starting: Time.now ])
+      end
+
+      assert_called(ActiveRecord::Base.connection_pool.query_cache, :clear, times: 1) do
+        Task.insert!({ starting: Time.now })
+      end
     end
   end
 end
