@@ -266,6 +266,21 @@ ActiveRecord::Schema.define do
     SELECT pk_col_one AS id_source, event_name FROM INSERTED
   SQL
 
+
+  execute <<-SQL
+    CREATE TRIGGER instead_of_insert_trigger
+    ON pk_autopopulated_by_a_trigger_records
+    INSTEAD OF INSERT
+    AS
+    BEGIN
+        INSERT INTO pk_autopopulated_by_a_trigger_records (
+            [id]
+        )
+        SELECT ((COALESCE(MAX(pk_autopopulated_by_a_trigger_records.id), 0) + 1))
+        FROM pk_autopopulated_by_a_trigger_records
+    END
+  SQL
+
   # Another schema.
 
   create_table :sst_schema_columns, force: true do |t|
