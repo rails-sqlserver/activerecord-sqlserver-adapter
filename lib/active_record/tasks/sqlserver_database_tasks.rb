@@ -10,7 +10,7 @@ module ActiveRecord
     class SQLServerDatabaseTasks
       DEFAULT_COLLATION = "SQL_Latin1_General_CP1_CI_AS"
 
-      delegate :establish_connection, to: ActiveRecord::Base
+      delegate :with_connection, :establish_connection, to: ActiveRecord::Base
 
       def self.using_database_configurations?
         true
