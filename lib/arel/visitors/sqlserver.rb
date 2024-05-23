@@ -135,9 +135,9 @@ module Arel
               else
                 quote_table_name(o.name)
               end
-            rescue Exception
-              quote_table_name(o.name)
             end
+          rescue Exception
+            quote_table_name(o.name)
           end
 
         if o.table_alias
