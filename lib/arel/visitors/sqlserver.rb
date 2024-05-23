@@ -127,10 +127,9 @@ module Arel
         # Apparently, o.engine.connection can actually be a different adapter
         # than sqlserver. Can be removed if fixed in ActiveRecord. See:
         # github.com/rails-sqlserver/activerecord-sqlserver-adapter/issues/450
-
-        o.class.engine.with_connection do |connection|
-          table_name =
-            begin
+        table_name =
+          begin
+            o.class.engine.with_connection do |connection|
               if connection.respond_to?(:sqlserver?) && connection.database_prefix_remote_server?
                 remote_server_table_name(o)
               else
@@ -139,12 +138,12 @@ module Arel
             rescue Exception
               quote_table_name(o.name)
             end
-
-          if o.table_alias
-            collector << "#{table_name} #{quote_table_name o.table_alias}"
-          else
-            collector << table_name
           end
+
+        if o.table_alias
+          collector << "#{table_name} #{quote_table_name o.table_alias}"
+        else
+          collector << table_name
         end
       end
 
