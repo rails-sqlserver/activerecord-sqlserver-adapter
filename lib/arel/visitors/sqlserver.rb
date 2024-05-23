@@ -127,21 +127,24 @@ module Arel
         # Apparently, o.engine.connection can actually be a different adapter
         # than sqlserver. Can be removed if fixed in ActiveRecord. See:
         # github.com/rails-sqlserver/activerecord-sqlserver-adapter/issues/450
-        table_name =
-          begin
-            if o.class.engine.lease_connection.respond_to?(:sqlserver?) && o.class.engine.lease_connection.database_prefix_remote_server?
-              remote_server_table_name(o)
-            else
+
+        o.class.engine.with_connection do |connection|
+          table_name =
+            begin
+              if connection.respond_to?(:sqlserver?) && connection.database_prefix_remote_server?
+                remote_server_table_name(o)
+              else
+                quote_table_name(o.name)
+              end
+            rescue Exception
               quote_table_name(o.name)
             end
-          rescue Exception
-            quote_table_name(o.name)
-          end
 
-        if o.table_alias
-          collector << "#{table_name} #{quote_table_name o.table_alias}"
-        else
-          collector << table_name
+          if o.table_alias
+            collector << "#{table_name} #{quote_table_name o.table_alias}"
+          else
+            collector << table_name
+          end
         end
       end
 
@@ -315,14 +318,16 @@ module Arel
       end
 
       def remote_server_table_name(o)
-        ActiveRecord::ConnectionAdapters::SQLServer::Utils.extract_identifiers(
-          "#{o.class.engine.lease_connection.database_prefix}#{o.name}"
-        ).quoted
+        o.class.engine.with_connection do |connection|
+          ActiveRecord::ConnectionAdapters::SQLServer::Utils.extract_identifiers(
+            "#{connection.database_prefix}#{o.name}"
+          ).quoted
+        end
       end
 
-      # Need to remove ordering from subqueries unless TOP/OFFSET also used. Otherwise, SQLServer
+      # Need to remove ordering from sub-queries unless TOP/OFFSET also used. Otherwise, SQLServer
       # returns error "The ORDER BY clause is invalid in views, inline functions, derived tables,
-      # subqueries, and common table expressions, unless TOP, OFFSET or FOR XML is also specified."
+      # sub-queries, and common table expressions, unless TOP, OFFSET or FOR XML is also specified."
       def remove_invalid_ordering_from_select_statement(node)
         return unless Arel::Nodes::SelectStatement === node
 
