@@ -203,6 +203,11 @@ module Arel
         collector
       end
 
+      def visit_Arel_Nodes_WithRecursive(o, collector)
+        collector << "WITH "
+        collect_ctes(o.children, collector)
+      end
+
       # SQLServer ToSql/Visitor (Additions)
 
       def visit_Arel_Nodes_SelectStatement_SQLServer_Lock(collector, options = {})
