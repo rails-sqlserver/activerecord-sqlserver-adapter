@@ -33,7 +33,35 @@ module Arel
         if o.orders.any? && o.limit.nil?
           o.limit = Nodes::Limit.new(9_223_372_036_854_775_807)
         end
-        super
+
+
+
+        collector.retryable = false
+        # o = prepare_update_statement(o)
+
+        collector << "UPDATE "
+
+
+        visit o.relation.left, collector
+
+        collect_nodes_for o.values, collector, " SET "
+
+        collector << " FROM "
+        visit o.relation.left, collector
+
+        collector << " "
+        collector = visit o.relation.right, collector
+
+        collect_nodes_for o.wheres, collector, " WHERE ", " AND "
+        collect_nodes_for o.orders, collector, " ORDER BY "
+        maybe_visit o.limit, collector
+
+
+        #
+
+
+
+        # super
       end
 
       def visit_Arel_Nodes_Lock(o, collector)
