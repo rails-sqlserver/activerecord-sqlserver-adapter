@@ -34,34 +34,31 @@ module Arel
           o.limit = Nodes::Limit.new(9_223_372_036_854_775_807)
         end
 
+        if o.key && o.key.size > 1
+          collector.retryable = false
+          _visit_Arel_Nodes_UpdateStatement(o, collector)
+        else
+          super
+        end
+      end
 
-
-        collector.retryable = false
-        # o = prepare_update_statement(o)
-
+      def _visit_Arel_Nodes_UpdateStatement(o, collector)
         collector << "UPDATE "
 
-
-        visit o.relation.left, collector
+        if has_join_sources?(o)
+          visit o.relation.left, collector
+        else
+          visit o.relation, collector
+        end
 
         collect_nodes_for o.values, collector, " SET "
 
         collector << " FROM "
-        visit o.relation.left, collector
-
-        collector << " "
-        collector = visit o.relation.right, collector
+        visit o.relation, collector
 
         collect_nodes_for o.wheres, collector, " WHERE ", " AND "
         collect_nodes_for o.orders, collector, " ORDER BY "
         maybe_visit o.limit, collector
-
-
-        #
-
-
-
-        # super
       end
 
       def visit_Arel_Nodes_Lock(o, collector)
