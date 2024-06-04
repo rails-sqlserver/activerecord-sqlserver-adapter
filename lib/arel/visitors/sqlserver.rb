@@ -30,14 +30,18 @@ module Arel
       end
 
       def visit_Arel_Nodes_UpdateStatement(o, collector)
-        if o.orders.any? && o.limit.nil?
-          o.limit = Nodes::Limit.new(9_223_372_036_854_775_807)
-        end
 
-        if o.key && o.key.size > 1
+
+        # binding.pry if $DEBUG
+
+        if o.key && o.key.relation.is_a?(Arel::Table) && o.key.relation.instance_variable_get(:@klass).composite_primary_key?
           collector.retryable = false
           _visit_Arel_Nodes_UpdateStatement(o, collector)
         else
+          if o.orders.any? && o.limit.nil?
+            o.limit = Nodes::Limit.new(9_223_372_036_854_775_807)
+          end
+
           super
         end
       end
