@@ -5,7 +5,6 @@ services:
   ci:
     environment:
       - ACTIVERECORD_UNITTEST_HOST=sqlserver
-      - RAILS_BRANCH=7-2-stable
     build:
       context: .
       dockerfile: Dockerfile.ci
