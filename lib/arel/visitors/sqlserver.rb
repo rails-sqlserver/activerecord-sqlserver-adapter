@@ -29,31 +29,54 @@ module Arel
         visit o.right, collector
       end
 
+
+      # def prepare_update_statement(o)
+      #   if o.offset || has_group_by_and_having?(o) ||
+      #     has_join_sources?(o) && has_limit_or_offset_or_orders?(o)
+      #     super
+      #   else
+      #     o
+      #   end
+      # end
+
       def visit_Arel_Nodes_UpdateStatement(o, collector)
+
+
+
 
 
         # binding.pry if $DEBUG
 
-        if o.key && o.key.relation.is_a?(Arel::Table) && o.key.relation.instance_variable_get(:@klass).composite_primary_key?
-          collector.retryable = false
+
+        if has_join_sources?(o) && o.relation.left.instance_variable_get(:@klass).composite_primary_key?
           _visit_Arel_Nodes_UpdateStatement(o, collector)
         else
-          if o.orders.any? && o.limit.nil?
-            o.limit = Nodes::Limit.new(9_223_372_036_854_775_807)
-          end
-
           super
         end
+
+
+        # if o.key && o.key.is_a?(Arel::Attributes::Attribute) && o.key.relation.is_a?(Arel::Table) && o.key.relation.instance_variable_get(:@klass).composite_primary_key?
+        #   collector.retryable = false
+        #   _visit_Arel_Nodes_UpdateStatement(o, collector)
+        # else
+        #   if o.orders.any? && o.limit.nil?
+        #     o.limit = Nodes::Limit.new(9_223_372_036_854_775_807)
+        #   end
+        #
+        #   super
+        # end
       end
 
       def _visit_Arel_Nodes_UpdateStatement(o, collector)
         collector << "UPDATE "
 
-        if has_join_sources?(o)
+        # binding.pry if $DEBUG
+
+        # if has_join_sources?(o)
           visit o.relation.left, collector
-        else
-          visit o.relation, collector
-        end
+        # else
+        #   visit o.relation, collector
+        # end
 
         collect_nodes_for o.values, collector, " SET "
 
@@ -61,8 +84,8 @@ module Arel
         visit o.relation, collector
 
         collect_nodes_for o.wheres, collector, " WHERE ", " AND "
-        collect_nodes_for o.orders, collector, " ORDER BY "
-        maybe_visit o.limit, collector
+        # collect_nodes_for o.orders, collector, " ORDER BY "
+        # maybe_visit o.limit, collector
       end
 
       def visit_Arel_Nodes_Lock(o, collector)
