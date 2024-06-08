@@ -51,6 +51,10 @@ module Arel
         if has_join_sources?(o) && o.relation.left.instance_variable_get(:@klass).composite_primary_key?
           _visit_Arel_Nodes_UpdateStatement(o, collector)
         else
+          if o.orders.any? && o.limit.nil?
+            o.limit = Nodes::Limit.new(9_223_372_036_854_775_807)
+          end
+
           super
         end
 
