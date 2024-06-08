@@ -289,7 +289,9 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
     end
 
     it "ALLOW deletion of referenced parent using #disable_referential_integrity block" do
-      SSTestHasPk.lease_connection.disable_referential_integrity { @parent.destroy }
+      assert_difference("SSTestHasPk.count", -1) do
+        SSTestHasPk.lease_connection.disable_referential_integrity { @parent.destroy }
+      end
     end
 
     it "again NOT ALLOW deletion of referenced parent after #disable_referential_integrity block" do
@@ -549,11 +551,15 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
 
   describe 'table is in non-dbo schema' do
     it "records can be created successfully" do
-      Alien.create!(name: 'Trisolarans')
+      assert_difference("Alien.count", 1) do
+        Alien.create!(name: 'Trisolarans')
+      end
     end
 
     it 'records can be inserted using SQL' do
-      Alien.lease_connection.exec_insert("insert into [test].[aliens] (id, name) VALUES(1, 'Trisolarans'), (2, 'Xenomorph')")
+      assert_difference("Alien.count", 2) do
+        Alien.lease_connection.exec_insert("insert into [test].[aliens] (id, name) VALUES(1, 'Trisolarans'), (2, 'Xenomorph')")
+      end
     end
   end
 
