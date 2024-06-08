@@ -1267,6 +1267,9 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_not_predicate topic, :approved?
     assert_equal "The First Topic", topic.title
   end
+
+  # In SQL Server it's not possible to set the primary key column using a trigger and to get it then to return.
+  coerce_tests! :test_model_with_no_auto_populated_fields_still_returns_primary_key_after_insert
 end
 
 require "models/author"
