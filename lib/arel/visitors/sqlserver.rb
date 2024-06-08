@@ -129,10 +129,12 @@ module Arel
         # github.com/rails-sqlserver/activerecord-sqlserver-adapter/issues/450
         table_name =
           begin
-            if o.class.engine.lease_connection.respond_to?(:sqlserver?) && o.class.engine.lease_connection.database_prefix_remote_server?
-              remote_server_table_name(o)
-            else
-              quote_table_name(o.name)
+            o.class.engine.with_connection do |connection|
+              if connection.respond_to?(:sqlserver?) && connection.database_prefix_remote_server?
+                remote_server_table_name(o)
+              else
+                quote_table_name(o.name)
+              end
             end
           rescue Exception
             quote_table_name(o.name)
@@ -199,6 +201,11 @@ module Arel
 
       def collect_optimizer_hints(o, collector)
         collector
+      end
+
+      def visit_Arel_Nodes_WithRecursive(o, collector)
+        collector << "WITH "
+        collect_ctes(o.children, collector)
       end
 
       # SQLServer ToSql/Visitor (Additions)
@@ -315,14 +322,16 @@ module Arel
       end
 
       def remote_server_table_name(o)
-        ActiveRecord::ConnectionAdapters::SQLServer::Utils.extract_identifiers(
-          "#{o.class.engine.lease_connection.database_prefix}#{o.name}"
-        ).quoted
+        o.class.engine.with_connection do |connection|
+          ActiveRecord::ConnectionAdapters::SQLServer::Utils.extract_identifiers(
+            "#{connection.database_prefix}#{o.name}"
+          ).quoted
+        end
       end
 
-      # Need to remove ordering from subqueries unless TOP/OFFSET also used. Otherwise, SQLServer
+      # Need to remove ordering from sub-queries unless TOP/OFFSET also used. Otherwise, SQLServer
       # returns error "The ORDER BY clause is invalid in views, inline functions, derived tables,
-      # subqueries, and common table expressions, unless TOP, OFFSET or FOR XML is also specified."
+      # sub-queries, and common table expressions, unless TOP, OFFSET or FOR XML is also specified."
       def remove_invalid_ordering_from_select_statement(node)
         return unless Arel::Nodes::SelectStatement === node
 

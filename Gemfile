@@ -8,7 +8,7 @@ gemspec
 
 gem "bcrypt"
 gem "pg",      ">= 0.18.0"
-gem "sqlite3", "~> 1.4"
+gem "sqlite3", ">= 1.6.6"
 gem "tzinfo-data", platforms: [:mingw, :mswin, :x64_mingw, :jruby]
 gem "benchmark-ips"
 gem "minitest", ">= 5.15.0"

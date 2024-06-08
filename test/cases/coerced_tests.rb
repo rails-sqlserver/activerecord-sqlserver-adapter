@@ -2735,3 +2735,26 @@ module ActiveRecord
     end
   end
 end
+
+module ActiveRecord
+  class WithTest < ActiveRecord::TestCase
+    # SQL contains just 'WITH' instead of 'WITH RECURSIVE' as expected by the original test.
+    coerce_tests! :test_with_recursive
+    def test_with_recursive_coerced
+      top_companies = Company.where(firm_id: nil).to_a
+      child_companies = Company.where(firm_id: top_companies).to_a
+      top_companies_and_children = (top_companies.map(&:id) + child_companies.map(&:id)).sort
+
+      relation = Company.with_recursive(
+        top_companies_and_children: [
+          Company.where(firm_id: nil),
+          Company.joins("JOIN top_companies_and_children ON companies.firm_id = top_companies_and_children.id"),
+        ]
+      ).from("top_companies_and_children AS companies")
+
+      assert_equal top_companies_and_children, relation.order(:id).pluck(:id)
+      assert_match "WITH ", relation.to_sql
+    end
+  end
+end
+
