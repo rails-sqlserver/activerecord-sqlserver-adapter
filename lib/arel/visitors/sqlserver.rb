@@ -42,6 +42,8 @@ module Arel
       end
 
       def update_statement_using_join(o, collector)
+        collector.retryable = false
+        
         collector << "UPDATE "
         visit o.relation.left, collector
         collect_nodes_for o.values, collector, " SET "
