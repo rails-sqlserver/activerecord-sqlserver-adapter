@@ -29,27 +29,9 @@ module Arel
         visit o.right, collector
       end
 
-
-      # def prepare_update_statement(o)
-      #   if o.offset || has_group_by_and_having?(o) ||
-      #     has_join_sources?(o) && has_limit_or_offset_or_orders?(o)
-      #     super
-      #   else
-      #     o
-      #   end
-      # end
-
       def visit_Arel_Nodes_UpdateStatement(o, collector)
-
-
-
-
-
-        # binding.pry if $DEBUG
-
-
         if has_join_sources?(o) && o.relation.left.instance_variable_get(:@klass).composite_primary_key?
-          _visit_Arel_Nodes_UpdateStatement(o, collector)
+          update_statement_using_join(o, collector)
         else
           if o.orders.any? && o.limit.nil?
             o.limit = Nodes::Limit.new(9_223_372_036_854_775_807)
@@ -57,39 +39,15 @@ module Arel
 
           super
         end
-
-
-        # if o.key && o.key.is_a?(Arel::Attributes::Attribute) && o.key.relation.is_a?(Arel::Table) && o.key.relation.instance_variable_get(:@klass).composite_primary_key?
-        #   collector.retryable = false
-        #   _visit_Arel_Nodes_UpdateStatement(o, collector)
-        # else
-        #   if o.orders.any? && o.limit.nil?
-        #     o.limit = Nodes::Limit.new(9_223_372_036_854_775_807)
-        #   end
-        #
-        #   super
-        # end
       end
 
-      def _visit_Arel_Nodes_UpdateStatement(o, collector)
+      def update_statement_using_join(o, collector)
         collector << "UPDATE "
-
-        # binding.pry if $DEBUG
-
-        # if has_join_sources?(o)
-          visit o.relation.left, collector
-        # else
-        #   visit o.relation, collector
-        # end
-
+        visit o.relation.left, collector
         collect_nodes_for o.values, collector, " SET "
-
         collector << " FROM "
         visit o.relation, collector
-
         collect_nodes_for o.wheres, collector, " WHERE ", " AND "
-        # collect_nodes_for o.orders, collector, " ORDER BY "
-        # maybe_visit o.limit, collector
       end
 
       def visit_Arel_Nodes_Lock(o, collector)
