@@ -6,8 +6,12 @@ class SpecificSchemaTestSQLServer < ActiveRecord::TestCase
   after { SSTestEdgeSchema.delete_all }
 
   it "handle dollar symbols" do
-    SSTestDollarTableName.create!
-    SSTestDollarTableName.limit(20).offset(1)
+    assert_difference("SSTestDollarTableName.count", 1) do
+      SSTestDollarTableName.create!
+    end
+    assert_nothing_raised do
+      SSTestDollarTableName.limit(20).offset(1)
+    end
   end
 
   it "models can use tinyint pk tables" do

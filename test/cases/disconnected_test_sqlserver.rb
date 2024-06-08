@@ -19,7 +19,10 @@ class TestDisconnectedAdapter < ActiveRecord::TestCase
   test "execute procedure after disconnect reconnects" do
     @connection.execute_procedure :sp_tables, "sst_datatypes"
     @connection.disconnect!
-    @connection.execute_procedure :sp_tables, "sst_datatypes"
+
+    assert_nothing_raised do
+      @connection.execute_procedure :sp_tables, "sst_datatypes"
+    end
   end
 
   test "execute query after disconnect reconnects" do
@@ -31,6 +34,9 @@ class TestDisconnectedAdapter < ActiveRecord::TestCase
 
     @connection.exec_query sql, "TEST", binds
     @connection.disconnect!
-    @connection.exec_query sql, "TEST", binds
+
+    assert_nothing_raised do
+      @connection.exec_query sql, "TEST", binds
+    end
   end
 end
