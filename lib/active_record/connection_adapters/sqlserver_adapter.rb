@@ -325,10 +325,6 @@ module ActiveRecord
         self.class::VERSION
       end
 
-      def inspect
-        "#<#{self.class} version: #{version}, azure: #{sqlserver_azure?.inspect}>"
-      end
-
       def combine_bind_parameters(from_clause: [], join_clause: [], where_clause: [], having_clause: [], limit: nil, offset: nil)
         result = from_clause + join_clause + where_clause + having_clause
         result << offset if offset

@@ -18,8 +18,6 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
   it "has basic and non-sensitive information in the adapters inspect method" do
     string = connection.inspect
     _(string).must_match %r{ActiveRecord::ConnectionAdapters::SQLServerAdapter}
-    _(string).must_match %r{version\: \d.\d}
-    _(string).must_match %r{azure: (true|false)}
     _(string).wont_match %r{host}
     _(string).wont_match %r{password}
     _(string).wont_match %r{username}
