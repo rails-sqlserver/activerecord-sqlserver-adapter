@@ -6,8 +6,12 @@ class SpecificSchemaTestSQLServer < ActiveRecord::TestCase
   after { SSTestEdgeSchema.delete_all }
 
   it "handle dollar symbols" do
-    SSTestDollarTableName.create!
-    SSTestDollarTableName.limit(20).offset(1)
+    assert_difference("SSTestDollarTableName.count", 1) do
+      SSTestDollarTableName.create!
+    end
+    assert_nothing_raised do
+      SSTestDollarTableName.limit(20).offset(1)
+    end
   end
 
   it "models can use tinyint pk tables" do
@@ -93,7 +97,7 @@ class SpecificSchemaTestSQLServer < ActiveRecord::TestCase
 
   it "use primary key for row table order in pagination sql" do
     sql = /ORDER BY \[sst_natural_pk_data\]\.\[legacy_id\] ASC OFFSET @0 ROWS FETCH NEXT @1 ROWS ONLY/
-    assert_sql(sql) { SSTestNaturalPkData.limit(5).offset(5).load }
+    assert_queries_match(sql) { SSTestNaturalPkData.limit(5).offset(5).load }
   end
 
   # Special quoted column
@@ -112,16 +116,16 @@ class SpecificSchemaTestSQLServer < ActiveRecord::TestCase
       end
     end
     # Using ActiveRecord's quoted_id feature for objects.
-    assert_sql(/@0 = 'T'/) { SSTestDatatypeMigration.where(char_col: value.new).first }
-    assert_sql(/@0 = 'T'/) { SSTestDatatypeMigration.where(varchar_col: value.new).first }
+    assert_queries_match(/@0 = 'T'/) { SSTestDatatypeMigration.where(char_col: value.new).first }
+    assert_queries_match(/@0 = 'T'/) { SSTestDatatypeMigration.where(varchar_col: value.new).first }
     # Using our custom char type data.
     type = ActiveRecord::Type::SQLServer::Char
     data = ActiveRecord::Type::SQLServer::Data
-    assert_sql(/@0 = 'T'/) { SSTestDatatypeMigration.where(char_col: data.new("T", type.new)).first }
-    assert_sql(/@0 = 'T'/) { SSTestDatatypeMigration.where(varchar_col: data.new("T", type.new)).first }
+    assert_queries_match(/@0 = 'T'/) { SSTestDatatypeMigration.where(char_col: data.new("T", type.new)).first }
+    assert_queries_match(/@0 = 'T'/) { SSTestDatatypeMigration.where(varchar_col: data.new("T", type.new)).first }
     # Taking care of everything.
-    assert_sql(/@0 = 'T'/) { SSTestDatatypeMigration.where(char_col: "T").first }
-    assert_sql(/@0 = 'T'/) { SSTestDatatypeMigration.where(varchar_col: "T").first }
+    assert_queries_match(/@0 = 'T'/) { SSTestDatatypeMigration.where(char_col: "T").first }
+    assert_queries_match(/@0 = 'T'/) { SSTestDatatypeMigration.where(varchar_col: "T").first }
   end
 
   it "can update and hence properly quoted non-national char/varchar columns" do
@@ -159,14 +163,14 @@ class SpecificSchemaTestSQLServer < ActiveRecord::TestCase
 
   it "returns a new id via connection newid_function" do
     acceptable_uuid = ActiveRecord::ConnectionAdapters::SQLServer::Type::Uuid::ACCEPTABLE_UUID
-    db_uuid = ActiveRecord::Base.connection.newid_function
+    db_uuid = ActiveRecord::Base.lease_connection.newid_function
     _(db_uuid).must_match(acceptable_uuid)
   end
 
   # with similar table definition in two schemas
 
   it "returns the correct primary columns" do
-    connection = ActiveRecord::Base.connection
+    connection = ActiveRecord::Base.lease_connection
     assert_equal "field_1", connection.columns("test.sst_schema_test_mulitple_schema").detect(&:is_primary?).name
     assert_equal "field_2", connection.columns("test2.sst_schema_test_mulitple_schema").detect(&:is_primary?).name
   end

@@ -14,9 +14,7 @@ module ActiveRecord
         end
 
         def raw_execute(sql, name, async: false, allow_retry: false, materialize_transactions: true)
-          result = nil
-
-          log(sql, name, async: async) do
+          log(sql, name, async: async) do |notification_payload|
             with_raw_connection(allow_retry: allow_retry, materialize_transactions: materialize_transactions) do |conn|
               result = if id_insert_table_name = query_requires_identity_insert?(sql)
                          with_identity_insert_enabled(id_insert_table_name, conn) { internal_raw_execute(sql, conn, perform_do: true) }
@@ -24,14 +22,13 @@ module ActiveRecord
                          internal_raw_execute(sql, conn, perform_do: true)
                        end
               verified!
+              notification_payload[:row_count] = result
+              result
             end
           end
-
-          result
         end
 
-        def internal_exec_query(sql, name = "SQL", binds = [], prepare: false, async: false)
-          result = nil
+        def internal_exec_query(sql, name = "SQL", binds = [], prepare: false, async: false, allow_retry: false)
           sql = transform_query(sql)
 
           check_if_write_query(sql)
@@ -42,20 +39,21 @@ module ActiveRecord
             sql = sp_executesql_sql(sql, types, params, name)
           end
 
-          log(sql, name, binds, async: async) do
+          log(sql, name, binds, async: async) do |notification_payload|
             with_raw_connection do |conn|
-              if id_insert_table_name = query_requires_identity_insert?(sql)
-                with_identity_insert_enabled(id_insert_table_name, conn) do
-                  result = internal_exec_sql_query(sql, conn)
-                end
-              else
-                result = internal_exec_sql_query(sql, conn)
-              end
+              result = if id_insert_table_name = query_requires_identity_insert?(sql)
+                         with_identity_insert_enabled(id_insert_table_name, conn) do
+                           internal_exec_sql_query(sql, conn)
+                         end
+                       else
+                         internal_exec_sql_query(sql, conn)
+                       end
+
               verified!
+              notification_payload[:row_count] = result.count
+              result
             end
           end
-
-          result
         end
 
         def internal_exec_sql_query(sql, conn)
@@ -153,10 +151,10 @@ module ActiveRecord
 
           if returning = insert.send(:insert_all).returning
             returning_sql = if returning.is_a?(String)
-              returning
-            else
-              returning.map { |column| "INSERTED.#{quote_column_name(column)}" }.join(", ")
-            end
+                              returning
+                            else
+                              returning.map { |column| "INSERTED.#{quote_column_name(column)}" }.join(", ")
+                            end
             sql << " OUTPUT #{returning_sql}"
           end
 
@@ -174,7 +172,7 @@ module ActiveRecord
                  end.join(", ")
           sql = "EXEC #{proc_name} #{vars}".strip
 
-          log(sql, "Execute Procedure") do
+          log(sql, "Execute Procedure") do |notification_payload|
             with_raw_connection do |conn|
               result = internal_raw_execute(sql, conn)
               verified!
@@ -185,10 +183,11 @@ module ActiveRecord
                 yield(r) if block_given?
               end
 
-              result.each.map { |row| row.is_a?(Hash) ? row.with_indifferent_access : row }
+              result = result.each.map { |row| row.is_a?(Hash) ? row.with_indifferent_access : row }
+              notification_payload[:row_count] = result.count
+              result
             end
           end
-
         end
 
         def with_identity_insert_enabled(table_name, conn)
@@ -278,13 +277,17 @@ module ActiveRecord
                   exclude_output_inserted = exclude_output_inserted_table_name?(table_name, sql)
 
                   if exclude_output_inserted
-                    quoted_pk = Array(pk).map { |subkey| SQLServer::Utils.extract_identifiers(subkey).quoted }
+                    pk_and_types = Array(pk).map do |subkey|
+                      {
+                        quoted: SQLServer::Utils.extract_identifiers(subkey).quoted,
+                        id_sql_type: exclude_output_inserted_id_sql_type(subkey, exclude_output_inserted)
+                      }
+                    end
 
-                    id_sql_type = exclude_output_inserted.is_a?(TrueClass) ? "bigint" : exclude_output_inserted
                     <<~SQL.squish
-                      DECLARE @ssaIdInsertTable table (#{quoted_pk.map { |subkey| "#{subkey} #{id_sql_type}"}.join(", ") });
-                      #{sql.dup.insert sql.index(/ (DEFAULT )?VALUES/i), " OUTPUT #{ quoted_pk.map { |subkey| "INSERTED.#{subkey}" }.join(", ") } INTO @ssaIdInsertTable"}
-                      SELECT #{quoted_pk.map {|subkey| "CAST(#{subkey} AS #{id_sql_type}) #{subkey}"}.join(", ")} FROM @ssaIdInsertTable
+                      DECLARE @ssaIdInsertTable table (#{pk_and_types.map { |pk_and_type| "#{pk_and_type[:quoted]} #{pk_and_type[:id_sql_type]}"}.join(", ") });
+                      #{sql.dup.insert sql.index(/ (DEFAULT )?VALUES/i), " OUTPUT #{ pk_and_types.map { |pk_and_type| "INSERTED.#{pk_and_type[:quoted]}" }.join(", ") } INTO @ssaIdInsertTable"}
+                      SELECT #{pk_and_types.map {|pk_and_type| "CAST(#{pk_and_type[:quoted]} AS #{pk_and_type[:id_sql_type]}) #{pk_and_type[:quoted]}"}.join(", ")} FROM @ssaIdInsertTable
                     SQL
                   else
                     returning_columns = returning || Array(pk)
@@ -325,11 +328,17 @@ module ActiveRecord
         end
 
         def sp_executesql_sql_type(attr)
-          return "nvarchar(max)".freeze if attr.is_a?(Symbol)
-          return attr.type.sqlserver_type if attr.type.respond_to?(:sqlserver_type)
+          if attr.respond_to?(:type)
+            return attr.type.sqlserver_type if attr.type.respond_to?(:sqlserver_type)
 
-          case value = attr.value_for_database
-          when Numeric
+            if attr.type.is_a?(ActiveRecord::Encryption::EncryptedAttributeType) && attr.type.instance_variable_get(:@cast_type).respond_to?(:sqlserver_type)
+              return attr.type.instance_variable_get(:@cast_type).sqlserver_type
+            end
+          end
+
+          value = basic_attribute_type?(attr) ? attr : attr.value_for_database
+
+          if value.is_a?(Numeric)
             value > 2_147_483_647 ? "bigint".freeze : "int".freeze
           else
             "nvarchar(max)".freeze
@@ -337,15 +346,24 @@ module ActiveRecord
         end
 
         def sp_executesql_sql_param(attr)
-          return quote(attr) if attr.is_a?(Symbol)
+          return quote(attr) if basic_attribute_type?(attr)
 
           case value = attr.value_for_database
-          when Type::Binary::Data,
-               ActiveRecord::Type::SQLServer::Data
+          when Type::Binary::Data, ActiveRecord::Type::SQLServer::Data
             quote(value)
           else
             quote(type_cast(value))
           end
+        end
+
+        def basic_attribute_type?(type)
+          type.is_a?(Symbol) ||
+            type.is_a?(String) ||
+            type.is_a?(Numeric) ||
+            type.is_a?(Time) ||
+            type.is_a?(TrueClass) ||
+            type.is_a?(FalseClass) ||
+            type.is_a?(NilClass)
         end
 
         def sp_executesql_sql(sql, types, params, name)
@@ -382,6 +400,12 @@ module ActiveRecord
           self.class.exclude_output_inserted_table_names[table_name]
         end
 
+        def exclude_output_inserted_id_sql_type(pk, exclude_output_inserted)
+          return "bigint" if exclude_output_inserted.is_a?(TrueClass)
+          return exclude_output_inserted[pk.to_sym] if exclude_output_inserted.is_a?(Hash)
+          exclude_output_inserted
+        end
+
         def query_requires_identity_insert?(sql)
           return false unless insert_sql?(sql)
 
@@ -414,7 +438,11 @@ module ActiveRecord
             qo[:as] = (options[:ar_result] || options[:fetch] == :rows) ? :array : :hash
           end
           results = handle.each(query_options)
-          columns = lowercase_schema_reflection ? handle.fields.map { |c| c.downcase } : handle.fields
+
+          columns = handle.fields
+          # If query returns multiple result sets, only return the columns of the last one.
+          columns = columns.last if columns.any? && columns.all? { |e| e.is_a?(Array) }
+          columns = columns.map(&:downcase) if lowercase_schema_reflection
 
           options[:ar_result] ? ActiveRecord::Result.new(columns, results) : results
         end

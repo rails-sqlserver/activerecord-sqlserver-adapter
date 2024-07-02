@@ -8,16 +8,16 @@ gemspec
 
 gem "bcrypt"
 gem "pg",      ">= 0.18.0"
-gem "sqlite3", "~> 1.4"
+gem "sqlite3", ">= 1.6.6"
 gem "tzinfo-data", platforms: [:mingw, :mswin, :x64_mingw, :jruby]
 gem "benchmark-ips"
-gem "minitest", ">= 5.15.0", "< 5.16"
+gem "minitest", ">= 5.15.0"
 gem "msgpack", ">= 1.7.0"
 
 if ENV["RAILS_SOURCE"]
   gemspec path: ENV["RAILS_SOURCE"]
-elsif ENV["RAILS_MAIN"]
-  gem "rails", github: "rails/rails", branch: 'main'
+elsif ENV["RAILS_BRANCH"]
+  gem "rails", github: "rails/rails", branch: ENV["RAILS_BRANCH"]
 else
   # Need to get rails source because the gem doesn't include tests
   version = ENV["RAILS_VERSION"] || begin

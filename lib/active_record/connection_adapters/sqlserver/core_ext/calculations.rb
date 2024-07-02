@@ -9,9 +9,10 @@ module ActiveRecord
       module CoreExt
         module Calculations
           def build_count_subquery(relation, column_name, distinct)
-            return super unless klass.connection.adapter_name == "SQLServer"
-
-            super(relation.unscope(:order), column_name, distinct)
+            klass.with_connection do |connection|
+              relation = relation.unscope(:order) if connection.sqlserver?
+              super(relation, column_name, distinct)
+            end
           end
         end
       end

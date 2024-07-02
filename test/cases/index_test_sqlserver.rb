@@ -19,29 +19,31 @@ class IndexTestSQLServer < ActiveRecord::TestCase
   end
 
   it "add index with order" do
-    assert_sql(/CREATE.*INDEX.*\(\[last_name\] DESC\)/i) do
+    assert_queries_match(/CREATE.*INDEX.*\(\[last_name\] DESC\)/i) do
       connection.add_index "testings", ["last_name"], order: { last_name: :desc }
       connection.remove_index "testings", ["last_name"]
     end
-    assert_sql(/CREATE.*INDEX.*\(\[last_name\] DESC, \[first_name\]\)/i) do
+    assert_queries_match(/CREATE.*INDEX.*\(\[last_name\] DESC, \[first_name\]\)/i) do
       connection.add_index "testings", ["last_name", "first_name"], order: { last_name: :desc }
       connection.remove_index "testings", ["last_name", "first_name"]
     end
-    assert_sql(/CREATE.*INDEX.*\(\[last_name\] DESC, \[first_name\] ASC\)/i) do
+    assert_queries_match(/CREATE.*INDEX.*\(\[last_name\] DESC, \[first_name\] ASC\)/i) do
       connection.add_index "testings", ["last_name", "first_name"], order: { last_name: :desc, first_name: :asc }
       connection.remove_index "testings", ["last_name", "first_name"]
     end
   end
 
   it "add index with where" do
-    assert_sql(/CREATE.*INDEX.*\(\[last_name\]\) WHERE \[first_name\] = N'john doe'/i) do
+    assert_queries_match(/CREATE.*INDEX.*\(\[last_name\]\) WHERE \[first_name\] = N'john doe'/i) do
       connection.add_index "testings", "last_name", where: "[first_name] = N'john doe'"
       connection.remove_index "testings", "last_name"
     end
   end
 
   it "add index with expression" do
-    connection.execute "ALTER TABLE [testings] ADD [first_name_upper] AS UPPER([first_name])"
-    connection.add_index "testings", "first_name_upper"
+    assert_nothing_raised do
+      connection.execute "ALTER TABLE [testings] ADD [first_name_upper] AS UPPER([first_name])"
+      connection.add_index "testings", "first_name_upper"
+    end
   end
 end

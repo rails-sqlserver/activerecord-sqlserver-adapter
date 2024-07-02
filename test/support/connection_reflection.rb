@@ -8,7 +8,7 @@ module ARTest
       included { extend ConnectionReflection }
 
       def connection
-        ActiveRecord::Base.connection
+        ActiveRecord::Base.lease_connection
       end
 
       def connection_options

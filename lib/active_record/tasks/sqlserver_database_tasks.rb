@@ -10,7 +10,7 @@ module ActiveRecord
     class SQLServerDatabaseTasks
       DEFAULT_COLLATION = "SQL_Latin1_General_CP1_CI_AS"
 
-      delegate :connection, :establish_connection, to: ActiveRecord::Base
+      delegate :with_connection, :establish_connection, to: ActiveRecord::Base
 
       def self.using_database_configurations?
         true
@@ -23,8 +23,10 @@ module ActiveRecord
 
       def create(master_established = false)
         establish_master_connection unless master_established
-        connection.create_database configuration.database, configuration_hash.merge(collation: default_collation)
-        establish_connection configuration
+        with_connection do |connection|
+          connection.create_database(configuration.database, configuration_hash.merge(collation: default_collation))
+        end
+        establish_connection(configuration)
       rescue ActiveRecord::StatementInvalid => e
         if /database .* already exists/i === e.message
           raise DatabaseAlreadyExists
@@ -35,15 +37,15 @@ module ActiveRecord
 
       def drop
         establish_master_connection
-        connection.drop_database configuration.database
+        with_connection { |connection| connection.drop_database(configuration.database) }
       end
 
       def charset
-        connection.charset
+        with_connection { |connection| connection.charset }
       end
 
       def collation
-        connection.collation
+        with_connection { |connection| connection.collation }
       end
 
       def purge
@@ -56,34 +58,38 @@ module ActiveRecord
         ActiveRecord::Base.connection_handler.clear_active_connections!(:all)
       end
 
-      def structure_dump(filename, extra_flags)
-        server_arg = "-S #{Shellwords.escape(configuration_hash[:host])}"
-        server_arg += ":#{Shellwords.escape(configuration_hash[:port])}" if configuration_hash[:port]
-        command = [
-          "defncopy-ttds",
-          server_arg,
-          "-D #{Shellwords.escape(configuration_hash[:database])}",
-          "-U #{Shellwords.escape(configuration_hash[:username])}",
-          "-P #{Shellwords.escape(configuration_hash[:password])}",
-          "-o #{Shellwords.escape(filename)}",
-        ]
-        table_args = connection.tables.map { |t| Shellwords.escape(t) }
-        command.concat(table_args)
-        view_args = connection.views.map { |v| Shellwords.escape(v) }
-        command.concat(view_args)
-        raise "Error dumping database" unless Kernel.system(command.join(" "))
+      def structure_dump(filename, _extra_flags)
+        with_connection do |connection|
+          server_arg = "-S #{Shellwords.escape(configuration_hash[:host])}"
+          server_arg += ":#{Shellwords.escape(configuration_hash[:port])}" if configuration_hash[:port]
+          command = [
+            "defncopy-ttds",
+            server_arg,
+            "-D #{Shellwords.escape(configuration_hash[:database])}",
+            "-U #{Shellwords.escape(configuration_hash[:username])}",
+            "-P #{Shellwords.escape(configuration_hash[:password])}",
+            "-o #{Shellwords.escape(filename)}",
+          ]
+          table_args = connection.tables.map { |t| Shellwords.escape(t) }
+          command.concat(table_args)
+          view_args = connection.views.map { |v| Shellwords.escape(v) }
+          command.concat(view_args)
+          raise "Error dumping database" unless Kernel.system(command.join(" "))
 
-        dump = File.read(filename)
-        dump.gsub!(/^USE .*$\nGO\n/, "")                      # Strip db USE statements
-        dump.gsub!(/^GO\n/, "")                               # Strip db GO statements
-        dump.gsub!(/nvarchar\(8000\)/, "nvarchar(4000)")      # Fix nvarchar(8000) column defs
-        dump.gsub!(/nvarchar\(-1\)/, "nvarchar(max)")         # Fix nvarchar(-1) column defs
-        dump.gsub!(/text\(\d+\)/, "text")                     # Fix text(16) column defs
-        File.open(filename, "w") { |file| file.puts dump }
+          dump = File.read(filename)
+          dump.gsub!(/^USE .*$\nGO\n/, "")                      # Strip db USE statements
+          dump.gsub!(/^GO\n/, "")                               # Strip db GO statements
+          dump.gsub!(/nvarchar\(8000\)/, "nvarchar(4000)")      # Fix nvarchar(8000) column defs
+          dump.gsub!(/nvarchar\(-1\)/, "nvarchar(max)")         # Fix nvarchar(-1) column defs
+          dump.gsub!(/text\(\d+\)/, "text")                     # Fix text(16) column defs
+          File.open(filename, "w") { |file| file.puts dump }
+        end
       end
 
-      def structure_load(filename, extra_flags)
-        connection.execute File.read(filename)
+      def structure_load(filename, _extra_flags)
+        with_connection do |connection|
+          connection.execute File.read(filename)
+        end
       end
 
       private

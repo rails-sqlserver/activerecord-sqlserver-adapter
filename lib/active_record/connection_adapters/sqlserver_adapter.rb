@@ -29,12 +29,13 @@ require "active_record/connection_adapters/sqlserver/showplan"
 require "active_record/connection_adapters/sqlserver/table_definition"
 require "active_record/connection_adapters/sqlserver/quoting"
 require "active_record/connection_adapters/sqlserver/utils"
-require "active_record/sqlserver_base"
 require "active_record/connection_adapters/sqlserver_column"
 require "active_record/tasks/sqlserver_database_tasks"
 
 module ActiveRecord
   module ConnectionAdapters
+    register "sqlserver", "ActiveRecord::ConnectionAdapters::SQLServerAdapter", "active_record/connection_adapters/sqlserver_adapter"
+
     class SQLServerAdapter < AbstractAdapter
       include SQLServer::Version,
               SQLServer::Quoting,
@@ -322,10 +323,6 @@ module ActiveRecord
 
       def version
         self.class::VERSION
-      end
-
-      def inspect
-        "#<#{self.class} version: #{version}, azure: #{sqlserver_azure?.inspect}>"
       end
 
       def combine_bind_parameters(from_clause: [], join_clause: [], where_clause: [], having_clause: [], limit: nil, offset: nil)

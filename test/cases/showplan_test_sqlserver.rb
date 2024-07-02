@@ -8,32 +8,32 @@ class ShowplanTestSQLServer < ActiveRecord::TestCase
 
   describe "Unprepare previously prepared SQL" do
     it "from simple statement" do
-      plan = Car.where(id: 1).explain
+      plan = Car.where(id: 1).explain.inspect
       _(plan).must_include "SELECT [cars].* FROM [cars] WHERE [cars].[id] = 1"
       _(plan).must_include "Clustered Index Seek", "make sure we do not showplan the sp_executesql"
     end
 
     it "from multiline statement" do
-      plan = Car.where("\n id = 1 \n").explain
+      plan = Car.where("\n id = 1 \n").explain.inspect
       _(plan).must_include "SELECT [cars].* FROM [cars] WHERE (\n id = 1 \n)"
       _(plan).must_include "Clustered Index Seek", "make sure we do not showplan the sp_executesql"
     end
 
     it "from prepared statement" do
-      plan = Car.where(name: ",").limit(1).explain
+      plan = Car.where(name: ",").limit(1).explain.inspect
       _(plan).must_include "SELECT [cars].* FROM [cars] WHERE [cars].[name]"
       _(plan).must_include "TOP EXPRESSION", "make sure we do not showplan the sp_executesql"
       _(plan).must_include "Clustered Index Scan", "make sure we do not showplan the sp_executesql"
     end
 
     it "from array condition using index" do
-      plan = Car.where(id: [1, 2]).explain
+      plan = Car.where(id: [1, 2]).explain.inspect
       _(plan).must_include "SELECT [cars].* FROM [cars] WHERE [cars].[id] IN (1, 2)"
       _(plan).must_include "Clustered Index Seek", "make sure we do not showplan the sp_executesql"
     end
 
     it "from array condition" do
-      plan = Car.where(name: ["honda", "zyke"]).explain
+      plan = Car.where(name: ["honda", "zyke"]).explain.inspect
       _(plan).must_include " SELECT [cars].* FROM [cars] WHERE [cars].[name] IN (N'honda', N'zyke')"
       _(plan).must_include "Clustered Index Scan", "make sure we do not showplan the sp_executesql"
     end
@@ -42,7 +42,7 @@ class ShowplanTestSQLServer < ActiveRecord::TestCase
   describe "With SHOWPLAN_TEXT option" do
     it "use simple table printer" do
       with_showplan_option("SHOWPLAN_TEXT") do
-        plan = Car.where(id: 1).explain
+        plan = Car.where(id: 1).explain.inspect
         _(plan).must_include "SELECT [cars].* FROM [cars] WHERE [cars].[id]"
         _(plan).must_include "Clustered Index Seek", "make sure we do not showplan the sp_executesql"
       end
@@ -52,7 +52,7 @@ class ShowplanTestSQLServer < ActiveRecord::TestCase
   describe "With SHOWPLAN_XML option" do
     it "show formatted xml" do
       with_showplan_option("SHOWPLAN_XML") do
-        plan = Car.where(id: 1).explain
+        plan = Car.where(id: 1).explain.inspect
         _(plan).must_include "ShowPlanXML"
       end
     end

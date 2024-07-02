@@ -7,21 +7,27 @@ require "pry"
 require "support/core_ext/query_cache"
 require "support/minitest_sqlserver"
 require "support/test_in_memory_oltp"
+require "support/table_definition_sqlserver"
 require "cases/helper"
 require "support/load_schema_sqlserver"
 require "support/coerceable_test_sqlserver"
-require "support/sql_counter_sqlserver"
 require "support/connection_reflection"
+require "support/query_assertions"
 require "mocha/minitest"
+
+module ActiveSupport
+  class TestCase < ::Minitest::Test
+    include ARTest::SQLServer::CoerceableTest
+  end
+end
 
 module ActiveRecord
   class TestCase < ActiveSupport::TestCase
     SQLServer = ActiveRecord::ConnectionAdapters::SQLServer
 
-    include ARTest::SQLServer::CoerceableTest,
-            ARTest::SQLServer::ConnectionReflection,
-            ARTest::SQLServer::SqlCounterSqlserver,
-            ActiveSupport::Testing::Stream
+    include ARTest::SQLServer::ConnectionReflection,
+            ActiveSupport::Testing::Stream,
+            ARTest::SQLServer::QueryAssertions
 
     let(:logger) { ActiveRecord::Base.logger }
 

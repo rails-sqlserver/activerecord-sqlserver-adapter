@@ -56,7 +56,7 @@ class UniquenessValidationWithIndexTest < ActiveRecord::TestCase
 
     t = Topic.create!(title: "abc")
     t.author_name = "John"
-    assert_queries(1) do
+    assert_queries_count(1) do
       t.valid?
     end
   end
@@ -197,7 +197,7 @@ class BasicsTest < ActiveRecord::TestCase
   # Use square brackets as SQL Server escaped character
   coerce_tests! :test_column_names_are_escaped
   def test_column_names_are_escaped_coerced
-    conn = ActiveRecord::Base.connection
+    conn = ActiveRecord::Base.lease_connection
     assert_equal "[t]]]", conn.quote_column_name("t]")
   end
 
@@ -229,18 +229,6 @@ class BasicsTest < ActiveRecord::TestCase
       end
     end
   end
-
-  # SQL Server does not have query for release_savepoint
-  coerce_tests! %r{an empty transaction does not raise if preventing writes}
-  test "an empty transaction does not raise if preventing writes coerced" do
-    ActiveRecord::Base.while_preventing_writes do
-      assert_queries(1, ignore_none: true) do
-        Bird.transaction do
-          ActiveRecord::Base.connection.materialize_transactions
-        end
-      end
-    end
-  end
 end
 
 class BelongsToAssociationsTest < ActiveRecord::TestCase
@@ -260,7 +248,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   def test_belongs_to_coerced
     client = Client.find(3)
     first_firm = companies(:first_firm)
-    assert_sql(/FETCH NEXT @(\d) ROWS ONLY(.)*@\1 = 1/) do
+    assert_queries_match(/FETCH NEXT @(\d) ROWS ONLY(.)*@\1 = 1/) do
       assert_equal first_firm, client.firm
       assert_equal first_firm.name, client.firm.name
     end
@@ -323,7 +311,7 @@ module ActiveRecord
 
       authors = Author.where(id: [1, 2, 3, nil])
       assert_equal sql_unprepared, @connection.to_sql(authors.arel)
-      assert_sql(prepared ? sql_prepared : sql_unprepared) { assert_equal 3, authors.length }
+      assert_queries_match(prepared ? sql_prepared : sql_unprepared) { assert_equal 3, authors.length }
 
       # prepared_statements: true
       #
@@ -338,7 +326,7 @@ module ActiveRecord
 
       authors = Author.where(id: [1, 2, 3, 9223372036854775808])
       assert_equal sql_unprepared, @connection.to_sql(authors.arel)
-      assert_sql(prepared ? sql_prepared : sql_unprepared) { assert_equal 3, authors.length }
+      assert_queries_match(prepared ? sql_prepared : sql_unprepared) { assert_equal 3, authors.length }
     end
   end
 end
@@ -350,6 +338,39 @@ module ActiveRecord
     def test_payload_name_on_load_coerced
       Book.send(:load_schema!)
       original_test_payload_name_on_load
+    end
+
+    # Need to remove index as SQL Server considers NULLs on a unique-index to be equal unlike PostgreSQL/MySQL/SQLite.
+    coerce_tests! :test_payload_row_count_on_select_all
+    def test_payload_row_count_on_select_all_coerced
+      connection.remove_index(:books, column: [:author_id, :name])
+
+      original_test_payload_row_count_on_select_all
+    ensure
+      Book.where(author_id: nil, name: 'row count book 1').delete_all
+      Book.lease_connection.add_index(:books, [:author_id, :name], unique: true)
+    end
+
+    # Need to remove index as SQL Server considers NULLs on a unique-index to be equal unlike PostgreSQL/MySQL/SQLite.
+    coerce_tests! :test_payload_row_count_on_pluck
+    def test_payload_row_count_on_pluck_coerced
+      connection.remove_index(:books, column: [:author_id, :name])
+
+      original_test_payload_row_count_on_pluck
+    ensure
+      Book.where(author_id: nil, name: 'row count book 2').delete_all
+      Book.lease_connection.add_index(:books, [:author_id, :name], unique: true)
+    end
+
+    # Need to remove index as SQL Server considers NULLs on a unique-index to be equal unlike PostgreSQL/MySQL/SQLite.
+    coerce_tests! :test_payload_row_count_on_raw_sql
+    def test_payload_row_count_on_raw_sql_coerced
+      connection.remove_index(:books, column: [:author_id, :name])
+
+      original_test_payload_row_count_on_raw_sql
+    ensure
+      Book.where(author_id: nil, name: 'row count book 3').delete_all
+      Book.lease_connection.add_index(:books, [:author_id, :name], unique: true)
     end
   end
 end
@@ -473,7 +494,7 @@ class CalculationsTest < ActiveRecord::TestCase
   # Match SQL Server limit implementation
   coerce_tests! :test_limit_is_kept
   def test_limit_is_kept_coerced
-    queries = capture_sql_ss { Account.limit(1).count }
+    queries = capture_sql { Account.limit(1).count }
     assert_equal 1, queries.length
     assert_match(/ORDER BY \[accounts\]\.\[id\] ASC OFFSET 0 ROWS FETCH NEXT @0 ROWS ONLY.*@0 = 1/, queries.first)
   end
@@ -481,7 +502,7 @@ class CalculationsTest < ActiveRecord::TestCase
   # Match SQL Server limit implementation
   coerce_tests! :test_limit_with_offset_is_kept
   def test_limit_with_offset_is_kept_coerced
-    queries = capture_sql_ss { Account.limit(1).offset(1).count }
+    queries = capture_sql { Account.limit(1).offset(1).count }
     assert_equal 1, queries.length
     assert_match(/ORDER BY \[accounts\]\.\[id\] ASC OFFSET @0 ROWS FETCH NEXT @1 ROWS ONLY.*@0 = 1, @1 = 1/, queries.first)
   end
@@ -490,8 +511,8 @@ class CalculationsTest < ActiveRecord::TestCase
   coerce_tests! :test_distinct_count_all_with_custom_select_and_order
   def test_distinct_count_all_with_custom_select_and_order_coerced
     accounts = Account.distinct.select("credit_limit % 10 AS the_limit").order(Arel.sql("credit_limit % 10"))
-    assert_queries(1) { assert_equal 3, accounts.count(:all) }
-    assert_queries(1) { assert_equal 3, accounts.load.size }
+    assert_queries_count(1) { assert_equal 3, accounts.count(:all) }
+    assert_queries_count(1) { assert_equal 3, accounts.load.size }
   end
 
   # Leave it up to users to format selects/functions so HAVING works correctly.
@@ -657,7 +678,7 @@ class MigrationTest < ActiveRecord::TestCase
   ensure
     Person.reset_column_information
     if Person.column_names.include?("last_name")
-      Person.connection.remove_column("people", "last_name")
+      Person.lease_connection.remove_column("people", "last_name")
     end
   end
 end
@@ -947,9 +968,9 @@ class FinderTest < ActiveRecord::TestCase
   # Assert SQL Server limit implementation
   coerce_tests! :test_take_and_first_and_last_with_integer_should_use_sql_limit
   def test_take_and_first_and_last_with_integer_should_use_sql_limit_coerced
-    assert_sql(/OFFSET 0 ROWS FETCH NEXT @0 ROWS ONLY.* @0 = 3/) { Topic.take(3).entries }
-    assert_sql(/OFFSET 0 ROWS FETCH NEXT @0 ROWS ONLY.* @0 = 2/) { Topic.first(2).entries }
-    assert_sql(/OFFSET 0 ROWS FETCH NEXT @0 ROWS ONLY.* @0 = 5/) { Topic.last(5).entries }
+    assert_queries_match(/OFFSET 0 ROWS FETCH NEXT @0 ROWS ONLY.* @0 = 3/) { Topic.take(3).entries }
+    assert_queries_match(/OFFSET 0 ROWS FETCH NEXT @0 ROWS ONLY.* @0 = 2/) { Topic.first(2).entries }
+    assert_queries_match(/OFFSET 0 ROWS FETCH NEXT @0 ROWS ONLY.* @0 = 5/) { Topic.last(5).entries }
   end
 
   # This fails only when run in the full test suite task. Just taking it out of the mix.
@@ -980,7 +1001,7 @@ class FinderTest < ActiveRecord::TestCase
   # Check for `FETCH NEXT x ROWS` rather then `LIMIT`.
   coerce_tests! :test_include_on_unloaded_relation_with_match
   def test_include_on_unloaded_relation_with_match_coerced
-    assert_sql(/1 AS one.*FETCH NEXT @2 ROWS ONLY.*@2 = 1/) do
+    assert_queries_match(/1 AS one.*FETCH NEXT @2 ROWS ONLY.*@2 = 1/) do
       assert_equal true, Customer.where(name: "David").include?(customers(:david))
     end
   end
@@ -988,7 +1009,7 @@ class FinderTest < ActiveRecord::TestCase
   # Check for `FETCH NEXT x ROWS` rather then `LIMIT`.
   coerce_tests! :test_include_on_unloaded_relation_without_match
   def test_include_on_unloaded_relation_without_match_coerced
-    assert_sql(/1 AS one.*FETCH NEXT @2 ROWS ONLY.*@2 = 1/) do
+    assert_queries_match(/1 AS one.*FETCH NEXT @2 ROWS ONLY.*@2 = 1/) do
       assert_equal false, Customer.where(name: "David").include?(customers(:mary))
     end
   end
@@ -996,7 +1017,7 @@ class FinderTest < ActiveRecord::TestCase
   # Check for `FETCH NEXT x ROWS` rather then `LIMIT`.
   coerce_tests! :test_member_on_unloaded_relation_with_match
   def test_member_on_unloaded_relation_with_match_coerced
-    assert_sql(/1 AS one.*FETCH NEXT @2 ROWS ONLY.*@2 = 1/) do
+    assert_queries_match(/1 AS one.*FETCH NEXT @2 ROWS ONLY.*@2 = 1/) do
       assert_equal true, Customer.where(name: "David").member?(customers(:david))
     end
   end
@@ -1004,7 +1025,7 @@ class FinderTest < ActiveRecord::TestCase
   # Check for `FETCH NEXT x ROWS` rather then `LIMIT`.
   coerce_tests! :test_member_on_unloaded_relation_without_match
   def test_member_on_unloaded_relation_without_match_coerced
-    assert_sql(/1 AS one.*FETCH NEXT @2 ROWS ONLY.*@2 = 1/) do
+    assert_queries_match(/1 AS one.*FETCH NEXT @2 ROWS ONLY.*@2 = 1/) do
       assert_equal false, Customer.where(name: "David").member?(customers(:mary))
     end
   end
@@ -1018,8 +1039,8 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal topics(:fifth), Topic.first
     assert_equal topics(:third), Topic.last
 
-    c = Topic.connection
-    assert_sql(/ORDER BY #{Regexp.escape(c.quote_table_name("topics.title"))} DESC, #{Regexp.escape(c.quote_table_name("topics.id"))} DESC OFFSET 0 ROWS FETCH NEXT @0 ROWS ONLY.*@0 = 1/i) {
+    c = Topic.lease_connection
+    assert_queries_match(/ORDER BY #{Regexp.escape(c.quote_table_name("topics.title"))} DESC, #{Regexp.escape(c.quote_table_name("topics.id"))} DESC OFFSET 0 ROWS FETCH NEXT @0 ROWS ONLY.*@0 = 1/i) {
       Topic.last
     }
   ensure
@@ -1032,8 +1053,8 @@ class FinderTest < ActiveRecord::TestCase
     old_implicit_order_column = Topic.implicit_order_column
     Topic.implicit_order_column = "id"
 
-    c = Topic.connection
-    assert_sql(/ORDER BY #{Regexp.escape(c.quote_table_name("topics.id"))} DESC OFFSET 0 ROWS FETCH NEXT @0 ROWS ONLY.*@0 = 1/i) {
+    c = Topic.lease_connection
+    assert_queries_match(/ORDER BY #{Regexp.escape(c.quote_table_name("topics.id"))} DESC OFFSET 0 ROWS FETCH NEXT @0 ROWS ONLY.*@0 = 1/i) {
       Topic.last
     }
   ensure
@@ -1046,9 +1067,9 @@ class FinderTest < ActiveRecord::TestCase
     old_implicit_order_column = NonPrimaryKey.implicit_order_column
     NonPrimaryKey.implicit_order_column = "created_at"
 
-    c = NonPrimaryKey.connection
+    c = NonPrimaryKey.lease_connection
 
-    assert_sql(/ORDER BY #{Regexp.escape(c.quote_table_name("non_primary_keys.created_at"))} DESC OFFSET 0 ROWS FETCH NEXT @0 ROWS ONLY.*@0 = 1/i) {
+    assert_queries_match(/ORDER BY #{Regexp.escape(c.quote_table_name("non_primary_keys.created_at"))} DESC OFFSET 0 ROWS FETCH NEXT @0 ROWS ONLY.*@0 = 1/i) {
       NonPrimaryKey.last
     }
   ensure
@@ -1058,7 +1079,7 @@ class FinderTest < ActiveRecord::TestCase
   # Check for `FETCH NEXT x ROWS` rather then `LIMIT`.
   coerce_tests! :test_member_on_unloaded_relation_with_composite_primary_key
   def test_member_on_unloaded_relation_with_composite_primary_key_coerced
-    assert_sql(/1 AS one.* FETCH NEXT @(\d) ROWS ONLY.*@\1 = 1/) do
+    assert_queries_match(/1 AS one.* FETCH NEXT @(\d) ROWS ONLY.*@\1 = 1/) do
       book = cpk_books(:cpk_great_author_first_book)
       assert Cpk::Book.where(title: "The first book").member?(book)
     end
@@ -1067,13 +1088,13 @@ class FinderTest < ActiveRecord::TestCase
   # Check for `FETCH NEXT x ROWS` rather then `LIMIT`.
   coerce_tests! :test_implicit_order_column_prepends_query_constraints
   def test_implicit_order_column_prepends_query_constraints_coerced
-    c = ClothingItem.connection
+    c = ClothingItem.lease_connection
     ClothingItem.implicit_order_column = "description"
     quoted_type = Regexp.escape(c.quote_table_name("clothing_items.clothing_type"))
     quoted_color = Regexp.escape(c.quote_table_name("clothing_items.color"))
     quoted_descrption = Regexp.escape(c.quote_table_name("clothing_items.description"))
 
-    assert_sql(/ORDER BY #{quoted_descrption} ASC, #{quoted_type} ASC, #{quoted_color} ASC OFFSET 0 ROWS FETCH NEXT @(\d) ROWS ONLY.*@\1 = 1/i) do
+    assert_queries_match(/ORDER BY #{quoted_descrption} ASC, #{quoted_type} ASC, #{quoted_color} ASC OFFSET 0 ROWS FETCH NEXT @(\d) ROWS ONLY.*@\1 = 1/i) do
       assert_kind_of ClothingItem, ClothingItem.first
     end
   ensure
@@ -1083,11 +1104,11 @@ class FinderTest < ActiveRecord::TestCase
   # Check for `FETCH NEXT x ROWS` rather then `LIMIT`.
   coerce_tests! %r{#last for a model with composite query constraints}
   test "#last for a model with composite query constraints coerced" do
-    c = ClothingItem.connection
+    c = ClothingItem.lease_connection
     quoted_type = Regexp.escape(c.quote_table_name("clothing_items.clothing_type"))
     quoted_color = Regexp.escape(c.quote_table_name("clothing_items.color"))
 
-    assert_sql(/ORDER BY #{quoted_type} DESC, #{quoted_color} DESC OFFSET 0 ROWS FETCH NEXT @(\d) ROWS ONLY.*@\1 = 1/i) do
+    assert_queries_match(/ORDER BY #{quoted_type} DESC, #{quoted_color} DESC OFFSET 0 ROWS FETCH NEXT @(\d) ROWS ONLY.*@\1 = 1/i) do
       assert_kind_of ClothingItem, ClothingItem.last
     end
   end
@@ -1095,11 +1116,11 @@ class FinderTest < ActiveRecord::TestCase
   # Check for `FETCH NEXT x ROWS` rather then `LIMIT`.
   coerce_tests! %r{#first for a model with composite query constraints}
   test "#first for a model with composite query constraints coerced" do
-    c = ClothingItem.connection
+    c = ClothingItem.lease_connection
     quoted_type = Regexp.escape(c.quote_table_name("clothing_items.clothing_type"))
     quoted_color = Regexp.escape(c.quote_table_name("clothing_items.color"))
 
-    assert_sql(/ORDER BY #{quoted_type} ASC, #{quoted_color} ASC OFFSET 0 ROWS FETCH NEXT @(\d) ROWS ONLY.*@\1 = 1/i) do
+    assert_queries_match(/ORDER BY #{quoted_type} ASC, #{quoted_color} ASC OFFSET 0 ROWS FETCH NEXT @(\d) ROWS ONLY.*@\1 = 1/i) do
       assert_kind_of ClothingItem, ClothingItem.first
     end
   end
@@ -1107,12 +1128,12 @@ class FinderTest < ActiveRecord::TestCase
   # Check for `FETCH NEXT x ROWS` rather then `LIMIT`.
   coerce_tests! :test_implicit_order_column_reorders_query_constraints
   def test_implicit_order_column_reorders_query_constraints_coerced
-    c = ClothingItem.connection
+    c = ClothingItem.lease_connection
     ClothingItem.implicit_order_column = "color"
     quoted_type = Regexp.escape(c.quote_table_name("clothing_items.clothing_type"))
     quoted_color = Regexp.escape(c.quote_table_name("clothing_items.color"))
 
-    assert_sql(/ORDER BY #{quoted_color} ASC, #{quoted_type} ASC OFFSET 0 ROWS FETCH NEXT @(\d) ROWS ONLY.*@\1 = 1/i) do
+    assert_queries_match(/ORDER BY #{quoted_color} ASC, #{quoted_type} ASC OFFSET 0 ROWS FETCH NEXT @(\d) ROWS ONLY.*@\1 = 1/i) do
       assert_kind_of ClothingItem, ClothingItem.first
     end
   ensure
@@ -1122,7 +1143,7 @@ class FinderTest < ActiveRecord::TestCase
   # Check for `FETCH NEXT x ROWS` rather then `LIMIT`.
   coerce_tests! :test_include_on_unloaded_relation_with_composite_primary_key
   def test_include_on_unloaded_relation_with_composite_primary_key_coerced
-    assert_sql(/1 AS one.*OFFSET 0 ROWS FETCH NEXT @(\d) ROWS ONLY.*@\1 = 1/) do
+    assert_queries_match(/1 AS one.*OFFSET 0 ROWS FETCH NEXT @(\d) ROWS ONLY.*@\1 = 1/) do
       book = cpk_books(:cpk_great_author_first_book)
       assert Cpk::Book.where(title: "The first book").include?(book)
     end
@@ -1131,12 +1152,12 @@ class FinderTest < ActiveRecord::TestCase
   # Check for `FETCH NEXT x ROWS` rather then `LIMIT`.
   coerce_tests! :test_nth_to_last_with_order_uses_limit
   def test_nth_to_last_with_order_uses_limit_coerced
-    c = Topic.connection
-    assert_sql(/ORDER BY #{Regexp.escape(c.quote_table_name("topics.id"))} DESC OFFSET @(\d) ROWS FETCH NEXT @(\d) ROWS ONLY.*@\1 = 1.*@\2 = 1/i) do
+    c = Topic.lease_connection
+    assert_queries_match(/ORDER BY #{Regexp.escape(c.quote_table_name("topics.id"))} DESC OFFSET @(\d) ROWS FETCH NEXT @(\d) ROWS ONLY.*@\1 = 1.*@\2 = 1/i) do
       Topic.second_to_last
     end
 
-    assert_sql(/ORDER BY #{Regexp.escape(c.quote_table_name("topics.updated_at"))} DESC OFFSET @(\d) ROWS FETCH NEXT @(\d) ROWS ONLY.*@\1 = 1.*@\2 = 1/i) do
+    assert_queries_match(/ORDER BY #{Regexp.escape(c.quote_table_name("topics.updated_at"))} DESC OFFSET @(\d) ROWS FETCH NEXT @(\d) ROWS ONLY.*@\1 = 1.*@\2 = 1/i) do
       Topic.order(:updated_at).second_to_last
     end
   end
@@ -1184,7 +1205,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
   def test_has_one_coerced
     firm = companies(:first_firm)
     first_account = Account.find(1)
-    assert_sql(/FETCH NEXT @(\d) ROWS ONLY(.)*@\1 = 1/) do
+    assert_queries_match(/FETCH NEXT @(\d) ROWS ONLY(.)*@\1 = 1/) do
       assert_equal first_account, firm.account
       assert_equal first_account.credit_limit, firm.account.credit_limit
     end
@@ -1196,7 +1217,7 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
   coerce_tests! :test_has_one_through_executes_limited_query
   def test_has_one_through_executes_limited_query_coerced
     boring_club = clubs(:boring_club)
-    assert_sql(/FETCH NEXT @(\d) ROWS ONLY(.)*@\1 = 1/) do
+    assert_queries_match(/FETCH NEXT @(\d) ROWS ONLY(.)*@\1 = 1/) do
       assert_equal boring_club, @member.general_club
     end
   end
@@ -1246,6 +1267,9 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_not_predicate topic, :approved?
     assert_equal "The First Topic", topic.title
   end
+
+  # In SQL Server it's not possible to set the primary key column using a trigger and to get it then to return.
+  coerce_tests! :test_model_with_no_auto_populated_fields_still_returns_primary_key_after_insert
 end
 
 require "models/author"
@@ -1257,7 +1281,7 @@ class UpdateAllTest < ActiveRecord::TestCase
     _(david.id).must_equal 1
     _(mary.id).must_equal 2
     _(david.name).wont_equal mary.name
-    assert_sql(/UPDATE.*\(SELECT \[authors\].\[id\] FROM \[authors\].*ORDER BY \[authors\].\[id\]/i) do
+    assert_queries_match(/UPDATE.*\(SELECT \[authors\].\[id\] FROM \[authors\].*ORDER BY \[authors\].\[id\]/i) do
       Author.where("[id] > 1").order(:id).update_all(name: "Test")
     end
     _(david.reload.name).must_equal "David"
@@ -1316,49 +1340,13 @@ module ActiveRecord
   end
 end
 
-class PrimaryKeysTest < ActiveRecord::TestCase
-  # SQL Server does not have query for release_savepoint
-  coerce_tests! :test_create_without_primary_key_no_extra_query
-  def test_create_without_primary_key_no_extra_query_coerced
-    klass = Class.new(ActiveRecord::Base) do
-      self.table_name = "dashboards"
-    end
-    klass.create! # warmup schema cache
-    assert_queries(2, ignore_none: true) { klass.create! }
-  end
-end
-
 require "models/task"
 class QueryCacheTest < ActiveRecord::TestCase
   # SQL Server adapter not in list of supported adapters in original test.
   coerce_tests! :test_cache_does_not_wrap_results_in_arrays
   def test_cache_does_not_wrap_results_in_arrays_coerced
     Task.cache do
-      assert_equal 2, Task.connection.select_value("SELECT count(*) AS count_all FROM tasks")
-    end
-  end
-
-  # Same as original test except that we expect one query to be performed to retrieve the table's primary key
-  # and we don't call `reload_type_map` because SQL Server adapter doesn't support it.
-  # When we generate the SQL for the `find` it includes ordering on the primary key. If we reset the column
-  # information then the primary key needs to be retrieved from the database again to generate the SQL causing the
-  # original test's `assert_no_queries` assertion to fail. Assert that the query was to get the primary key.
-  coerce_tests! :test_query_cached_even_when_types_are_reset
-  def test_query_cached_even_when_types_are_reset_coerced
-    Task.cache do
-      # Warm the cache
-      Task.find(1)
-
-      # Clear places where type information is cached
-      Task.reset_column_information
-      Task.initialize_find_by_cache
-      Task.define_attribute_methods
-
-      assert_queries(1, ignore_none: true) do
-        Task.find(1)
-      end
-
-      assert_includes ActiveRecord::SQLCounter.log_all.first, "TC.CONSTRAINT_TYPE = N''PRIMARY KEY''"
+      assert_equal 2, Task.lease_connection.select_value("SELECT count(*) AS count_all FROM tasks")
     end
   end
 end
@@ -1436,7 +1424,7 @@ class RelationTest < ActiveRecord::TestCase
   # Find any limit via our expression.
   coerce_tests! %r{relations don't load all records in #inspect}
   def test_relations_dont_load_all_records_in_inspect_coerced
-    assert_sql(/NEXT @0 ROWS.*@0 = \d+/) do
+    assert_queries_match(/NEXT @0 ROWS.*@0 = \d+/) do
       Post.all.inspect
     end
   end
@@ -1444,7 +1432,7 @@ class RelationTest < ActiveRecord::TestCase
   # Find any limit via our expression.
   coerce_tests! %r{relations don't load all records in #pretty_print}
   def test_relations_dont_load_all_records_in_pretty_print_coerced
-    assert_sql(/FETCH NEXT @(\d) ROWS ONLY/) do
+    assert_queries_match(/FETCH NEXT @(\d) ROWS ONLY/) do
       PP.pp Post.all, StringIO.new # avoid outputting.
     end
   end
@@ -1454,11 +1442,11 @@ class RelationTest < ActiveRecord::TestCase
   def test_empty_complex_chained_relations_coerced
     posts = Post.select("comments_count").where("id is not null").group("author_id", "id").where("legacy_comments_count > 0")
 
-    assert_queries(1) { assert_equal false, posts.empty? }
+    assert_queries_count(1) { assert_equal false, posts.empty? }
     assert_not_predicate posts, :loaded?
 
     no_posts = posts.where(title: "")
-    assert_queries(1) { assert_equal true, no_posts.empty? }
+    assert_queries_count(1) { assert_equal true, no_posts.empty? }
     assert_not_predicate no_posts, :loaded?
   end
 
@@ -1493,7 +1481,7 @@ module ActiveRecord
 
     coerce_tests! :test_does_not_duplicate_optimizer_hints_on_merge
     def test_does_not_duplicate_optimizer_hints_on_merge_coerced
-      escaped_table = Post.connection.quote_table_name("posts")
+      escaped_table = Post.lease_connection.quote_table_name("posts")
       expected = "SELECT #{escaped_table}.* FROM #{escaped_table} OPTION (OMGHINT)"
       query = Post.optimizer_hints("OMGHINT").merge(Post.optimizer_hints("OMGHINT")).to_sql
       assert_equal expected, query
@@ -1516,11 +1504,11 @@ class SanitizeTest < ActiveRecord::TestCase
       }
     end
 
-    assert_sql(/LIKE N'20!% !_reduction!_!!'/) do
+    assert_queries_match(/LIKE @0/) do
       searchable_post.search_as_method("20% _reduction_!").to_a
     end
 
-    assert_sql(/LIKE N'20!% !_reduction!_!!'/) do
+    assert_queries_match(/LIKE @0/) do
       searchable_post.search_as_scope("20% _reduction_!").to_a
     end
   end
@@ -1542,9 +1530,9 @@ class SchemaDumperTest < ActiveRecord::TestCase
       @schema_migration.create_version(v)
     end
 
-    schema_info = ActiveRecord::Base.connection.dump_schema_information
+    schema_info = ActiveRecord::Base.lease_connection.dump_schema_information
     expected = <<~STR
-    INSERT INTO #{ActiveRecord::Base.connection.quote_table_name("schema_migrations")} (version) VALUES
+    INSERT INTO #{ActiveRecord::Base.lease_connection.quote_table_name("schema_migrations")} (version) VALUES
     (N'20100301010101'),
     (N'20100201010101'),
     (N'20100101010101');
@@ -1602,7 +1590,7 @@ class SchemaDumperDefaultsCoerceTest < ActiveRecord::TestCase
   include SchemaDumpingHelper
 
   setup do
-    @connection = ActiveRecord::Base.connection
+    @connection = ActiveRecord::Base.lease_connection
     @connection.create_table :dump_defaults, force: true do |t|
       t.string   :string_with_default,   default: "Hello!"
       t.date     :date_with_default,     default: "2014-06-05"
@@ -1634,21 +1622,24 @@ class TransactionTest < ActiveRecord::TestCase
   coerce_tests! :test_releasing_named_savepoints
   def test_releasing_named_savepoints_coerced
     Topic.transaction do
-      Topic.connection.materialize_transactions
+      Topic.lease_connection.materialize_transactions
 
-      Topic.connection.create_savepoint("another")
-      Topic.connection.release_savepoint("another")
-      # We do not have a notion of releasing, so this does nothing vs raise an error.
-      Topic.connection.release_savepoint("another")
+      Topic.lease_connection.create_savepoint("another")
+      Topic.lease_connection.release_savepoint("another")
+
+      # We do not have a notion of releasing, so this does nothing and doesn't raise an error.
+      assert_nothing_raised do
+        Topic.lease_connection.release_savepoint("another")
+      end
     end
   end
 
   # SQL Server does not have query for release_savepoint.
   coerce_tests! :test_nested_transactions_after_disable_lazy_transactions
   def test_nested_transactions_after_disable_lazy_transactions_coerced
-    Topic.connection.disable_lazy_transactions!
+    Topic.lease_connection.disable_lazy_transactions!
 
-    capture_sql do
+    actual_queries = capture_sql(include_schema: true) do
       # RealTransaction (begin..commit)
       Topic.transaction(requires_new: true) do
         # ResetParentTransaction (no queries)
@@ -1665,8 +1656,6 @@ class TransactionTest < ActiveRecord::TestCase
         Topic.delete_all
       end
     end
-
-    actual_queries = ActiveRecord::SQLCounter.log_all
 
     expected_queries = [
       /BEGIN/i,
@@ -1685,7 +1674,7 @@ class TransactionTest < ActiveRecord::TestCase
   # SQL Server does not have query for release_savepoint.
   coerce_tests! :test_nested_transactions_skip_excess_savepoints
   def test_nested_transactions_skip_excess_savepoints_coerced
-    capture_sql do
+    actual_queries = capture_sql(include_schema: true) do
       # RealTransaction (begin..commit)
       Topic.transaction(requires_new: true) do
         # ResetParentTransaction (no queries)
@@ -1702,8 +1691,6 @@ class TransactionTest < ActiveRecord::TestCase
         Topic.delete_all
       end
     end
-
-    actual_queries = ActiveRecord::SQLCounter.log_all
 
     expected_queries = [
       /BEGIN/i,
@@ -1889,12 +1876,12 @@ module ActiveRecord
     # Need to remove index as SQL Server considers NULLs on a unique-index to be equal unlike PostgreSQL/MySQL/SQLite.
     coerce_tests! :test_statement_cache_values_differ
     def test_statement_cache_values_differ_coerced
-      Book.connection.remove_index(:books, column: [:author_id, :name])
+      Book.lease_connection.remove_index(:books, column: [:author_id, :name])
 
       original_test_statement_cache_values_differ
     ensure
       Book.where(author_id: nil, name: 'my book').delete_all
-      Book.connection.add_index(:books, [:author_id, :name], unique: true)
+      Book.lease_connection.add_index(:books, [:author_id, :name], unique: true)
     end
   end
 end
@@ -2124,14 +2111,14 @@ class RelationMergingTest < ActiveRecord::TestCase
 
     non_mary_and_bob = Author.where.not(id: [mary, bob])
 
-    author_id = Author.connection.quote_table_name("authors.id")
-    assert_sql(/WHERE #{Regexp.escape(author_id)} NOT IN \((@\d), \g<1>\)'/) do
+    author_id = Author.lease_connection.quote_table_name("authors.id")
+    assert_queries_match(/WHERE #{Regexp.escape(author_id)} NOT IN \((@\d), \g<1>\)'/) do
       assert_equal [david], non_mary_and_bob.merge(non_mary_and_bob)
     end
 
     only_david = Author.where("#{author_id} IN (?)", david)
 
-    assert_sql(/WHERE \(#{Regexp.escape(author_id)} IN \(1\)\)\z/) do
+    assert_queries_match(/WHERE \(#{Regexp.escape(author_id)} IN \(@\d\)\)/) do
       assert_equal [david], only_david.merge(only_david)
     end
   end
@@ -2151,56 +2138,56 @@ class EnumTest < ActiveRecord::TestCase
   # Need to remove index as SQL Server considers NULLs on a unique-index to be equal unlike PostgreSQL/MySQL/SQLite.
   coerce_tests! %r{enums are distinct per class}
   test "enums are distinct per class coerced" do
-    Book.connection.remove_index(:books, column: [:author_id, :name])
+    Book.lease_connection.remove_index(:books, column: [:author_id, :name])
 
     send(:'original_enums are distinct per class')
   ensure
     Book.where(author_id: nil, name: nil).delete_all
-    Book.connection.add_index(:books, [:author_id, :name], unique: true)
+    Book.lease_connection.add_index(:books, [:author_id, :name], unique: true)
   end
 
   # Need to remove index as SQL Server considers NULLs on a unique-index to be equal unlike PostgreSQL/MySQL/SQLite.
   coerce_tests! %r{creating new objects with enum scopes}
   test "creating new objects with enum scopes coerced" do
-    Book.connection.remove_index(:books, column: [:author_id, :name])
+    Book.lease_connection.remove_index(:books, column: [:author_id, :name])
 
     send(:'original_creating new objects with enum scopes')
   ensure
     Book.where(author_id: nil, name: nil).delete_all
-    Book.connection.add_index(:books, [:author_id, :name], unique: true)
+    Book.lease_connection.add_index(:books, [:author_id, :name], unique: true)
   end
 
   # Need to remove index as SQL Server considers NULLs on a unique-index to be equal unlike PostgreSQL/MySQL/SQLite.
   coerce_tests! %r{enums are inheritable}
   test "enums are inheritable coerced" do
-    Book.connection.remove_index(:books, column: [:author_id, :name])
+    Book.lease_connection.remove_index(:books, column: [:author_id, :name])
 
     send(:'original_enums are inheritable')
   ensure
     Book.where(author_id: nil, name: nil).delete_all
-    Book.connection.add_index(:books, [:author_id, :name], unique: true)
+    Book.lease_connection.add_index(:books, [:author_id, :name], unique: true)
   end
 
   # Need to remove index as SQL Server considers NULLs on a unique-index to be equal unlike PostgreSQL/MySQL/SQLite.
   coerce_tests! %r{declare multiple enums at a time}
   test "declare multiple enums at a time coerced" do
-    Book.connection.remove_index(:books, column: [:author_id, :name])
+    Book.lease_connection.remove_index(:books, column: [:author_id, :name])
 
     send(:'original_declare multiple enums at a time')
   ensure
     Book.where(author_id: nil, name: nil).delete_all
-    Book.connection.add_index(:books, [:author_id, :name], unique: true)
+    Book.lease_connection.add_index(:books, [:author_id, :name], unique: true)
   end
 
   # Need to remove index as SQL Server considers NULLs on a unique-index to be equal unlike PostgreSQL/MySQL/SQLite.
   coerce_tests! %r{serializable\? with large number label}
   test "serializable? with large number label coerced" do
-    Book.connection.remove_index(:books, column: [:author_id, :name])
+    Book.lease_connection.remove_index(:books, column: [:author_id, :name])
 
     send(:'original_serializable\? with large number label')
   ensure
     Book.where(author_id: nil, name: nil).delete_all
-    Book.connection.add_index(:books, [:author_id, :name], unique: true)
+    Book.lease_connection.add_index(:books, [:author_id, :name], unique: true)
   end
 end
 
@@ -2213,24 +2200,22 @@ class QueryCacheExpiryTest < ActiveRecord::TestCase
       Task.cache { Task.insert({ starting: Time.now }) }
     end
 
-    assert_called(ActiveRecord::Base.connection, :clear_query_cache, times: 2) do
-      Task.cache { Task.insert_all!([{ starting: Time.now }]) }
-    end
-
-    assert_called(ActiveRecord::Base.connection, :clear_query_cache, times: 2) do
-      Task.cache { Task.insert!({ starting: Time.now }) }
-    end
-
-    assert_called(ActiveRecord::Base.connection, :clear_query_cache, times: 2) do
-      Task.cache { Task.insert_all!([{ starting: Time.now }]) }
-    end
-
     assert_raises(ArgumentError, /does not support upsert/) do
       Task.cache { Task.upsert({ starting: Time.now }) }
     end
 
     assert_raises(ArgumentError, /does not support upsert/) do
       Task.cache { Task.upsert_all([{ starting: Time.now }]) }
+    end
+
+    Task.cache do
+      assert_called(ActiveRecord::Base.connection_pool.query_cache, :clear, times: 1) do
+        Task.insert_all!([ starting: Time.now ])
+      end
+
+      assert_called(ActiveRecord::Base.connection_pool.query_cache, :clear, times: 1) do
+        Task.insert!({ starting: Time.now })
+      end
     end
   end
 end
@@ -2253,7 +2238,7 @@ class EagerLoadingTooManyIdsTest < ActiveRecord::TestCase
 
     # Perform test
     citation_count = Citation.count
-    assert_sql(/WHERE \[citations\]\.\[id\] IN \(0, 1/) do
+    assert_queries_match(/WHERE \[citations\]\.\[id\] IN \(0, 1/) do
       assert_equal citation_count, Citation.eager_load(:citations).offset(0).size
     end
   end
@@ -2287,7 +2272,7 @@ class MarshalSerializationTest < ActiveRecord::TestCase
   undef_method :marshal_fixture_path
   def marshal_fixture_path(file_name)
     File.expand_path(
-      "support/marshal_compatibility_fixtures/#{ActiveRecord::Base.connection.adapter_name}/#{file_name}.dump",
+      "support/marshal_compatibility_fixtures/#{ActiveRecord::Base.lease_connection.adapter_name}/#{file_name}.dump",
       ARTest::SQLServer.test_root_sqlserver
     )
   end
@@ -2338,7 +2323,7 @@ class PreloaderTest < ActiveRecord::TestCase
     assert_equal 2, sql.size
     preload_sql = sql.last
 
-    c = Cpk::OrderAgreement.connection
+    c = Cpk::OrderAgreement.lease_connection
     order_id_column = Regexp.escape(c.quote_table_name("cpk_order_agreements.order_id"))
     order_id_constraint = /#{order_id_column} = @0.*@0 = \d+$/
     expectation = /SELECT.*WHERE.* #{order_id_constraint}/
@@ -2362,27 +2347,13 @@ class PreloaderTest < ActiveRecord::TestCase
     assert_equal 2, sql.size
     preload_sql = sql.last
 
-    c = Cpk::Order.connection
+    c = Cpk::Order.lease_connection
     order_id = Regexp.escape(c.quote_table_name("cpk_orders.id"))
     order_constraint = /#{order_id} = @0.*@0 = \d+$/
     expectation = /SELECT.*WHERE.* #{order_constraint}/
 
     assert_match(expectation, preload_sql)
     assert_equal order, loaded_order_agreement.order
-  end
-end
-
-class BasePreventWritesTest < ActiveRecord::TestCase
-  # SQL Server does not have query for release_savepoint
-  coerce_tests! %r{an empty transaction does not raise if preventing writes}
-  test "an empty transaction does not raise if preventing writes coerced" do
-    ActiveRecord::Base.while_preventing_writes do
-      assert_queries(1, ignore_none: true) do
-        Bird.transaction do
-          ActiveRecord::Base.connection.materialize_transactions
-        end
-      end
-    end
   end
 end
 
@@ -2401,45 +2372,45 @@ class FieldOrderedValuesTest < ActiveRecord::TestCase
   # Need to remove index as SQL Server considers NULLs on a unique-index to be equal unlike PostgreSQL/MySQL/SQLite.
   coerce_tests! :test_in_order_of_with_enums_values
   def test_in_order_of_with_enums_values_coerced
-    Book.connection.remove_index(:books, column: [:author_id, :name])
+    Book.lease_connection.remove_index(:books, column: [:author_id, :name])
 
     original_test_in_order_of_with_enums_values
   ensure
     Book.where(author_id: nil, name: nil).delete_all
-    Book.connection.add_index(:books, [:author_id, :name], unique: true)
+    Book.lease_connection.add_index(:books, [:author_id, :name], unique: true)
   end
 
   # Need to remove index as SQL Server considers NULLs on a unique-index to be equal unlike PostgreSQL/MySQL/SQLite.
   coerce_tests! :test_in_order_of_with_string_column
   def test_in_order_of_with_string_column_coerced
-    Book.connection.remove_index(:books, column: [:author_id, :name])
+    Book.lease_connection.remove_index(:books, column: [:author_id, :name])
 
     original_test_in_order_of_with_string_column
   ensure
     Book.where(author_id: nil, name: nil).delete_all
-    Book.connection.add_index(:books, [:author_id, :name], unique: true)
+    Book.lease_connection.add_index(:books, [:author_id, :name], unique: true)
   end
 
   # Need to remove index as SQL Server considers NULLs on a unique-index to be equal unlike PostgreSQL/MySQL/SQLite.
   coerce_tests! :test_in_order_of_with_enums_keys
   def test_in_order_of_with_enums_keys_coerced
-    Book.connection.remove_index(:books, column: [:author_id, :name])
+    Book.lease_connection.remove_index(:books, column: [:author_id, :name])
 
     original_test_in_order_of_with_enums_keys
   ensure
     Book.where(author_id: nil, name: nil).delete_all
-    Book.connection.add_index(:books, [:author_id, :name], unique: true)
+    Book.lease_connection.add_index(:books, [:author_id, :name], unique: true)
   end
 
   # Need to remove index as SQL Server considers NULLs on a unique-index to be equal unlike PostgreSQL/MySQL/SQLite.
   coerce_tests! :test_in_order_of_with_nil
   def test_in_order_of_with_nil_coerced
-    Book.connection.remove_index(:books, column: [:author_id, :name])
+    Book.lease_connection.remove_index(:books, column: [:author_id, :name])
 
     original_test_in_order_of_with_nil
   ensure
     Book.where(author_id: nil, name: nil).delete_all
-    Book.connection.add_index(:books, [:author_id, :name], unique: true)
+    Book.lease_connection.add_index(:books, [:author_id, :name], unique: true)
   end
 end
 
@@ -2449,7 +2420,7 @@ class QueryLogsTest < ActiveRecord::TestCase
   coerce_tests! :test_sql_commenter_format
   def test_sql_commenter_format_coerced
     ActiveRecord::QueryLogs.update_formatter(:sqlcommenter)
-    assert_sql(%r{/\*application=''active_record''\*/}) do
+    assert_queries_match(%r{/\*application=''active_record''\*/}) do
       Dashboard.first
     end
   end
@@ -2464,7 +2435,7 @@ class QueryLogsTest < ActiveRecord::TestCase
       { tracestate: "congo=t61rcWkgMzE,rojo=00f067aa0ba902b7", custom_proc: -> { "Joe's Shack" } },
     ]
 
-    assert_sql(%r{custom_proc=''Joe%27s%20Shack'',tracestate=''congo%3Dt61rcWkgMzE%2Crojo%3D00f067aa0ba902b7''\*/}) do
+    assert_queries_match(%r{custom_proc=''Joe%27s%20Shack'',tracestate=''congo%3Dt61rcWkgMzE%2Crojo%3D00f067aa0ba902b7''\*/}) do
       Dashboard.first
     end
   end
@@ -2479,7 +2450,26 @@ class QueryLogsTest < ActiveRecord::TestCase
       { custom_proc: -> { 1234 } },
     ]
 
-    assert_sql(%r{custom_proc=''1234''\*/}) do
+    assert_queries_match(%r{custom_proc=''1234''\*/}) do
+      Dashboard.first
+    end
+  end
+
+  # SQL requires double single-quotes.
+  coerce_tests! :test_sqlcommenter_format_allows_string_keys
+  def test_sqlcommenter_format_allows_string_keys_coerced
+    ActiveRecord::QueryLogs.update_formatter(:sqlcommenter)
+
+    ActiveRecord::QueryLogs.tags = [
+      :application,
+      {
+        "string" => "value",
+        tracestate: "congo=t61rcWkgMzE,rojo=00f067aa0ba902b7",
+        custom_proc: -> { "Joe's Shack" }
+      },
+    ]
+
+    assert_queries_match(%r{custom_proc=''Joe%27s%20Shack'',string=''value'',tracestate=''congo%3Dt61rcWkgMzE%2Crojo%3D00f067aa0ba902b7''\*/}) do
       Dashboard.first
     end
   end
@@ -2489,7 +2479,7 @@ class QueryLogsTest < ActiveRecord::TestCase
   def test_invalid_encoding_query_coerced
     ActiveRecord::QueryLogs.tags = [ :application ]
     assert_raises ActiveRecord::StatementInvalid do
-      ActiveRecord::Base.connection.execute "select 1 as '\xFF'"
+      ActiveRecord::Base.lease_connection.execute "select 1 as '\xFF'"
     end
   end
 end
@@ -2646,3 +2636,125 @@ module ActiveRecord
     end
   end
 end
+
+module ActiveRecord
+  module ConnectionAdapters
+    class PoolConfig
+      class ResolverTest < ActiveRecord::TestCase
+        # SQL Server was not included in the list of available adapters in the error message.
+        coerce_tests! :test_url_invalid_adapter
+        def test_url_invalid_adapter_coerced
+          error = assert_raises(AdapterNotFound) do
+            Base.connection_handler.establish_connection "ridiculous://foo?encoding=utf8"
+          end
+
+          assert_match "Database configuration specifies nonexistent 'ridiculous' adapter. Available adapters are: abstract, fake, mysql2, postgresql, sqlite3, sqlserver, trilogy. Ensure that the adapter is spelled correctly in config/database.yml and that you've added the necessary adapter gem to your Gemfile if it's not in the list of available adapters.", error.message
+        end
+      end
+    end
+  end
+end
+
+module ActiveRecord
+  class TableMetadataTest < ActiveSupport::TestCase
+    # Adapter returns an object that is subclass of what is expected in the original test.
+    coerce_tests! %r{#associated_table creates the right type caster for joined table with different association name}
+    def associated_table_creates_the_right_type_caster_for_joined_table_with_different_association_name_coerced
+      base_table_metadata = TableMetadata.new(AuditRequiredDeveloper, Arel::Table.new("developers"))
+
+      associated_table_metadata = base_table_metadata.associated_table("audit_logs")
+
+      assert associated_table_metadata.arel_table.type_for_attribute(:message).is_a?(ActiveRecord::Type::String)
+    end
+  end
+end
+
+module ActiveRecord
+  module TypeCaster
+    class ConnectionTest < ActiveSupport::TestCase
+      # Adapter returns an object that is subclass of what is expected in the original test.
+      coerce_tests! %r{#type_for_attribute is not aware of custom types}
+      def type_for_attribute_is_not_aware_of_custom_types_coerced
+        type_caster = Connection.new(AttributedDeveloper, "developers")
+
+        type = type_caster.type_for_attribute(:name)
+
+        assert_not_equal DeveloperName, type.class
+        assert type.is_a?(ActiveRecord::Type::String)
+      end
+    end
+  end
+end
+
+require "models/car"
+class ExplainTest < ActiveRecord::TestCase
+  # Expected query slightly different from because of 'sp_executesql' and query parameters.
+  coerce_tests! :test_relation_explain_with_first
+  def test_relation_explain_with_first_coerced
+    expected_query = capture_sql {
+      Car.all.first
+    }.first[/EXEC sp_executesql N'(.*?) NEXT/, 1]
+    message = Car.all.explain.first
+    assert_match(/^EXPLAIN/, message)
+    assert_match(expected_query, message)
+  end
+
+  # Expected query slightly different from because of 'sp_executesql' and query parameters.
+  coerce_tests! :test_relation_explain_with_last
+  def test_relation_explain_with_last_coerced
+    expected_query = capture_sql {
+      Car.all.last
+    }.first[/EXEC sp_executesql N'(.*?) NEXT/, 1]
+    expected_query = expected_query
+    message = Car.all.explain.last
+
+    assert_match(/^EXPLAIN/, message)
+    assert_match(expected_query, message)
+  end
+end
+
+module ActiveRecord
+  module Assertions
+    class QueryAssertionsTest < ActiveSupport::TestCase
+      # Query slightly different in original test.
+      coerce_tests! :test_assert_queries_match
+      def test_assert_queries_match_coerced
+        assert_queries_match(/ASC OFFSET 0 ROWS FETCH NEXT @0 ROWS ONLY/i, count: 1) { Post.first }
+        assert_queries_match(/ASC OFFSET 0 ROWS FETCH NEXT @0 ROWS ONLY/i) { Post.first }
+
+        error = assert_raises(Minitest::Assertion) {
+          assert_queries_match(/ASC OFFSET 0 ROWS FETCH NEXT @0 ROWS ONLY/i, count: 2) { Post.first }
+        }
+        assert_match(/1 instead of 2 queries/, error.message)
+
+        error = assert_raises(Minitest::Assertion) {
+          assert_queries_match(/ASC OFFSET 0 ROWS FETCH NEXT @0 ROWS ONLY/i, count: 0) { Post.first }
+        }
+        assert_match(/1 instead of 0 queries/, error.message)
+      end
+    end
+  end
+end
+
+module ActiveRecord
+  class WithTest < ActiveRecord::TestCase
+    # SQL contains just 'WITH' instead of 'WITH RECURSIVE' as expected by the original test.
+    coerce_tests! :test_with_recursive
+    def test_with_recursive_coerced
+      top_companies = Company.where(firm_id: nil).to_a
+      child_companies = Company.where(firm_id: top_companies).to_a
+      top_companies_and_children = (top_companies.map(&:id) + child_companies.map(&:id)).sort
+
+      relation = Company.with_recursive(
+        top_companies_and_children: [
+          Company.where(firm_id: nil),
+          Company.joins("JOIN top_companies_and_children ON companies.firm_id = top_companies_and_children.id"),
+        ]
+      ).from("top_companies_and_children AS companies")
+
+      assert_equal top_companies_and_children, relation.order(:id).pluck(:id)
+      assert_match "WITH ", relation.to_sql
+    end
+  end
+end
+

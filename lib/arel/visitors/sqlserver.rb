@@ -30,10 +30,46 @@ module Arel
       end
 
       def visit_Arel_Nodes_UpdateStatement(o, collector)
-        if o.orders.any? && o.limit.nil?
-          o.limit = Nodes::Limit.new(9_223_372_036_854_775_807)
+        if has_join_and_composite_primary_key?(o)
+          update_statement_using_join(o, collector)
+        else
+          o.limit = Nodes::Limit.new(9_223_372_036_854_775_807) if o.orders.any? && o.limit.nil?
+
+          super
         end
-        super
+      end
+
+      def visit_Arel_Nodes_DeleteStatement(o, collector)
+        if has_join_and_composite_primary_key?(o)
+          delete_statement_using_join(o, collector)
+        else
+          super
+        end
+      end
+
+      def has_join_and_composite_primary_key?(o)
+        has_join_sources?(o) && o.relation.left.instance_variable_get(:@klass).composite_primary_key?
+      end
+
+      def delete_statement_using_join(o, collector)
+        collector.retryable = false
+
+        collector << "DELETE "
+        visit o.relation.left, collector
+        collector << " FROM "
+        visit o.relation, collector
+        collect_nodes_for o.wheres, collector, " WHERE ", " AND "
+      end
+
+      def update_statement_using_join(o, collector)
+        collector.retryable = false
+
+        collector << "UPDATE "
+        visit o.relation.left, collector
+        collect_nodes_for o.values, collector, " SET "
+        collector << " FROM "
+        visit o.relation, collector
+        collect_nodes_for o.wheres, collector, " WHERE ", " AND "
       end
 
       def visit_Arel_Nodes_Lock(o, collector)
@@ -129,10 +165,12 @@ module Arel
         # github.com/rails-sqlserver/activerecord-sqlserver-adapter/issues/450
         table_name =
           begin
-            if o.class.engine.connection.respond_to?(:sqlserver?) && o.class.engine.connection.database_prefix_remote_server?
-              remote_server_table_name(o)
-            else
-              quote_table_name(o.name)
+            o.class.engine.with_connection do |connection|
+              if connection.respond_to?(:sqlserver?) && connection.database_prefix_remote_server?
+                remote_server_table_name(o)
+              else
+                quote_table_name(o.name)
+              end
             end
           rescue Exception
             quote_table_name(o.name)
@@ -199,6 +237,11 @@ module Arel
 
       def collect_optimizer_hints(o, collector)
         collector
+      end
+
+      def visit_Arel_Nodes_WithRecursive(o, collector)
+        collector << "WITH "
+        collect_ctes(o.children, collector)
       end
 
       # SQLServer ToSql/Visitor (Additions)
@@ -315,14 +358,16 @@ module Arel
       end
 
       def remote_server_table_name(o)
-        ActiveRecord::ConnectionAdapters::SQLServer::Utils.extract_identifiers(
-          "#{o.class.engine.connection.database_prefix}#{o.name}"
-        ).quoted
+        o.class.engine.with_connection do |connection|
+          ActiveRecord::ConnectionAdapters::SQLServer::Utils.extract_identifiers(
+            "#{connection.database_prefix}#{o.name}"
+          ).quoted
+        end
       end
 
-      # Need to remove ordering from subqueries unless TOP/OFFSET also used. Otherwise, SQLServer
+      # Need to remove ordering from sub-queries unless TOP/OFFSET also used. Otherwise, SQLServer
       # returns error "The ORDER BY clause is invalid in views, inline functions, derived tables,
-      # subqueries, and common table expressions, unless TOP, OFFSET or FOR XML is also specified."
+      # sub-queries, and common table expressions, unless TOP, OFFSET or FOR XML is also specified."
       def remove_invalid_ordering_from_select_statement(node)
         return unless Arel::Nodes::SelectStatement === node
 
