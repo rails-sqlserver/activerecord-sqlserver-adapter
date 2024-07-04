@@ -1,3 +1,9 @@
+## Unreleased
+
+#### Changed
+
+- []() Remove ActiveRecord::Relation#calculate patch
+
 ## v7.0.6
 
 #### Added
