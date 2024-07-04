@@ -4,6 +4,10 @@
 
 - [#1164](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1164) Fix composite primary key with different data type with triggers
 
+#### Changed
+
+- [#1199](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1199) Remove ActiveRecord::Relation#calculate patch
+
 ## v7.1.3
 
 #### Fixed
