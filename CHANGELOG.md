@@ -1,3 +1,9 @@
+## Unreleased
+
+#### Changed
+
+- [#1200](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1200) Remove ActiveRecord::Relation#calculate patch
+
 ## v7.0.6
 
 #### Added
