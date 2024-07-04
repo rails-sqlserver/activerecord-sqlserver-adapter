@@ -8,6 +8,9 @@ module ActiveRecord
     module SQLServer
       module CoreExt
         module Calculations
+          
+          private
+
           def build_count_subquery(relation, column_name, distinct)
             return super unless klass.connection.adapter_name == "SQLServer"
 
