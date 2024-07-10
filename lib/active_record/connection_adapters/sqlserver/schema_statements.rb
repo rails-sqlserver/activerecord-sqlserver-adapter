@@ -416,7 +416,11 @@ module ActiveRecord
           database      = scope[:database].present? ? "#{scope[:database]}." : ""
           table_catalog = scope[:database].present? ? quote(scope[:database]) : "DB_NAME()"
 
-          sql = "SELECT CONCAT(#{table_schema}, '.', #{table_name})"
+          sql = "SELECT "
+          sql += " CASE"
+          sql += "  WHEN #{table_schema} = 'dbo' THEN #{table_name}"
+          sql += "  ELSE CONCAT(#{table_schema}, '.', #{table_name})"
+          sql += " END"
           sql += " FROM #{database}INFORMATION_SCHEMA.TABLES WITH (NOLOCK)"
           sql += " WHERE TABLE_CATALOG = #{table_catalog}"
           sql += " AND TABLE_SCHEMA = #{quote(scope[:schema])}" if scope[:schema]
