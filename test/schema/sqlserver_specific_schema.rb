@@ -304,17 +304,17 @@ ActiveRecord::Schema.define do
     )
   NATURALPKTABLESQLINOTHERSCHEMA
 
-  execute "IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'sst_schema_test_mulitple_schema' and TABLE_SCHEMA = 'test') DROP TABLE test.sst_schema_test_mulitple_schema"
+  execute "IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'sst_schema_test_multiple_schema' and TABLE_SCHEMA = 'test') DROP TABLE test.sst_schema_test_multiple_schema"
   execute <<-SCHEMATESTMULTIPLESCHEMA
-    CREATE TABLE test.sst_schema_test_mulitple_schema(
+    CREATE TABLE test.sst_schema_test_multiple_schema(
       field_1 int NOT NULL PRIMARY KEY,
       field_2 int,
     )
   SCHEMATESTMULTIPLESCHEMA
   execute "IF NOT EXISTS(SELECT * FROM sys.schemas WHERE name = 'test2') EXEC sp_executesql N'CREATE SCHEMA test2'"
-  execute "IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'sst_schema_test_mulitple_schema' and TABLE_SCHEMA = 'test2') DROP TABLE test2.sst_schema_test_mulitple_schema"
+  execute "IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'sst_schema_test_multiple_schema' and TABLE_SCHEMA = 'test2') DROP TABLE test2.sst_schema_test_multiple_schema"
   execute <<-SCHEMATESTMULTIPLESCHEMA
-    CREATE TABLE test2.sst_schema_test_mulitple_schema(
+    CREATE TABLE test2.sst_schema_test_multiple_schema(
       field_1 int,
       field_2 int NOT NULL PRIMARY KEY,
     )
