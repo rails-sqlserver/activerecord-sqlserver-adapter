@@ -41,7 +41,7 @@ module ActiveRecord
         end
 
         def schemas(stream)
-          schema_names = @connection.schema_names - ["guest"]
+          schema_names = @connection.schema_names
 
           if schema_names.any?
             schema_names.sort.each do |name|
