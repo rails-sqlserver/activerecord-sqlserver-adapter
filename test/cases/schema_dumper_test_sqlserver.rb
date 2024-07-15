@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "cases/helper_sqlserver"
+require "stringio"
 
 class SchemaDumperTestSQLServer < ActiveRecord::TestCase
   before { all_tables }
@@ -141,7 +142,7 @@ class SchemaDumperTestSQLServer < ActiveRecord::TestCase
   it "honor nonstandard primary keys" do
     generate_schema_for_table("movies") do |output|
       match = output.match(%r{create_table "movies"(.*)do})
-      assert_not_nil(match, "nonstandardpk table not found")
+      assert_not_nil(match, "non-standard primary key table not found")
       assert_match %r(primary_key: "movieid"), match[1], "non-standard primary key not preserved"
     end
   end
@@ -159,15 +160,30 @@ class SchemaDumperTestSQLServer < ActiveRecord::TestCase
     _(output.scan('t.integer "unique_field"').length).must_equal(1)
   end
 
+  it "schemas are dumped and tables names include non-default schema" do
+    stream = StringIO.new
+    ActiveRecord::SchemaDumper.dump(ActiveRecord::Base.connection_pool, stream)
+    generated_schema = stream.string
+
+    assert_not_includes generated_schema, 'create_schema "dbo"'
+    assert_includes generated_schema, 'create_schema "test"'
+    assert_includes generated_schema, 'create_schema "test2"'
+
+    # Only non-default schemas should be included in table names. Default schema is 'dbo'.
+    assert_includes generated_schema, 'create_table "accounts"'
+    assert_includes generated_schema, 'create_table "test.aliens"'
+    assert_includes generated_schema, 'create_table "test2.sst_schema_test_mulitple_schema"'
+  end
+
   private
 
   def generate_schema_for_table(*table_names)
-    require "stringio"
+    previous_ignore_tables = ActiveRecord::SchemaDumper.ignore_tables
+    ActiveRecord::SchemaDumper.ignore_tables = all_tables - table_names
 
     stream = StringIO.new
-    ActiveRecord::SchemaDumper.ignore_tables = all_tables - table_names
     ActiveRecord::SchemaDumper.dump(ActiveRecord::Base.connection_pool, stream)
-    
+
     @generated_schema = stream.string
     yield @generated_schema if block_given?
     @schema_lines = Hash.new
@@ -178,6 +194,8 @@ class SchemaDumperTestSQLServer < ActiveRecord::TestCase
       @schema_lines[Regexp.last_match[1]] = SchemaLine.new(line)
     end
     @generated_schema
+  ensure
+    ActiveRecord::SchemaDumper.ignore_tables = previous_ignore_tables
   end
 
   def line(column_name)
