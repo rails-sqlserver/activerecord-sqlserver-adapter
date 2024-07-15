@@ -171,7 +171,7 @@ class SpecificSchemaTestSQLServer < ActiveRecord::TestCase
 
   it "returns the correct primary columns" do
     connection = ActiveRecord::Base.lease_connection
-    assert_equal "field_1", connection.columns("test.sst_schema_test_mulitple_schema").detect(&:is_primary?).name
-    assert_equal "field_2", connection.columns("test2.sst_schema_test_mulitple_schema").detect(&:is_primary?).name
+    assert_equal "field_1", connection.columns("test.sst_schema_test_multiple_schema").detect(&:is_primary?).name
+    assert_equal "field_2", connection.columns("test2.sst_schema_test_multiple_schema").detect(&:is_primary?).name
   end
 end
