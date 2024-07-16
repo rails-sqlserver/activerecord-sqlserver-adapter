@@ -2,7 +2,7 @@
 
 #### Added
 
-- [#](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/) Support non-dbo schemas in schema dumper.
+- [#1201](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1201) Support non-dbo schemas in schema dumper.
 
 ## v7.1.4
 
