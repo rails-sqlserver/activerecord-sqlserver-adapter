@@ -162,7 +162,7 @@ class SchemaDumperTestSQLServer < ActiveRecord::TestCase
 
   it "schemas are dumped and tables names only include non-default schema" do
     stream = StringIO.new
-    ActiveRecord::SchemaDumper.dump(ActiveRecord::Base.connection_pool, stream)
+    ActiveRecord::SchemaDumper.dump(ActiveRecord::Base.connection, stream)
     generated_schema = stream.string
 
     # Only generate non-default schemas. Default schema is 'dbo'.
@@ -184,7 +184,7 @@ class SchemaDumperTestSQLServer < ActiveRecord::TestCase
 
     stream = StringIO.new
     ActiveRecord::SchemaDumper.ignore_tables = all_tables - table_names
-    ActiveRecord::SchemaDumper.dump(ActiveRecord::Base.connection_pool, stream)
+    ActiveRecord::SchemaDumper.dump(ActiveRecord::Base.connection, stream)
 
     @generated_schema = stream.string
     yield @generated_schema if block_given?
