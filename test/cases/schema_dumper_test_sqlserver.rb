@@ -173,7 +173,7 @@ class SchemaDumperTestSQLServer < ActiveRecord::TestCase
     # Only non-default schemas should be included in table names. Default schema is 'dbo'.
     assert_includes generated_schema, 'create_table "accounts"'
     assert_includes generated_schema, 'create_table "test.aliens"'
-    assert_includes generated_schema, 'create_table "test2.sst_schema_test_multiple_schema"'
+    assert_includes generated_schema, 'create_table "test2.sst_schema_test_mulitple_schema"'
   end
 
   private
