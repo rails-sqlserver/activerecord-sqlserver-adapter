@@ -160,11 +160,12 @@ class SchemaDumperTestSQLServer < ActiveRecord::TestCase
     _(output.scan('t.integer "unique_field"').length).must_equal(1)
   end
 
-  it "schemas are dumped and tables names include non-default schema" do
+  it "schemas are dumped and tables names only include non-default schema" do
     stream = StringIO.new
     ActiveRecord::SchemaDumper.dump(ActiveRecord::Base.connection_pool, stream)
     generated_schema = stream.string
 
+    # Only generate non-default schemas. Default schema is 'dbo'.
     assert_not_includes generated_schema, 'create_schema "dbo"'
     assert_includes generated_schema, 'create_schema "test"'
     assert_includes generated_schema, 'create_schema "test2"'
