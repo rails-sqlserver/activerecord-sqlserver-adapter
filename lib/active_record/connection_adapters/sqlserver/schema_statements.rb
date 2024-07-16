@@ -393,19 +393,37 @@ module ActiveRecord
           execute "DROP SCHEMA [#{schema_name}]"
         end
 
+        # Returns an array of schema names.
+        def schema_names
+          sql = <<~SQL.squish
+           SELECT name
+            FROM sys.schemas
+            WHERE
+            name NOT LIKE 'db_%' AND
+            name NOT IN ('INFORMATION_SCHEMA', 'sys')
+          SQL
+
+          query_values(sql, "SCHEMA")
+        end
+
         private
 
         def data_source_sql(name = nil, type: nil)
-          scope = quoted_scope name, type: type
+          scope = quoted_scope(name, type: type)
 
-          table_name = lowercase_schema_reflection_sql 'TABLE_NAME'
-          database = scope[:database].present? ? "#{scope[:database]}." : ""
+          table_schema  = lowercase_schema_reflection_sql('TABLE_SCHEMA')
+          table_name    = lowercase_schema_reflection_sql('TABLE_NAME')
+          database      = scope[:database].present? ? "#{scope[:database]}." : ""
           table_catalog = scope[:database].present? ? quote(scope[:database]) : "DB_NAME()"
 
-          sql = "SELECT #{table_name}"
+          sql = "SELECT "
+          sql += " CASE"
+          sql += "  WHEN #{table_schema} = 'dbo' THEN #{table_name}"
+          sql += "  ELSE CONCAT(#{table_schema}, '.', #{table_name})"
+          sql += " END"
           sql += " FROM #{database}INFORMATION_SCHEMA.TABLES WITH (NOLOCK)"
           sql += " WHERE TABLE_CATALOG = #{table_catalog}"
-          sql += " AND TABLE_SCHEMA = #{quote(scope[:schema])}"
+          sql += " AND TABLE_SCHEMA = #{quote(scope[:schema])}" if scope[:schema]
           sql += " AND TABLE_NAME = #{quote(scope[:name])}" if scope[:name]
           sql += " AND TABLE_TYPE = #{quote(scope[:type])}" if scope[:type]
           sql += " ORDER BY #{table_name}"
@@ -414,9 +432,10 @@ module ActiveRecord
 
         def quoted_scope(name = nil, type: nil)
           identifier = SQLServer::Utils.extract_identifiers(name)
+
           {}.tap do |scope|
             scope[:database] = identifier.database if identifier.database
-            scope[:schema] = identifier.schema || "dbo"
+            scope[:schema] = identifier.schema || "dbo" if name.present?
             scope[:name] = identifier.object if identifier.object
             scope[:type] = type if type
           end
