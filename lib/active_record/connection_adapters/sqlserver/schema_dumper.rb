@@ -39,6 +39,17 @@ module ActiveRecord
         def default_primary_key?(column)
           super && column.is_identity?
         end
+
+        def schemas(stream)
+          schema_names = @connection.schema_names
+
+          if schema_names.any?
+            schema_names.sort.each do |name|
+              stream.puts "  create_schema #{name.inspect}"
+            end
+            stream.puts
+          end
+        end
       end
     end
   end
