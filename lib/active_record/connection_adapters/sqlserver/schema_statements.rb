@@ -674,13 +674,26 @@ module ActiveRecord
         # Parses the raw table name that is used in the SQL. Table name could include database/schema/etc.
         def get_raw_table_name(sql)
 
+          s = sql.gsub(/^\s*EXEC sp_executesql N'/i, "")
 
-          case sql
-          when /^\s*(INSERT|EXEC sp_executesql N'INSERT)(\s+INTO)?\s+(\[[^\(\]]+\])\s*|^\s*update\s+([^\(\s]+)\s*/i
-            Regexp.last_match[3] || Regexp.last_match[4]
-          when /FROM\s+((\[[^\(\]]+\])|[^\(\s]+)\s*/i
-            Regexp.last_match[1]
+          # binding.pry
+
+          if s.match?(/^\s*INSERT INTO.*/i)
+            s = s.split(/INSERT INTO/i)[1].split(/OUTPUT INSERTED/i)[0].split(/(DEFAULT)?\s+VALUES/i)[0]
+
+            s.match(/\s*([^(]*)/i)[0]
+          else
+            s.match(/FROM\s+((\[[^\(\]]+\])|[^\(\s]+)\s*/i)[1]
           end.strip
+
+          # table_name
+
+          # case sql
+          # when /^\s*(INSERT|EXEC sp_executesql N'INSERT)(\s+INTO)?\s+(\[[^\(\]]+\])\s*|^\s*update\s+([^\(\s]+)\s*/i
+          #   Regexp.last_match[3] || Regexp.last_match[4]
+          # when /FROM\s+((\[[^\(\]]+\])|[^\(\s]+)\s*/i
+          #   Regexp.last_match[1]
+          # end.strip
         end
 
         def default_constraint_name(table_name, column_name)
