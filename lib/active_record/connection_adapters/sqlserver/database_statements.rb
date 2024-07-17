@@ -32,9 +32,6 @@ module ActiveRecord
 
         def internal_exec_query(sql, name = "SQL", binds = [], prepare: false, async: false)
           result = nil
-
-          puts "******** SQL: #{sql}"
-
           sql = transform_query(sql)
 
           check_if_write_query(sql)
