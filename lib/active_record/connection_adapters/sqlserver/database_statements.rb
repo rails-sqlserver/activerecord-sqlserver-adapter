@@ -32,6 +32,9 @@ module ActiveRecord
 
         def internal_exec_query(sql, name = "SQL", binds = [], prepare: false, async: false)
           result = nil
+
+          puts "******** SQL: #{sql}"
+
           sql = transform_query(sql)
 
           check_if_write_query(sql)
@@ -394,6 +397,8 @@ module ActiveRecord
 
         def query_requires_identity_insert?(sql)
           return false unless insert_sql?(sql)
+
+          # binding.pry if $DEBUG
 
           raw_table_name = get_raw_table_name(sql)
           id_column = identity_columns(raw_table_name).first
