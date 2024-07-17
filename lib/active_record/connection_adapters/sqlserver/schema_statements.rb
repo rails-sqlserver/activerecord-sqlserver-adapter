@@ -673,12 +673,14 @@ module ActiveRecord
 
         # Parses the raw table name that is used in the SQL. Table name could include database/schema/etc.
         def get_raw_table_name(sql)
+          puts "get_raw_table_name: SQL: #{sql}"
+
           case sql
           when /^\s*(INSERT|EXEC sp_executesql N'INSERT)(\s+INTO)?\s+([^\(]+)\s*|^\s*update\s+([^\(\s]+)\s*/i
             Regexp.last_match[3] || Regexp.last_match[4]
           when /FROM\s+([^\(\s]+)\s*/i
             Regexp.last_match[1]
-          end
+          end.strip
         end
 
         def default_constraint_name(table_name, column_name)
