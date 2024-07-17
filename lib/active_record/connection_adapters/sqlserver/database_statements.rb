@@ -401,6 +401,15 @@ module ActiveRecord
           id_column = identity_columns(raw_table_name).first
 
           id_column && sql =~ /^\s*(INSERT|EXEC sp_executesql N'INSERT)[^(]+\([^)]*\b(#{id_column.name})\b,?[^)]*\)/i ? SQLServer::Utils.extract_identifiers(raw_table_name).quoted : false
+
+        rescue StandardError => e
+
+          puts "*" * 100
+          puts "sql: #{sql}"
+          puts "raw_table_name: #{raw_table_name}"
+          puts "*" * 100
+
+          raise e
         end
 
         def insert_sql?(sql)
