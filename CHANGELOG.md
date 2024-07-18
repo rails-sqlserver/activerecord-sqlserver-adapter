@@ -2,7 +2,8 @@
 
 #### Added
 
-- [#1201](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1201) Support non-dbo schemas in schema dumper.
+- [#1201](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1201) Support non-dbo schemas in schema dumper
+- [#1206](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1206) Support table names containing spaces
 
 ## v7.1.4
 
