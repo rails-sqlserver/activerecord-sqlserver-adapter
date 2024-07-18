@@ -550,11 +550,23 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
 
   describe 'table is in non-dbo schema' do
     it "records can be created successfully" do
-      Alien.create!(name: 'Trisolarans')
+      assert_difference("Alien.count", 1) do
+        Alien.create!(name: 'Trisolarans')
+      end
     end
 
     it 'records can be inserted using SQL' do
-      Alien.connection.exec_insert("insert into [test].[aliens] (id, name) VALUES(1, 'Trisolarans'), (2, 'Xenomorph')")
+      assert_difference("Alien.count", 2) do
+        Alien.connection.exec_insert("insert into [test].[aliens] (id, name) VALUES(1, 'Trisolarans'), (2, 'Xenomorph')")
+      end
+    end
+  end
+
+  describe 'table names contains spaces' do
+    it 'records can be created successfully' do
+      assert_difference("TableWithSpaces.count", 1) do
+        TableWithSpaces.create!(name: 'Bob')
+      end
     end
   end
 
