@@ -151,6 +151,10 @@ ActiveRecord::Schema.define do
     SELECT GETUTCDATE() utcdate
   SQL
 
+  create_table 'A Table With Spaces', force: true do |t|
+    t.string :name
+  end
+
   # Constraints
 
   create_table(:sst_has_fks, force: true) do |t|
