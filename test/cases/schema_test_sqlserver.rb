@@ -39,13 +39,59 @@ class SchemaTestSQLServer < ActiveRecord::TestCase
       assert_equal 1, columns.select { |c| c.is_identity? }.size
     end
 
-    it "return correct varchar and nvarchar column limit length when table is in non dbo schema" do
+    it "return correct varchar and nvarchar column limit length when table is in non-dbo schema" do
       columns = connection.columns("test.sst_schema_columns")
 
       assert_equal 255, columns.find { |c| c.name == "name" }.limit
       assert_equal 1000, columns.find { |c| c.name == "description" }.limit
       assert_equal 255, columns.find { |c| c.name == "n_name" }.limit
       assert_equal 1000, columns.find { |c| c.name == "n_description" }.limit
+    end
+  end
+
+  describe "parsing table name from raw SQL" do
+    describe 'SELECT statements' do
+      it do
+        assert_equal "[sst_schema_columns]", connection.send(:get_raw_table_name, "SELECT [sst_schema_columns].[id] FROM [sst_schema_columns]")
+      end
+
+      it do
+        assert_equal "sst_schema_columns", connection.send(:get_raw_table_name, "SELECT [sst_schema_columns].[id] FROM sst_schema_columns")
+      end
+
+      it do
+        assert_equal "[WITH - SPACES]", connection.send(:get_raw_table_name, "SELECT id FROM [WITH - SPACES]")
+      end
+
+      it do
+        assert_equal "[WITH - SPACES$DOLLAR]", connection.send(:get_raw_table_name, "SELECT id FROM [WITH - SPACES$DOLLAR]")
+      end
+    end
+
+    describe 'INSERT statements' do
+      it do
+        assert_equal "[dashboards]", connection.send(:get_raw_table_name, "INSERT INTO [dashboards] DEFAULT VALUES; SELECT CAST(SCOPE_IDENTITY() AS bigint) AS Ident")
+      end
+
+      it do
+        assert_equal "lock_without_defaults", connection.send(:get_raw_table_name, "INSERT INTO lock_without_defaults(title) VALUES('title1')")
+      end
+
+      it do
+        assert_equal "json_data_type", connection.send(:get_raw_table_name, "insert into json_data_type (payload) VALUES ('null')")
+      end
+
+      it do
+        assert_equal "[auto_increments]", connection.send(:get_raw_table_name, "INSERT INTO [auto_increments] OUTPUT INSERTED.[id] DEFAULT VALUES")
+      end
+
+      it do
+        assert_equal "[WITH - SPACES]", connection.send(:get_raw_table_name, "EXEC sp_executesql N'INSERT INTO [WITH - SPACES] ([external_id]) OUTPUT INSERTED.[id] VALUES (@0)', N'@0 bigint', @0 = 10")
+      end
+
+      it do
+        assert_equal "[test].[aliens]", connection.send(:get_raw_table_name, "EXEC sp_executesql N'INSERT INTO [test].[aliens] ([name]) OUTPUT INSERTED.[id] VALUES (@0)', N'@0 varchar(255)', @0 = 'Trisolarans'")
+      end
     end
   end
 end

@@ -561,6 +561,14 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
     end
   end
 
+  describe 'table names contains spaces' do
+    it 'records can be created successfully' do
+      assert_difference("TableWithSpaces.count", 1) do
+        TableWithSpaces.create!(name: 'Bob')
+      end
+    end
+  end
+
   describe "exec_insert" do
     it 'values clause should be case-insensitive' do
       assert_difference("Post.count", 4) do
