@@ -400,7 +400,7 @@ module ActiveRecord
             FROM sys.schemas
             WHERE
             name NOT LIKE 'db_%' AND
-            name NOT IN ('INFORMATION_SCHEMA', 'sys')
+            name NOT IN ('INFORMATION_SCHEMA', 'sys', 'guest')
           SQL
 
           query_values(sql, "SCHEMA")

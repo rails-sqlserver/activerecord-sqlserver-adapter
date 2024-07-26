@@ -167,6 +167,10 @@ class SchemaDumperTestSQLServer < ActiveRecord::TestCase
 
     # Only generate non-default schemas. Default schema is 'dbo'.
     assert_not_includes generated_schema, 'create_schema "dbo"'
+    assert_not_includes generated_schema, 'create_schema "db_owner"'
+    assert_not_includes generated_schema, 'create_schema "INFORMATION_SCHEMA"'
+    assert_not_includes generated_schema, 'create_schema "sys"'
+    assert_not_includes generated_schema, 'create_schema "guest"'
     assert_includes generated_schema, 'create_schema "test"'
     assert_includes generated_schema, 'create_schema "test2"'
 
