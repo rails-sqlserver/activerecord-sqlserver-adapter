@@ -1,3 +1,9 @@
+## Unreleased
+
+#### Fixed
+
+- [#1208](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1208) Exclude "guest" schema in schema dumper
+
 ## v7.1.5
 
 #### Added
