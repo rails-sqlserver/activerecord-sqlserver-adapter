@@ -673,7 +673,7 @@ module ActiveRecord
 
         # Parses the raw table name that is used in the SQL. Table name could include database/schema/etc.
         def get_raw_table_name(sql)
-          return nil if sql.blank?
+          return if sql.blank?
 
           s = sql.gsub(/^\s*EXEC sp_executesql N'/i, "")
 
