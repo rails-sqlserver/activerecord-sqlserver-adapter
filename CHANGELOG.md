@@ -1,9 +1,3 @@
-## Unreleased
-
-#### Fixed
-
-- [#1210](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1210) Handle blank SQL when parsing table name
-
 ## v7.1.6
 
 #### Fixed
