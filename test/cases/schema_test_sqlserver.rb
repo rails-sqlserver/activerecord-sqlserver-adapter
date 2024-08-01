@@ -66,6 +66,10 @@ class SchemaTestSQLServer < ActiveRecord::TestCase
       it do
         assert_equal "[WITH - SPACES$DOLLAR]", connection.send(:get_raw_table_name, "SELECT id FROM [WITH - SPACES$DOLLAR]")
       end
+
+      it do
+        assert_nil connection.send(:get_raw_table_name, nil)
+      end
     end
 
     describe 'INSERT statements' do
