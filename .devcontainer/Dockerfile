@@ -25,6 +25,6 @@ RUN curl https://packages.microsoft.com/keys/microsoft.asc | sudo tee /etc/apt/t
 RUN mkdir -p /tmp/activerecord-sqlserver-adapter
 COPY Gemfile VERSION activerecord-sqlserver-adapter.gemspec /tmp/activerecord-sqlserver-adapter/
 RUN cd /tmp/activerecord-sqlserver-adapter \
-    && RAILS_BRANCH=before-adapter-refactor bundle install \
+    && RAILS_BRANCH=main bundle install \
     && rm -rf /tmp/activerecord-sqlserver-adapter
 RUN chown -R vscode:vscode /usr/local/rvm
