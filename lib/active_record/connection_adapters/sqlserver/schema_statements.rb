@@ -712,7 +712,7 @@ module ActiveRecord
             view_info = select_one "SELECT * FROM #{information_query_table} WITH (NOLOCK) WHERE TABLE_NAME = #{quote(identifier.object)}", "SCHEMA"
 
             if view_info
-              view_info = view_info.with_indifferent_access
+              view_info = view_info.to_h.with_indifferent_access
               if view_info[:VIEW_DEFINITION].blank? || view_info[:VIEW_DEFINITION].length == 4000
                 view_info[:VIEW_DEFINITION] = begin
                                                 select_values("EXEC sp_helptext #{identifier.object_quoted}", "SCHEMA").join
