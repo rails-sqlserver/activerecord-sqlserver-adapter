@@ -504,7 +504,7 @@ module ActiveRecord
           results = internal_exec_query(sql, "SCHEMA", binds)
 
           columns = results.map do |ci|
-            ci = ci.symbolize_keys
+            ci = ci.to_h.symbolize_keys
             ci[:_type] = ci[:type]
             ci[:table_name] = view_tblnm || table_name
             ci[:type] = case ci[:type]
