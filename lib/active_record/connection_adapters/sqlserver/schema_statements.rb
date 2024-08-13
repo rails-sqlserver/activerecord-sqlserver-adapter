@@ -37,7 +37,7 @@ module ActiveRecord
           data = select("EXEC sp_helpindex #{quote(table_name)}", "SCHEMA") rescue []
 
           data.reduce([]) do |indexes, index|
-            index = index.with_indifferent_access
+            index = index.to_h.with_indifferent_access
 
             if index[:index_description].match?(/primary key/)
               indexes
