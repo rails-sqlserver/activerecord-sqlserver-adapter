@@ -5,7 +5,7 @@ services:
   ci:
     environment:
       - ACTIVERECORD_UNITTEST_HOST=sqlserver
-      - RAILS_BRANCH=main
+      - RAILS_BRANCH=before-adapter-refactor
     build:
       context: .
       dockerfile: Dockerfile.ci
