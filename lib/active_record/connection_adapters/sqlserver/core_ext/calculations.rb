@@ -10,9 +10,9 @@ module ActiveRecord
         module Calculations
 
           private
-          
+
           def build_count_subquery(relation, column_name, distinct)
-            klass.with_connection do |connection|
+            self.model.with_connection do |connection|
               relation = relation.unscope(:order) if connection.sqlserver?
               super(relation, column_name, distinct)
             end
