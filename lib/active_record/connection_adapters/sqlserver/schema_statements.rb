@@ -68,15 +68,15 @@ module ActiveRecord
           return [] if table_name.blank?
 
           column_definitions(table_name).map do |ci|
-            sqlserver_options = ci.slice :ordinal_position, :is_primary, :is_identity, :table_name
-            sql_type_metadata = fetch_type_metadata ci[:type], sqlserver_options
+            sqlserver_options = ci.slice(:ordinal_position, :is_primary, :is_identity, :table_name)
+            sql_type_metadata = fetch_type_metadata(ci['type'], sqlserver_options)
             new_column(
-              ci[:name],
-              ci[:default_value],
+              ci['name'],
+              ci['default_value'],
               sql_type_metadata,
-              ci[:null],
-              ci[:default_function],
-              ci[:collation],
+              ci['null'],
+              ci['default_function'],
+              ci['collation'],
               nil,
               sqlserver_options
             )
@@ -480,16 +480,16 @@ module ActiveRecord
         end
 
         def column_definitions(table_name)
-          identifier  = database_prefix_identifier(table_name)
-          database    = identifier.fully_qualified_database_quoted
+          identifier = database_prefix_identifier(table_name)
+          database = identifier.fully_qualified_database_quoted
           view_exists = view_exists?(table_name)
-          view_tblnm  = view_table_name(table_name) if view_exists
+          view_table_name = view_table_name(table_name) if view_exists
 
           if view_exists
             sql = <<~SQL
               SELECT LOWER(c.COLUMN_NAME) AS [name], c.COLUMN_DEFAULT AS [default]
               FROM #{database}.INFORMATION_SCHEMA.COLUMNS c
-              WHERE c.TABLE_NAME = #{quote(view_tblnm)}
+              WHERE c.TABLE_NAME = #{quote(view_table_name)}
             SQL
             results = internal_exec_query(sql, "SCHEMA")
             default_functions = results.each.with_object({}) { |row, out| out[row["name"]] = row["default"] }.compact
@@ -504,30 +504,29 @@ module ActiveRecord
           results = internal_exec_query(sql, "SCHEMA", binds)
 
           columns = results.map do |ci|
-            ci = ci.to_h.symbolize_keys
-            ci[:_type] = ci[:type]
-            ci[:table_name] = view_tblnm || table_name
-            ci[:type] = case ci[:type]
+            ci['_type'] = ci['type']
+            ci['table_name'] = view_table_name || table_name
+            ci['type'] = case ci['type']
                         when /^bit|image|text|ntext|datetime$/
-                          ci[:type]
+                          ci['type']
                         when /^datetime2|datetimeoffset$/i
-                          "#{ci[:type]}(#{ci[:datetime_precision]})"
+                          "#{ci['type']}(#{ci['datetime_precision']})"
                         when /^time$/i
-                          "#{ci[:type]}(#{ci[:datetime_precision]})"
+                          "#{ci['type']}(#{ci['datetime_precision']})"
                         when /^numeric|decimal$/i
-                          "#{ci[:type]}(#{ci[:numeric_precision]},#{ci[:numeric_scale]})"
+                          "#{ci['type']}(#{ci['numeric_precision']},#{ci['numeric_scale']})"
                         when /^float|real$/i
-                          "#{ci[:type]}"
+                          "#{ci['type']}"
                         when /^char|nchar|varchar|nvarchar|binary|varbinary|bigint|int|smallint$/
-                          ci[:length].to_i == -1 ? "#{ci[:type]}(max)" : "#{ci[:type]}(#{ci[:length]})"
+                          ci['length'].to_i == -1 ? "#{ci['type']}(max)" : "#{ci['type']}(#{ci['length']})"
                         else
-                          ci[:type]
+                          ci['type']
                         end
-            ci[:default_value],
-            ci[:default_function] = begin
-              default = ci[:default_value]
+            ci['default_value'],
+            ci['default_function'] = begin
+              default = ci['default_value']
               if default.nil? && view_exists
-                view_column = views_real_column_name(table_name, ci[:name]).downcase
+                view_column = views_real_column_name(table_name, ci['name']).downcase
                 default = default_functions[view_column] if view_column.present?
               end
               case default
@@ -542,19 +541,19 @@ module ActiveRecord
               when /CREATE DEFAULT/mi
                 [nil, nil]
               else
-                type = case ci[:type]
-                       when /smallint|int|bigint/ then ci[:_type]
-                       else ci[:type]
+                type = case ci['type']
+                       when /smallint|int|bigint/ then ci['_type']
+                       else ci['type']
                        end
                 value = default.match(/\A\((.*)\)\Z/m)[1]
                 value = select_value("SELECT CAST(#{value} AS #{type}) AS value", "SCHEMA")
                 [value, nil]
               end
             end
-            ci[:null] = ci[:is_nullable].to_i == 1
+            ci['null'] = ci['is_nullable'].to_i == 1
             ci.delete(:is_nullable)
-            ci[:is_primary] = ci[:is_primary].to_i == 1
-            ci[:is_identity] = ci[:is_identity].to_i == 1 unless [TrueClass, FalseClass].include?(ci[:is_identity].class)
+            ci['is_primary'] = ci['is_primary'].to_i == 1
+            ci['is_identity'] = ci['is_identity'].to_i == 1 unless [TrueClass, FalseClass].include?(ci['is_identity'].class)
             ci
           end
 
@@ -706,21 +705,20 @@ module ActiveRecord
 
         def view_information(table_name)
           @view_information ||= {}
+
           @view_information[table_name] ||= begin
             identifier = SQLServer::Utils.extract_identifiers(table_name)
             information_query_table = identifier.database.present? ? "[#{identifier.database}].[INFORMATION_SCHEMA].[VIEWS]" :  "[INFORMATION_SCHEMA].[VIEWS]"
-            view_info = select_one "SELECT * FROM #{information_query_table} WITH (NOLOCK) WHERE TABLE_NAME = #{quote(identifier.object)}", "SCHEMA"
 
-            if view_info
-              view_info = view_info.to_h.with_indifferent_access
-              if view_info[:VIEW_DEFINITION].blank? || view_info[:VIEW_DEFINITION].length == 4000
-                view_info[:VIEW_DEFINITION] = begin
-                                                select_values("EXEC sp_helptext #{identifier.object_quoted}", "SCHEMA").join
-                                              rescue
-                                                warn "No view definition found, possible permissions problem.\nPlease run GRANT VIEW DEFINITION TO your_user;"
-                                                nil
-                                              end
-              end
+            view_info = select_one("SELECT * FROM #{information_query_table} WITH (NOLOCK) WHERE TABLE_NAME = #{quote(identifier.object)}", "SCHEMA")
+
+            if view_info && view_info['VIEW_DEFINITION'].blank? || view_info['VIEW_DEFINITION'].length == 4000
+              view_info['VIEW_DEFINITION'] = begin
+                                               select_values("EXEC sp_helptext #{identifier.object_quoted}", "SCHEMA").join
+                                             rescue
+                                               warn "No view definition found, possible permissions problem.\nPlease run GRANT VIEW DEFINITION TO your_user;"
+                                               nil
+                                             end
             end
 
             view_info
