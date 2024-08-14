@@ -477,17 +477,63 @@ module ActiveRecord
           }
         end
 
+        def default_value_and_function(default:, name:, type:, original_type:, view_exists:, table_name:, default_functions:)
+          if default.nil? && view_exists
+            view_column = views_real_column_name(table_name, name).downcase
+            default = default_functions[view_column] if view_column.present?
+          end
+          case default
+          when nil
+            [nil, nil]
+          when /\A\((\w+\(\))\)\Z/
+            default_function = Regexp.last_match[1]
+            [nil, default_function]
+          when /\A\(N'(.*)'\)\Z/m
+            string_literal = SQLServer::Utils.unquote_string(Regexp.last_match[1])
+            [string_literal, nil]
+          when /CREATE DEFAULT/mi
+            [nil, nil]
+          else
+            type = case type
+                   when /smallint|int|bigint/ then original_type
+                   else type
+                   end
+            value = default.match(/\A\((.*)\)\Z/m)[1]
+            value = select_value("SELECT CAST(#{value} AS #{type}) AS value", "SCHEMA")
+            [value, nil]
+          end
+        end
+
+        def column_type(ci:)
+          case ci['type']
+          when /^bit|image|text|ntext|datetime$/
+            ci['type']
+          when /^datetime2|datetimeoffset$/i
+            "#{ci['type']}(#{ci['datetime_precision']})"
+          when /^time$/i
+            "#{ci['type']}(#{ci['datetime_precision']})"
+          when /^numeric|decimal$/i
+            "#{ci['type']}(#{ci['numeric_precision']},#{ci['numeric_scale']})"
+          when /^float|real$/i
+            "#{ci['type']}"
+          when /^char|nchar|varchar|nvarchar|binary|varbinary|bigint|int|smallint$/
+            ci['length'].to_i == -1 ? "#{ci['type']}(max)" : "#{ci['type']}(#{ci['length']})"
+          else
+            ci['type']
+          end
+        end
+
         def column_definitions(table_name)
           identifier  = database_prefix_identifier(table_name)
           database    = identifier.fully_qualified_database_quoted
           view_exists = view_exists?(table_name)
-          view_tblnm  = view_table_name(table_name) if view_exists
+          view_table_name  = view_table_name(table_name) if view_exists
 
           if view_exists
             sql = <<~SQL
               SELECT LOWER(c.COLUMN_NAME) AS [name], c.COLUMN_DEFAULT AS [default]
               FROM #{database}.INFORMATION_SCHEMA.COLUMNS c
-              WHERE c.TABLE_NAME = #{quote(view_tblnm)}
+              WHERE c.TABLE_NAME = #{quote(view_table_name)}
             SQL
             results = internal_exec_query(sql, "SCHEMA")
             default_functions = results.each.with_object({}) { |row, out| out[row["name"]] = row["default"] }.compact
@@ -501,80 +547,32 @@ module ActiveRecord
           binds << Relation::QueryAttribute.new("TABLE_SCHEMA", identifier.schema, nv128) unless identifier.schema.blank?
           results = internal_exec_query(sql, "SCHEMA", binds)
 
-          # columns = []
-
           columns = results.map do |ci|
             col = {
-              name: ci["name"],
-              numeric_scale: ci["numeric_scale"],
-              numeric_precision: ci["numeric_precision"],
+              name:               ci["name"],
+              numeric_scale:      ci["numeric_scale"],
+              numeric_precision:  ci["numeric_precision"],
               datetime_precision: ci["datetime_precision"],
-              collation: ci["collation"],
-              ordinal_position: ci["ordinal_position"],
-              length: ci["length"]
+              collation:          ci["collation"],
+              ordinal_position:   ci["ordinal_position"],
+              length:             ci["length"]
             }
 
-            # ci = ci.to_h.symbolize_keys # TODO: Fix so doesnt use hash.
-            original_type = ci['type']
-            col[:table_name] = view_tblnm || table_name
-            col[:type] = case ci['type']
-                        when /^bit|image|text|ntext|datetime$/
-                          ci['type']
-                        when /^datetime2|datetimeoffset$/i
-                          "#{ci['type']}(#{ci['datetime_precision']})"
-                        when /^time$/i
-                          "#{ci['type']}(#{ci['datetime_precision']})"
-                        when /^numeric|decimal$/i
-                          "#{ci['type']}(#{ci['numeric_precision']},#{ci['numeric_scale']})"
-                        when /^float|real$/i
-                          "#{ci['type']}"
-                        when /^char|nchar|varchar|nvarchar|binary|varbinary|bigint|int|smallint$/
-                          ci['length'].to_i == -1 ? "#{ci['type']}(max)" : "#{ci['type']}(#{ci['length']})"
-                        else
-                          ci['type']
-                        end
-            col[:default_value],
-            col[:default_function] = begin
-              default = ci['default_value']
-              if default.nil? && view_exists
-                view_column = views_real_column_name(table_name, ci['name']).downcase
-                default = default_functions[view_column] if view_column.present?
-              end
-              case default
-              when nil
-                [nil, nil]
-              when /\A\((\w+\(\))\)\Z/
-                default_function = Regexp.last_match[1]
-                [nil, default_function]
-              when /\A\(N'(.*)'\)\Z/m
-                string_literal = SQLServer::Utils.unquote_string(Regexp.last_match[1])
-                [string_literal, nil]
-              when /CREATE DEFAULT/mi
-                [nil, nil]
-              else
-                type = case col[:type]
-                       when /smallint|int|bigint/ then original_type
-                       else col[:type]
-                       end
-                value = default.match(/\A\((.*)\)\Z/m)[1]
-                value = select_value("SELECT CAST(#{value} AS #{type}) AS value", "SCHEMA")
-                [value, nil]
-              end
-            end
+            col[:table_name] = view_table_name || table_name
+            col[:type] = column_type(ci: ci)
+
+            col[:default_value], col[:default_function] = default_value_and_function(default: col[:default_value], name: ci['name'], type: col[:type], original_type: ci['type'], view_exists: view_exists, table_name: table_name, default_functions: default_functions)
+
             col[:null] = ci['is_nullable'].to_i == 1
-            # ci.delete(:is_nullable)
             col[:is_primary] = ci['is_primary'].to_i == 1
 
-            if [TrueClass, FalseClass].include?(ci['is_identity'].class)
+            if [true, false].include?(ci['is_identity'])
               col[:is_identity] = ci['is_identity']
             else
               col[:is_identity] = ci['is_identity'].to_i == 1
             end
 
-            # col[:is_identity] = ci[:is_identity].to_i == 1 unless [TrueClass, FalseClass].include?(ci[:is_identity].class)
-
             col
-            # cols << col
           end
 
           raise ActiveRecord::StatementInvalid, "Table '#{table_name}' doesn't exist" if columns.empty?
