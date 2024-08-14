@@ -496,36 +496,48 @@ module ActiveRecord
           sql = column_definitions_sql(database, identifier)
 
           binds = []
-          nv128 = SQLServer::Type::UnicodeVarchar.new limit: 128
+          nv128 = SQLServer::Type::UnicodeVarchar.new(limit: 128)
           binds << Relation::QueryAttribute.new("TABLE_NAME", identifier.object, nv128)
           binds << Relation::QueryAttribute.new("TABLE_SCHEMA", identifier.schema, nv128) unless identifier.schema.blank?
           results = internal_exec_query(sql, "SCHEMA", binds)
 
+          # columns = []
+
           columns = results.map do |ci|
-            ci = ci.to_h.symbolize_keys # TODO: Fix so doesnt use hash.
-            ci[:_type] = ci[:type]
-            ci[:table_name] = view_tblnm || table_name
-            ci[:type] = case ci[:type]
+            col = {
+              name: ci["name"],
+              numeric_scale: ci["numeric_scale"],
+              numeric_precision: ci["numeric_precision"],
+              datetime_precision: ci["datetime_precision"],
+              collation: ci["collation"],
+              ordinal_position: ci["ordinal_position"],
+              length: ci["length"]
+            }
+
+            # ci = ci.to_h.symbolize_keys # TODO: Fix so doesnt use hash.
+            original_type = ci['type']
+            col[:table_name] = view_tblnm || table_name
+            col[:type] = case ci['type']
                         when /^bit|image|text|ntext|datetime$/
-                          ci[:type]
+                          ci['type']
                         when /^datetime2|datetimeoffset$/i
-                          "#{ci[:type]}(#{ci[:datetime_precision]})"
+                          "#{ci['type']}(#{ci['datetime_precision']})"
                         when /^time$/i
-                          "#{ci[:type]}(#{ci[:datetime_precision]})"
+                          "#{ci['type']}(#{ci['datetime_precision']})"
                         when /^numeric|decimal$/i
-                          "#{ci[:type]}(#{ci[:numeric_precision]},#{ci[:numeric_scale]})"
+                          "#{ci['type']}(#{ci['numeric_precision']},#{ci['numeric_scale']})"
                         when /^float|real$/i
-                          "#{ci[:type]}"
+                          "#{ci['type']}"
                         when /^char|nchar|varchar|nvarchar|binary|varbinary|bigint|int|smallint$/
-                          ci[:length].to_i == -1 ? "#{ci[:type]}(max)" : "#{ci[:type]}(#{ci[:length]})"
+                          ci['length'].to_i == -1 ? "#{ci['type']}(max)" : "#{ci['type']}(#{ci['length']})"
                         else
-                          ci[:type]
+                          ci['type']
                         end
-            ci[:default_value],
-            ci[:default_function] = begin
-              default = ci[:default_value]
+            col[:default_value],
+            col[:default_function] = begin
+              default = ci['default_value']
               if default.nil? && view_exists
-                view_column = views_real_column_name(table_name, ci[:name]).downcase
+                view_column = views_real_column_name(table_name, ci['name']).downcase
                 default = default_functions[view_column] if view_column.present?
               end
               case default
@@ -540,28 +552,34 @@ module ActiveRecord
               when /CREATE DEFAULT/mi
                 [nil, nil]
               else
-                type = case ci[:type]
-                       when /smallint|int|bigint/ then ci[:_type]
-                       else ci[:type]
+                type = case col[:type]
+                       when /smallint|int|bigint/ then original_type
+                       else col[:type]
                        end
                 value = default.match(/\A\((.*)\)\Z/m)[1]
                 value = select_value("SELECT CAST(#{value} AS #{type}) AS value", "SCHEMA")
                 [value, nil]
               end
             end
-            ci[:null] = ci[:is_nullable].to_i == 1
-            ci.delete(:is_nullable)
-            ci[:is_primary] = ci[:is_primary].to_i == 1
-            ci[:is_identity] = ci[:is_identity].to_i == 1 unless [TrueClass, FalseClass].include?(ci[:is_identity].class)
-            ci
+            col[:null] = ci['is_nullable'].to_i == 1
+            # ci.delete(:is_nullable)
+            col[:is_primary] = ci['is_primary'].to_i == 1
+
+            if [TrueClass, FalseClass].include?(ci['is_identity'].class)
+              col[:is_identity] = ci['is_identity']
+            else
+              col[:is_identity] = ci['is_identity'].to_i == 1
+            end
+
+            # col[:is_identity] = ci[:is_identity].to_i == 1 unless [TrueClass, FalseClass].include?(ci[:is_identity].class)
+
+            col
+            # cols << col
           end
 
-          # Since Rails 7, it's expected that all adapter raise error when table doesn't exists.
-          # I'm not aware of the possibility of tables without columns on SQL Server (postgres have those).
-          # Raise error if the method return an empty array
-          columns.tap do |result|
-            raise ActiveRecord::StatementInvalid, "Table '#{table_name}' doesn't exist" if result.empty?
-          end
+          raise ActiveRecord::StatementInvalid, "Table '#{table_name}' doesn't exist" if columns.empty?
+
+          columns
         end
 
         def column_definitions_sql(database, identifier)
