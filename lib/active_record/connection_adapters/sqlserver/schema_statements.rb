@@ -37,18 +37,16 @@ module ActiveRecord
           data = select("EXEC sp_helpindex #{quote(table_name)}", "SCHEMA") rescue []
 
           data.reduce([]) do |indexes, index|
-            index = index.to_h.with_indifferent_access
-
-            if index[:index_description].match?(/primary key/)
+            if index['index_description'].match?(/primary key/)
               indexes
             else
-              name    = index[:index_name]
-              unique  = index[:index_description].match?(/unique/)
+              name    = index['index_name']
+              unique  = index['index_description'].match?(/unique/)
               where   = select_value("SELECT [filter_definition] FROM sys.indexes WHERE name = #{quote(name)}", "SCHEMA")
               orders  = {}
               columns = []
 
-              index[:index_keys].split(",").each do |column|
+              index['index_keys'].split(",").each do |column|
                 column.strip!
 
                 if column.end_with?("(-)")
@@ -504,7 +502,7 @@ module ActiveRecord
           results = internal_exec_query(sql, "SCHEMA", binds)
 
           columns = results.map do |ci|
-            ci = ci.to_h.symbolize_keys
+            ci = ci.to_h.symbolize_keys # TODO: Fix so doesnt use hash.
             ci[:_type] = ci[:type]
             ci[:table_name] = view_tblnm || table_name
             ci[:type] = case ci[:type]
@@ -712,7 +710,7 @@ module ActiveRecord
             view_info = select_one "SELECT * FROM #{information_query_table} WITH (NOLOCK) WHERE TABLE_NAME = #{quote(identifier.object)}", "SCHEMA"
 
             if view_info
-              view_info = view_info.to_h.with_indifferent_access
+              view_info = view_info.to_h.with_indifferent_access # TODO: Fix so doesnt use hash.
               if view_info[:VIEW_DEFINITION].blank? || view_info[:VIEW_DEFINITION].length == 4000
                 view_info[:VIEW_DEFINITION] = begin
                                                 select_values("EXEC sp_helptext #{identifier.object_quoted}", "SCHEMA").join
