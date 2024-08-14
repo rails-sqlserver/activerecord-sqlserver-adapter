@@ -539,7 +539,6 @@ module ActiveRecord
           columns
         end
 
-
         def default_value_and_function(default:, name:, type:, original_type:, view_exists:, table_name:, default_functions:)
           if default.nil? && view_exists
             view_column = views_real_column_name(table_name, name).downcase
@@ -721,9 +720,36 @@ module ActiveRecord
         # === SQLServer Specific (View Reflection) ====================== #
 
         def view_table_name(table_name)
+
+          # binding.pry
+
           view_info = view_information(table_name)
-          view_info ? get_table_name(view_info["VIEW_DEFINITION"]) : table_name
+          view_info.present? ? get_table_name(view_info["VIEW_DEFINITION"]) : table_name
         end
+
+        #
+        # def view_information2(table_name)
+        #   @view_information ||= {}
+        #   @view_information[table_name] ||= begin
+        #                                       identifier = SQLServer::Utils.extract_identifiers(table_name)
+        #                                       information_query_table = identifier.database.present? ? "[#{identifier.database}].[INFORMATION_SCHEMA].[VIEWS]" :  "[INFORMATION_SCHEMA].[VIEWS]"
+        #                                       view_info = select_one "SELECT * FROM #{information_query_table} WITH (NOLOCK) WHERE TABLE_NAME = #{quote(identifier.object)}", "SCHEMA"
+        #
+        #                                       if view_info
+        #                                         view_info = view_info.with_indifferent_access
+        #                                         if view_info[:VIEW_DEFINITION].blank? || view_info[:VIEW_DEFINITION].length == 4000
+        #                                           view_info[:VIEW_DEFINITION] = begin
+        #                                                                           select_values("EXEC sp_helptext #{identifier.object_quoted}", "SCHEMA").join
+        #                                                                         rescue
+        #                                                                           warn "No view definition found, possible permissions problem.\nPlease run GRANT VIEW DEFINITION TO your_user;"
+        #                                                                           nil
+        #                                                                         end
+        #                                         end
+        #                                       end
+        #
+        #                                       view_info
+        #                                     end
+        # end
 
         def view_information(table_name)
           @view_information ||= {}
@@ -734,7 +760,7 @@ module ActiveRecord
 
             view_info = select_one("SELECT * FROM #{information_query_table} WITH (NOLOCK) WHERE TABLE_NAME = #{quote(identifier.object)}", "SCHEMA").to_h
 
-            if view_info
+            if view_info.present?
               if view_info['VIEW_DEFINITION'].blank? || view_info['VIEW_DEFINITION'].length == 4000
                 view_info['VIEW_DEFINITION'] = begin
                                                  select_values("EXEC sp_helptext #{identifier.object_quoted}", "SCHEMA").join
