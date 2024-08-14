@@ -732,7 +732,7 @@ module ActiveRecord
             identifier = SQLServer::Utils.extract_identifiers(table_name)
             information_query_table = identifier.database.present? ? "[#{identifier.database}].[INFORMATION_SCHEMA].[VIEWS]" :  "[INFORMATION_SCHEMA].[VIEWS]"
 
-            view_info = select_one("SELECT * FROM #{information_query_table} WITH (NOLOCK) WHERE TABLE_NAME = #{quote(identifier.object)}", "SCHEMA")
+            view_info = select_one("SELECT * FROM #{information_query_table} WITH (NOLOCK) WHERE TABLE_NAME = #{quote(identifier.object)}", "SCHEMA").to_h
 
             if view_info
               if view_info['VIEW_DEFINITION'].blank? || view_info['VIEW_DEFINITION'].length == 4000
