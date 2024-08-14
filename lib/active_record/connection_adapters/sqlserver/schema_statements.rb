@@ -477,11 +477,75 @@ module ActiveRecord
           }
         end
 
+        def column_definitions(table_name)
+          identifier  = database_prefix_identifier(table_name)
+          database    = identifier.fully_qualified_database_quoted
+          view_exists = view_exists?(table_name)
+          view_table_name  = view_table_name(table_name) if view_exists
+
+          if view_exists
+            sql = <<~SQL
+              SELECT LOWER(c.COLUMN_NAME) AS [name], c.COLUMN_DEFAULT AS [default]
+              FROM #{database}.INFORMATION_SCHEMA.COLUMNS c
+              WHERE c.TABLE_NAME = #{quote(view_table_name)}
+            SQL
+            results = internal_exec_query(sql, "SCHEMA")
+            default_functions = results.each.with_object({}) { |row, out| out[row["name"]] = row["default"] }.compact
+          end
+
+          sql = column_definitions_sql(database, identifier)
+
+          binds = []
+          nv128 = SQLServer::Type::UnicodeVarchar.new(limit: 128)
+          binds << Relation::QueryAttribute.new("TABLE_NAME", identifier.object, nv128)
+          binds << Relation::QueryAttribute.new("TABLE_SCHEMA", identifier.schema, nv128) unless identifier.schema.blank?
+
+          results = internal_exec_query(sql, "SCHEMA", binds)
+          raise ActiveRecord::StatementInvalid, "Table '#{table_name}' doesn't exist" if results.empty?
+
+          columns = results.map do |ci|
+            col = {
+              name:               ci["name"],
+              numeric_scale:      ci["numeric_scale"],
+              numeric_precision:  ci["numeric_precision"],
+              datetime_precision: ci["datetime_precision"],
+              collation:          ci["collation"],
+              ordinal_position:   ci["ordinal_position"],
+              length:             ci["length"]
+            }
+
+            col[:table_name] = view_table_name || table_name
+            col[:type] = column_type(ci: ci)
+            col[:default_value], col[:default_function] = default_value_and_function(default: ci['default_value'],
+                                                                                     name: ci['name'],
+                                                                                     type: col[:type],
+                                                                                     original_type: ci['type'],
+                                                                                     view_exists: view_exists,
+                                                                                     table_name: table_name,
+                                                                                     default_functions: default_functions)
+
+            col[:null] = ci['is_nullable'].to_i == 1
+            col[:is_primary] = ci['is_primary'].to_i == 1
+
+            if [true, false].include?(ci['is_identity'])
+              col[:is_identity] = ci['is_identity']
+            else
+              col[:is_identity] = ci['is_identity'].to_i == 1
+            end
+
+            col
+          end
+
+          columns
+        end
+
+
         def default_value_and_function(default:, name:, type:, original_type:, view_exists:, table_name:, default_functions:)
           if default.nil? && view_exists
             view_column = views_real_column_name(table_name, name).downcase
             default = default_functions[view_column] if view_column.present?
           end
+
           case default
           when nil
             [nil, nil]
@@ -521,72 +585,6 @@ module ActiveRecord
           else
             ci['type']
           end
-        end
-
-        def column_definitions(table_name)
-          identifier  = database_prefix_identifier(table_name)
-          database    = identifier.fully_qualified_database_quoted
-          view_exists = view_exists?(table_name)
-          view_table_name  = view_table_name(table_name) if view_exists
-
-          if view_exists
-            sql = <<~SQL
-              SELECT LOWER(c.COLUMN_NAME) AS [name], c.COLUMN_DEFAULT AS [default]
-              FROM #{database}.INFORMATION_SCHEMA.COLUMNS c
-              WHERE c.TABLE_NAME = #{quote(view_table_name)}
-            SQL
-            results = internal_exec_query(sql, "SCHEMA")
-            default_functions = results.each.with_object({}) { |row, out| out[row["name"]] = row["default"] }.compact
-          end
-
-          sql = column_definitions_sql(database, identifier)
-
-          binds = []
-          nv128 = SQLServer::Type::UnicodeVarchar.new(limit: 128)
-          binds << Relation::QueryAttribute.new("TABLE_NAME", identifier.object, nv128)
-          binds << Relation::QueryAttribute.new("TABLE_SCHEMA", identifier.schema, nv128) unless identifier.schema.blank?
-          results = internal_exec_query(sql, "SCHEMA", binds)
-
-          columns = results.map do |ci|
-            col = {
-              name:               ci["name"],
-              numeric_scale:      ci["numeric_scale"],
-              numeric_precision:  ci["numeric_precision"],
-              datetime_precision: ci["datetime_precision"],
-              collation:          ci["collation"],
-              ordinal_position:   ci["ordinal_position"],
-              length:             ci["length"]
-            }
-
-            col[:table_name] = view_table_name || table_name
-            col[:type] = column_type(ci: ci)
-
-        
-            col[:default_value], col[:default_function] = default_value_and_function(default: ci['default_value'],
-                                                                                     name: ci['name'],
-                                                                                     type: col[:type],
-                                                                                     original_type: ci['type'],
-                                                                                     view_exists: view_exists,
-                                                                                     table_name: table_name,
-                                                                                     default_functions: default_functions)
-
-
-
-            col[:null] = ci['is_nullable'].to_i == 1
-            col[:is_primary] = ci['is_primary'].to_i == 1
-
-            if [true, false].include?(ci['is_identity'])
-              col[:is_identity] = ci['is_identity']
-            else
-              col[:is_identity] = ci['is_identity'].to_i == 1
-            end
-
-            col
-          end
-
-          raise ActiveRecord::StatementInvalid, "Table '#{table_name}' doesn't exist" if columns.empty?
-
-          columns
         end
 
         def column_definitions_sql(database, identifier)
@@ -729,10 +727,12 @@ module ActiveRecord
 
         def view_information(table_name)
           @view_information ||= {}
+
           @view_information[table_name] ||= begin
             identifier = SQLServer::Utils.extract_identifiers(table_name)
             information_query_table = identifier.database.present? ? "[#{identifier.database}].[INFORMATION_SCHEMA].[VIEWS]" :  "[INFORMATION_SCHEMA].[VIEWS]"
-            view_info = select_one "SELECT * FROM #{information_query_table} WITH (NOLOCK) WHERE TABLE_NAME = #{quote(identifier.object)}", "SCHEMA"
+
+            view_info = select_one("SELECT * FROM #{information_query_table} WITH (NOLOCK) WHERE TABLE_NAME = #{quote(identifier.object)}", "SCHEMA")
 
             if view_info
               view_info = view_info.to_h.with_indifferent_access # TODO: Fix so doesnt use hash.
