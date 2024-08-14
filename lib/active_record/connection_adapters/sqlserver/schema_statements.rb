@@ -561,7 +561,16 @@ module ActiveRecord
             col[:table_name] = view_table_name || table_name
             col[:type] = column_type(ci: ci)
 
-            col[:default_value], col[:default_function] = default_value_and_function(default: col[:default_value], name: ci['name'], type: col[:type], original_type: ci['type'], view_exists: view_exists, table_name: table_name, default_functions: default_functions)
+        
+            col[:default_value], col[:default_function] = default_value_and_function(default: ci['default_value'],
+                                                                                     name: ci['name'],
+                                                                                     type: col[:type],
+                                                                                     original_type: ci['type'],
+                                                                                     view_exists: view_exists,
+                                                                                     table_name: table_name,
+                                                                                     default_functions: default_functions)
+
+
 
             col[:null] = ci['is_nullable'].to_i == 1
             col[:is_primary] = ci['is_primary'].to_i == 1
