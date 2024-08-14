@@ -478,16 +478,15 @@ module ActiveRecord
         end
 
         def column_definitions(table_name)
-          identifier  = database_prefix_identifier(table_name)
-          database    = identifier.fully_qualified_database_quoted
-          view_exists = view_exists?(table_name)
-          view_table_name  = view_table_name(table_name) if view_exists
+          identifier      = database_prefix_identifier(table_name)
+          database        = identifier.fully_qualified_database_quoted
+          view_exists     = view_exists?(table_name)
 
           if view_exists
             sql = <<~SQL
               SELECT LOWER(c.COLUMN_NAME) AS [name], c.COLUMN_DEFAULT AS [default]
               FROM #{database}.INFORMATION_SCHEMA.COLUMNS c
-              WHERE c.TABLE_NAME = #{quote(view_table_name)}
+              WHERE c.TABLE_NAME = #{quote(view_table_name(table_name))}
             SQL
             results = internal_exec_query(sql, "SCHEMA")
             default_functions = results.each.with_object({}) { |row, out| out[row["name"]] = row["default"] }.compact
@@ -514,7 +513,7 @@ module ActiveRecord
               length:             ci["length"]
             }
 
-            col[:table_name] = view_table_name || table_name
+            col[:table_name] = view_table_name(table_name) || table_name
             col[:type] = column_type(ci: ci)
             col[:default_value], col[:default_function] = default_value_and_function(default: ci['default_value'],
                                                                                      name: ci['name'],
@@ -720,36 +719,9 @@ module ActiveRecord
         # === SQLServer Specific (View Reflection) ====================== #
 
         def view_table_name(table_name)
-
-          # binding.pry
-
           view_info = view_information(table_name)
           view_info.present? ? get_table_name(view_info["VIEW_DEFINITION"]) : table_name
         end
-
-        #
-        # def view_information2(table_name)
-        #   @view_information ||= {}
-        #   @view_information[table_name] ||= begin
-        #                                       identifier = SQLServer::Utils.extract_identifiers(table_name)
-        #                                       information_query_table = identifier.database.present? ? "[#{identifier.database}].[INFORMATION_SCHEMA].[VIEWS]" :  "[INFORMATION_SCHEMA].[VIEWS]"
-        #                                       view_info = select_one "SELECT * FROM #{information_query_table} WITH (NOLOCK) WHERE TABLE_NAME = #{quote(identifier.object)}", "SCHEMA"
-        #
-        #                                       if view_info
-        #                                         view_info = view_info.with_indifferent_access
-        #                                         if view_info[:VIEW_DEFINITION].blank? || view_info[:VIEW_DEFINITION].length == 4000
-        #                                           view_info[:VIEW_DEFINITION] = begin
-        #                                                                           select_values("EXEC sp_helptext #{identifier.object_quoted}", "SCHEMA").join
-        #                                                                         rescue
-        #                                                                           warn "No view definition found, possible permissions problem.\nPlease run GRANT VIEW DEFINITION TO your_user;"
-        #                                                                           nil
-        #                                                                         end
-        #                                         end
-        #                                       end
-        #
-        #                                       view_info
-        #                                     end
-        # end
 
         def view_information(table_name)
           @view_information ||= {}
@@ -777,7 +749,7 @@ module ActiveRecord
 
         def views_real_column_name(table_name, column_name)
           view_definition = view_information(table_name)['VIEW_DEFINITION']
-          return column_name unless view_definition
+          return column_name if view_definition.blank?
 
           # Remove "CREATE VIEW ... AS SELECT ..." and then match the column name.
           match_data = view_definition.sub(/CREATE\s+VIEW.*AS\s+SELECT\s/, '').match(/([\w-]*)\s+AS\s+#{column_name}\W/im)
