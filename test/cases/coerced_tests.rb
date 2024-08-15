@@ -2419,7 +2419,9 @@ class QueryLogsTest < ActiveRecord::TestCase
   # SQL requires double single-quotes.
   coerce_tests! :test_sql_commenter_format
   def test_sql_commenter_format_coerced
-    ActiveRecord::QueryLogs.update_formatter(:sqlcommenter)
+    ActiveRecord::QueryLogs.tags_formatter = :sqlcommenter
+    ActiveRecord::QueryLogs.tags = [:application]
+
     assert_queries_match(%r{/\*application=''active_record''\*/}) do
       Dashboard.first
     end
@@ -2428,7 +2430,7 @@ class QueryLogsTest < ActiveRecord::TestCase
   # SQL requires double single-quotes.
   coerce_tests! :test_sqlcommenter_format_value
   def test_sqlcommenter_format_value_coerced
-    ActiveRecord::QueryLogs.update_formatter(:sqlcommenter)
+    ActiveRecord::QueryLogs.tags_formatter = :sqlcommenter
 
     ActiveRecord::QueryLogs.tags = [
       :application,
@@ -2443,7 +2445,7 @@ class QueryLogsTest < ActiveRecord::TestCase
   # SQL requires double single-quotes.
   coerce_tests! :test_sqlcommenter_format_value_string_coercible
   def test_sqlcommenter_format_value_string_coercible_coerced
-    ActiveRecord::QueryLogs.update_formatter(:sqlcommenter)
+    ActiveRecord::QueryLogs.tags_formatter = :sqlcommenter
 
     ActiveRecord::QueryLogs.tags = [
       :application,
@@ -2458,7 +2460,7 @@ class QueryLogsTest < ActiveRecord::TestCase
   # SQL requires double single-quotes.
   coerce_tests! :test_sqlcommenter_format_allows_string_keys
   def test_sqlcommenter_format_allows_string_keys_coerced
-    ActiveRecord::QueryLogs.update_formatter(:sqlcommenter)
+    ActiveRecord::QueryLogs.tags_formatter = :sqlcommenter
 
     ActiveRecord::QueryLogs.tags = [
       :application,
