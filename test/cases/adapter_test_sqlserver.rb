@@ -580,4 +580,26 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
       end
     end
   end
+
+  describe "mismatched foreign keys error" do
+    def setup
+      @conn = ActiveRecord::Base.lease_connection
+    end
+
+    it 'raises an error when the foreign key is mismatched' do
+     error = assert_raises(ActiveRecord::MismatchedForeignKey) do
+        @conn.add_reference :engines, :old_car
+        @conn.add_foreign_key :engines, :old_cars
+      end
+
+      assert_match(
+        %r/Column 'old_cars\.id' is not the same data type as referencing column 'engines\.old_car_id' in foreign key '.*'/,
+        error.message
+      )
+      assert_not_nil error.cause
+      assert_equal @conn.pool, error.connection_pool
+    ensure
+      @conn.execute("ALTER TABLE engines DROP COLUMN old_car_id") rescue nil
+    end
+  end
 end
