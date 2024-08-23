@@ -431,36 +431,28 @@ module ActiveRecord
         TYPE_MAP
       end
 
-      def translate_exception(e, message:, sql:, binds:)
+      def translate_exception(exception, message:, sql:, binds:)
         case message
         when /(SQL Server client is not connected)|(failed to execute statement)/i
-          ConnectionNotEstablished.new(message)
+          ConnectionNotEstablished.new(message, connection_pool: @pool)
         when /(cannot insert duplicate key .* with unique index) | (violation of (unique|primary) key constraint)/i
-          RecordNotUnique.new(message, sql: sql, binds: binds)
+          RecordNotUnique.new(message, sql: sql, binds: binds, connection_pool: @pool)
         when /(conflicted with the foreign key constraint) | (The DELETE statement conflicted with the REFERENCE constraint)/i
-          InvalidForeignKey.new(message, sql: sql, binds: binds)
+          InvalidForeignKey.new(message, sql: sql, binds: binds, connection_pool: @pool)
         when /has been chosen as the deadlock victim/i
-          DeadlockVictim.new(message, sql: sql, binds: binds)
+          DeadlockVictim.new(message, sql: sql, binds: binds, connection_pool: @pool)
         when /database .* does not exist/i
-          NoDatabaseError.new(message)
+          NoDatabaseError.new(message, connection_pool: @pool)
         when /data would be truncated/
-          ValueTooLong.new(message, sql: sql, binds: binds)
+          ValueTooLong.new(message, sql: sql, binds: binds, connection_pool: @pool)
         when /connection timed out/
-          StatementTimeout.new(message, sql: sql, binds: binds)
+          StatementTimeout.new(message, sql: sql, binds: binds, connection_pool: @pool)
         when /Column '(.*)' is not the same data type as referencing column '(.*)' in foreign key/
-          pk_id, fk_id = SQLServer::Utils.extract_identifiers($1), SQLServer::Utils.extract_identifiers($2)
-          MismatchedForeignKey.new(
-            self,
-            message: message,
-            table: fk_id.schema,
-            foreign_key: fk_id.object,
-            target_table: pk_id.schema,
-            primary_key: pk_id.object
-          )
+          MismatchedForeignKey.new(message: message, connection_pool: @pool)
         when /Cannot insert the value NULL into column.*does not allow nulls/
-          NotNullViolation.new(message, sql: sql, binds: binds)
+          NotNullViolation.new(message, sql: sql, binds: binds, connection_pool: @pool)
         when /Arithmetic overflow error/
-          RangeError.new(message, sql: sql, binds: binds)
+          RangeError.new(message, sql: sql, binds: binds, connection_pool: @pool)
         else
           super
         end
