@@ -431,7 +431,7 @@ module ActiveRecord
         TYPE_MAP
       end
 
-      def translate_exception(e, message:, sql:, binds:)
+      def translate_exception(exception, message:, sql:, binds:)
         case message
         when /(SQL Server client is not connected)|(failed to execute statement)/i
           ConnectionNotEstablished.new(message)
@@ -450,7 +450,6 @@ module ActiveRecord
         when /Column '(.*)' is not the same data type as referencing column '(.*)' in foreign key/
           pk_id, fk_id = SQLServer::Utils.extract_identifiers($1), SQLServer::Utils.extract_identifiers($2)
           MismatchedForeignKey.new(
-            self,
             message: message,
             table: fk_id.schema,
             foreign_key: fk_id.object,
