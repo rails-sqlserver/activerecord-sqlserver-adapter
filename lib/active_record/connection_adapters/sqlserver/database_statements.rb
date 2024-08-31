@@ -75,14 +75,16 @@ module ActiveRecord
 
         def affected_rows(raw_result)
 
-          if raw_result.count == 1 && raw_result.first.key?('AffectedRows')
-            raw_result.first['AffectedRows']
-          else
-            raw_result.count
-          end
+          raw_result.first['AffectedRows']
 
-        rescue => e
-          binding.pry
+          # if raw_result.count == 1 && raw_result.first.key?('AffectedRows')
+          #   raw_result.first['AffectedRows']
+          # else
+          #   raw_result.count
+          # end
+
+        # rescue => e
+        #   binding.pry
         end
 
 
@@ -118,14 +120,16 @@ module ActiveRecord
           finish_statement_handle(handle)
         end
 
-        def exec_delete(sql, name, binds)
+        def exec_delete(sql, name = nil, binds = [])
           sql = sql.dup << "; SELECT @@ROWCOUNT AS AffectedRows"
           super(sql, name, binds)
+          # internal_execute(sql, name, binds).first['AffectedRows']
         end
 
-        def exec_update(sql, name, binds)
+        def exec_update(sql, name = nil, binds = [])
           sql = sql.dup << "; SELECT @@ROWCOUNT AS AffectedRows"
           super(sql, name, binds)
+          # internal_execute(sql, name, binds).first['AffectedRows']
         end
 
         def begin_db_transaction
