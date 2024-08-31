@@ -7,54 +7,109 @@ module ActiveRecord
         READ_QUERY = ActiveRecord::ConnectionAdapters::AbstractAdapter.build_read_query_regexp(:begin, :commit, :dbcc, :explain, :save, :select, :set, :rollback, :waitfor, :use) # :nodoc:
         private_constant :READ_QUERY
 
+        # TODO: replace `internal_exec_query` by `perform_query`.
+
+        def perform_query(raw_connection, sql, binds, type_casted_binds, prepare:, notification_payload:, batch:)
+          unless binds.nil? || binds.empty?
+            types, params = sp_executesql_types_and_parameters(binds)
+
+            # TODO: `name` parameter does not exist.
+            sql = sp_executesql_sql(sql, types, params)
+          end
+
+
+          result = if id_insert_table_name = query_requires_identity_insert?(sql)
+                     with_identity_insert_enabled(id_insert_table_name, raw_connection) do
+                       internal_exec_sql_query(sql, raw_connection)
+                     end
+                   else
+                     internal_exec_sql_query(sql, raw_connection)
+                   end
+
+          verified!
+          notification_payload[:row_count] = result.count
+          result
+        end
+
+        #
+        # def internal_exec_query(sql, name = "SQL", binds = [], prepare: false, async: false, allow_retry: false)
+        #   sql = transform_query(sql)
+        #
+        #   check_if_write_query(sql)
+        #   mark_transaction_written_if_write(sql)
+        #
+        #   unless without_prepared_statement?(binds)
+        #     types, params = sp_executesql_types_and_parameters(binds)
+        #     sql = sp_executesql_sql(sql, types, params, name)
+        #   end
+        #
+        #   log(sql, name, binds, async: async) do |notification_payload|
+        #     with_raw_connection do |conn|
+        #       result = if id_insert_table_name = query_requires_identity_insert?(sql)
+        #                  with_identity_insert_enabled(id_insert_table_name, conn) do
+        #                    internal_exec_sql_query(sql, conn)
+        #                  end
+        #                else
+        #                  internal_exec_sql_query(sql, conn)
+        #                end
+        #
+        #       verified!
+        #       notification_payload[:row_count] = result.count
+        #       result
+        #     end
+        #   end
+        # end
+
+
+        # Receive a native adapter result object and returns an ActiveRecord::Result object.
+        def cast_result(raw_result)
+          if raw_result.columns.empty?
+            ActiveRecord::Result.empty
+          else
+            ActiveRecord::Result.new(raw_result.columns, raw_result.rows)
+          end
+
+        # rescue => e
+        #   binding.pry
+        end
+
+        def affected_rows(raw_result)
+
+          if raw_result.count == 1 && raw_result.first.key?('AffectedRows')
+            raw_result.first['AffectedRows']
+          else
+            raw_result.count
+          end
+
+        rescue => e
+          binding.pry
+        end
+
+
+
         def write_query?(sql) # :nodoc:
           !READ_QUERY.match?(sql)
         rescue ArgumentError # Invalid encoding
           !READ_QUERY.match?(sql.b)
         end
 
-        def raw_execute(sql, name, async: false, allow_retry: false, materialize_transactions: true)
-          log(sql, name, async: async) do |notification_payload|
-            with_raw_connection(allow_retry: allow_retry, materialize_transactions: materialize_transactions) do |conn|
-              result = if id_insert_table_name = query_requires_identity_insert?(sql)
-                         with_identity_insert_enabled(id_insert_table_name, conn) { internal_raw_execute(sql, conn, perform_do: true) }
-                       else
-                         internal_raw_execute(sql, conn, perform_do: true)
-                       end
-              verified!
-              notification_payload[:row_count] = result
-              result
-            end
-          end
-        end
+        # TODO: This method implemented in Rails.
+        # def raw_execute(sql, name, async: false, allow_retry: false, materialize_transactions: true)
+        #   log(sql, name, async: async) do |notification_payload|
+        #     with_raw_connection(allow_retry: allow_retry, materialize_transactions: materialize_transactions) do |conn|
+        #       result = if id_insert_table_name = query_requires_identity_insert?(sql)
+        #                  with_identity_insert_enabled(id_insert_table_name, conn) { internal_raw_execute(sql, conn, perform_do: true) }
+        #                else
+        #                  internal_raw_execute(sql, conn, perform_do: true)
+        #                end
+        #       verified!
+        #       notification_payload[:row_count] = result
+        #       result
+        #     end
+        #   end
+        # end
 
-        def internal_exec_query(sql, name = "SQL", binds = [], prepare: false, async: false, allow_retry: false)
-          sql = transform_query(sql)
 
-          check_if_write_query(sql)
-          mark_transaction_written_if_write(sql)
-
-          unless without_prepared_statement?(binds)
-            types, params = sp_executesql_types_and_parameters(binds)
-            sql = sp_executesql_sql(sql, types, params, name)
-          end
-
-          log(sql, name, binds, async: async) do |notification_payload|
-            with_raw_connection do |conn|
-              result = if id_insert_table_name = query_requires_identity_insert?(sql)
-                         with_identity_insert_enabled(id_insert_table_name, conn) do
-                           internal_exec_sql_query(sql, conn)
-                         end
-                       else
-                         internal_exec_sql_query(sql, conn)
-                       end
-
-              verified!
-              notification_payload[:row_count] = result.count
-              result
-            end
-          end
-        end
 
         def internal_exec_sql_query(sql, conn)
           handle = internal_raw_execute(sql, conn)
@@ -65,12 +120,12 @@ module ActiveRecord
 
         def exec_delete(sql, name, binds)
           sql = sql.dup << "; SELECT @@ROWCOUNT AS AffectedRows"
-          super(sql, name, binds).rows.first.first
+          super(sql, name, binds)
         end
 
         def exec_update(sql, name, binds)
           sql = sql.dup << "; SELECT @@ROWCOUNT AS AffectedRows"
-          super(sql, name, binds).rows.first.first
+          super(sql, name, binds)
         end
 
         def begin_db_transaction
@@ -366,18 +421,19 @@ module ActiveRecord
             type.is_a?(NilClass)
         end
 
-        def sp_executesql_sql(sql, types, params, name)
-          if name == "EXPLAIN"
-            params.each.with_index do |param, index|
-              substitute_at_finder = /(@#{index})(?=(?:[^']|'[^']*')*$)/ # Finds unquoted @n values.
-              sql = sql.sub substitute_at_finder, param.to_s
-            end
-          else
+        # TODO: `name` was removed from the method signature.
+        def sp_executesql_sql(sql, types, params)
+          # if name == "EXPLAIN"
+          #   params.each.with_index do |param, index|
+          #     substitute_at_finder = /(@#{index})(?=(?:[^']|'[^']*')*$)/ # Finds unquoted @n values.
+          #     sql = sql.sub substitute_at_finder, param.to_s
+          #   end
+          # else
             types = quote(types.join(", "))
             params = params.map.with_index { |p, i| "@#{i} = #{p}" }.join(", ") # Only p is needed, but with @i helps explain regexp.
             sql = "EXEC sp_executesql #{quote(sql)}"
             sql += ", #{types}, #{params}" unless params.empty?
-          end
+          # end
           sql.freeze
         end
 
@@ -455,10 +511,10 @@ module ActiveRecord
         # TinyTDS returns false instead of raising an exception if connection fails.
         # Getting around this by raising an exception ourselves while PR
         # https://github.com/rails-sqlserver/tiny_tds/pull/469 is not released.
-        def internal_raw_execute(sql, conn, perform_do: false)
-          result = conn.execute(sql).tap do |_result|
-            raise TinyTds::Error, "failed to execute statement" if _result.is_a?(FalseClass)
-          end
+        # TODO: Check if `perform_do` is needed.
+        def internal_raw_execute(sql, raw_connection, perform_do: false)
+          result = raw_connection.execute(sql)
+          raise TinyTds::Error, "failed to execute statement" if result.is_a?(FalseClass)
 
           perform_do ? result.do : result
         end
