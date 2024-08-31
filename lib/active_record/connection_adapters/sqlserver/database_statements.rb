@@ -357,7 +357,7 @@ module ActiveRecord
             type.is_a?(FalseClass) ||
             type.is_a?(NilClass)
         end
-        
+
         def sp_executesql_sql(sql, types, params, name)
           if name == "EXPLAIN"
             params.each.with_index do |param, index|
