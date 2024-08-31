@@ -16,6 +16,7 @@ module ActiveRecord
           sql = to_sql(arel)
           result = with_showplan_on { internal_exec_query(sql, "EXPLAIN", binds) }
           printer = showplan_printer.new(result)
+
           printer.pp
         end
 

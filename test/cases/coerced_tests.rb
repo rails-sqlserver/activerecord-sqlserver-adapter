@@ -2250,14 +2250,6 @@ class LogSubscriberTest < ActiveRecord::TestCase
   def test_verbose_query_logs_coerced
     original_test_verbose_query_logs
   end
-
-  # Bindings logged slightly differently.
-  coerce_tests! :test_where_in_binds_logging_include_attribute_names
-  def test_where_in_binds_logging_include_attribute_names_coerced
-    Developer.where(id: [1, 2, 3, 4, 5]).load
-    wait
-    assert_match(%{@0 = 1, @1 = 2, @2 = 3, @3 = 4, @4 = 5  [["id", nil], ["id", nil], ["id", nil], ["id", nil], ["id", nil]]}, @logger.logged(:debug).last)
-  end
 end
 
 class ReloadModelsTest < ActiveRecord::TestCase
