@@ -321,10 +321,12 @@ module ActiveRecord
 
         def sp_executesql_sql_type(attr)
           if attr.respond_to?(:type)
-            return attr.type.sqlserver_type if attr.type.respond_to?(:sqlserver_type)
+            type = attr.type.serialized? ? attr.type.subtype : attr.type
 
-            if attr.type.is_a?(ActiveRecord::Encryption::EncryptedAttributeType) && attr.type.instance_variable_get(:@cast_type).respond_to?(:sqlserver_type)
-              return attr.type.instance_variable_get(:@cast_type).sqlserver_type
+            return type.sqlserver_type if type.respond_to?(:sqlserver_type)
+
+            if type.is_a?(ActiveRecord::Encryption::EncryptedAttributeType) && type.instance_variable_get(:@cast_type).respond_to?(:sqlserver_type)
+              return type.instance_variable_get(:@cast_type).sqlserver_type
             end
           end
 
