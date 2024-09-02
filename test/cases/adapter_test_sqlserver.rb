@@ -542,7 +542,7 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
       @conn.execute("INSERT INTO [subscribers] ([nick]) VALUES ('aido')")
 
       ActiveRecord::Base.while_preventing_writes do
-        assert_equal 1, @conn.execute("SELECT * FROM [subscribers] WHERE [subscribers].[nick] = 'aido'")
+        assert_equal 1, @conn.execute("SELECT * FROM [subscribers] WHERE [subscribers].[nick] = 'aido'").count
       end
     end
   end
