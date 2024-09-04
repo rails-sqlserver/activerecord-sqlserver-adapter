@@ -513,7 +513,7 @@ module ActiveRecord
               length:             ci["length"]
             }
 
-            col[:table_name] = view_table_name(table_name) || table_name
+            col[:table_name] = view_exists ? view_table_name(table_name) : table_name
             col[:type] = column_type(ci: ci)
             col[:default_value], col[:default_function] = default_value_and_function(default: ci['default_value'],
                                                                                      name: ci['name'],
