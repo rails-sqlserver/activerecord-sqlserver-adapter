@@ -14,22 +14,24 @@ module ActiveRecord
           res
         end
 
-        def drop_table(table_name, **options)
-          # Mimic CASCADE option as best we can.
-          if options[:force] == :cascade
-            execute_procedure(:sp_fkeys, pktable_name: table_name).each do |fkdata|
-              fktable = fkdata["FKTABLE_NAME"]
-              fkcolmn = fkdata["FKCOLUMN_NAME"]
-              pktable = fkdata["PKTABLE_NAME"]
-              pkcolmn = fkdata["PKCOLUMN_NAME"]
-              remove_foreign_key fktable, name: fkdata["FK_NAME"]
-              execute "DELETE FROM #{quote_table_name(fktable)} WHERE #{quote_column_name(fkcolmn)} IN ( SELECT #{quote_column_name(pkcolmn)} FROM #{quote_table_name(pktable)} )"
+        def drop_table(*table_names, **options)
+          table_names.each do |table_name|
+            # Mimic CASCADE option as best we can.
+            if options[:force] == :cascade
+              execute_procedure(:sp_fkeys, pktable_name: table_name).each do |fkdata|
+                fktable = fkdata["FKTABLE_NAME"]
+                fkcolmn = fkdata["FKCOLUMN_NAME"]
+                pktable = fkdata["PKTABLE_NAME"]
+                pkcolmn = fkdata["PKCOLUMN_NAME"]
+                remove_foreign_key fktable, name: fkdata["FK_NAME"]
+                execute "DELETE FROM #{quote_table_name(fktable)} WHERE #{quote_column_name(fkcolmn)} IN ( SELECT #{quote_column_name(pkcolmn)} FROM #{quote_table_name(pktable)} )"
+              end
             end
-          end
-          if options[:if_exists] && version_year < 2016
-            execute "IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = #{quote(table_name)}) DROP TABLE #{quote_table_name(table_name)}", "SCHEMA"
-          else
-            super
+            if options[:if_exists] && version_year < 2016
+              execute "IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = #{quote(table_name)}) DROP TABLE #{quote_table_name(table_name)}", "SCHEMA"
+            else
+              super
+            end
           end
         end
 
