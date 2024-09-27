@@ -11,12 +11,12 @@ module ActiveRecord
 
           private
 
-          def build_count_subquery(relation, column_name, distinct)
-            model.with_connection do |connection|
-              relation = relation.unscope(:order) if connection.sqlserver?
-              super(relation, column_name, distinct)
-            end
-          end
+          # def build_count_subquery(relation, column_name, distinct)
+          #   model.with_connection do |connection|
+          #     relation = relation.unscope(:order) if connection.sqlserver?
+          #     super(relation, column_name, distinct)
+          #   end
+          # end
         end
       end
     end
