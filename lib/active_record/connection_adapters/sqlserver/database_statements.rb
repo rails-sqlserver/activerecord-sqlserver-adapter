@@ -142,11 +142,7 @@ module ActiveRecord
           sql = +"INSERT #{insert.into}"
 
           if returning = insert.send(:insert_all).returning
-            returning_sql = if returning.is_a?(String)
-                              returning
-                            else
-                              returning.map { |column| "INSERTED.#{quote_column_name(column)}" }.join(", ")
-                            end
+            returning_sql = Array(returning).map { |column| "INSERTED.#{quote_column_name(column)}" }.join(", ")
             sql << " OUTPUT #{returning_sql}"
           end
 
