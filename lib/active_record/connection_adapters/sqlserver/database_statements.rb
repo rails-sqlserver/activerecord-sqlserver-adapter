@@ -145,7 +145,7 @@ module ActiveRecord
             returning_sql = if returning.is_a?(String)
                               returning
                             else
-                              returning.map { |column| "INSERTED.#{quote_column_name(column)}" }.join(", ")
+                              Array(returning).map { |column| "INSERTED.#{quote_column_name(column)}" }.join(", ")
                             end
             sql << " OUTPUT #{returning_sql}"
           end

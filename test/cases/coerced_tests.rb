@@ -2487,6 +2487,17 @@ class InsertAllTest < ActiveRecord::TestCase
     result = Book.insert_all! [{ name: "Rework", author_id: 1 }], returning: Arel.sql("UPPER(INSERTED.name) as name")
     assert_equal %w[ REWORK ], result.pluck("name")
   end
+
+  # Need to remove index as SQL Server considers NULLs on a unique-index to be equal unlike PostgreSQL/MySQL/SQLite.
+  coerce_tests! :test_insert_with_type_casting_and_serialize_is_consistent
+  def test_insert_with_type_casting_and_serialize_is_consistent_coerced
+    connection.remove_index(:books, column: [:author_id, :name])
+
+    original_test_insert_with_type_casting_and_serialize_is_consistent
+  ensure
+    Book.where(author_id: nil, name: '["Array"]').delete_all
+    Book.lease_connection.add_index(:books, [:author_id, :name], unique: true)
+  end
 end
 
 module ActiveRecord
