@@ -2495,10 +2495,9 @@ class InsertAllTest < ActiveRecord::TestCase
 
     original_test_insert_with_type_casting_and_serialize_is_consistent
   ensure
-    Book.where(author_id: nil, name: ["Array"]).delete_all
+    Book.where(author_id: nil, name: '["Array"]').delete_all
     Book.lease_connection.add_index(:books, [:author_id, :name], unique: true)
   end
-
 end
 
 module ActiveRecord
