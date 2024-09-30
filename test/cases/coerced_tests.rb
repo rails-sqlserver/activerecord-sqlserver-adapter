@@ -520,6 +520,9 @@ class CalculationsTest < ActiveRecord::TestCase
 
   # SELECT columns must be in the GROUP clause. Since since `ids` only selects the primary key you cannot perform this query in SQL Server.
   coerce_tests! :test_ids_with_includes_and_non_primary_key_order
+
+  # To limit the results in SQL Server we use `FETCH NEXT @0 ROWS ONLY` instead of `LIMIT @0`. To use `FETCH NEXT` an order must be provided.
+  coerce_tests! :test_no_order_by_when_counting_all
 end
 
 module ActiveRecord
