@@ -47,7 +47,7 @@ module ActiveRecord
               if id_insert_table_name = query_requires_identity_insert?(sql)
                 # If the table name is a view, we need to get the base table name for enabling identity insert.
                 id_insert_table_name = view_table_name(id_insert_table_name) if view_exists?(id_insert_table_name)
-                
+
                 with_identity_insert_enabled(id_insert_table_name, conn) do
                   result = internal_exec_sql_query(sql, conn)
                 end
