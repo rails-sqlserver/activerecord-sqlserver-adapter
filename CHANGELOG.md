@@ -11,6 +11,6 @@
 
 #### Fixed
 
-- [#](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/) Enable identity insert on view's base table
+- [#1231](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1231) Enable identity insert on view's base table
 
 Please check [7-1-stable](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/blob/7-1-stable/CHANGELOG.md) for previous changes.
