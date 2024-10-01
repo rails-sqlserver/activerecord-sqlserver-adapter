@@ -1,4 +1,4 @@
-# ActiveRecord SQL Server Adapter. For SQL Server 2012 And Higher.
+# ActiveRecord SQL Server Adapter
 
 * [![CI](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/actions/workflows/ci.yml/badge.svg)](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/actions/workflows/ci.yml) - CI
 * [![Gem Version](http://img.shields.io/gem/v/activerecord-sqlserver-adapter.svg)](https://rubygems.org/gems/activerecord-sqlserver-adapter) - Gem Version
@@ -8,26 +8,27 @@
 
 The SQL Server adapter for ActiveRecord using SQL Server 2012 or higher.
 
-Interested in older versions? We follow a rational versioning policy that tracks Rails. That means that our 7.x version
-of the adapter is only for the latest 7.x version of Rails. If you need the adapter for SQL Server 2008 or 2005, you
-are still in the right spot. Just install the latest 3.2.x to 4.1.x version of the adapter that matches your Rails
-version. We also have stable branches for each major/minor release of ActiveRecord. For older versions, please check
-their stable branches.
+We follow a rational versioning policy that tracks Rails. That means that our 7.x version of the adapter is only
+for the latest 7.x version of Rails. We also have stable branches for each major/minor release of ActiveRecord.
+
+We support the versions of the adapter that are in the Rails [Bug Fixes](https://rubyonrails.org/maintenance)
+maintenance group.
+
+See [Rubygems](https://rubygems.org/gems/activerecord-sqlserver-adapter/versions) for the latest version of the adapter for each Rails release.
 
 | Adapter Version | Rails Version | Support        | Branch                                                                                          |
 |-----------------|---------------|----------------|-------------------------------------------------------------------------------------------------|
 | Unreleased        | `8.0.x`       | In Development | [main](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/tree/main)             |
 | `7.2.x`         | `7.2.x`       | Active         | [7-2-stable](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/tree/7-2-stable) |
 | `7.1.x`         | `7.1.x`       | Active         | [7-1-stable](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/tree/7-1-stable) |
-| `7.0.x`         | `7.0.x`       | Active         | [7-0-stable](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/tree/7-0-stable) |
-| `6.1.x`         | `6.1.x`       | Active         | [6-1-stable](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/tree/6-1-stable) |
+| `7.0.x`         | `7.0.x`       | Ended         | [7-0-stable](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/tree/7-0-stable) |
+| `6.1.x`         | `6.1.x`       | Ended         | [6-1-stable](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/tree/6-1-stable) |
 | `6.0.x`         | `6.0.x`       | Ended          | [6-0-stable](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/tree/6-0-stable) |
 | `5.2.x`         | `5.2.x`       | Ended          | [5-2-stable](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/tree/5-2-stable) |
 | `5.1.x`         | `5.1.x`       | Ended          | [5-1-stable](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/tree/5-1-stable) |
 | `4.2.x`         | `4.2.x`       | Ended          | [4-2-stable](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/tree/4-2-stable) |
 | `4.1.x`         | `4.1.x`       | Ended          | [4-1-stable](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/tree/4-1-stable) |
 
-See [Rubygems](https://rubygems.org/gems/activerecord-sqlserver-adapter/versions) for the latest version of the adapter for each Rails release.
 
 #### Native Data Type Support
 
