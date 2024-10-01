@@ -47,4 +47,12 @@ class ViewTestSQLServer < ActiveRecord::TestCase
       assert_equal 1, klass.count
     end
   end
+  
+  describe 'identity insert' do
+    it "identity insert works with views" do
+      assert_difference("SSTestCustomersView.count", 1) do
+        SSTestCustomersView.create!(id: 5, name: "Bob")
+      end
+    end
+  end
 end
