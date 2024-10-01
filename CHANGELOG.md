@@ -1,3 +1,9 @@
+#### Unreleased
+
+#### Fixed
+
+- [#1231](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1231) Enable identity insert on view's base table
+
 ## v7.1.7
 
 #### Fixed
