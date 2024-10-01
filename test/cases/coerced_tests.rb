@@ -2484,6 +2484,25 @@ class QueryLogsTest < ActiveRecord::TestCase
     end
   end
 
+  # SQL requires double single-quotes.
+  coerce_tests! :test_sqlcommenter_format_allows_string_keys
+  def test_sqlcommenter_format_allows_string_keys_coerced
+    ActiveRecord::QueryLogs.update_formatter(:sqlcommenter)
+
+    ActiveRecord::QueryLogs.tags = [
+      :application,
+      {
+        "string" => "value",
+        tracestate: "congo=t61rcWkgMzE,rojo=00f067aa0ba902b7",
+        custom_proc: -> { "Joe's Shack" }
+      },
+    ]
+
+    assert_queries_match(%r{custom_proc=''Joe%27s%20Shack'',string=''value'',tracestate=''congo%3Dt61rcWkgMzE%2Crojo%3D00f067aa0ba902b7''\*/}) do
+      Dashboard.first
+    end
+  end
+
   # Invalid character encoding causes `ActiveRecord::StatementInvalid` error similar to Postgres.
   coerce_tests! :test_invalid_encoding_query
   def test_invalid_encoding_query_coerced
