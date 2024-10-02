@@ -702,7 +702,6 @@ module ActiveRecord
         ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
         assert connection.table_exists?(long_table_name[0...-1])
         assert_not connection.table_exists?(:more_testings)
-        assert connection.table_exists?(long_table_name[0...-1])
       ensure
         connection.drop_table(:more_testings) rescue nil
         connection.drop_table(long_table_name[0...-1]) rescue nil
@@ -725,6 +724,28 @@ module ActiveRecord
           ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
         end
         assert_match(/Index name \'#{long_index_name}\' on table \'testings\' is too long/i, error.message)
+      end
+
+      # SQL Server truncates long table names when renaming.
+      coerce_tests! test_rename_table_errors_on_too_long_index_name_7_0
+      def test_rename_table_errors_on_too_long_index_name_7_0_coerced
+        long_table_name = "a" * (connection.table_name_length + 1)
+
+        migration = Class.new(ActiveRecord::Migration[7.0]) {
+          def migrate(x)
+            add_index :testings, :foo
+            long_table_name = "a" * (connection.table_name_length + 1)
+            rename_table :testings, long_table_name
+          end
+        }.new
+
+        ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
+
+        assert_not connection.table_exists?(:testings)
+        assert connection.table_exists?(long_table_name[0...-1])
+        assert connection.index_exists?(long_table_name[0...-1], :foo)
+      ensure
+        connection.drop_table(long_table_name[0...-1], if_exists: true)
       end
 
       # SQL Server has a different maximum index name length.
