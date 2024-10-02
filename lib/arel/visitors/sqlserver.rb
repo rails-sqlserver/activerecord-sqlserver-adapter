@@ -52,8 +52,6 @@ module Arel
       end
 
       def delete_statement_using_join(o, collector)
-        collector.retryable = false
-
         collector << "DELETE "
         visit o.relation.left, collector
         collector << " FROM "
@@ -62,8 +60,6 @@ module Arel
       end
 
       def update_statement_using_join(o, collector)
-        collector.retryable = false
-
         collector << "UPDATE "
         visit o.relation.left, collector
         collect_nodes_for o.values, collector, " SET "
