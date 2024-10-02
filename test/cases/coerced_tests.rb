@@ -727,7 +727,7 @@ module ActiveRecord
       end
 
       # SQL Server truncates long table names when renaming.
-      coerce_tests! test_rename_table_errors_on_too_long_index_name_7_0
+      coerce_tests! :test_rename_table_errors_on_too_long_index_name_7_0
       def test_rename_table_errors_on_too_long_index_name_7_0_coerced
         long_table_name = "a" * (connection.table_name_length + 1)
 
