@@ -1340,6 +1340,12 @@ module ActiveRecord
     def test_registering_new_handlers_for_association_coerced
       assert_match %r{#{Regexp.escape(topic_title)} ~ N'rails'}i, Reply.joins(:topic).where(topics: { title: /rails/ }).to_sql
     end
+
+    private
+
+    def topic_title
+      Topic.lease_connection.quote_table_name("topics.title")
+    end
   end
 end
 
