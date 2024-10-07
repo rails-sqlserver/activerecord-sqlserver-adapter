@@ -264,7 +264,6 @@ Many many people have contributed. If you do not see your name here and it shoul
 
 You can see an up-to-date list of contributors here: http://github.com/rails-sqlserver/activerecord-sqlserver-adapter/contributors
 
-
 ## License
 
 ActiveRecord SQL Server Adapter is released under the [MIT License](https://opensource.org/licenses/MIT).
