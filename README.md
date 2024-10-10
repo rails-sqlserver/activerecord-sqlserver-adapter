@@ -105,15 +105,14 @@ configuration then implement the `additional_connection_configuration` method in
 example we are setting the `TEXTSIZE` to 64 megabytes.
 
 ```ruby
-module ActiveRecord
-  module ConnectionAdapters
-    class SQLServerAdapter < AbstractAdapter
-      def additional_connection_configuration
-        @raw_connection.execute("SET TEXTSIZE #{64.megabytes}").do
-      end
+ActiveRecord::ConnectionAdapters::SQLServerAdapter.prepend(
+  Module.new do
+    def configure_connection
+      super
+      @raw_connection.execute("SET TEXTSIZE #{64.megabytes}").do
     end
   end
-end
+)
 ```
 
 #### Configure Application Name

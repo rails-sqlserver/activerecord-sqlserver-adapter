@@ -521,12 +521,6 @@ module ActiveRecord
 
         initialize_dateformatter
         use_database
-        additional_connection_configuration
-      end
-
-      # Allow for additional connection configuration by overriding this method.
-      def additional_connection_configuration
-        # no-op
       end
     end
   end
