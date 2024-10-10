@@ -10,6 +10,7 @@
 - [#1196](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1196) Use default inspect for database adapter
 - [#1216](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1216) Refactor adapter interface to match abstract adapter
 - [#1225](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1225) Drop support to Ruby 3.1
+- [#1242](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1242) Changed how additional connection configuration is performed
 
 #### Fixed
 
