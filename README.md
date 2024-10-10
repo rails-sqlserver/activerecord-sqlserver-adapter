@@ -101,7 +101,7 @@ end
 #### Configure Connection
 
 The adapter conforms to the AbstractAdapter interface to configure connections. If you require additional connection
-configuration then implement the `additional_connection_configuration` method in an initializer like so. In the following
+configuration then implement the `configure_connection` method in an initializer like so. In the following
 example we are setting the `TEXTSIZE` to 64 megabytes.
 
 ```ruby
