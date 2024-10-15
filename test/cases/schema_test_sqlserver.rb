@@ -96,6 +96,10 @@ class SchemaTestSQLServer < ActiveRecord::TestCase
       it do
         assert_equal "[test].[aliens]", connection.send(:get_raw_table_name, "EXEC sp_executesql N'INSERT INTO [test].[aliens] ([name]) OUTPUT INSERTED.[id] VALUES (@0)', N'@0 varchar(255)', @0 = 'Trisolarans'")
       end
+
+      it do
+        assert_equal "[with].[select notation]", connection.send(:get_raw_table_name, "INSERT INTO [with].[select notation] SELECT * FROM [table_name]")
+      end
     end
   end
 end
