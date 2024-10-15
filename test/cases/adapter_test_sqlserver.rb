@@ -464,13 +464,13 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
       assert SSTestStringDefaultsView.lease_connection.data_source_exists?(SSTestStringDefaultsView.table_name)
     end
 
-    # That have more than 4000 chars for their defintion
+    # That have more than 4000 chars for their definition
 
-    it "cope with null returned for the defintion" do
+    it "cope with null returned for the definition" do
       assert_nothing_raised() { SSTestStringDefaultsBigView.columns }
     end
 
-    it "using alternate view defintion still be able to find real default" do
+    it "using alternate view definition still be able to find real default" do
       assert_equal "null", SSTestStringDefaultsBigView.new.pretend_null,
                    SSTestStringDefaultsBigView.columns_hash["pretend_null"].inspect
     end
