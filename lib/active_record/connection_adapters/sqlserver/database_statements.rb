@@ -359,6 +359,7 @@ module ActiveRecord
             type.is_a?(String) ||
             type.is_a?(Numeric) ||
             type.is_a?(Time) ||
+            type.is_a?(Date) ||
             type.is_a?(TrueClass) ||
             type.is_a?(FalseClass) ||
             type.is_a?(NilClass)
