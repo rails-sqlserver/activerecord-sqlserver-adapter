@@ -1,3 +1,9 @@
+## Unreleased
+
+#### Fixed
+
+- [#](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/) Allow INSERT statements with SELECT notation
+
 ## v7.1.8
 
 #### Fixed

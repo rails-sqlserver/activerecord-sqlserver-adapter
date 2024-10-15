@@ -681,6 +681,7 @@ module ActiveRecord
             s.split(/INSERT INTO/i)[1]
               .split(/OUTPUT INSERTED/i)[0]
               .split(/(DEFAULT)?\s+VALUES/i)[0]
+              .split(/\bSELECT\b(?![^\[]*\])/i)[0]
               .match(/\s*([^(]*)/i)[0]
           elsif s.match?(/^\s*UPDATE\s+.*/i)
             s.match(/UPDATE\s+([^\(\s]+)\s*/i)[1]
