@@ -3,7 +3,7 @@
 #### Fixed
 
 - [#1244](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1244) Allow INSERT statements with SELECT notation
-- [#1246](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1246) Fix queries with date and date-time placeholder conditions
+- [#1247](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1247) Fix queries with date and date-time placeholder conditions
 
 ## v7.2.1
 
