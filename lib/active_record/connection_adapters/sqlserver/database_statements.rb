@@ -339,7 +339,7 @@ module ActiveRecord
             end
           end
 
-          value = basic_attribute_type?(attr) ? attr : attr.value_for_database
+          value = active_model_attribute?(attr) ? attr.value_for_database : attr
 
           if value.is_a?(Numeric)
             value > 2_147_483_647 ? "bigint".freeze : "int".freeze
@@ -349,7 +349,7 @@ module ActiveRecord
         end
 
         def sp_executesql_sql_param(attr)
-          return quote(attr) if basic_attribute_type?(attr)
+          return quote(attr) unless active_model_attribute?(attr)
 
           case value = attr.value_for_database
           when Type::Binary::Data, ActiveRecord::Type::SQLServer::Data
@@ -359,14 +359,8 @@ module ActiveRecord
           end
         end
 
-        def basic_attribute_type?(type)
-          type.is_a?(Symbol) ||
-            type.is_a?(String) ||
-            type.is_a?(Numeric) ||
-            type.is_a?(Time) ||
-            type.is_a?(TrueClass) ||
-            type.is_a?(FalseClass) ||
-            type.is_a?(NilClass)
+        def active_model_attribute?(type)
+          type.is_a?(::ActiveModel::Attribute)
         end
 
         def sp_executesql_sql(sql, types, params, name)

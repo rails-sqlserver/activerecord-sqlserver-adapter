@@ -580,4 +580,18 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
       end
     end
   end
+
+  describe "placeholder conditions" do
+    it 'using time placeholder' do
+      assert_equal Task.where("starting < ?", Time.now).count, 1
+    end
+
+    it 'using date placeholder' do
+      assert_equal Task.where("starting < ?", Date.today).count, 1
+    end
+
+    it 'using date-time placeholder' do
+      assert_equal Task.where("starting < ?", DateTime.current).count, 1
+    end
+  end
 end
