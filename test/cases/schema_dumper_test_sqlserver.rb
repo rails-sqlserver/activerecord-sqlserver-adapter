@@ -105,6 +105,7 @@ class SchemaDumperTestSQLServer < ActiveRecord::TestCase
     _(columns["nchar_col"].sql_type).must_equal         "nchar(1)"
     _(columns["ntext_col"].sql_type).must_equal         "ntext"
     _(columns["binary_basic_col"].sql_type).must_equal  "binary(1)"
+    _(columns["binary_basic_16_col"].sql_type).must_equal  "binary(16)"
     _(columns["varbinary_col"].sql_type).must_equal     "varbinary(8000)"
     _(columns["uuid_col"].sql_type).must_equal          "uniqueidentifier"
     _(columns["sstimestamp_col"].sql_type).must_equal   "timestamp"
@@ -122,6 +123,7 @@ class SchemaDumperTestSQLServer < ActiveRecord::TestCase
     assert_line :nchar_col,         type: "nchar",          limit: 1
     assert_line :ntext_col,         type: "ntext"
     assert_line :binary_basic_col,  type: "binary_basic",   limit: 1
+    assert_line :binary_basic_16_col,  type: "binary_basic",   limit: 16
     assert_line :varbinary_col,     type: "varbinary"
     assert_line :uuid_col,          type: "uuid"
     assert_line :sstimestamp_col,   type: "ss_timestamp",                                           null: false

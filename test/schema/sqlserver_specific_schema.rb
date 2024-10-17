@@ -33,6 +33,7 @@ ActiveRecord::Schema.define do
     t.nchar          :nchar_col
     t.ntext          :ntext_col
     t.binary_basic   :binary_basic_col
+    t.binary_basic   :binary_basic_16_col, limit: 16
     t.varbinary      :varbinary_col
     t.uuid           :uuid_col
     t.ss_timestamp   :sstimestamp_col
