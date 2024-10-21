@@ -1341,6 +1341,14 @@ module ActiveRecord
       assert_match %r{#{Regexp.escape(topic_title)} ~ N'rails'}i, Reply.joins(:topic).where(topics: { title: /rails/ }).to_sql
     end
 
+    # Same as original test except string has `N` prefix to indicate unicode string.
+    coerce_tests! :test_registering_new_handlers_for_joins
+    def test_registering_new_handlers_for_joins_coerced
+      Reply.belongs_to :regexp_topic, -> { where(title: /rails/) }, class_name: "Topic", foreign_key: "parent_id"
+
+      assert_match %r{#{Regexp.escape(quote_table_name("regexp_topic.title"))} ~ N'rails'}i, Reply.joins(:regexp_topic).references(Arel.sql("regexp_topic")).to_sql
+    end
+
     private
 
     def topic_title
@@ -2178,17 +2186,6 @@ class EnumTest < ActiveRecord::TestCase
   end
 
   # Need to remove index as SQL Server considers NULLs on a unique-index to be equal unlike PostgreSQL/MySQL/SQLite.
-  coerce_tests! %r{declare multiple enums at a time}
-  test "declare multiple enums at a time coerced" do
-    Book.lease_connection.remove_index(:books, column: [:author_id, :name])
-
-    send(:'original_declare multiple enums at a time')
-  ensure
-    Book.where(author_id: nil, name: nil).delete_all
-    Book.lease_connection.add_index(:books, [:author_id, :name], unique: true)
-  end
-
-  # Need to remove index as SQL Server considers NULLs on a unique-index to be equal unlike PostgreSQL/MySQL/SQLite.
   coerce_tests! %r{serializable\? with large number label}
   test "serializable? with large number label coerced" do
     Book.lease_connection.remove_index(:books, column: [:author_id, :name])
@@ -2668,6 +2665,28 @@ module ActiveRecord
     end
   end
 end
+
+module ActiveRecord
+  module ConnectionAdapters
+    class RegistrationIsolatedTest < ActiveRecord::TestCase
+      # SQL Server was not included in the list of available adapters in the error message.
+      coerce_tests! %r{resolve raises if the adapter is using the pre 7.2 adapter registration API}
+      def resolve_raises_if_the_adapter_is_using_the_pre_7_2_adapter_registration_API
+        exception = assert_raises(ActiveRecord::AdapterNotFound) do
+          ActiveRecord::ConnectionAdapters.resolve("fake_legacy")
+        end
+
+        assert_equal(
+          "Database configuration specifies nonexistent 'ridiculous' adapter. Available adapters are: abstract, fake, mysql2, postgresql, sqlite3, sqlserver, trilogy. Ensure that the adapter is spelled correctly in config/database.yml and that you've added the necessary adapter gem to your Gemfile if it's not in the list of available adapters.",
+          exception.message
+        )
+      ensure
+        ActiveRecord::ConnectionAdapters.instance_variable_get(:@adapters).delete("fake_legacy")
+      end
+    end
+  end
+end
+
 
 module ActiveRecord
   class TableMetadataTest < ActiveSupport::TestCase
