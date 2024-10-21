@@ -1342,7 +1342,7 @@ module ActiveRecord
     end
 
     # Same as original test except string has `N` prefix to indicate unicode string.
-    coerce_tests! :test_registering_new_handlers_for_joins_coerced
+    coerce_tests! :test_registering_new_handlers_for_joins
     def test_registering_new_handlers_for_joins_coerced
       Reply.belongs_to :regexp_topic, -> { where(title: /rails/) }, class_name: "Topic", foreign_key: "parent_id"
 
