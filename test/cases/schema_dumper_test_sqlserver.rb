@@ -93,39 +93,41 @@ class SchemaDumperTestSQLServer < ActiveRecord::TestCase
     assert_line :binary_col,                 type: "binary"
 
     # Our type methods.
-    _(columns["real_col"].sql_type).must_equal          "real"
-    _(columns["money_col"].sql_type).must_equal         "money"
-    _(columns["smalldatetime_col"].sql_type).must_equal "smalldatetime"
-    _(columns["datetime2_col"].sql_type).must_equal     "datetime2(7)"
-    _(columns["datetimeoffset"].sql_type).must_equal    "datetimeoffset(7)"
-    _(columns["smallmoney_col"].sql_type).must_equal    "smallmoney"
-    _(columns["char_col"].sql_type).must_equal          "char(1)"
-    _(columns["varchar_col"].sql_type).must_equal       "varchar(8000)"
-    _(columns["text_basic_col"].sql_type).must_equal    "text"
-    _(columns["nchar_col"].sql_type).must_equal         "nchar(1)"
-    _(columns["ntext_col"].sql_type).must_equal         "ntext"
-    _(columns["binary_basic_col"].sql_type).must_equal  "binary(1)"
-    _(columns["varbinary_col"].sql_type).must_equal     "varbinary(8000)"
-    _(columns["uuid_col"].sql_type).must_equal          "uniqueidentifier"
-    _(columns["sstimestamp_col"].sql_type).must_equal   "timestamp"
-    _(columns["json_col"].sql_type).must_equal          "nvarchar(max)"
+    _(columns["real_col"].sql_type).must_equal            "real"
+    _(columns["money_col"].sql_type).must_equal           "money"
+    _(columns["smalldatetime_col"].sql_type).must_equal   "smalldatetime"
+    _(columns["datetime2_col"].sql_type).must_equal       "datetime2(7)"
+    _(columns["datetimeoffset"].sql_type).must_equal      "datetimeoffset(7)"
+    _(columns["smallmoney_col"].sql_type).must_equal      "smallmoney"
+    _(columns["char_col"].sql_type).must_equal            "char(1)"
+    _(columns["varchar_col"].sql_type).must_equal         "varchar(8000)"
+    _(columns["text_basic_col"].sql_type).must_equal      "text"
+    _(columns["nchar_col"].sql_type).must_equal           "nchar(1)"
+    _(columns["ntext_col"].sql_type).must_equal           "ntext"
+    _(columns["binary_basic_col"].sql_type).must_equal    "binary(1)"
+    _(columns["binary_basic_16_col"].sql_type).must_equal "binary(16)"
+    _(columns["varbinary_col"].sql_type).must_equal       "varbinary(8000)"
+    _(columns["uuid_col"].sql_type).must_equal            "uniqueidentifier"
+    _(columns["sstimestamp_col"].sql_type).must_equal     "timestamp"
+    _(columns["json_col"].sql_type).must_equal            "nvarchar(max)"
 
-    assert_line :real_col,          type: "real"
-    assert_line :money_col,         type: "money",                      precision: 19,  scale: 4
-    assert_line :smalldatetime_col, type: "smalldatetime"
-    assert_line :datetime2_col,     type: "datetime",                   precision: 7
-    assert_line :datetimeoffset,    type: "datetimeoffset",             precision: 7
-    assert_line :smallmoney_col,    type: "smallmoney",                 precision: 10,  scale: 4
-    assert_line :char_col,          type: "char",           limit: 1
-    assert_line :varchar_col,       type: "varchar"
-    assert_line :text_basic_col,    type: "text_basic"
-    assert_line :nchar_col,         type: "nchar",          limit: 1
-    assert_line :ntext_col,         type: "ntext"
-    assert_line :binary_basic_col,  type: "binary_basic",   limit: 1
-    assert_line :varbinary_col,     type: "varbinary"
-    assert_line :uuid_col,          type: "uuid"
-    assert_line :sstimestamp_col,   type: "ss_timestamp",                                           null: false
-    assert_line :json_col,          type: "text"
+    assert_line :real_col,            type: "real"
+    assert_line :money_col,           type: "money",                      precision: 19,  scale: 4
+    assert_line :smalldatetime_col,   type: "smalldatetime"
+    assert_line :datetime2_col,       type: "datetime",                   precision: 7
+    assert_line :datetimeoffset,      type: "datetimeoffset",             precision: 7
+    assert_line :smallmoney_col,      type: "smallmoney",                 precision: 10,  scale: 4
+    assert_line :char_col,            type: "char",           limit: 1
+    assert_line :varchar_col,         type: "varchar"
+    assert_line :text_basic_col,      type: "text_basic"
+    assert_line :nchar_col,           type: "nchar",          limit: 1
+    assert_line :ntext_col,           type: "ntext"
+    assert_line :binary_basic_col,    type: "binary_basic",   limit: 1
+    assert_line :binary_basic_16_col, type: "binary_basic",   limit: 16
+    assert_line :varbinary_col,       type: "varbinary"
+    assert_line :uuid_col,            type: "uuid"
+    assert_line :sstimestamp_col,     type: "ss_timestamp",                                           null: false
+    assert_line :json_col,            type: "text"
   end
 
   it "dump column collation" do
