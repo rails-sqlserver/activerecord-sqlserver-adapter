@@ -291,7 +291,7 @@ module ActiveRecord
         end
 
         def type_to_sql(type, limit: nil, precision: nil, scale: nil, **)
-          type_limitable = %w(string integer float char nchar varchar nvarchar).include?(type.to_s)
+          type_limitable = %w(string integer float char nchar varchar nvarchar binary_basic).include?(type.to_s)
           limit = nil unless type_limitable
 
           case type.to_s
