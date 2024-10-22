@@ -17,5 +17,6 @@
 - [#1228](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1228) Enable identity insert on view's base table
 - [#1238](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1238) Allow INSERT statements with SELECT notation
 - [#1246](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1246) Fix queries with date and date-time placeholder conditions
+- [#1249](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1249) Binary basic columns should be limitable
 
 Please check [7-1-stable](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/blob/7-1-stable/CHANGELOG.md) for previous changes.
