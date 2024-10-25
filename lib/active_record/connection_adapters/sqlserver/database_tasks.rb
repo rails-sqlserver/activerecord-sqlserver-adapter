@@ -27,6 +27,10 @@ module ActiveRecord
           select_value "SELECT DATABASEPROPERTYEX(DB_NAME(), 'SqlCharSetName')"
         end
 
+        def compatibility_level
+          select_value "SELECT compatibility_level FROM sys.databases WHERE name = DB_NAME()"
+        end
+
         def collation
           @collation ||= select_value "SELECT DATABASEPROPERTYEX(DB_NAME(), 'Collation')"
         end
