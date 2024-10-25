@@ -28,7 +28,7 @@ module ActiveRecord
         end
 
         def compatibility_level
-          select_value "SELECT compatibility_level FROM sys.databases WHERE name = DB_NAME()"
+          select_value "SELECT COMPATIBILITY_LEVEL FROM SYS.DATABASES WHERE NAME = DB_NAME()"
         end
 
         def collation
