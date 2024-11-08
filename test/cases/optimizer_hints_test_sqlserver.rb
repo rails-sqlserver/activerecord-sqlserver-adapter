@@ -36,7 +36,6 @@ class OptimizerHitsTestSQLServer < ActiveRecord::TestCase
     end
   end
 
-
   it "support order" do
     assert_queries_match(%r{\ASELECT .+ FROM .+ ORDER .+ OPTION .+\z}) do
       companies = Company.optimizer_hints("LABEL='FindCompanies'")
