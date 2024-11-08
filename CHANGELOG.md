@@ -5,7 +5,7 @@
 - [#1244](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1244) Allow INSERT statements with SELECT notation
 - [#1247](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1247) Fix queries with date and date-time placeholder conditions
 - [#1249](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1249) Binary basic columns should be limitable
-- [#1255](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1255)Fixed the ordering of optimizer hints in the generated SQL
+- [#1255](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1255) Fixed the ordering of optimizer hints in the generated SQL
 
 ## v7.2.1
 
