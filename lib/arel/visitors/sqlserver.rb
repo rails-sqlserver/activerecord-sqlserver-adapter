@@ -140,13 +140,10 @@ module Arel
           collector = visit o.with, collector
           collector << " "
         end
-        collector = o.cores.inject(collector) { |c, x|
-          if x.is_a? Arel::Nodes::SelectCore
-            # optimizer hints in SQL Server have to be at the very end of the query, so we need to hold onto these for now
-            optimizer_hints = x.optimizer_hints
-          end
-          visit_Arel_Nodes_SelectCore(x, c)
-        }
+        collector = o.cores.inject(collector) do |collect, core|
+          optimizer_hints = core.optimizer_hints if core.optimizer_hints
+          visit_Arel_Nodes_SelectCore(core, collect)
+        end
         collector = visit_Orders_And_Let_Fetch_Happen o, collector
         collector = visit_Make_Fetch_Happen o, collector
         collector = maybe_visit optimizer_hints, collector
