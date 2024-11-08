@@ -36,6 +36,15 @@ class OptimizerHitsTestSQLServer < ActiveRecord::TestCase
     end
   end
 
+
+  it "support order" do
+    assert_queries_match(%r{\ASELECT .+ FROM .+ ORDER .+ OPTION .+\z}) do
+      companies = Company.optimizer_hints("LABEL='FindCompanies'")
+      companies = companies.order(:id)
+      companies.to_a
+    end
+  end
+
   it "sanitize values" do
     assert_queries_match(%r{\ASELECT .+ FROM .+ OPTION \(HASH GROUP\)\z}) do
       companies = Company.optimizer_hints("OPTION (HASH GROUP)")

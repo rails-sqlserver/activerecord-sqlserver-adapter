@@ -134,24 +134,22 @@ module Arel
 
       def visit_Arel_Nodes_SelectStatement(o, collector)
         @select_statement = o
+        optimizer_hints = nil
         distinct_One_As_One_Is_So_Not_Fetch o
         if o.with
           collector = visit o.with, collector
           collector << " "
         end
-        collector = o.cores.inject(collector) { |c, x|
-          visit_Arel_Nodes_SelectCore(x, c)
-        }
+        collector = o.cores.inject(collector) do |collect, core|
+          optimizer_hints = core.optimizer_hints if core.optimizer_hints
+          visit_Arel_Nodes_SelectCore(core, collect)
+        end
         collector = visit_Orders_And_Let_Fetch_Happen o, collector
         collector = visit_Make_Fetch_Happen o, collector
+        collector = maybe_visit optimizer_hints, collector
         collector
       ensure
         @select_statement = nil
-      end
-
-      def visit_Arel_Nodes_SelectCore(o, collector)
-        collector = super
-        maybe_visit o.optimizer_hints, collector
       end
 
       def visit_Arel_Nodes_OptimizerHints(o, collector)
