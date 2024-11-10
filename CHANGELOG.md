@@ -1,4 +1,4 @@
-## Unreleased
+## v8.0.0
 
 #### Changed
 
