@@ -8,8 +8,5 @@
 #### Fixed
 
 - [#1215](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1215) Fix mismatched foreign key errors
-- [#1228](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1228) Enable identity insert on view's base table
-- [#1238](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1238) Allow INSERT statements with SELECT notation
-- [#1246](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1246) Fix queries with date and date-time placeholder conditions
 
 Please check [7-2-stable](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/blob/7-2-stable/CHANGELOG.md) for previous changes.
