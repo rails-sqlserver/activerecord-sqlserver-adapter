@@ -18,7 +18,7 @@ See [Rubygems](https://rubygems.org/gems/activerecord-sqlserver-adapter/versions
 
 | Adapter Version | Rails Version | Support        | Branch                                                                                          |
 |-----------------|---------------|----------------|-------------------------------------------------------------------------------------------------|
-| Unreleased        | `8.0.x`       | In Development | [main](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/tree/main)             |
+| `8.0.0`         | `8.0.x`       | Active | [main](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/tree/main)             |
 | `7.2.x`         | `7.2.x`       | Active         | [7-2-stable](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/tree/7-2-stable) |
 | `7.1.x`         | `7.1.x`       | Active         | [7-1-stable](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/tree/7-1-stable) |
 | `7.0.x`         | `7.0.x`       | Ended         | [7-0-stable](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/tree/7-0-stable) |
