@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-20.04 # TODO: Change back to 'ubuntu-latest' when https://github.com/microsoft/mssql-docker/issues/899 resolved.
 
     env:
-      COMPOSE_FILE: docker-compose.ci.yml
+      COMPOSE_FILE: compose.ci.yaml
 
     strategy:
       fail-fast: false
