@@ -1,3 +1,9 @@
+## Unreleased
+
+#### Fixed
+
+- [#1262](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1262) Fix distinct alias when multiple databases used.
+
 ## v7.2.2
 
 #### Fixed

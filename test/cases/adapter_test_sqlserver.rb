@@ -594,4 +594,13 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
       assert_equal Task.where("starting < ?", DateTime.current).count, 1
     end
   end
+
+  describe "distinct select query" do
+    it "generated SQL does not contain unnecessary alias projection" do
+      sqls = capture_sql do
+        Post.includes(:comments).joins(:comments).first
+      end
+      assert_no_match(/AS alias_0/, sqls.first)
+    end
+  end
 end
