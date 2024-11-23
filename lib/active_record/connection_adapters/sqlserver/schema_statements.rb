@@ -347,12 +347,16 @@ module ActiveRecord
 
         def columns_for_distinct(columns, orders)
           order_columns = orders.reject(&:blank?).map { |s|
-                            s = s.to_sql unless s.is_a?(String)
+                            s = visitor.compile(s) unless s.is_a?(String)
                             s.gsub(/\s+(?:ASC|DESC)\b/i, "")
                              .gsub(/\s+NULLS\s+(?:FIRST|LAST)\b/i, "")
-                          }.reject(&:blank?).map.with_index { |column, i| "#{column} AS alias_#{i}" }
+                            }
+                            .reject(&:blank?)
+                            .reject { |s| columns.include?(s) }
 
-          (order_columns << super).join(", ")
+          order_columns_aliased = order_columns.map.with_index { |column, i| "#{column} AS alias_#{i}" }
+
+          (order_columns_aliased << super).join(", ")
         end
 
         def update_table_definition(table_name, base)
