@@ -9,7 +9,7 @@ services:
       context: .
       dockerfile: Dockerfile.ci
     command:
-      - gem list
-      - wait-for sqlserver:1433 -- bundle exec rake test
+      - wait-for sqlserver:1433 -- gem list
+      - bundle exec rake test
     depends_on:
       - "sqlserver"
