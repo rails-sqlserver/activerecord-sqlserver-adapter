@@ -21,7 +21,7 @@ jobs:
       matrix:
         ruby:
           - 3.3.6
-          - 3.2.5
+          - 3.2.6
 
     steps:
       - name: Checkout code
