@@ -3,6 +3,7 @@
 require "tiny_tds"
 require "base64"
 require "active_record"
+require "active_record/connection_adapters/statement_pool"
 require "arel_sqlserver"
 require "active_record/connection_adapters/sqlserver/core_ext/active_record"
 require "active_record/connection_adapters/sqlserver/core_ext/explain"
