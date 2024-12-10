@@ -26,6 +26,10 @@ module ActiveRecord
                    end
 
           verified!
+
+          # binding.pry if $DEBUG
+
+          notification_payload[:affected_rows] = affected_rows(result)
           notification_payload[:row_count] = result.count
           result
         end
@@ -39,7 +43,10 @@ module ActiveRecord
         end
 
         def affected_rows(raw_result)
-          raw_result.first['AffectedRows']
+
+          # raw_result.first['AffectedRows']
+
+          raw_result&.first&.fetch('AffectedRows', 0) || 0
         end
 
         def raw_execute(sql, name = nil, binds = [], prepare: false, async: false, allow_retry: false, materialize_transactions: true, batch: false)
@@ -67,6 +74,11 @@ module ActiveRecord
           sql = sql.dup << "; SELECT @@ROWCOUNT AS AffectedRows"
           super(sql, name, binds)
         end
+
+        # def exec_insert_all(sql, name)
+        #   sql = sql.dup << "; SELECT @@ROWCOUNT AS AffectedRows"
+        #   super(sql, name)
+        # end
 
         def begin_db_transaction
           internal_execute("BEGIN TRANSACTION", "TRANSACTION", allow_retry: true, materialize_transactions: false)
@@ -179,6 +191,8 @@ module ActiveRecord
               end
 
               result = result.each.map { |row| row.is_a?(Hash) ? row.with_indifferent_access : row }
+
+              notification_payload[:affected_rows] = affected_rows(result)
               notification_payload[:row_count] = result.count
               result
             end
