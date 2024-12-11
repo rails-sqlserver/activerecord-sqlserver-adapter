@@ -14,22 +14,19 @@ module ActiveRecord
         end
 
         def perform_query(raw_connection, sql, binds, type_casted_binds, prepare:, notification_payload:, batch:)
-          result = if id_insert_table_name = query_requires_identity_insert?(sql)
-                     # If the table name is a view, we need to get the base table name for enabling identity insert.
-                     id_insert_table_name = view_table_name(id_insert_table_name) if view_exists?(id_insert_table_name)
+          result, affected_rows = if id_insert_table_name = query_requires_identity_insert?(sql)
+                                    # If the table name is a view, we need to get the base table name for enabling identity insert.
+                                    id_insert_table_name = view_table_name(id_insert_table_name) if view_exists?(id_insert_table_name)
 
-                     with_identity_insert_enabled(id_insert_table_name, raw_connection) do
-                       internal_exec_sql_query(sql, raw_connection)
-                     end
-                   else
-                     internal_exec_sql_query(sql, raw_connection)
-                   end
+                                    with_identity_insert_enabled(id_insert_table_name, raw_connection) do
+                                      internal_exec_sql_query(sql, raw_connection)
+                                    end
+                                  else
+                                    internal_exec_sql_query(sql, raw_connection)
+                                  end
 
           verified!
-
-          # binding.pry if $DEBUG
-
-          notification_payload[:affected_rows] = affected_rows(result)
+          notification_payload[:affected_rows] = affected_rows
           notification_payload[:row_count] = result.count
           result
         end
@@ -42,11 +39,18 @@ module ActiveRecord
           end
         end
 
+        # Returns the affected rows from results.
         def affected_rows(raw_result)
+          raw_result&.first&.fetch('AffectedRows', nil)
+        end
 
-          # raw_result.first['AffectedRows']
-
-          raw_result&.first&.fetch('AffectedRows', 0) || 0
+        # Returns the affected rows from results or handle.
+        def affected_rows_from_results_or_handle(raw_result, handle)
+          if affected_rows_from_result = affected_rows(raw_result)
+            affected_rows_from_result
+          else
+            handle.affected_rows
+          end
         end
 
         def raw_execute(sql, name = nil, binds = [], prepare: false, async: false, allow_retry: false, materialize_transactions: true, batch: false)
@@ -60,7 +64,9 @@ module ActiveRecord
 
         def internal_exec_sql_query(sql, conn)
           handle = internal_raw_execute(sql, conn)
-          handle_to_names_and_values(handle, ar_result: true)
+          results = handle_to_names_and_values(handle, ar_result: true)
+
+          return results, affected_rows_from_results_or_handle(results, handle)
         ensure
           finish_statement_handle(handle)
         end
@@ -74,11 +80,6 @@ module ActiveRecord
           sql = sql.dup << "; SELECT @@ROWCOUNT AS AffectedRows"
           super(sql, name, binds)
         end
-
-        # def exec_insert_all(sql, name)
-        #   sql = sql.dup << "; SELECT @@ROWCOUNT AS AffectedRows"
-        #   super(sql, name)
-        # end
 
         def begin_db_transaction
           internal_execute("BEGIN TRANSACTION", "TRANSACTION", allow_retry: true, materialize_transactions: false)
@@ -191,8 +192,6 @@ module ActiveRecord
               end
 
               result = result.each.map { |row| row.is_a?(Hash) ? row.with_indifferent_access : row }
-
-              notification_payload[:affected_rows] = affected_rows(result)
               notification_payload[:row_count] = result.count
               result
             end
@@ -446,12 +445,15 @@ module ActiveRecord
           end
           results = handle.each(query_options)
 
-          columns = handle.fields
-          # If query returns multiple result sets, only return the columns of the last one.
-          columns = columns.last if columns.any? && columns.all? { |e| e.is_a?(Array) }
-          columns = columns.map(&:downcase) if lowercase_schema_reflection
+          if options[:ar_result]
+            columns = handle.fields
+            columns = columns.last if columns.any? && columns.all? { |e| e.is_a?(Array) } # If query returns multiple result sets, only return the columns of the last one.
+            columns = columns.map(&:downcase) if lowercase_schema_reflection
 
-          options[:ar_result] ? ActiveRecord::Result.new(columns, results) : results
+            ActiveRecord::Result.new(columns, results)
+          else
+            results
+          end
         end
 
         def finish_statement_handle(handle)
