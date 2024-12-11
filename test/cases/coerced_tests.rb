@@ -1489,9 +1489,6 @@ class RelationTest < ActiveRecord::TestCase
     topics = Topic.order(Arel.sql("LEN(title)") => :asc).reverse_order
     assert_equal topics(:second).title, topics.first.title
   end
-
-  # Order column must be in the GROUP clause. However, with implicit ordering we can't test this when selecting expression column.
-  coerce_tests! %r{runs queries when using pick with expression column and empty IN}
 end
 
 module ActiveRecord
@@ -1506,6 +1503,9 @@ module ActiveRecord
       query = Post.optimizer_hints("OMGHINT").merge(Post.optimizer_hints("OMGHINT")).to_sql
       assert_equal expected, query
     end
+
+    # Order column must be in the GROUP clause. However, with implicit ordering we can't test this when selecting expression column.
+    coerce_tests! %r{runs queries when using pick with expression column and empty IN}
   end
 end
 
