@@ -372,6 +372,13 @@ module ActiveRecord
       Book.where(author_id: nil, name: 'row count book 3').delete_all
       Book.lease_connection.add_index(:books, [:author_id, :name], unique: true)
     end
+
+    # Fix randomly failing test. The loading of the model's schema was affecting the test.
+    coerce_tests! :test_payload_affected_rows
+    def test_payload_affected_rows_coerced
+      Book.send(:load_schema!)
+      original_test_payload_affected_rows
+    end
   end
 end
 
