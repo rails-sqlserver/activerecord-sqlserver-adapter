@@ -101,5 +101,11 @@ class SchemaTestSQLServer < ActiveRecord::TestCase
         assert_equal "[with].[select notation]", connection.send(:get_raw_table_name, "INSERT INTO [with].[select notation] SELECT * FROM [table_name]")
       end
     end
+
+    describe 'CREATE VIEW statements' do
+      it do
+        assert_equal "test_table_as", connection.send(:get_raw_table_name, "CREATE VIEW test_views ( test_table_a_id, test_table_b_id ) AS SELECT test_table_as.id as test_table_a_id, test_table_bs.id as test_table_b_id FROM (test_table_as with(nolock) LEFT JOIN test_table_bs with(nolock) ON (test_table_as.id = test_table_bs.test_table_a_id))")
+      end
+    end
   end
 end
