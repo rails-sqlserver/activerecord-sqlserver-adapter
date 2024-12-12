@@ -711,7 +711,7 @@ module ActiveRecord
           elsif s.match?(/^\s*UPDATE\s+.*/i)
             s.match(/UPDATE\s+([^\(\s]+)\s*/i)[1]
           else
-            s.match(/FROM\s+((\[[^\(\]]+\])|[^\(\s]+)\s*/i)[1]
+            s.match(/FROM[\s|\(]+((\[[^\(\]]+\])|[^\(\s]+)\s*/i)[1]
           end.strip
         end
 
