@@ -1,3 +1,9 @@
+## Unreleased
+
+#### Fixed
+
+- [#](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/) Fix parsing of raw table name from SQL with extra parentheses
+
 ## v7.2.3
 
 #### Fixed
