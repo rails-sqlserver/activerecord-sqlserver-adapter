@@ -8,7 +8,9 @@ module ActiveRecord
           name = SQLServer::Utils.extract_identifiers(database)
           db_options = create_database_options(options)
           edition_options = create_database_edition_options(options)
+          compatibility_options = create_database_compatibility_options(options)
           execute "CREATE DATABASE #{name} #{db_options} #{edition_options}"
+          execute "ALTER DATABASE #{name} SET #{compatibility_options}" if compatibility_options.present?
         end
 
         def drop_database(database)
@@ -25,11 +27,28 @@ module ActiveRecord
           select_value "SELECT DATABASEPROPERTYEX(DB_NAME(), 'SqlCharSetName')"
         end
 
+        def compatibility_level
+          select_value "SELECT COMPATIBILITY_LEVEL FROM SYS.DATABASES WHERE NAME = DB_NAME()"
+        end
+
         def collation
           @collation ||= select_value "SELECT DATABASEPROPERTYEX(DB_NAME(), 'Collation')"
         end
 
         private
+
+        def create_database_compatibility_options(options = {})
+          keys  = [:compatibility_level]
+          copts = @connection_parameters
+          options = {
+            compatibility_level: copts[:compatibility_level]
+          }.merge(options.symbolize_keys).select { |_, v|
+            v.present?
+          }.slice(*keys).map { |k, v|
+            "#{k.to_s.upcase} = #{v}"
+          }.join(" ")
+          options
+        end
 
         def create_database_options(options = {})
           keys  = [:collate]
