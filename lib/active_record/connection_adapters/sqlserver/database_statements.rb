@@ -461,13 +461,8 @@ module ActiveRecord
           handle
         end
 
-        # TinyTDS returns false instead of raising an exception if connection fails.
-        # Getting around this by raising an exception ourselves while PR
-        # https://github.com/rails-sqlserver/tiny_tds/pull/469 is not released.
         def internal_raw_execute(sql, raw_connection, perform_do: false)
           result = raw_connection.execute(sql)
-          raise TinyTds::Error, "failed to execute statement" if result.is_a?(FalseClass)
-
           perform_do ? result.do : result
         end
       end
