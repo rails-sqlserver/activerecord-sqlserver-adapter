@@ -383,6 +383,22 @@ module ActiveRecord
 end
 
 class CalculationsTest < ActiveRecord::TestCase
+  # SELECT columns must be in the GROUP clause.
+  coerce_tests! :test_should_count_with_group_by_qualified_name_on_loaded
+  def test_should_count_with_group_by_qualified_name_on_loaded_coerced
+    accounts = Account.group("accounts.id").select("accounts.id")
+
+    expected = { 1 => 1, 2 => 1, 3 => 1, 4 => 1, 5 => 1, 6 => 1 }
+
+    assert_not_predicate accounts, :loaded?
+    assert_equal expected, accounts.count
+
+    accounts.load
+
+    assert_predicate accounts, :loaded?
+    assert_equal expected, accounts.count(:id)
+  end
+
   # Fix randomly failing test. The loading of the model's schema was affecting the test.
   coerce_tests! :test_offset_is_kept
   def test_offset_is_kept_coerced
