@@ -277,7 +277,7 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       _(col.sql_type).must_equal           "date"
       _(col.type).must_equal               :date
       _(col.null).must_equal               true
-      _(col.default).must_equal            connection_tds_73 ? Date.civil(1, 1, 1) : "0001-01-01"
+      _(col.default).must_equal            Date.civil(1, 1, 1)
       _(obj.date).must_equal               Date.civil(1, 1, 1)
       _(col.default_function).must_be_nil
       type = connection.lookup_cast_type_from_column(col)
@@ -357,7 +357,6 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
     end
 
     it "datetime2" do
-      skip "datetime2 not supported in this protocol version" unless connection_tds_73
       col = column("datetime2_7")
       _(col.sql_type).must_equal           "datetime2(7)"
       _(col.type).must_equal               :datetime
@@ -422,7 +421,6 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
     end
 
     it "datetimeoffset" do
-      skip "datetimeoffset not supported in this protocol version" unless connection_tds_73
       col = column("datetimeoffset_7")
       _(col.sql_type).must_equal           "datetimeoffset(7)"
       _(col.type).must_equal               :datetimeoffset
@@ -491,7 +489,6 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
     end
 
     it "time(7)" do
-      skip "time() not supported in this protocol version" unless connection_tds_73
       col = column("time_7")
       _(col.sql_type).must_equal           "time(7)"
       _(col.type).must_equal               :time
@@ -523,7 +520,6 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
     end
 
     it "time(2)" do
-      skip "time() not supported in this protocol version" unless connection_tds_73
       col = column("time_2")
       _(col.sql_type).must_equal           "time(2)"
       _(col.type).must_equal               :time
@@ -553,7 +549,6 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
     end
 
     it "time using default precision" do
-      skip "time() not supported in this protocol version" unless connection_tds_73
       col = column("time_default")
       _(col.sql_type).must_equal           "time(7)"
       _(col.type).must_equal               :time
