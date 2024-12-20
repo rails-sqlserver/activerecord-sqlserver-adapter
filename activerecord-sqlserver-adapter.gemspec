@@ -28,5 +28,5 @@ Gem::Specification.new do |spec|
   spec.require_paths = ["lib"]
 
   spec.add_dependency "activerecord", "~> 7.2.0"
-  spec.add_dependency "tiny_tds"
+  spec.add_dependency "tiny_tds", "~> 2.0"
 end
