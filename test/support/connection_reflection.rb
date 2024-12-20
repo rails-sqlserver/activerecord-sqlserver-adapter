@@ -15,11 +15,6 @@ module ARTest
         connection.instance_variable_get :@connection_parameters
       end
 
-      def connection_tds_73
-        rc = connection.raw_connection
-        rc.respond_to?(:tds_73?) && rc.tds_73?
-      end
-
       def connection_sqlserver_azure?
         connection.sqlserver_azure?
       end
