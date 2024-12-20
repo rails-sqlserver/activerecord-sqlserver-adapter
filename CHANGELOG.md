@@ -3,6 +3,7 @@
 #### Fixed
 
 - [#1272](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1272) Fix parsing of raw table name from SQL with extra parentheses
+- [#1276](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1276) Not compatible with TinyTDS v3+
 
 ## v8.0.1
 
