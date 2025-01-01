@@ -1576,7 +1576,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
       @schema_migration.create_version(v)
     end
 
-    schema_info = ActiveRecord::Base.lease_connection.dump_schema_information
+    schema_info = ActiveRecord::Base.lease_connection.dump_schema_versions
     expected = <<~STR
     INSERT INTO #{quote_table_name("schema_migrations")} (version) VALUES
     (N'20100301010101'),
