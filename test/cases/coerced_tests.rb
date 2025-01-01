@@ -1569,16 +1569,16 @@ end
 
 class SchemaDumperTest < ActiveRecord::TestCase
   # Use nvarchar string (N'') in assert
-  coerce_tests! :test_dump_schema_information_outputs_lexically_reverse_ordered_versions_regardless_of_database_order
-  def test_dump_schema_information_outputs_lexically_reverse_ordered_versions_regardless_of_database_order_coerced
+  coerce_tests! :test_dump_schema_versions_outputs_lexically_reverse_ordered_versions_regardless_of_database_order
+  def test_dump_schema_versions_outputs_lexically_reverse_ordered_versions_regardless_of_database_order_coerced
     versions = %w{ 20100101010101 20100201010101 20100301010101 }
     versions.shuffle.each do |v|
       @schema_migration.create_version(v)
     end
 
-    schema_info = ActiveRecord::Base.lease_connection.dump_schema_information
+    schema_info = ActiveRecord::Base.lease_connection.dump_schema_versions
     expected = <<~STR
-    INSERT INTO #{ActiveRecord::Base.lease_connection.quote_table_name("schema_migrations")} (version) VALUES
+    INSERT INTO #{quote_table_name("schema_migrations")} (version) VALUES
     (N'20100301010101'),
     (N'20100201010101'),
     (N'20100101010101');
