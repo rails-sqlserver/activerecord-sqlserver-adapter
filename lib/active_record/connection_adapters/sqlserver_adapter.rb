@@ -324,13 +324,6 @@ module ActiveRecord
         self.class::VERSION
       end
 
-      def combine_bind_parameters(from_clause: [], join_clause: [], where_clause: [], having_clause: [], limit: nil, offset: nil)
-        result = from_clause + join_clause + where_clause + having_clause
-        result << offset if offset
-        result << limit if limit
-        result
-      end
-
       def get_database_version # :nodoc:
         version_year
       end
