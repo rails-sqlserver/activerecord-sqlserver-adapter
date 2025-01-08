@@ -1183,6 +1183,9 @@ module ActiveRecord
         end
       end
 
+      # SQL Server does not support 'restrict' for 'on_update' or 'on_delete'.
+      coerce_tests! :test_remove_foreign_key_with_restrict_action
+
       # Error message depends on the database adapter.
       coerce_tests! :test_add_foreign_key_with_if_not_exists_not_set
       def test_add_foreign_key_with_if_not_exists_not_set_coerced
