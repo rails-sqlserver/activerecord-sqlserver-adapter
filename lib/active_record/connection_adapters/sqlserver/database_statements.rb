@@ -337,7 +337,7 @@ module ActiveRecord
 
         def sp_executesql_sql_type(attr)
           if attr.respond_to?(:type)
-            type = attr.type.is_a?(ActiveRecord::Normalization::NormalizedValueType) ? attr.type.cast_type : attr.type
+            type = attr.type.is_a?(ActiveModel::Attributes::Normalization::NormalizedValueType) ? attr.type.cast_type : attr.type
             type = type.subtype if type.serialized?
 
             return type.sqlserver_type if type.respond_to?(:sqlserver_type)
