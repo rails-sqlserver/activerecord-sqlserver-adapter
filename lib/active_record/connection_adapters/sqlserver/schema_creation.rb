@@ -50,7 +50,7 @@ module ActiveRecord
         end
 
         def add_column_options!(sql, options)
-          sql << " DEFAULT #{quote_default_expression(options[:default], options[:column])}" if options_include_default?(options)
+          sql << " DEFAULT #{quote_default_expression_for_column_definition(options[:default], options[:column])}" if options_include_default?(options)
           if options[:collation].present?
             sql << " COLLATE #{options[:collation]}"
           end

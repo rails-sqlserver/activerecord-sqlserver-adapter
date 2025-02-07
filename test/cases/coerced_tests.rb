@@ -570,8 +570,8 @@ module ActiveRecord
         five = columns.detect { |c| c.name == "five" }
 
         assert_equal "hello", one.default
-        assert_equal true, connection.lookup_cast_type_from_column(two).deserialize(two.default)
-        assert_equal false, connection.lookup_cast_type_from_column(three).deserialize(three.default)
+        assert_equal true, two.fetch_cast_type(connection).deserialize(two.default)
+        assert_equal false, three.fetch_cast_type(connection).deserialize(three.default)
         assert_equal 1, four.default
         assert_equal "hello", five.default
       end
@@ -1971,11 +1971,16 @@ module ActiveRecord
         # Revert changes
         @connection.change_column_default(:sst_datatypes, :datetime, current_default) if current_default.present?
       end
-
-      # We need to give the full path for this to work.
-      undef_method :schema_dump_path
-      def schema_dump_path
+      
+      # We need to give the full paths for this to work.
+      undef_method :schema_dump_5_1_path
+      def schema_dump_5_1_path
         File.join(ARTest::SQLServer.root_activerecord, "test/assets/schema_dump_5_1.yml")
+      end
+
+      undef_method :schema_dump_8_0_path
+      def schema_dump_8_0_path
+        File.join(ARTest::SQLServer.root_activerecord, "test/assets/schema_dump_8_0.yml")
       end
     end
   end

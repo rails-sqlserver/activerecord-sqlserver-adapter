@@ -70,8 +70,10 @@ module ActiveRecord
           column_definitions(table_name).map do |ci|
             sqlserver_options = ci.slice :ordinal_position, :is_primary, :is_identity, :table_name
             sql_type_metadata = fetch_type_metadata ci[:type], sqlserver_options
+
             new_column(
               ci[:name],
+              lookup_cast_type(ci[:type]),
               ci[:default_value],
               sql_type_metadata,
               ci[:null],
@@ -83,9 +85,10 @@ module ActiveRecord
           end
         end
 
-        def new_column(name, default, sql_type_metadata, null, default_function = nil, collation = nil, comment = nil, sqlserver_options = {})
+        def new_column(name, cast_type, default, sql_type_metadata, null, default_function = nil, collation = nil, comment = nil, sqlserver_options = {})
           SQLServer::Column.new(
             name,
+            cast_type,
             default,
             sql_type_metadata,
             null,
