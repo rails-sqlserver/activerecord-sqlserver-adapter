@@ -1303,18 +1303,25 @@ end
 
 require "models/author"
 class UpdateAllTest < ActiveRecord::TestCase
-  # Rails test required updating a identity column.
+  # Regular expression slightly different.
   coerce_tests! :test_update_all_doesnt_ignore_order
   def test_update_all_doesnt_ignore_order_coerced
-    david, mary = authors(:david), authors(:mary)
-    _(david.id).must_equal 1
-    _(mary.id).must_equal 2
-    _(david.name).wont_equal mary.name
-    assert_queries_match(/UPDATE.*\(SELECT \[authors\].\[id\] FROM \[authors\].*ORDER BY \[authors\].\[id\]/i) do
-      Author.where("[id] > 1").order(:id).update_all(name: "Test")
+    assert_equal authors(:david).id + 1, authors(:mary).id # make sure there is going to be a duplicate PK error
+    test_update_with_order_succeeds = lambda do |order|
+      Author.order(order).update_all("id = id + 1")
+    rescue ActiveRecord::ActiveRecordError
+      false
     end
-    _(david.reload.name).must_equal "David"
-    _(mary.reload.name).must_equal "Test"
+
+    if test_update_with_order_succeeds.call("id DESC")
+      # test that this wasn't a fluke and using an incorrect order results in an exception
+      assert_not test_update_with_order_succeeds.call("id ASC")
+    else
+      # test that we're failing because the current Arel's engine doesn't support UPDATE ORDER BY queries is using subselects instead
+      assert_queries_match(/\AUPDATE .+ \(SELECT .* ORDER BY id DESC.*\)/i) do
+        test_update_with_order_succeeds.call("id DESC")
+      end
+    end
   end
 
   # SELECT columns must be in the GROUP clause.
@@ -1331,6 +1338,34 @@ class UpdateAllTest < ActiveRecord::TestCase
 
     post = Post.select(:id, :title).group(:title).joins(:comments).group("posts.id").having("count(comments.id) < #{minimum_comments_count}").first
     assert_not_equal "ig", post.title
+  end
+
+  # TODO
+  coerce_tests! :test_dynamic_update_all_with_one_joined_table
+  def test_dynamic_update_all_with_one_joined_table_coerced
+    update_fragment = "name = pets.name"
+
+    toys = Toy.joins(:pet)
+    assert_equal 3, toys.count
+    assert_equal 3, toys.update_all(update_fragment)
+
+    toys.each do |toy|
+      assert_equal toy.pet.name, toy.name
+    end
+  end
+
+  # TODO
+  coerce_tests! :test_dynamic_update_all_with_two_joined_table
+  def test_dynamic_update_all_with_two_joined_table_coerced
+    update_fragment = "name = owners.name"
+
+    toys = Toy.joins(pet: [:owner])
+    assert_equal 3, toys.count
+    assert_equal 3, toys.update_all(update_fragment)
+
+    toys.each do |toy|
+      assert_equal toy.pet.owner.name, toy.name
+    end
   end
 end
 
@@ -1971,7 +2006,7 @@ module ActiveRecord
         # Revert changes
         @connection.change_column_default(:sst_datatypes, :datetime, current_default) if current_default.present?
       end
-      
+
       # We need to give the full paths for this to work.
       undef_method :schema_dump_5_1_path
       def schema_dump_5_1_path
