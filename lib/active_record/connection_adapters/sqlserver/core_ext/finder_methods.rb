@@ -33,7 +33,7 @@ module ActiveRecord
               end
               # End of monkey-patch
             else
-              relation = except(:select, :distinct, :order)._select!(::ActiveRecord::FinderMethods::ONE_AS_ONE).limit!(1)
+              relation = except(:select, :distinct, :order)._select!(Arel.sql(::ActiveRecord::FinderMethods::ONE_AS_ONE, retryable: true)).limit!(1)
             end
 
             case conditions

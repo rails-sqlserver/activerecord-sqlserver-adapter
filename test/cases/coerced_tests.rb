@@ -1971,7 +1971,7 @@ module ActiveRecord
         # Revert changes
         @connection.change_column_default(:sst_datatypes, :datetime, current_default) if current_default.present?
       end
-      
+
       # We need to give the full paths for this to work.
       undef_method :schema_dump_5_1_path
       def schema_dump_5_1_path
@@ -2796,3 +2796,14 @@ module ActiveRecord
   end
 end
 
+module ActiveRecord
+  class AdapterConnectionTest < ActiveRecord::TestCase
+    # Original method defined for core adapters.
+    undef_method :raw_transaction_open?
+    def raw_transaction_open?(connection)
+      connection.instance_variable_get(:@raw_connection).query("SELECT @@trancount").to_a[0][0] > 0
+    rescue
+      false
+    end
+  end
+end
