@@ -29,16 +29,7 @@ module Arel
         visit o.right, collector
       end
 
-      # def visit_Arel_Nodes_UpdateStatement(o, collector)
-      #   if has_join_and_composite_primary_key?(o)
-      #     update_statement_using_join(o, collector)
-      #   else
-      #     o.limit = Nodes::Limit.new(9_223_372_036_854_775_807) if o.orders.any? && o.limit.nil?
-      #
-      #     super
-      #   end
-      # end
-
+      # Same as SQLite and PostgreSQL.
       def visit_Arel_Nodes_UpdateStatement(o, collector)
         collector.retryable = false
         o = prepare_update_statement(o)
@@ -84,12 +75,8 @@ module Arel
         maybe_visit o.limit, collector
       end
 
-      # In the simple case, PostgreSQL allows us to place FROM or JOINs directly into the UPDATE
-      # query. However, this does not allow for LIMIT, OFFSET and ORDER. To support
-      # these, we must use a subquery.
+      # Same as PostgreSQL except we need to add limit if using subquery.
       def prepare_update_statement(o)
-
-
         if has_join_sources?(o) && !has_limit_or_offset_or_orders?(o) && !has_group_by_and_having?(o)
           o
         else
