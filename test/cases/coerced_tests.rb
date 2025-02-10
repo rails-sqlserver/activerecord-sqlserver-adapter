@@ -1340,7 +1340,7 @@ class UpdateAllTest < ActiveRecord::TestCase
     assert_not_equal "ig", post.title
   end
 
-  # TODO
+  # TODO: https://github.com/rails/rails/pull/54482
   coerce_tests! :test_dynamic_update_all_with_one_joined_table
   def test_dynamic_update_all_with_one_joined_table_coerced
     update_fragment = "name = pets.name"
@@ -1354,7 +1354,7 @@ class UpdateAllTest < ActiveRecord::TestCase
     end
   end
 
-  # TODO
+  # TODO: https://github.com/rails/rails/pull/54482
   coerce_tests! :test_dynamic_update_all_with_two_joined_table
   def test_dynamic_update_all_with_two_joined_table_coerced
     update_fragment = "name = owners.name"
