@@ -109,17 +109,6 @@ module Arel
         collect_nodes_for o.wheres, collector, " WHERE ", " AND "
       end
 
-      # def update_statement_using_join(o, collector)
-      #   collector.retryable = false
-      #
-      #   collector << "UPDATE "
-      #   visit o.relation.left, collector
-      #   collect_nodes_for o.values, collector, " SET "
-      #   collector << " FROM "
-      #   visit o.relation, collector
-      #   collect_nodes_for o.wheres, collector, " WHERE ", " AND "
-      # end
-
       def visit_Arel_Nodes_Lock(o, collector)
         o.expr = Arel.sql("WITH(UPDLOCK)") if o.expr.to_s =~ /FOR UPDATE/
         collector << " "
