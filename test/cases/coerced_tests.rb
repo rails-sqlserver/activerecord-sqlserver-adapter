@@ -1339,34 +1339,6 @@ class UpdateAllTest < ActiveRecord::TestCase
     post = Post.select(:id, :title).group(:title).joins(:comments).group("posts.id").having("count(comments.id) < #{minimum_comments_count}").first
     assert_not_equal "ig", post.title
   end
-
-  # TODO: https://github.com/rails/rails/pull/54482
-  coerce_tests! :test_dynamic_update_all_with_one_joined_table
-  def test_dynamic_update_all_with_one_joined_table_coerced
-    update_fragment = "name = pets.name"
-
-    toys = Toy.joins(:pet)
-    assert_equal 3, toys.count
-    assert_equal 3, toys.update_all(update_fragment)
-
-    toys.each do |toy|
-      assert_equal toy.pet.name, toy.name
-    end
-  end
-
-  # TODO: https://github.com/rails/rails/pull/54482
-  coerce_tests! :test_dynamic_update_all_with_two_joined_table
-  def test_dynamic_update_all_with_two_joined_table_coerced
-    update_fragment = "name = owners.name"
-
-    toys = Toy.joins(pet: [:owner])
-    assert_equal 3, toys.count
-    assert_equal 3, toys.update_all(update_fragment)
-
-    toys.each do |toy|
-      assert_equal toy.pet.owner.name, toy.name
-    end
-  end
 end
 
 class DeleteAllTest < ActiveRecord::TestCase
