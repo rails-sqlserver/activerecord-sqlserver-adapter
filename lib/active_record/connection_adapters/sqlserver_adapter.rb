@@ -401,7 +401,7 @@ module ActiveRecord
           m.register_type              "nvarchar(max)",     SQLServer::Type::UnicodeVarcharMax.new
           m.register_type              "nvarchar(max)",     SQLServer::Type::UnicodeVarcharMax.new
           m.register_type              "ntext",             SQLServer::Type::UnicodeText.new
-          m.register_type              %r(char)i,           SQLServer::Type::String.new
+          m.register_type              %r(varchar)i,        SQLServer::Type::String.new
 
           # Binary Strings
           register_class_with_limit m, %r{\Abinary}i,       SQLServer::Type::Binary
