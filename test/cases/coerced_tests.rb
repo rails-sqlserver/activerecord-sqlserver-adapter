@@ -2805,10 +2805,11 @@ end
 
 module ActiveRecord
   class AdapterConnectionTest < ActiveRecord::TestCase
-    # Original method defined for core adapters.
+    # Original method only handled the core adapters.
     undef_method :raw_transaction_open?
     def raw_transaction_open?(connection)
-      connection.instance_variable_get(:@raw_connection).query("SELECT @@trancount").to_a[0][0] > 0
+      transaction_count = connection.instance_variable_get(:@raw_connection).execute("SELECT @@TRANCOUNT AS TRANSACTION_COUNT").first["TRANSACTION_COUNT"]
+      transaction_count > 0
     rescue
       false
     end
