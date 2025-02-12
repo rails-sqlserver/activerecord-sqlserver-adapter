@@ -103,7 +103,7 @@ module ActiveRecord
               @schema = @parts.first
             end
             rest = scanner.rest
-            rest = rest.start_with?(".") ? rest[1..-1] : rest[0..-1]
+            rest = rest.start_with?(".") ? rest[1..] : rest[0..]
             @object = unquote(rest)
             @parts << @object
           end
