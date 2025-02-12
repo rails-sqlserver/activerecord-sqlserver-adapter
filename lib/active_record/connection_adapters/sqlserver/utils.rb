@@ -109,7 +109,7 @@ module ActiveRecord
           end
 
           def quote(part)
-            (/\A\[.*\]\z/.match?(part)) ? part : "[#{part.to_s.gsub("]", "]]")}]"
+            /\A\[.*\]\z/.match?(part) ? part : "[#{part.to_s.gsub("]", "]]")}]"
           end
 
           def unquote(part)
@@ -126,7 +126,7 @@ module ActiveRecord
         extend self
 
         def quote_string(s)
-          s.to_s.gsub('\\'', "''")
+          s.to_s.gsub("'", "''")
         end
 
         def quote_string_single(s)
@@ -142,7 +142,7 @@ module ActiveRecord
         end
 
         def unquote_string(s)
-          s.to_s.gsub('\\'\\'', "'")
+          s.to_s.gsub("''", "'")
         end
 
         def extract_identifiers(name)
