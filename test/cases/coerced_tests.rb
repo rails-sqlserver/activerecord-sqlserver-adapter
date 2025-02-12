@@ -2,7 +2,22 @@
 
 require "cases/helper_sqlserver"
 
+require "models/author"
+require "models/book"
+require "models/car"
+require "models/citation"
+require "models/comment"
+require "models/computer"
+require "models/customer"
+require "models/dashboard"
+require "models/developer"
 require "models/event"
+require "models/non_primary_key"
+require "models/post"
+require "models/tag"
+require "models/task"
+require "models/topic"
+
 class UniquenessValidationTest < ActiveRecord::TestCase
   # So sp_executesql swallows this exception. Run without prepared to see it.
   coerce_tests! :test_validate_uniqueness_with_limit
@@ -62,7 +77,6 @@ class UniquenessValidationWithIndexTest < ActiveRecord::TestCase
   end
 end
 
-require "models/event"
 module ActiveRecord
   class AdapterTest < ActiveRecord::TestCase
     # Legacy binds are not supported.
@@ -174,7 +188,6 @@ module ActiveRecord
   end
 end
 
-require "models/topic"
 class AttributeMethodsTest < ActiveRecord::TestCase
   # Use IFF for boolean statement in SELECT
   coerce_tests! %r{typecast attribute from select to false}
@@ -1015,9 +1028,6 @@ class EagerAssociationTest < ActiveRecord::TestCase
   coerce_tests! %r{including association based on sql condition and no database column}
 end
 
-require "models/topic"
-require "models/customer"
-require "models/non_primary_key"
 class FinderTest < ActiveRecord::TestCase
   fixtures :customers, :topics, :authors
 
@@ -1291,8 +1301,6 @@ class LeftOuterJoinAssociationTest < ActiveRecord::TestCase
   coerce_tests! :test_does_not_override_select
 end
 
-require "models/developer"
-require "models/computer"
 class NestedRelationScopingTest < ActiveRecord::TestCase
   # Assert SQL Server limit implementation
   coerce_tests! :test_merge_options
@@ -1308,7 +1316,6 @@ class NestedRelationScopingTest < ActiveRecord::TestCase
   end
 end
 
-require "models/topic"
 class PersistenceTest < ActiveRecord::TestCase
   # Rails test required updating a identity column.
   coerce_tests! :test_update_columns_changing_id
@@ -1335,7 +1342,6 @@ class PersistenceTest < ActiveRecord::TestCase
   coerce_tests! :test_model_with_no_auto_populated_fields_still_returns_primary_key_after_insert
 end
 
-require "models/author"
 class UpdateAllTest < ActiveRecord::TestCase
   # Regular expression slightly different.
   coerce_tests! :test_update_all_doesnt_ignore_order
@@ -1393,7 +1399,6 @@ class DeleteAllTest < ActiveRecord::TestCase
   end
 end
 
-require "models/topic"
 module ActiveRecord
   class PredicateBuilderTest < ActiveRecord::TestCase
     # Same as original test except string has `N` prefix to indicate unicode string.
@@ -1424,7 +1429,6 @@ module ActiveRecord
   end
 end
 
-require "models/task"
 class QueryCacheTest < ActiveRecord::TestCase
   # SQL Server adapter not in list of supported adapters in original test.
   coerce_tests! :test_cache_does_not_wrap_results_in_arrays
@@ -1435,7 +1439,6 @@ class QueryCacheTest < ActiveRecord::TestCase
   end
 end
 
-require "models/post"
 class RelationTest < ActiveRecord::TestCase
   # Use LEN() instead of LENGTH() function.
   coerce_tests! :test_reverse_order_with_function
@@ -1579,7 +1582,6 @@ module ActiveRecord
   end
 end
 
-require "models/post"
 class SanitizeTest < ActiveRecord::TestCase
   # Use nvarchar string (N'') in assert
   coerce_tests! :test_sanitize_sql_like_example_use_case
@@ -1706,7 +1708,6 @@ class TestAdapterWithInvalidConnection < ActiveRecord::TestCase
   coerce_tests! %r{inspect on Model class does not raise}
 end
 
-require "models/topic"
 class TransactionTest < ActiveRecord::TestCase
   # SQL Server does not have query for release_savepoint.
   coerce_tests! :test_releasing_named_savepoints
@@ -1798,7 +1799,6 @@ class TransactionTest < ActiveRecord::TestCase
   end
 end
 
-require "models/tag"
 class TransactionIsolationTest < ActiveRecord::TestCase
   # SQL Server will lock the table for counts even when both
   # connections are `READ COMMITTED`. So we bypass with `READPAST`.
@@ -1818,7 +1818,6 @@ class TransactionIsolationTest < ActiveRecord::TestCase
   coerce_tests! %r{repeatable read}
 end
 
-require "models/book"
 class ViewWithPrimaryKeyTest < ActiveRecord::TestCase
   # We have a few view tables. use includes vs equality.
   coerce_tests! :test_views
@@ -1842,7 +1841,6 @@ class ViewWithoutPrimaryKeyTest < ActiveRecord::TestCase
   end
 end
 
-require "models/author"
 class YamlSerializationTest < ActiveRecord::TestCase
   coerce_tests! :test_types_of_virtual_columns_are_not_changed_on_round_trip
   def test_types_of_virtual_columns_are_not_changed_on_round_trip_coerced
@@ -1957,7 +1955,6 @@ module ActiveRecord
   end
 end
 
-require "models/book"
 module ActiveRecord
   class StatementCacheTest < ActiveRecord::TestCase
     # Getting random failures.
@@ -2012,8 +2009,6 @@ module ActiveRecord
   end
 end
 
-require "models/post"
-require "models/comment"
 class UnsafeRawSqlTest < ActiveRecord::TestCase
   fixtures :posts
 
@@ -2210,7 +2205,6 @@ module ActiveRecord
   end
 end
 
-require "models/book"
 class EnumTest < ActiveRecord::TestCase
   # Need to remove index as SQL Server considers NULLs on a unique-index to be equal unlike PostgreSQL/MySQL/SQLite.
   coerce_tests! %r{enums are distinct per class}
@@ -2257,7 +2251,6 @@ class EnumTest < ActiveRecord::TestCase
   end
 end
 
-require "models/citation"
 class EagerLoadingTooManyIdsTest < ActiveRecord::TestCase
   fixtures :citations
 
@@ -2396,7 +2389,6 @@ class MultiDbMigratorTest < ActiveRecord::TestCase
   coerce_tests! :test_migrator_db_has_no_schema_migrations_table if /mswin|mingw/.match?(RbConfig::CONFIG["host_os"])
 end
 
-require "models/book"
 class FieldOrderedValuesTest < ActiveRecord::TestCase
   # Need to remove index as SQL Server considers NULLs on a unique-index to be equal unlike PostgreSQL/MySQL/SQLite.
   coerce_tests! :test_in_order_of_with_enums_values
@@ -2443,7 +2435,6 @@ class FieldOrderedValuesTest < ActiveRecord::TestCase
   end
 end
 
-require "models/dashboard"
 class QueryLogsTest < ActiveRecord::TestCase
   # SQL requires double single-quotes.
   coerce_tests! :test_sql_commenter_format
@@ -2750,7 +2741,6 @@ module ActiveRecord
   end
 end
 
-require "models/car"
 class ExplainTest < ActiveRecord::TestCase
   # Expected query slightly different from because of 'sp_executesql' and query parameters.
   coerce_tests! :test_relation_explain_with_first
