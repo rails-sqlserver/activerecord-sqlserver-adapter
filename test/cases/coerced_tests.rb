@@ -1537,8 +1537,11 @@ module ActiveRecord
       assert_equal expected, query
     end
 
-    # Order column must be in the GROUP clause. However, with implicit ordering we can't test this when selecting expression column.
-    coerce_tests! %r{runs queries when using pick with expression column and empty IN}
+    # Order column must be in the GROUP clause. However, with implicit ordering we can't test this when selecting non-aggregate expression column.
+    coerce_tests! %r{no queries when using pick with non-aggregate expression and empty IN}
+
+    # Order column must be in the GROUP clause. However, with implicit ordering we can't test this when selecting aggregate expression column.
+    coerce_tests! %r{runs queries when using pick with aggregate expression despite empty IN}
   end
 end
 
