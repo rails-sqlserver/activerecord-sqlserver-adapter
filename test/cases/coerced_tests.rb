@@ -909,7 +909,7 @@ module ActiveRecord
 
     def test_sqlserver_create
       with_stubbed_new do
-        assert_called(eval("@sqlserver_tasks"), :create) do
+        assert_called(eval("@sqlserver_tasks", binding, __FILE__, __LINE__), :create) do
           ActiveRecord::Tasks::DatabaseTasks.create "adapter" => :sqlserver
         end
       end
@@ -922,7 +922,7 @@ module ActiveRecord
 
     def test_sqlserver_drop
       with_stubbed_new do
-        assert_called(eval("@sqlserver_tasks"), :drop) do
+        assert_called(eval("@sqlserver_tasks", binding, __FILE__, __LINE__), :drop) do
           ActiveRecord::Tasks::DatabaseTasks.drop "adapter" => :sqlserver
         end
       end
@@ -935,7 +935,7 @@ module ActiveRecord
 
     def test_sqlserver_purge
       with_stubbed_new do
-        assert_called(eval("@sqlserver_tasks"), :purge) do
+        assert_called(eval("@sqlserver_tasks", binding, __FILE__, __LINE__), :purge) do
           ActiveRecord::Tasks::DatabaseTasks.purge "adapter" => :sqlserver
         end
       end
@@ -948,7 +948,7 @@ module ActiveRecord
 
     def test_sqlserver_charset
       with_stubbed_new do
-        assert_called(eval("@sqlserver_tasks"), :charset) do
+        assert_called(eval("@sqlserver_tasks", binding, __FILE__, __LINE__), :charset) do
           ActiveRecord::Tasks::DatabaseTasks.charset "adapter" => :sqlserver
         end
       end
@@ -961,7 +961,7 @@ module ActiveRecord
 
     def test_sqlserver_collation
       with_stubbed_new do
-        assert_called(eval("@sqlserver_tasks"), :collation) do
+        assert_called(eval("@sqlserver_tasks", binding, __FILE__, __LINE__), :collation) do
           ActiveRecord::Tasks::DatabaseTasks.collation "adapter" => :sqlserver
         end
       end
@@ -975,7 +975,7 @@ module ActiveRecord
     def test_sqlserver_structure_dump
       with_stubbed_new do
         assert_called_with(
-          eval("@sqlserver_tasks"), :structure_dump,
+          eval("@sqlserver_tasks", binding, __FILE__, __LINE__), :structure_dump,
           ["awesome-file.sql", nil]
         ) do
           ActiveRecord::Tasks::DatabaseTasks.structure_dump({"adapter" => :sqlserver}, "awesome-file.sql")
@@ -991,7 +991,7 @@ module ActiveRecord
     def test_sqlserver_structure_load
       with_stubbed_new do
         assert_called_with(
-          eval("@sqlserver_tasks"),
+          eval("@sqlserver_tasks", binding, __FILE__, __LINE__),
           :structure_load,
           ["awesome-file.sql", nil]
         ) do
