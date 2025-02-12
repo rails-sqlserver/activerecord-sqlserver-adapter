@@ -7,8 +7,6 @@ module ActiveRecord
         class Uuid < String
           ACCEPTABLE_UUID = %r{\A\{?([a-fA-F0-9]{4}-?){8}\}?\z}x
 
-          alias_method :serialize, :deserialize
-
           def type
             :uuid
           end

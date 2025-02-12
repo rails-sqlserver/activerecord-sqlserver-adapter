@@ -14,7 +14,9 @@ module ActiveRecord
         end
 
         def perform_query(raw_connection, sql, binds, type_casted_binds, prepare:, notification_payload:, batch:)
-          result, affected_rows = if id_insert_table_name = query_requires_identity_insert?(sql)
+          id_insert_table_name = query_requires_identity_insert?(sql)
+
+          result, affected_rows = if id_insert_table_name
             # If the table name is a view, we need to get the base table name for enabling identity insert.
             id_insert_table_name = view_table_name(id_insert_table_name) if view_exists?(id_insert_table_name)
 
@@ -46,11 +48,7 @@ module ActiveRecord
 
         # Returns the affected rows from results or handle.
         def affected_rows_from_results_or_handle(raw_result, handle)
-          if affected_rows_from_result = affected_rows(raw_result)
-            affected_rows_from_result
-          else
-            handle.affected_rows
-          end
+          affected_rows(raw_result) || handle.affected_rows
         end
 
         def raw_execute(sql, name = nil, binds = [], prepare: false, async: false, allow_retry: false, materialize_transactions: true, batch: false)
@@ -157,7 +155,9 @@ module ActiveRecord
         def build_insert_sql(insert) # :nodoc:
           sql = "INSERT #{insert.into}"
 
-          if returning = insert.send(:insert_all).returning
+          returning = insert.send(:insert_all).returning
+
+          if returning
             returning_sql = if returning.is_a?(String)
               returning
             else
@@ -317,7 +317,7 @@ module ActiveRecord
 
         def set_identity_insert(table_name, conn, enable)
           internal_raw_execute("SET IDENTITY_INSERT #{table_name} #{enable ? "ON" : "OFF"}", conn, perform_do: true)
-        rescue Exception
+        rescue
           raise ActiveRecordError, "IDENTITY_INSERT could not be turned #{enable ? "ON" : "OFF"} for table #{table_name}"
         end
 
@@ -456,7 +456,7 @@ module ActiveRecord
         end
 
         def finish_statement_handle(handle)
-          handle.cancel if handle
+          handle&.cancel
           handle
         end
 

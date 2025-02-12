@@ -1374,7 +1374,7 @@ class UpdateAllTest < ActiveRecord::TestCase
 
     assert_operator posts.length, :>, 0
     assert posts.all? { |post| post.comments.length >= minimum_comments_count }
-    assert posts.all? { |post| "ig" == post.title }
+    assert posts.all? { |post| post.title == "ig" }
 
     post = Post.select(:id, :title).group(:title).joins(:comments).group("posts.id").having("count(comments.id) < #{minimum_comments_count}").first
     assert_not_equal "ig", post.title
@@ -2759,7 +2759,6 @@ class ExplainTest < ActiveRecord::TestCase
     expected_query = capture_sql {
       Car.all.last
     }.first[/EXEC sp_executesql N'(.*?) NEXT/, 1]
-    expected_query = expected_query
     message = Car.all.explain.last
 
     assert_match(/^EXPLAIN/, message)

@@ -113,7 +113,7 @@ module ActiveRecord
           end
 
           def unquote(part)
-            if part && part.start_with?("[")
+            if part&.start_with?("[")
               part[1..-2]
             else
               part

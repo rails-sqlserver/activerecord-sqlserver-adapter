@@ -61,7 +61,7 @@ class UtilsTestSQLServer < ActiveRecord::TestCase
         present, blank = send(:"#{part}_names")
         present.each do |n|
           name = extract_identifiers(n)
-          _(name.send(:"#{part}")).must_equal "#{part}", "With #{n.inspect} for ##{part} method"
+          _(name.send(:"#{part}")).must_equal part.to_s, "With #{n.inspect} for ##{part} method"
           _(name.send(:"#{part}_quoted")).must_equal "[#{part}]", "With #{n.inspect} for ##{part}_quoted method"
         end
         blank.each do |n|

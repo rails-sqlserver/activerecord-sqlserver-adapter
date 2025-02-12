@@ -20,7 +20,7 @@ module ActiveRecord
           end
 
           def apply_seconds_precision(value)
-            value.change usec: 0 if value
+            value&.change(usec: 0)
           end
         end
       end

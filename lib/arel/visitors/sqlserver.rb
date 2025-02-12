@@ -125,12 +125,11 @@ module Arel
       def visit_Arel_Nodes_Limit(o, collector)
         if node_value(o) == 0
           collector << FETCH0
-          collector << ROWS_ONLY
         else
           collector << FETCH
           visit o.expr, collector
-          collector << ROWS_ONLY
         end
+        collector << ROWS_ONLY
       end
 
       def visit_Arel_Nodes_Grouping(o, collector)
@@ -208,7 +207,7 @@ module Arel
                 quote_table_name(o.name)
               end
             end
-          rescue Exception
+          rescue
             quote_table_name(o.name)
           end
 
@@ -335,7 +334,7 @@ module Arel
       end
 
       def select_statement_lock?
-        @select_statement && @select_statement.lock
+        @select_statement&.lock
       end
 
       def make_Fetch_Possible_And_Deterministic(o)

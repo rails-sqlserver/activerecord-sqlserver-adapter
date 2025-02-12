@@ -21,7 +21,7 @@ class MigrationTestSQLServer < ActiveRecord::TestCase
       begin
         migrations_dir = File.join ARTest::SQLServer.migrations_root, "transaction_table"
         quietly { ActiveRecord::MigrationContext.new(migrations_dir).up }
-      rescue Exception => e
+      rescue => e
         assert_match %r{this and all later migrations canceled}, e.message
       end
       _(connection.tables).wont_include @trans_test_table1

@@ -32,7 +32,7 @@ module ActiveRecord
         def set_showplan_option(enable = true)
           sql = "SET #{showplan_option} #{enable ? "ON" : "OFF"}"
           raw_execute(sql, "SCHEMA")
-        rescue Exception
+        rescue
           raise ActiveRecordError, "#{showplan_option} could not be turned #{enable ? "ON" : "OFF"}, perhaps you do not have SHOWPLAN permissions?"
         end
 

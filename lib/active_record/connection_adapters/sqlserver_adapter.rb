@@ -67,9 +67,9 @@ module ActiveRecord
           sqlserver_config = config.configuration_hash
           args = []
 
-          args += ["-d", "#{config.database}"] if config.database
-          args += ["-U", "#{sqlserver_config[:username]}"] if sqlserver_config[:username]
-          args += ["-P", "#{sqlserver_config[:password]}"] if sqlserver_config[:password]
+          args += ["-d", config.database.to_s] if config.database
+          args += ["-U", sqlserver_config[:username].to_s] if sqlserver_config[:username]
+          args += ["-P", sqlserver_config[:password].to_s] if sqlserver_config[:password]
 
           if sqlserver_config[:host]
             host_arg = "tcp:#{sqlserver_config[:host]}"
