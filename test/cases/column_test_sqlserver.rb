@@ -13,9 +13,13 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
 
     Type = ActiveRecord::ConnectionAdapters::SQLServer::Type
 
-    def new_obj; SSTestDatatype.new; end
+    def new_obj
+      SSTestDatatype.new
+    end
 
-    def column(name); SSTestDatatype.columns_hash[name]; end
+    def column(name)
+      SSTestDatatype.columns_hash[name]
+    end
 
     def assert_obj_set_and_save(attribute, value)
       obj.send :"#{attribute}=", value
@@ -30,77 +34,77 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
 
     it "int(4) PRIMARY KEY" do
       col = column("id")
-      _(col.sql_type).must_equal          "int(4)"
-      _(col.null).must_equal              false
+      _(col.sql_type).must_equal "int(4)"
+      _(col.null).must_equal false
     end
 
     it "bigint(8)" do
       col = column("bigint")
-      _(col.sql_type).must_equal           "bigint(8)"
-      _(col.type).must_equal               :integer
-      _(col.null).must_equal               true
-      _(col.default).must_equal            42
-      _(obj.bigint).must_equal             42
+      _(col.sql_type).must_equal "bigint(8)"
+      _(col.type).must_equal :integer
+      _(col.null).must_equal true
+      _(col.default).must_equal 42
+      _(obj.bigint).must_equal 42
       _(col.default_function).must_be_nil
       type = col.fetch_cast_type(connection)
-      _(type).must_be_instance_of          Type::BigInteger
-      _(type.limit).must_equal             8
+      _(type).must_be_instance_of Type::BigInteger
+      _(type.limit).must_equal 8
       assert_obj_set_and_save :bigint, -9_223_372_036_854_775_808
       assert_obj_set_and_save :bigint, 9_223_372_036_854_775_807
     end
 
     it "int(4)" do
       col = column("int")
-      _(col.sql_type).must_equal           "int(4)"
-      _(col.type).must_equal               :integer
-      _(col.null).must_equal               true
-      _(col.default).must_equal            42
-      _(obj.int).must_equal                42
+      _(col.sql_type).must_equal "int(4)"
+      _(col.type).must_equal :integer
+      _(col.null).must_equal true
+      _(col.default).must_equal 42
+      _(obj.int).must_equal 42
       _(col.default_function).must_be_nil
       type = col.fetch_cast_type(connection)
-      _(type).must_be_instance_of          Type::Integer
-      _(type.limit).must_equal             4
+      _(type).must_be_instance_of Type::Integer
+      _(type.limit).must_equal 4
       assert_obj_set_and_save :int, -2_147_483_648
       assert_obj_set_and_save :int, 2_147_483_647
     end
 
     it "smallint(2)" do
       col = column("smallint")
-      _(col.sql_type).must_equal           "smallint(2)"
-      _(col.type).must_equal               :integer
-      _(col.null).must_equal               true
-      _(col.default).must_equal            42
-      _(obj.smallint).must_equal           42
+      _(col.sql_type).must_equal "smallint(2)"
+      _(col.type).must_equal :integer
+      _(col.null).must_equal true
+      _(col.default).must_equal 42
+      _(obj.smallint).must_equal 42
       _(col.default_function).must_be_nil
       type = col.fetch_cast_type(connection)
-      _(type).must_be_instance_of          Type::SmallInteger
-      _(type.limit).must_equal             2
+      _(type).must_be_instance_of Type::SmallInteger
+      _(type.limit).must_equal 2
       assert_obj_set_and_save :smallint, -32_768
       assert_obj_set_and_save :smallint, 32_767
     end
 
     it "tinyint(1)" do
       col = column("tinyint")
-      _(col.sql_type).must_equal           "tinyint(1)"
-      _(col.type).must_equal               :integer
-      _(col.null).must_equal               true
-      _(col.default).must_equal            42
-      _(obj.tinyint).must_equal            42
+      _(col.sql_type).must_equal "tinyint(1)"
+      _(col.type).must_equal :integer
+      _(col.null).must_equal true
+      _(col.default).must_equal 42
+      _(obj.tinyint).must_equal 42
       _(col.default_function).must_be_nil
       type = col.fetch_cast_type(connection)
-      _(type).must_be_instance_of          Type::TinyInteger
-      _(type.limit).must_equal             1
+      _(type).must_be_instance_of Type::TinyInteger
+      _(type.limit).must_equal 1
       assert_obj_set_and_save :tinyint, 0
       assert_obj_set_and_save :tinyint, 255
     end
 
     it "bit" do
       col = column("bit")
-      _(col.sql_type).must_equal           "bit"
-      _(col.type).must_equal               :boolean
-      _(col.null).must_equal               true
-      _(col.default).must_equal            true
-      _(obj.bit).must_equal                true
+      _(col.sql_type).must_equal "bit"
+      _(col.type).must_equal :boolean
+      _(col.null).must_equal true
+      _(col.default).must_equal true
+      _(obj.bit).must_equal true
       _(col.default_function).must_be_nil
       type = col.fetch_cast_type(connection)
       _(type).must_be_instance_of Type::Boolean
@@ -117,17 +121,17 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
 
     it "decimal(9,2)" do
       col = column("decimal_9_2")
-      _(col.sql_type).must_equal           "decimal(9,2)"
-      _(col.type).must_equal               :decimal
-      _(col.null).must_equal               true
-      _(col.default).must_equal            BigDecimal("12345.01")
-      _(obj.decimal_9_2).must_equal        BigDecimal("12345.01")
+      _(col.sql_type).must_equal "decimal(9,2)"
+      _(col.type).must_equal :decimal
+      _(col.null).must_equal true
+      _(col.default).must_equal BigDecimal("12345.01")
+      _(obj.decimal_9_2).must_equal BigDecimal("12345.01")
       _(col.default_function).must_be_nil
       type = col.fetch_cast_type(connection)
       _(type).must_be_instance_of Type::Decimal
       _(type.limit).must_be_nil
-      _(type.precision).must_equal         9
-      _(type.scale).must_equal             2
+      _(type.precision).must_equal 9
+      _(type.scale).must_equal 2
       obj.decimal_9_2 = "1234567.8901"
       _(obj.decimal_9_2).must_equal BigDecimal("1234567.89")
       obj.save!
@@ -136,13 +140,13 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
 
     it "decimal(16,4)" do
       col = column("decimal_16_4")
-      _(col.sql_type).must_equal           "decimal(16,4)"
-      _(col.default).must_equal            BigDecimal("1234567.89")
-      _(obj.decimal_16_4).must_equal       BigDecimal("1234567.89")
+      _(col.sql_type).must_equal "decimal(16,4)"
+      _(col.default).must_equal BigDecimal("1234567.89")
+      _(obj.decimal_16_4).must_equal BigDecimal("1234567.89")
       _(col.default_function).must_be_nil
       type = col.fetch_cast_type(connection)
-      _(type.precision).must_equal         16
-      _(type.scale).must_equal             4
+      _(type.precision).must_equal 16
+      _(type.scale).must_equal 4
       obj.decimal_16_4 = "1234567.8901001"
       _(obj.decimal_16_4).must_equal BigDecimal("1234567.8901")
       obj.save!
@@ -151,39 +155,39 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
 
     it "numeric(18,0)" do
       col = column("numeric_18_0")
-      _(col.sql_type).must_equal           "numeric(18,0)"
-      _(col.type).must_equal               :decimal
-      _(col.null).must_equal               true
-      _(col.default).must_equal            BigDecimal("191")
-      _(obj.numeric_18_0).must_equal       BigDecimal("191")
+      _(col.sql_type).must_equal "numeric(18,0)"
+      _(col.type).must_equal :decimal
+      _(col.null).must_equal true
+      _(col.default).must_equal BigDecimal(191)
+      _(obj.numeric_18_0).must_equal BigDecimal(191)
       _(col.default_function).must_be_nil
 
       type = col.fetch_cast_type(connection)
       _(type).must_be_instance_of Type::DecimalWithoutScale
       _(type.limit).must_be_nil
-      _(type.precision).must_equal         18
+      _(type.precision).must_equal 18
       _(type.scale).must_be_nil
 
       obj.numeric_18_0 = "192.1"
-      _(obj.numeric_18_0).must_equal BigDecimal("192")
+      _(obj.numeric_18_0).must_equal BigDecimal(192)
 
       obj.save!
-      _(obj.reload.numeric_18_0).must_equal BigDecimal("192")
+      _(obj.reload.numeric_18_0).must_equal BigDecimal(192)
     end
 
     it "numeric(36,2)" do
       col = column("numeric_36_2")
-      _(col.sql_type).must_equal           "numeric(36,2)"
-      _(col.type).must_equal               :decimal
-      _(col.null).must_equal               true
-      _(col.default).must_equal            BigDecimal("12345678901234567890.01")
-      _(obj.numeric_36_2).must_equal       BigDecimal("12345678901234567890.01")
+      _(col.sql_type).must_equal "numeric(36,2)"
+      _(col.type).must_equal :decimal
+      _(col.null).must_equal true
+      _(col.default).must_equal BigDecimal("12345678901234567890.01")
+      _(obj.numeric_36_2).must_equal BigDecimal("12345678901234567890.01")
       _(col.default_function).must_be_nil
       type = col.fetch_cast_type(connection)
       _(type).must_be_instance_of Type::Decimal
       _(type.limit).must_be_nil
-      _(type.precision).must_equal         36
-      _(type.scale).must_equal             2
+      _(type.precision).must_equal 36
+      _(type.scale).must_equal 2
       obj.numeric_36_2 = "192.123"
       _(obj.numeric_36_2).must_equal BigDecimal("192.12")
       obj.save!
@@ -192,17 +196,17 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
 
     it "money" do
       col = column("money")
-      _(col.sql_type).must_equal           "money"
-      _(col.type).must_equal               :money
-      _(col.null).must_equal               true
-      _(col.default).must_equal            BigDecimal("4.20")
-      _(obj.money).must_equal              BigDecimal("4.20")
+      _(col.sql_type).must_equal "money"
+      _(col.type).must_equal :money
+      _(col.null).must_equal true
+      _(col.default).must_equal BigDecimal("4.20")
+      _(obj.money).must_equal BigDecimal("4.20")
       _(col.default_function).must_be_nil
       type = col.fetch_cast_type(connection)
       _(type).must_be_instance_of Type::Money
       _(type.limit).must_be_nil
-      _(type.precision).must_equal         19
-      _(type.scale).must_equal             4
+      _(type.precision).must_equal 19
+      _(type.scale).must_equal 4
       obj.money = "922337203685477.58061"
       _(obj.money).must_equal BigDecimal("922337203685477.5806")
       obj.save!
@@ -211,17 +215,17 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
 
     it "smallmoney" do
       col = column("smallmoney")
-      _(col.sql_type).must_equal           "smallmoney"
-      _(col.type).must_equal               :smallmoney
-      _(col.null).must_equal               true
-      _(col.default).must_equal            BigDecimal("4.20")
-      _(obj.smallmoney).must_equal         BigDecimal("4.20")
+      _(col.sql_type).must_equal "smallmoney"
+      _(col.type).must_equal :smallmoney
+      _(col.null).must_equal true
+      _(col.default).must_equal BigDecimal("4.20")
+      _(obj.smallmoney).must_equal BigDecimal("4.20")
       _(col.default_function).must_be_nil
       type = col.fetch_cast_type(connection)
       _(type).must_be_instance_of Type::SmallMoney
       _(type.limit).must_be_nil
-      _(type.precision).must_equal         10
-      _(type.scale).must_equal             4
+      _(type.precision).must_equal 10
+      _(type.scale).must_equal 4
       obj.smallmoney = "214748.36461"
       _(obj.smallmoney).must_equal BigDecimal("214748.3646")
       obj.save!
@@ -234,11 +238,11 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
 
     it "float" do
       col = column("float")
-      _(col.sql_type).must_equal           "float"
-      _(col.type).must_equal               :float
-      _(col.null).must_equal               true
-      _(col.default).must_equal            123.00000001
-      _(obj.float).must_equal              123.00000001
+      _(col.sql_type).must_equal "float"
+      _(col.type).must_equal :float
+      _(col.null).must_equal true
+      _(col.default).must_equal 123.00000001
+      _(obj.float).must_equal 123.00000001
       _(col.default_function).must_be_nil
       type = col.fetch_cast_type(connection)
       _(type).must_be_instance_of Type::Float
@@ -253,11 +257,11 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
 
     it "real" do
       col = column("real")
-      _(col.sql_type).must_equal           "real"
-      _(col.type).must_equal               :real
-      _(col.null).must_equal               true
-      _(col.default).must_be_close_to      123.45, 0.01
-      _(obj.real).must_be_close_to         123.45, 0.01
+      _(col.sql_type).must_equal "real"
+      _(col.type).must_equal :real
+      _(col.null).must_equal true
+      _(col.default).must_be_close_to 123.45, 0.01
+      _(obj.real).must_be_close_to 123.45, 0.01
       _(col.default_function).must_be_nil
       type = col.fetch_cast_type(connection)
       _(type).must_be_instance_of Type::Real
@@ -274,11 +278,11 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
 
     it "date" do
       col = column("date")
-      _(col.sql_type).must_equal           "date"
-      _(col.type).must_equal               :date
-      _(col.null).must_equal               true
-      _(col.default).must_equal            Date.civil(1, 1, 1)
-      _(obj.date).must_equal               Date.civil(1, 1, 1)
+      _(col.sql_type).must_equal "date"
+      _(col.type).must_equal :date
+      _(col.null).must_equal true
+      _(col.default).must_equal Date.civil(1, 1, 1)
+      _(obj.date).must_equal Date.civil(1, 1, 1)
       _(col.default_function).must_be_nil
       type = col.fetch_cast_type(connection)
       _(type).must_be_instance_of Type::Date
@@ -305,19 +309,19 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       assert_obj_set_and_save :date, Date.civil(1972, 4, 14)
       # Can accept and cast time objects.
       obj.date = Time.utc(2010, 4, 14, 12, 34, 56, 3000)
-      _(obj.date).must_equal               Date.civil(2010, 4, 14)
+      _(obj.date).must_equal Date.civil(2010, 4, 14)
       obj.save!
       _(obj.reload.date).must_equal Date.civil(2010, 4, 14)
     end
 
     it "datetime" do
       col = column("datetime")
-      _(col.sql_type).must_equal           "datetime"
-      _(col.type).must_equal               :datetime
-      _(col.null).must_equal               true
+      _(col.sql_type).must_equal "datetime"
+      _(col.type).must_equal :datetime
+      _(col.null).must_equal true
       time = Time.utc 1753, 1, 1, 0, 0, 0, 123000
-      _(col.default).must_equal            time, "Microseconds were <#{col.default.usec}> vs <123000>"
-      _(obj.datetime).must_equal           time, "Microseconds were <#{obj.datetime.usec}> vs <123000>"
+      _(col.default).must_equal time, "Microseconds were <#{col.default.usec}> vs <123000>"
+      _(obj.datetime).must_equal time, "Microseconds were <#{obj.datetime.usec}> vs <123000>"
       _(col.default_function).must_be_nil
       type = col.fetch_cast_type(connection)
       _(type).must_be_instance_of Type::DateTime
@@ -358,12 +362,12 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
 
     it "datetime2" do
       col = column("datetime2_7")
-      _(col.sql_type).must_equal           "datetime2(7)"
-      _(col.type).must_equal               :datetime
-      _(col.null).must_equal               true
+      _(col.sql_type).must_equal "datetime2(7)"
+      _(col.type).must_equal :datetime
+      _(col.null).must_equal true
       time = Time.utc 9999, 12, 31, 23, 59, 59, Rational(999999900, 1000)
-      _(col.default).must_equal            time, "Nanoseconds were <#{col.default.nsec}> vs <999999900>"
-      _(obj.datetime2_7).must_equal        time, "Nanoseconds were <#{obj.datetime2_7.nsec}> vs <999999900>"
+      _(col.default).must_equal time, "Nanoseconds were <#{col.default.nsec}> vs <999999900>"
+      _(obj.datetime2_7).must_equal time, "Nanoseconds were <#{obj.datetime2_7.nsec}> vs <999999900>"
       _(col.default_function).must_be_nil
       type = col.fetch_cast_type(connection)
       _(type).must_be_instance_of Type::DateTime2
@@ -398,7 +402,8 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       _(col.fetch_cast_type(connection).precision).must_equal 3
       obj.datetime2_3 = time
       _(obj.datetime2_3).must_equal time.change(nsec: 123000000), "Nanoseconds were <#{obj.datetime2_3.nsec}> vs <123000000>"
-      obj.save!; obj.reload
+      obj.save!
+      obj.reload
       _(obj.datetime2_3).must_equal time.change(nsec: 123000000), "Nanoseconds were <#{obj.datetime2_3.nsec}> vs <123000000>"
       _(obj).must_equal obj.class.where(datetime2_3: time).first
       # datetime2_1
@@ -406,7 +411,8 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       _(col.fetch_cast_type(connection).precision).must_equal 1
       obj.datetime2_1 = time
       _(obj.datetime2_1).must_equal time.change(nsec: 100000000), "Nanoseconds were <#{obj.datetime2_1.nsec}> vs <100000000>"
-      obj.save!; obj.reload
+      obj.save!
+      obj.reload
       _(obj.datetime2_1).must_equal time.change(nsec: 100000000), "Nanoseconds were <#{obj.datetime2_1.nsec}> vs <100000000>"
       _(obj).must_equal obj.class.where(datetime2_1: time).first
       # datetime2_0
@@ -415,18 +421,19 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       time = Time.utc 2016, 4, 19, 16, 45, 40, 771036
       obj.datetime2_0 = time
       _(obj.datetime2_0).must_equal time.change(nsec: 0), "Nanoseconds were <#{obj.datetime2_0.nsec}> vs <0>"
-      obj.save!; obj.reload
+      obj.save!
+      obj.reload
       _(obj.datetime2_0).must_equal time.change(nsec: 0), "Nanoseconds were <#{obj.datetime2_0.nsec}> vs <0>"
       _(obj).must_equal obj.class.where(datetime2_0: time).first
     end
 
     it "datetimeoffset" do
       col = column("datetimeoffset_7")
-      _(col.sql_type).must_equal           "datetimeoffset(7)"
-      _(col.type).must_equal               :datetimeoffset
-      _(col.null).must_equal               true
-      _(col.default).must_equal            Time.new(1984, 1, 24, 4, 20, 0, -28800).change(nsec: 123456700), "Nanoseconds <#{col.default.nsec}> vs <123456700>"
-      _(obj.datetimeoffset_7).must_equal   Time.new(1984, 1, 24, 4, 20, 0, -28800).change(nsec: 123456700), "Nanoseconds were <#{obj.datetimeoffset_7.nsec}> vs <999999900>"
+      _(col.sql_type).must_equal "datetimeoffset(7)"
+      _(col.type).must_equal :datetimeoffset
+      _(col.null).must_equal true
+      _(col.default).must_equal Time.new(1984, 1, 24, 4, 20, 0, -28800).change(nsec: 123456700), "Nanoseconds <#{col.default.nsec}> vs <123456700>"
+      _(obj.datetimeoffset_7).must_equal Time.new(1984, 1, 24, 4, 20, 0, -28800).change(nsec: 123456700), "Nanoseconds were <#{obj.datetimeoffset_7.nsec}> vs <999999900>"
       _(col.default_function).must_be_nil
       type = col.fetch_cast_type(connection)
       _(type).must_be_instance_of Type::DateTimeOffset
@@ -468,11 +475,11 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
 
     it "smalldatetime" do
       col = column("smalldatetime")
-      _(col.sql_type).must_equal           "smalldatetime"
-      _(col.type).must_equal               :smalldatetime
-      _(col.null).must_equal               true
-      _(col.default).must_equal            Time.utc(1901, 1, 1, 15, 45, 0, 0)
-      _(obj.smalldatetime).must_equal      Time.utc(1901, 1, 1, 15, 45, 0, 0)
+      _(col.sql_type).must_equal "smalldatetime"
+      _(col.type).must_equal :smalldatetime
+      _(col.null).must_equal true
+      _(col.default).must_equal Time.utc(1901, 1, 1, 15, 45, 0, 0)
+      _(obj.smalldatetime).must_equal Time.utc(1901, 1, 1, 15, 45, 0, 0)
       _(col.default_function).must_be_nil
       type = col.fetch_cast_type(connection)
       _(type).must_be_instance_of Type::SmallDateTime
@@ -490,10 +497,10 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
 
     it "time(7)" do
       col = column("time_7")
-      _(col.sql_type).must_equal           "time(7)"
-      _(col.type).must_equal               :time
-      _(col.null).must_equal               true
-      _(col.default).must_equal            Time.utc(1900, 1, 1, 4, 20, 0, Rational(288321500, 1000)), "Nanoseconds were <#{col.default.nsec}> vs <288321500>"
+      _(col.sql_type).must_equal "time(7)"
+      _(col.type).must_equal :time
+      _(col.null).must_equal true
+      _(col.default).must_equal Time.utc(1900, 1, 1, 4, 20, 0, Rational(288321500, 1000)), "Nanoseconds were <#{col.default.nsec}> vs <288321500>"
       _(col.default_function).must_be_nil
       type = col.fetch_cast_type(connection)
       _(type).must_be_instance_of Type::Time
@@ -502,28 +509,31 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       _(type.scale).must_be_nil
       # Time's #usec precision (low micro)
       obj.time_7 = Time.utc(2000, 1, 1, 15, 45, 0, 300)
-      _(obj.time_7).must_equal             Time.utc(2000, 1, 1, 15, 45, 0, 300), "Microseconds were <#{obj.time_7.usec}> vs <0>"
-      _(obj.time_7).must_equal             Time.utc(2000, 1, 1, 15, 45, 0, 300), "Nanoseconds were <#{obj.time_7.nsec}> vs <300>"
-      obj.save!; obj.reload
-      _(obj.time_7).must_equal             Time.utc(2000, 1, 1, 15, 45, 0, 300), "Microseconds were <#{obj.time_7.usec}> vs <0>"
-      _(obj.time_7).must_equal             Time.utc(2000, 1, 1, 15, 45, 0, 300), "Nanoseconds were <#{obj.time_7.nsec}> vs <300>"
+      _(obj.time_7).must_equal Time.utc(2000, 1, 1, 15, 45, 0, 300), "Microseconds were <#{obj.time_7.usec}> vs <0>"
+      _(obj.time_7).must_equal Time.utc(2000, 1, 1, 15, 45, 0, 300), "Nanoseconds were <#{obj.time_7.nsec}> vs <300>"
+      obj.save!
+      obj.reload
+      _(obj.time_7).must_equal Time.utc(2000, 1, 1, 15, 45, 0, 300), "Microseconds were <#{obj.time_7.usec}> vs <0>"
+      _(obj.time_7).must_equal Time.utc(2000, 1, 1, 15, 45, 0, 300), "Nanoseconds were <#{obj.time_7.nsec}> vs <300>"
       # Time's #usec precision (high micro)
       obj.time_7 = Time.utc(2000, 1, 1, 15, 45, 0, 234567)
       _(obj.time_7).must_equal Time.utc(2000, 1, 1, 15, 45, 0, 234567), "Microseconds were <#{obj.time_7.usec}> vs <234567>"
-      obj.save!; obj.reload
+      obj.save!
+      obj.reload
       _(obj.time_7).must_equal Time.utc(2000, 1, 1, 15, 45, 0, 234567), "Microseconds were <#{obj.time_7.usec}> vs <234567>"
       # Time's #usec precision (high nano rounded)
       obj.time_7 = Time.utc(2000, 1, 1, 15, 45, 0, Rational(288321545, 1000))
       _(obj.time_7).must_equal Time.utc(2000, 1, 1, 15, 45, 0, Rational(288321500, 1000)), "Nanoseconds were <#{obj.time_7.nsec}> vs <288321500>"
-      obj.save!; obj.reload
+      obj.save!
+      obj.reload
       _(obj.time_7).must_equal Time.utc(2000, 1, 1, 15, 45, 0, Rational(288321500, 1000)), "Nanoseconds were <#{obj.time_7.nsec}> vs <288321500>"
     end
 
     it "time(2)" do
       col = column("time_2")
-      _(col.sql_type).must_equal           "time(2)"
-      _(col.type).must_equal               :time
-      _(col.null).must_equal               true
+      _(col.sql_type).must_equal "time(2)"
+      _(col.type).must_equal :time
+      _(col.null).must_equal true
       _(col.default).must_be_nil
       _(col.default_function).must_be_nil
       type = col.fetch_cast_type(connection)
@@ -534,26 +544,29 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       # Always uses TinyTDS/Windows 2000-01-01 convention too.
       obj.time_2 = Time.utc(2015, 1, 10, 15, 45, 0, 0)
       _(obj.time_2).must_equal Time.utc(2000, 1, 1, 15, 45, 0, 0)
-      obj.save!; obj.reload
+      obj.save!
+      obj.reload
       _(obj.time_2).must_equal Time.utc(2000, 1, 1, 15, 45, 0, 0)
       # Time's #usec precision (barely in 2 precision equal to 0.03 seconds)
       obj.time_2 = Time.utc(2000, 1, 1, 15, 45, 0, 30000)
       _(obj.time_2).must_equal Time.utc(2000, 1, 1, 15, 45, 0, 30000), "Microseconds were <#{obj.time_2.usec}> vs <30000>"
-      obj.save!; obj.reload
+      obj.save!
+      obj.reload
       _(obj.time_2).must_equal Time.utc(2000, 1, 1, 15, 45, 0, 30000), "Microseconds were <#{obj.time_2.usec}> vs <30000>"
       # Time's #usec precision (below 2 precision)
       obj.time_2 = Time.utc(2000, 1, 1, 15, 45, 0, 4000)
       _(obj.time_2).must_equal Time.utc(2000, 1, 1, 15, 45, 0, 0), "Microseconds were <#{obj.time_2.usec}> vs <0>"
-      obj.save!; obj.reload
+      obj.save!
+      obj.reload
       _(obj.time_2).must_equal Time.utc(2000, 1, 1, 15, 45, 0, 0), "Microseconds were <#{obj.time_2.usec}> vs <0>"
     end
 
     it "time using default precision" do
       col = column("time_default")
-      _(col.sql_type).must_equal           "time(7)"
-      _(col.type).must_equal               :time
-      _(col.null).must_equal               true
-      _(col.default).must_equal            Time.utc(1900, 1, 1, 15, 3, 42, Rational(62197800, 1000)), "Nanoseconds were <#{col.default.nsec}> vs <62197800>"
+      _(col.sql_type).must_equal "time(7)"
+      _(col.type).must_equal :time
+      _(col.null).must_equal true
+      _(col.default).must_equal Time.utc(1900, 1, 1, 15, 3, 42, Rational(62197800, 1000)), "Nanoseconds were <#{col.default.nsec}> vs <62197800>"
       _(col.default_function).must_be_nil
       type = col.fetch_cast_type(connection)
       _(type).must_be_instance_of Type::Time
@@ -562,20 +575,23 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       _(type.scale).must_be_nil
       # Time's #usec precision (low micro)
       obj.time_default = Time.utc(2000, 1, 1, 15, 45, 0, 300)
-      _(obj.time_default).must_equal             Time.utc(2000, 1, 1, 15, 45, 0, 300), "Microseconds were <#{obj.time_default.usec}> vs <0>"
-      _(obj.time_default).must_equal             Time.utc(2000, 1, 1, 15, 45, 0, 300), "Nanoseconds were <#{obj.time_default.nsec}> vs <300>"
-      obj.save!; obj.reload
-      _(obj.time_default).must_equal             Time.utc(2000, 1, 1, 15, 45, 0, 300), "Microseconds were <#{obj.time_default.usec}> vs <0>"
-      _(obj.time_default).must_equal             Time.utc(2000, 1, 1, 15, 45, 0, 300), "Nanoseconds were <#{obj.time_default.nsec}> vs <300>"
+      _(obj.time_default).must_equal Time.utc(2000, 1, 1, 15, 45, 0, 300), "Microseconds were <#{obj.time_default.usec}> vs <0>"
+      _(obj.time_default).must_equal Time.utc(2000, 1, 1, 15, 45, 0, 300), "Nanoseconds were <#{obj.time_default.nsec}> vs <300>"
+      obj.save!
+      obj.reload
+      _(obj.time_default).must_equal Time.utc(2000, 1, 1, 15, 45, 0, 300), "Microseconds were <#{obj.time_default.usec}> vs <0>"
+      _(obj.time_default).must_equal Time.utc(2000, 1, 1, 15, 45, 0, 300), "Nanoseconds were <#{obj.time_default.nsec}> vs <300>"
       # Time's #usec precision (high micro)
       obj.time_default = Time.utc(2000, 1, 1, 15, 45, 0, 234567)
       _(obj.time_default).must_equal Time.utc(2000, 1, 1, 15, 45, 0, 234567), "Microseconds were <#{obj.time_default.usec}> vs <234567>"
-      obj.save!; obj.reload
+      obj.save!
+      obj.reload
       _(obj.time_default).must_equal Time.utc(2000, 1, 1, 15, 45, 0, 234567), "Microseconds were <#{obj.time_default.usec}> vs <234567>"
       # Time's #usec precision (high nano rounded)
       obj.time_default = Time.utc(2000, 1, 1, 15, 45, 0, Rational(288321545, 1000))
       _(obj.time_default).must_equal Time.utc(2000, 1, 1, 15, 45, 0, Rational(288321500, 1000)), "Nanoseconds were <#{obj.time_default.nsec}> vs <288321500>"
-      obj.save!; obj.reload
+      obj.save!
+      obj.reload
       _(obj.time_default).must_equal Time.utc(2000, 1, 1, 15, 45, 0, Rational(288321500, 1000)), "Nanoseconds were <#{obj.time_default.nsec}> vs <288321500>"
     end
 
@@ -583,15 +599,15 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
 
     it "char(10)" do
       col = column("char_10")
-      _(col.sql_type).must_equal           "char(10)"
-      _(col.type).must_equal               :char
-      _(col.null).must_equal               true
-      _(col.default).must_equal            "1234567890"
-      _(obj.char_10).must_equal            "1234567890"
+      _(col.sql_type).must_equal "char(10)"
+      _(col.type).must_equal :char
+      _(col.null).must_equal true
+      _(col.default).must_equal "1234567890"
+      _(obj.char_10).must_equal "1234567890"
       _(col.default_function).must_be_nil
       type = col.fetch_cast_type(connection)
-      _(type).must_be_instance_of          Type::Char
-      _(type.limit).must_equal             10
+      _(type).must_be_instance_of Type::Char
+      _(type.limit).must_equal 10
       _(type.precision).must_be_nil
       _(type.scale).must_be_nil
       # Basic set and save.
@@ -603,15 +619,15 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
 
     it "varchar(50)" do
       col = column("varchar_50")
-      _(col.sql_type).must_equal           "varchar(50)"
-      _(col.type).must_equal               :varchar
-      _(col.null).must_equal               true
-      _(col.default).must_equal            "test varchar_50"
-      _(obj.varchar_50).must_equal         "test varchar_50"
+      _(col.sql_type).must_equal "varchar(50)"
+      _(col.type).must_equal :varchar
+      _(col.null).must_equal true
+      _(col.default).must_equal "test varchar_50"
+      _(obj.varchar_50).must_equal "test varchar_50"
       _(col.default_function).must_be_nil
       type = col.fetch_cast_type(connection)
-      _(type).must_be_instance_of          Type::Varchar
-      _(type.limit).must_equal             50
+      _(type).must_be_instance_of Type::Varchar
+      _(type.limit).must_equal 50
       _(type.precision).must_be_nil
       _(type.scale).must_be_nil
       # Basic set and save.
@@ -620,15 +636,15 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
 
     it "varchar(max)" do
       col = column("varchar_max")
-      _(col.sql_type).must_equal           "varchar(max)"
-      _(col.type).must_equal               :varchar_max
-      _(col.null).must_equal               true
-      _(col.default).must_equal            "test varchar_max"
-      _(obj.varchar_max).must_equal        "test varchar_max"
+      _(col.sql_type).must_equal "varchar(max)"
+      _(col.type).must_equal :varchar_max
+      _(col.null).must_equal true
+      _(col.default).must_equal "test varchar_max"
+      _(obj.varchar_max).must_equal "test varchar_max"
       _(col.default_function).must_be_nil
       type = col.fetch_cast_type(connection)
-      _(type).must_be_instance_of          Type::VarcharMax
-      _(type.limit).must_equal             2_147_483_647
+      _(type).must_be_instance_of Type::VarcharMax
+      _(type.limit).must_equal 2_147_483_647
       _(type.precision).must_be_nil
       _(type.scale).must_be_nil
       # Basic set and save.
@@ -637,15 +653,15 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
 
     it "text" do
       col = column("text")
-      _(col.sql_type).must_equal           "text"
-      _(col.type).must_equal               :text_basic
-      _(col.null).must_equal               true
-      _(col.default).must_equal            "test text"
-      _(obj.text).must_equal               "test text"
+      _(col.sql_type).must_equal "text"
+      _(col.type).must_equal :text_basic
+      _(col.null).must_equal true
+      _(col.default).must_equal "test text"
+      _(obj.text).must_equal "test text"
       _(col.default_function).must_be_nil
       type = col.fetch_cast_type(connection)
-      _(type).must_be_instance_of          Type::Text
-      _(type.limit).must_equal             2_147_483_647
+      _(type).must_be_instance_of Type::Text
+      _(type.limit).must_equal 2_147_483_647
       _(type.precision).must_be_nil
       _(type.scale).must_be_nil
       # Basic set and save.
@@ -656,15 +672,15 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
 
     it "nchar(10)" do
       col = column("nchar_10")
-      _(col.sql_type).must_equal           "nchar(10)"
-      _(col.type).must_equal               :nchar
-      _(col.null).must_equal               true
-      _(col.default).must_equal            "12345678åå"
-      _(obj.nchar_10).must_equal           "12345678åå"
+      _(col.sql_type).must_equal "nchar(10)"
+      _(col.type).must_equal :nchar
+      _(col.null).must_equal true
+      _(col.default).must_equal "12345678åå"
+      _(obj.nchar_10).must_equal "12345678åå"
       _(col.default_function).must_be_nil
       type = col.fetch_cast_type(connection)
-      _(type).must_be_instance_of          Type::UnicodeChar
-      _(type.limit).must_equal             10
+      _(type).must_be_instance_of Type::UnicodeChar
+      _(type.limit).must_equal 10
       _(type.precision).must_be_nil
       _(type.scale).must_be_nil
       # Basic set and save.
@@ -676,15 +692,15 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
 
     it "nvarchar(50)" do
       col = column("nvarchar_50")
-      _(col.sql_type).must_equal           "nvarchar(50)"
-      _(col.type).must_equal               :string
-      _(col.null).must_equal               true
-      _(col.default).must_equal            "test nvarchar_50 åå"
-      _(obj.nvarchar_50).must_equal        "test nvarchar_50 åå"
+      _(col.sql_type).must_equal "nvarchar(50)"
+      _(col.type).must_equal :string
+      _(col.null).must_equal true
+      _(col.default).must_equal "test nvarchar_50 åå"
+      _(obj.nvarchar_50).must_equal "test nvarchar_50 åå"
       _(col.default_function).must_be_nil
       type = col.fetch_cast_type(connection)
-      _(type).must_be_instance_of          Type::UnicodeVarchar
-      _(type.limit).must_equal             50
+      _(type).must_be_instance_of Type::UnicodeVarchar
+      _(type.limit).must_equal 50
       _(type.precision).must_be_nil
       _(type.scale).must_be_nil
       # Basic set and save.
@@ -693,15 +709,15 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
 
     it "nvarchar(max)" do
       col = column("nvarchar_max")
-      _(col.sql_type).must_equal           "nvarchar(max)"
-      _(col.type).must_equal               :text
-      _(col.null).must_equal               true
-      _(col.default).must_equal            "test nvarchar_max åå"
-      _(obj.nvarchar_max).must_equal       "test nvarchar_max åå"
+      _(col.sql_type).must_equal "nvarchar(max)"
+      _(col.type).must_equal :text
+      _(col.null).must_equal true
+      _(col.default).must_equal "test nvarchar_max åå"
+      _(obj.nvarchar_max).must_equal "test nvarchar_max åå"
       _(col.default_function).must_be_nil
       type = col.fetch_cast_type(connection)
-      _(type).must_be_instance_of          Type::UnicodeVarcharMax
-      _(type.limit).must_equal             2_147_483_647
+      _(type).must_be_instance_of Type::UnicodeVarcharMax
+      _(type.limit).must_equal 2_147_483_647
       _(type.precision).must_be_nil
       _(type.scale).must_be_nil
       # Basic set and save.
@@ -710,15 +726,15 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
 
     it "ntext" do
       col = column("ntext")
-      _(col.sql_type).must_equal           "ntext"
-      _(col.type).must_equal               :ntext
-      _(col.null).must_equal               true
-      _(col.default).must_equal            "test ntext åå"
-      _(obj.ntext).must_equal              "test ntext åå"
+      _(col.sql_type).must_equal "ntext"
+      _(col.type).must_equal :ntext
+      _(col.null).must_equal true
+      _(col.default).must_equal "test ntext åå"
+      _(obj.ntext).must_equal "test ntext åå"
       _(col.default_function).must_be_nil
       type = col.fetch_cast_type(connection)
-      _(type).must_be_instance_of          Type::UnicodeText
-      _(type.limit).must_equal             2_147_483_647
+      _(type).must_be_instance_of Type::UnicodeText
+      _(type.limit).must_equal 2_147_483_647
       _(type.precision).must_be_nil
       _(type.scale).must_be_nil
       # Basic set and save.
@@ -728,18 +744,18 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
     # Binary Strings
 
     let(:binary_file) { File.join ARTest::SQLServer.test_root_sqlserver, "fixtures", "1px.gif" }
-    let(:binary_data) { File.open(binary_file, "rb") { |f| f.read } }
+    let(:binary_data) { File.binread(binary_file) }
 
     it "binary(49)" do
       col = column("binary_49")
-      _(col.sql_type).must_equal           "binary(49)"
-      _(col.type).must_equal               :binary_basic
-      _(col.null).must_equal               true
+      _(col.sql_type).must_equal "binary(49)"
+      _(col.type).must_equal :binary_basic
+      _(col.null).must_equal true
       _(col.default).must_be_nil
       _(col.default_function).must_be_nil
       type = col.fetch_cast_type(connection)
-      _(type).must_be_instance_of          Type::Binary
-      _(type.limit).must_equal             49
+      _(type).must_be_instance_of Type::Binary
+      _(type.limit).must_equal 49
       _(type.precision).must_be_nil
       _(type.scale).must_be_nil
       # Basic set and save.
@@ -753,14 +769,14 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
 
     it "varbinary(49)" do
       col = column("varbinary_49")
-      _(col.sql_type).must_equal           "varbinary(49)"
-      _(col.type).must_equal               :varbinary
-      _(col.null).must_equal               true
+      _(col.sql_type).must_equal "varbinary(49)"
+      _(col.type).must_equal :varbinary
+      _(col.null).must_equal true
       _(col.default).must_be_nil
       _(col.default_function).must_be_nil
       type = col.fetch_cast_type(connection)
-      _(type).must_be_instance_of          Type::Varbinary
-      _(type.limit).must_equal             49
+      _(type).must_be_instance_of Type::Varbinary
+      _(type.limit).must_equal 49
       _(type.precision).must_be_nil
       _(type.scale).must_be_nil
       # Basic set and save.
@@ -774,14 +790,14 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
 
     it "varbinary(max)" do
       col = column("varbinary_max")
-      _(col.sql_type).must_equal           "varbinary(max)"
-      _(col.type).must_equal               :binary
-      _(col.null).must_equal               true
+      _(col.sql_type).must_equal "varbinary(max)"
+      _(col.type).must_equal :binary
+      _(col.null).must_equal true
       _(col.default).must_be_nil
       _(col.default_function).must_be_nil
       type = col.fetch_cast_type(connection)
-      _(type).must_be_instance_of          Type::VarbinaryMax
-      _(type.limit).must_equal             2_147_483_647
+      _(type).must_be_instance_of Type::VarbinaryMax
+      _(type.limit).must_equal 2_147_483_647
       _(type.precision).must_be_nil
       _(type.scale).must_be_nil
       # Basic set and save.
@@ -793,9 +809,9 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
 
     it "uniqueidentifier" do
       col = column("uniqueidentifier")
-      _(col.sql_type).must_equal           "uniqueidentifier"
-      _(col.type).must_equal               :uuid
-      _(col.null).must_equal               true
+      _(col.sql_type).must_equal "uniqueidentifier"
+      _(col.type).must_equal :uuid
+      _(col.null).must_equal true
       _(col.default).must_be_nil
       _(col.default_function).must_equal "newid()"
       type = col.fetch_cast_type(connection)
@@ -806,19 +822,21 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       # Basic set and save.
       obj.uniqueidentifier = "this will not qualify as valid"
       _(obj.uniqueidentifier).must_be_nil
-      obj.save!; obj.reload
+      obj.save!
+      obj.reload
       _(obj.uniqueidentifier).must_match Type::Uuid::ACCEPTABLE_UUID
       obj.uniqueidentifier = "6F9619FF-8B86-D011-B42D-00C04FC964FF"
       _(obj.uniqueidentifier).must_equal "6F9619FF-8B86-D011-B42D-00C04FC964FF"
-      obj.save!; obj.reload
+      obj.save!
+      obj.reload
       _(obj.uniqueidentifier).must_equal "6F9619FF-8B86-D011-B42D-00C04FC964FF"
     end
 
     it "timestamp" do
       col = column("timestamp")
-      _(col.sql_type).must_equal           "timestamp"
-      _(col.type).must_equal               :ss_timestamp
-      _(col.null).must_equal               true
+      _(col.sql_type).must_equal "timestamp"
+      _(col.type).must_equal :ss_timestamp
+      _(col.null).must_equal true
       _(col.default).must_be_nil
       _(col.default_function).must_be_nil
       type = col.fetch_cast_type(connection)
@@ -828,8 +846,9 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       _(type.scale).must_be_nil
       # Basic read.
       _(obj.timestamp).must_be_nil
-      obj.save!; obj.reload
-      _(obj.timestamp).must_match %r|\000|
+      obj.save!
+      obj.reload
+      _(obj.timestamp).must_match %r{\000}
       obj.timestamp
       # Can set another attribute
       obj.uniqueidentifier = "6F9619FF-8B86-D011-B42D-00C04FC964FF"

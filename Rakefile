@@ -11,7 +11,7 @@ task default: [:test]
 namespace :test do
   ENV["ARCONN"] = "sqlserver"
 
-  %w(dblib).each do |mode|
+  %w[dblib].each do |mode|
     Rake::TestTask.new(mode) do |t|
       t.libs = ARTest::SQLServer.test_load_paths
       t.test_files = test_files

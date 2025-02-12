@@ -24,16 +24,16 @@ module ActiveRecord
           def _construct_relation_for_exists(conditions)
             conditions = sanitize_forbidden_attributes(conditions)
 
-            if distinct_value && offset_value
+            relation = if distinct_value && offset_value
               # Start of monkey-patch
               if select_values.present?
-                relation = order(*select_values).limit!(1)
+                order(*select_values).limit!(1)
               else
-                relation = except(:order).limit!(1)
+                except(:order).limit!(1)
               end
               # End of monkey-patch
             else
-              relation = except(:select, :distinct, :order)._select!(Arel.sql(::ActiveRecord::FinderMethods::ONE_AS_ONE, retryable: true)).limit!(1)
+              except(:select, :distinct, :order)._select!(Arel.sql(::ActiveRecord::FinderMethods::ONE_AS_ONE, retryable: true)).limit!(1)
             end
 
             case conditions

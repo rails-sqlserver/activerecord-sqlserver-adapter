@@ -32,8 +32,7 @@ module ActiveRecord
             executesql = executesql.match(SQLSERVER_STATEMENT_REGEXP).to_a[1]
 
             binds.each_with_index do |bind, index|
-
-              value = if bind.is_a?(::ActiveModel::Attribute)  then
+              value = if bind.is_a?(::ActiveModel::Attribute)
                 connection.quote(bind.value_for_database)
               else
                 connection.quote(bind)

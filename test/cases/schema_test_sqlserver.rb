@@ -50,7 +50,7 @@ class SchemaTestSQLServer < ActiveRecord::TestCase
   end
 
   describe "parsing table name from raw SQL" do
-    describe 'SELECT statements' do
+    describe "SELECT statements" do
       it do
         assert_equal "[sst_schema_columns]", connection.send(:get_raw_table_name, "SELECT [sst_schema_columns].[id] FROM [sst_schema_columns]")
       end
@@ -72,7 +72,7 @@ class SchemaTestSQLServer < ActiveRecord::TestCase
       end
     end
 
-    describe 'INSERT statements' do
+    describe "INSERT statements" do
       it do
         assert_equal "[dashboards]", connection.send(:get_raw_table_name, "INSERT INTO [dashboards] DEFAULT VALUES; SELECT CAST(SCOPE_IDENTITY() AS bigint) AS Ident")
       end
@@ -102,7 +102,7 @@ class SchemaTestSQLServer < ActiveRecord::TestCase
       end
     end
 
-    describe 'CREATE VIEW statements' do
+    describe "CREATE VIEW statements" do
       it do
         assert_equal "test_table_as", connection.send(:get_raw_table_name, "CREATE VIEW test_views ( test_table_a_id, test_table_b_id ) AS SELECT test_table_as.id as test_table_a_id, test_table_bs.id as test_table_b_id FROM (test_table_as with(nolock) LEFT JOIN test_table_bs with(nolock) ON (test_table_as.id = test_table_bs.test_table_a_id))")
       end

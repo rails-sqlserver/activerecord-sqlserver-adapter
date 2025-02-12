@@ -20,7 +20,7 @@ module ARTest
 
         def coerce_all_tests!
           instance_methods(false).each do |method|
-            next unless method.to_s =~ /\Atest/
+            next unless /\Atest/.match?(method.to_s)
 
             undef_method(method)
           end
@@ -30,17 +30,17 @@ module ARTest
         private
 
         def coerced_test_warning(test_to_coerce)
-          if test_to_coerce.is_a?(Regexp)
-            method = instance_methods(false).select { |m| m =~ test_to_coerce }
+          method = if test_to_coerce.is_a?(Regexp)
+            instance_methods(false).select { |m| m =~ test_to_coerce }
           else
-            method = test_to_coerce
+            test_to_coerce
           end
 
           Array(method).each do |m|
             result = if m && method_defined?(m)
-                       alias_method("original_#{test_to_coerce.inspect.tr('/\:"', '')}", m)
-                       undef_method(m)
-                     end
+              alias_method("original_#{test_to_coerce.inspect.tr('/\:"', "")}", m)
+              undef_method(m)
+            end
 
             if result.blank?
               STDOUT.puts "🐳  Unfound coerced test: #{name}##{m}"

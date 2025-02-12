@@ -5,14 +5,18 @@ require "cases/helper_sqlserver"
 class ViewTestSQLServer < ActiveRecord::TestCase
   let(:connection) { ActiveRecord::Base.lease_connection }
 
-  describe 'view with default values' do
+  describe "view with default values" do
     before do
-      connection.drop_table :view_casing_table rescue nil
+      begin
+        connection.drop_table :view_casing_table
+      rescue
+        nil
+      end
       connection.create_table :view_casing_table, force: true do |t|
-        t.boolean :Default_Falsey,      null: false, default: false
-        t.boolean :Default_Truthy,      null: false, default: true
-        t.string  :default_string_null, null: true,  default: nil
-        t.string  :default_string,      null: false, default: "abc"
+        t.boolean :Default_Falsey, null: false, default: false
+        t.boolean :Default_Truthy, null: false, default: true
+        t.string :default_string_null, null: true, default: nil
+        t.string :default_string, null: false, default: "abc"
       end
 
       connection.execute("DROP VIEW IF EXISTS view_casing_table_view;")
@@ -36,19 +40,19 @@ class ViewTestSQLServer < ActiveRecord::TestCase
       assert_equal false, obj.falsey
       assert_equal true, obj.truthy
       assert_equal "abc", obj.s
-      assert_nil   obj.s_null
+      assert_nil obj.s_null
       assert_equal 0, klass.count
 
       obj.save!
       assert_equal false, obj.falsey
       assert_equal true, obj.truthy
       assert_equal "abc", obj.s
-      assert_nil   obj.s_null
+      assert_nil obj.s_null
       assert_equal 1, klass.count
     end
   end
 
-  describe 'identity insert' do
+  describe "identity insert" do
     it "identity insert works with views" do
       assert_difference("SSTestCustomersView.count", 1) do
         SSTestCustomersView.create!(id: 5, name: "Bob")

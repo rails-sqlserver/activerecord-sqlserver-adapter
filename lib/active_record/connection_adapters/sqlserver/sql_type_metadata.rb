@@ -26,7 +26,7 @@ module ActiveRecord
             table_name == other.table_name &&
             ordinal_position == other.ordinal_position
         end
-        alias eql? ==
+        alias_method :eql?, :==
 
         def hash
           TypeMetadata.hash ^

@@ -35,16 +35,16 @@ module ActiveRecord
 
             self.class == other.class && value == other.value
           end
-          alias :== :eql?
+          alias_method :==, :eql?
 
           def self.from_msgpack_ext(string)
-            type, value = string.chomp!("msgpack_ext").split(',')
+            type, value = string.chomp!("msgpack_ext").split(",")
 
             Data.new(value, type.constantize)
           end
 
           def to_msgpack_ext
-            [type.class.to_s, value].join(',') + "msgpack_ext"
+            [type.class.to_s, value].join(",") + "msgpack_ext"
           end
         end
       end

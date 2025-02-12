@@ -44,9 +44,9 @@ class UtilsTestSQLServer < ActiveRecord::TestCase
       ]
     }
 
-    let(:server_names)   { valid_names.partition { |name| name =~ /server/ } }
+    let(:server_names) { valid_names.partition { |name| name =~ /server/ } }
     let(:database_names) { valid_names.partition { |name| name =~ /database/ } }
-    let(:schema_names)   { valid_names.partition { |name| name =~ /schema/ } }
+    let(:schema_names) { valid_names.partition { |name| name =~ /schema/ } }
 
     it "extracts and returns #object identifier unquoted by default or quoted as needed" do
       valid_names.each do |n|

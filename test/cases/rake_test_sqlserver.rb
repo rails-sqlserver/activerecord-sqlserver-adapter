@@ -8,15 +8,15 @@ class SQLServerRakeTest < ActiveRecord::TestCase
   cattr_accessor :azure_skip
   self.azure_skip = connection_sqlserver_azure?
 
-  let(:db_tasks)              { ActiveRecord::Tasks::DatabaseTasks }
-  let(:new_database)          { "activerecord_unittest_tasks" }
+  let(:db_tasks) { ActiveRecord::Tasks::DatabaseTasks }
+  let(:new_database) { "activerecord_unittest_tasks" }
   let(:default_configuration) { ARTest.test_configuration_hashes["arunit"] }
-  let(:configuration)         { default_configuration.merge("database" => new_database) }
-  let(:db_config)             { ActiveRecord::Base.configurations.resolve(configuration) }
+  let(:configuration) { default_configuration.merge("database" => new_database) }
+  let(:db_config) { ActiveRecord::Base.configurations.resolve(configuration) }
 
   before { skip "on azure" if azure_skip }
   before { disconnect! unless azure_skip }
-  after  { reconnect unless azure_skip }
+  after { reconnect unless azure_skip }
 
   private
 
@@ -28,12 +28,20 @@ class SQLServerRakeTest < ActiveRecord::TestCase
     config = default_configuration
     if connection_sqlserver_azure?
       ActiveRecord::Base.establish_connection(config.merge("database" => "master"))
-      connection.drop_database(new_database) rescue nil
+      begin
+        connection.drop_database(new_database)
+      rescue
+        nil
+      end
       disconnect!
       ActiveRecord::Base.establish_connection(config)
     else
       ActiveRecord::Base.establish_connection(config)
-      connection.drop_database(new_database) rescue nil
+      begin
+        connection.drop_database(new_database)
+      rescue
+        nil
+      end
     end
   end
 end

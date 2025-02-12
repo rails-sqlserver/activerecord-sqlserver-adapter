@@ -16,7 +16,7 @@ module ARTest
           if count
             assert_equal count, queries.size, "#{queries.size} instead of #{count} queries were executed. Queries: #{queries.join("\n\n")}"
           else
-            assert_operator queries.size, :>=, 1, "1 or more queries expected, but none were executed.#{queries.empty? ? '' : "\nQueries:\n#{queries.join("\n")}"}"
+            assert_operator queries.size, :>=, 1, "1 or more queries expected, but none were executed.#{queries.empty? ? "" : "\nQueries:\n#{queries.join("\n")}"}"
           end
           result
         end
@@ -31,7 +31,7 @@ module ARTest
         grouped_queries = [[]]
 
         queries.each do |query|
-          if query =~ /SAVE TRANSACTION \S+/
+          if /SAVE TRANSACTION \S+/.match?(query)
             grouped_queries << [query]
           else
             grouped_queries.last << query
@@ -39,7 +39,7 @@ module ARTest
         end
 
         grouped_queries.each do |group|
-          group.append "/* release savepoint placeholder for testing */" if group.first =~ /SAVE TRANSACTION \S+/
+          group.append "/* release savepoint placeholder for testing */" if /SAVE TRANSACTION \S+/.match?(group.first)
         end
 
         grouped_queries.flatten

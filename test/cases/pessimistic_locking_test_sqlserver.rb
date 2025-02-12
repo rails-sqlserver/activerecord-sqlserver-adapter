@@ -13,7 +13,7 @@ class PessimisticLockingTestSQLServer < ActiveRecord::TestCase
   end
 
   it "uses with updlock by default" do
-    assert_queries_match %r|SELECT \[people\]\.\* FROM \[people\] WITH\(UPDLOCK\)| do
+    assert_queries_match %r{SELECT \[people\]\.\* FROM \[people\] WITH\(UPDLOCK\)} do
       _(Person.lock(true).to_a).must_equal Person.all.to_a
     end
   end
@@ -47,32 +47,32 @@ class PessimisticLockingTestSQLServer < ActiveRecord::TestCase
     end
 
     it "can add a custom lock directive" do
-      assert_queries_match %r|SELECT \[people\]\.\* FROM \[people\] WITH\(HOLDLOCK, ROWLOCK\)| do
+      assert_queries_match %r{SELECT \[people\]\.\* FROM \[people\] WITH\(HOLDLOCK, ROWLOCK\)} do
         Person.lock("WITH(HOLDLOCK, ROWLOCK)").load
       end
     end
 
     describe "joining tables" do
       it "joined tables use updlock by default" do
-        assert_queries_match %r|SELECT \[people\]\.\* FROM \[people\] WITH\(UPDLOCK\) INNER JOIN \[readers\] WITH\(UPDLOCK\)\s+ON \[readers\]\.\[person_id\] = \[people\]\.\[id\]| do
+        assert_queries_match %r{SELECT \[people\]\.\* FROM \[people\] WITH\(UPDLOCK\) INNER JOIN \[readers\] WITH\(UPDLOCK\)\s+ON \[readers\]\.\[person_id\] = \[people\]\.\[id\]} do
           Person.lock(true).joins(:readers).load
         end
       end
 
       it "joined tables can use custom lock directive" do
-        assert_queries_match %r|SELECT \[people\]\.\* FROM \[people\] WITH\(NOLOCK\) INNER JOIN \[readers\] WITH\(NOLOCK\)\s+ON \[readers\]\.\[person_id\] = \[people\]\.\[id\]| do
+        assert_queries_match %r{SELECT \[people\]\.\* FROM \[people\] WITH\(NOLOCK\) INNER JOIN \[readers\] WITH\(NOLOCK\)\s+ON \[readers\]\.\[person_id\] = \[people\]\.\[id\]} do
           Person.lock("WITH(NOLOCK)").joins(:readers).load
         end
       end
 
       it "left joined tables use updlock by default" do
-        assert_queries_match %r|SELECT \[people\]\.\* FROM \[people\] WITH\(UPDLOCK\) LEFT OUTER JOIN \[readers\] WITH\(UPDLOCK\)\s+ON \[readers\]\.\[person_id\] = \[people\]\.\[id\]| do
+        assert_queries_match %r{SELECT \[people\]\.\* FROM \[people\] WITH\(UPDLOCK\) LEFT OUTER JOIN \[readers\] WITH\(UPDLOCK\)\s+ON \[readers\]\.\[person_id\] = \[people\]\.\[id\]} do
           Person.lock(true).left_joins(:readers).load
         end
       end
 
       it "left joined tables can use custom lock directive" do
-        assert_queries_match %r|SELECT \[people\]\.\* FROM \[people\] WITH\(NOLOCK\) LEFT OUTER JOIN \[readers\] WITH\(NOLOCK\)\s+ON \[readers\]\.\[person_id\] = \[people\]\.\[id\]| do
+        assert_queries_match %r{SELECT \[people\]\.\* FROM \[people\] WITH\(NOLOCK\) LEFT OUTER JOIN \[readers\] WITH\(NOLOCK\)\s+ON \[readers\]\.\[person_id\] = \[people\]\.\[id\]} do
           Person.lock("WITH(NOLOCK)").left_joins(:readers).load
         end
       end

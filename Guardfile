@@ -6,7 +6,7 @@ clearing :on
 notification :terminal_notifier if defined?(TerminalNotifier)
 ignore %r{debug\.log}
 
-ar_lib  = File.join ARTest::SQLServer.root_activerecord, "lib"
+ar_lib = File.join ARTest::SQLServer.root_activerecord, "lib"
 ar_test = File.join ARTest::SQLServer.root_activerecord, "test"
 
 guard :minitest, {
@@ -24,7 +24,7 @@ guard :minitest, {
   else
     watch(%r{^test/cases/\w+_test_sqlserver\.rb$})
     watch(%r{^test/cases/coerced_tests\.rb$}) { "test/cases/coerced_tests.rb" }
-    watch(%r{^lib/active_record/connection_adapters/sqlserver/([^/]+)\.rb$})  { |m| "test/cases/#{m[1]}_test_sqlserver.rb" }
+    watch(%r{^lib/active_record/connection_adapters/sqlserver/([^/]+)\.rb$}) { |m| "test/cases/#{m[1]}_test_sqlserver.rb" }
     watch(%r{^test/cases/helper_sqlserver\.rb$}) { "test" }
   end
 end

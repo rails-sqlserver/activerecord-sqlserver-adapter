@@ -179,16 +179,16 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   # Use IFF for boolean statement in SELECT
   coerce_tests! %r{typecast attribute from select to false}
   def test_typecast_attribute_from_select_to_false_coerced
-    Topic.create(:title => "Budget")
-    topic = Topic.all.merge!(:select => "topics.*, IIF (1 = 2, 1, 0) as is_test").first
+    Topic.create(title: "Budget")
+    topic = Topic.all.merge!(select: "topics.*, IIF (1 = 2, 1, 0) as is_test").first
     assert_not_predicate topic, :is_test?
   end
 
   # Use IFF for boolean statement in SELECT
   coerce_tests! %r{typecast attribute from select to true}
   def test_typecast_attribute_from_select_to_true_coerced
-    Topic.create(:title => "Budget")
-    topic = Topic.all.merge!(:select => "topics.*, IIF (1 = 1, 1, 0) as is_test").first
+    Topic.create(title: "Budget")
+    topic = Topic.all.merge!(select: "topics.*, IIF (1 = 1, 1, 0) as is_test").first
     assert_predicate topic, :is_test?
   end
 end
@@ -260,9 +260,9 @@ module ActiveRecord
     # Same as original coerced test except log is found using `EXEC sp_executesql` wrapper.
     coerce_tests! :test_binds_are_logged
     def test_binds_are_logged_coerced
-      sub   = Arel::Nodes::BindParam.new(1)
+      sub = Arel::Nodes::BindParam.new(1)
       binds = [Relation::QueryAttribute.new("id", 1, Type::Value.new)]
-      sql   = "select * from topics where id = #{sub.to_sql}"
+      sql = "select * from topics where id = #{sub.to_sql}"
 
       @connection.exec_query(sql, "SQL", binds)
 
@@ -347,7 +347,7 @@ module ActiveRecord
 
       original_test_payload_row_count_on_select_all
     ensure
-      Book.where(author_id: nil, name: 'row count book 1').delete_all
+      Book.where(author_id: nil, name: "row count book 1").delete_all
       Book.lease_connection.add_index(:books, [:author_id, :name], unique: true)
     end
 
@@ -358,7 +358,7 @@ module ActiveRecord
 
       original_test_payload_row_count_on_pluck
     ensure
-      Book.where(author_id: nil, name: 'row count book 2').delete_all
+      Book.where(author_id: nil, name: "row count book 2").delete_all
       Book.lease_connection.add_index(:books, [:author_id, :name], unique: true)
     end
 
@@ -369,7 +369,7 @@ module ActiveRecord
 
       original_test_payload_row_count_on_raw_sql
     ensure
-      Book.where(author_id: nil, name: 'row count book 3').delete_all
+      Book.where(author_id: nil, name: "row count book 3").delete_all
       Book.lease_connection.add_index(:books, [:author_id, :name], unique: true)
     end
 
@@ -388,7 +388,7 @@ class CalculationsTest < ActiveRecord::TestCase
   def test_should_count_with_group_by_qualified_name_on_loaded_coerced
     accounts = Account.group("accounts.id").select("accounts.id")
 
-    expected = { 1 => 1, 2 => 1, 3 => 1, 4 => 1, 5 => 1, 6 => 1 }
+    expected = {1 => 1, 2 => 1, 3 => 1, 4 => 1, 5 => 1, 6 => 1}
 
     assert_not_predicate accounts, :loaded?
     assert_equal expected, accounts.count
@@ -448,11 +448,11 @@ class CalculationsTest < ActiveRecord::TestCase
     rails_core = companies(:rails_core)
 
     account = Account
-                .select(:firm_id, "AVG(CAST(credit_limit AS DECIMAL)) AS avg_credit_limit")
-                .where(firm: rails_core)
-                .group(:firm_id)
-                .order(:firm_id)
-                .take!
+      .select(:firm_id, "AVG(CAST(credit_limit AS DECIMAL)) AS avg_credit_limit")
+      .where(firm: rails_core)
+      .group(:firm_id)
+      .order(:firm_id)
+      .take!
 
     # id was not selected, so it should be nil
     # (cannot select id because it wasn't used in the GROUP BY clause)
@@ -492,7 +492,6 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal(52.5, firm.avg_credit_limit)
   end
 
-
   # In SQL Server the `AVG()` function for a list of integers returns an integer so need to cast values as decimals before averaging.
   # SELECT columns must be in the GROUP clause.
   coerce_tests! :test_select_avg_with_joins_and_group_by_as_virtual_attribute_with_ar
@@ -500,11 +499,11 @@ class CalculationsTest < ActiveRecord::TestCase
     rails_core = companies(:rails_core)
 
     firm = DependentFirm
-             .select("companies.*", "AVG(CAST(accounts.credit_limit AS DECIMAL)) AS avg_credit_limit")
-             .where(id: rails_core)
-             .joins(:account)
-             .group(:id, :type, :firm_id, :firm_name, :name, :client_of, :rating, :account_id, :description, :status)
-             .take!
+      .select("companies.*", "AVG(CAST(accounts.credit_limit AS DECIMAL)) AS avg_credit_limit")
+      .where(id: rails_core)
+      .joins(:account)
+      .group(:id, :type, :firm_id, :firm_name, :name, :client_of, :rating, :account_id, :description, :status)
+      .take!
 
     # all the DependentFirm attributes should be present
     assert_equal rails_core, firm
@@ -640,7 +639,7 @@ module ActiveRecord
       # Our defaults are real 70000 integers vs '70000' strings.
       coerce_tests! :test_rename_column_preserves_default_value_not_null
       def test_rename_column_preserves_default_value_not_null_coerced
-        add_column "test_models", "salary", :integer, :default => 70000
+        add_column "test_models", "salary", :integer, default: 70000
         default_before = connection.columns("test_models").find { |c| c.name == "salary" }.default
         assert_equal 70000, default_before
         rename_column "test_models", "salary", "annual_salary"
@@ -654,8 +653,8 @@ module ActiveRecord
       coerce_tests! :test_remove_column_with_multi_column_index
       def test_remove_column_with_multi_column_index_coerced
         add_column "test_models", :hat_size, :integer
-        add_column "test_models", :hat_style, :string, :limit => 100
-        add_index "test_models", ["hat_style", "hat_size"], :unique => true
+        add_column "test_models", :hat_style, :string, limit: 100
+        add_index "test_models", ["hat_style", "hat_size"], unique: true
         assert_equal 1, connection.indexes("test_models").size
         remove_column("test_models", "hat_size")
         assert_equal [], connection.indexes("test_models").map(&:name)
@@ -682,14 +681,20 @@ class MigrationTest < ActiveRecord::TestCase
   coerce_tests! :test_add_column_with_casted_type_if_not_exists_set_to_true
   def test_add_column_with_casted_type_if_not_exists_set_to_true_coerced
     migration_a = Class.new(ActiveRecord::Migration::Current) {
-      def version; 100 end
+      def version
+        100
+      end
+
       def migrate(x)
         add_column "people", "last_name", :binary
       end
     }.new
 
     migration_b = Class.new(ActiveRecord::Migration::Current) {
-      def version; 101 end
+      def version
+        101
+      end
+
       def migrate(x)
         add_column "people", "last_name", :binary, if_not_exists: true
       end
@@ -718,7 +723,10 @@ module ActiveRecord
         long_table_name = "a" * (connection.table_name_length + 1)
         migration = Class.new(ActiveRecord::Migration[7.0]) {
           @@long_table_name = long_table_name
-          def version; 100 end
+          def version
+            100
+          end
+
           def migrate(x)
             create_table @@long_table_name
           end
@@ -729,7 +737,11 @@ module ActiveRecord
         end
         assert_match(/The identifier that starts with '#{long_table_name[0...-1]}' is too long/i, error.message)
       ensure
-        connection.drop_table(long_table_name) rescue nil
+        begin
+          connection.drop_table(long_table_name)
+        rescue
+          nil
+        end
       end
 
       # SQL Server truncates long table names when renaming (https://learn.microsoft.com/en-us/sql/relational-databases/system-stored-procedures/sp-rename-transact-sql?view=sql-server-ver16).
@@ -740,7 +752,10 @@ module ActiveRecord
 
         migration = Class.new(ActiveRecord::Migration[7.0]) {
           @@long_table_name = long_table_name
-          def version; 100 end
+          def version
+            100
+          end
+
           def migrate(x)
             rename_table :more_testings, @@long_table_name
           end
@@ -751,14 +766,22 @@ module ActiveRecord
         assert_not connection.table_exists?(:more_testings)
         assert connection.table_exists?(long_table_name[0...-1])
       ensure
-        connection.drop_table(:more_testings) rescue nil
-        connection.drop_table(long_table_name[0...-1]) rescue nil
+        begin
+          connection.drop_table(:more_testings)
+        rescue
+          nil
+        end
+        begin
+          connection.drop_table(long_table_name[0...-1])
+        rescue
+          nil
+        end
       end
 
       # SQL Server has a different maximum index name length.
       coerce_tests! :test_add_index_errors_on_too_long_name_7_0
       def test_add_index_errors_on_too_long_name_7_0_coerced
-        long_index_name = 'a' * (connection.index_name_length + 1)
+        long_index_name = "a" * (connection.index_name_length + 1)
 
         migration = Class.new(ActiveRecord::Migration[7.0]) {
           @@long_index_name = long_index_name
@@ -771,13 +794,13 @@ module ActiveRecord
         error = assert_raises(StandardError) do
           ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
         end
-        assert_match(/Index name \'#{long_index_name}\' on table \'testings\' is too long/i, error.message)
+        assert_match(/Index name '#{long_index_name}' on table 'testings' is too long/i, error.message)
       end
 
       # SQL Server has a different maximum index name length.
       coerce_tests! :test_create_table_add_index_errors_on_too_long_name_7_0
       def test_create_table_add_index_errors_on_too_long_name_7_0_coerced
-        long_index_name = 'a' * (connection.index_name_length + 1)
+        long_index_name = "a" * (connection.index_name_length + 1)
 
         migration = Class.new(ActiveRecord::Migration[7.0]) {
           @@long_index_name = long_index_name
@@ -794,9 +817,13 @@ module ActiveRecord
         error = assert_raises(StandardError) do
           ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
         end
-        assert_match(/Index name \'#{long_index_name}\' on table \'more_testings\' is too long/i, error.message)
+        assert_match(/Index name '#{long_index_name}' on table 'more_testings' is too long/i, error.message)
       ensure
-        connection.drop_table :more_testings rescue nil
+        begin
+          connection.drop_table :more_testings
+        rescue
+          nil
+        end
       end
     end
   end
@@ -829,19 +856,26 @@ module ActiveRecord
     def setup
       @sqlserver_tasks =
         Class.new do
-          def create; end
+          def create
+          end
 
-          def drop; end
+          def drop
+          end
 
-          def purge; end
+          def purge
+          end
 
-          def charset; end
+          def charset
+          end
 
-          def collation; end
+          def collation
+          end
 
-          def structure_dump(*); end
+          def structure_dump(*)
+          end
 
-          def structure_load(*); end
+          def structure_load(*)
+          end
         end.new
 
       $stdout, @original_stdout = StringIO.new, $stdout
@@ -931,7 +965,7 @@ module ActiveRecord
           eval("@sqlserver_tasks"), :structure_dump,
           ["awesome-file.sql", nil]
         ) do
-          ActiveRecord::Tasks::DatabaseTasks.structure_dump({ "adapter" => :sqlserver }, "awesome-file.sql")
+          ActiveRecord::Tasks::DatabaseTasks.structure_dump({"adapter" => :sqlserver}, "awesome-file.sql")
         end
       end
     end
@@ -948,7 +982,7 @@ module ActiveRecord
           :structure_load,
           ["awesome-file.sql", nil]
         ) do
-          ActiveRecord::Tasks::DatabaseTasks.structure_load({ "adapter" => :sqlserver }, "awesome-file.sql")
+          ActiveRecord::Tasks::DatabaseTasks.structure_load({"adapter" => :sqlserver}, "awesome-file.sql")
         end
       end
     end
@@ -989,7 +1023,7 @@ class FinderTest < ActiveRecord::TestCase
 
   # We have implicit ordering, via FETCH.
   coerce_tests! %r{doesn't have implicit ordering},
-                :test_find_doesnt_have_implicit_ordering
+    :test_find_doesnt_have_implicit_ordering
 
   # Assert SQL Server limit implementation
   coerce_tests! :test_take_and_first_and_last_with_integer_should_use_sql_limit
@@ -1371,7 +1405,7 @@ module ActiveRecord
     # Same as original test except string has `N` prefix to indicate unicode string.
     coerce_tests! :test_registering_new_handlers_for_association
     def test_registering_new_handlers_for_association_coerced
-      assert_match %r{#{Regexp.escape(topic_title)} ~ N'rails'}i, Reply.joins(:topic).where(topics: { title: /rails/ }).to_sql
+      assert_match %r{#{Regexp.escape(topic_title)} ~ N'rails'}i, Reply.joins(:topic).where(topics: {title: /rails/}).to_sql
     end
 
     # Same as original test except string has `N` prefix to indicate unicode string.
@@ -1429,7 +1463,7 @@ class RelationTest < ActiveRecord::TestCase
       assert Post.order(:title).reorder(nil).take
     end
     assert sql_log.none? { |sql| /order by \[posts\]\.\[title\]/i.match?(sql) }, "ORDER BY title was used in the query: #{sql_log}"
-    assert sql_log.all?  { |sql| /order by \[posts\]\.\[id\]/i.match?(sql) }, "default ORDER BY ID was not used in the query: #{sql_log}"
+    assert sql_log.all? { |sql| /order by \[posts\]\.\[id\]/i.match?(sql) }, "default ORDER BY ID was not used in the query: #{sql_log}"
   end
 
   # We have implicit ordering, via FETCH.
@@ -1441,7 +1475,7 @@ class RelationTest < ActiveRecord::TestCase
     end
     assert_equal posts(:welcome), post
     assert sql_log.none? { |sql| /order by \[posts\]\.\[title\]/i.match?(sql) }, "ORDER BY title was used in the query: #{sql_log}"
-    assert sql_log.all?  { |sql| /order by \[posts\]\.\[id\]/i.match?(sql) }, "default ORDER BY ID was not used in the query: #{sql_log}"
+    assert sql_log.all? { |sql| /order by \[posts\]\.\[id\]/i.match?(sql) }, "default ORDER BY ID was not used in the query: #{sql_log}"
   end
 
   # We are not doing order duplicate removal anymore.
@@ -1455,7 +1489,7 @@ class RelationTest < ActiveRecord::TestCase
   def test_multiple_where_and_having_clauses_coerced
     post = Post.first
     having_then_where = Post.having(id: post.id).where(title: post.title)
-                            .having(id: post.id).where(title: post.title).group(:id).select(:id)
+      .having(id: post.id).where(title: post.title).group(:id).select(:id)
 
     assert_equal [post], having_then_where
   end
@@ -1581,17 +1615,17 @@ class SchemaDumperTest < ActiveRecord::TestCase
   # Use nvarchar string (N'') in assert
   coerce_tests! :test_dump_schema_versions_outputs_lexically_reverse_ordered_versions_regardless_of_database_order
   def test_dump_schema_versions_outputs_lexically_reverse_ordered_versions_regardless_of_database_order_coerced
-    versions = %w{ 20100101010101 20100201010101 20100301010101 }
+    versions = %w[20100101010101 20100201010101 20100301010101]
     versions.shuffle.each do |v|
       @schema_migration.create_version(v)
     end
 
     schema_info = ActiveRecord::Base.lease_connection.dump_schema_versions
     expected = <<~STR
-    INSERT INTO #{quote_table_name("schema_migrations")} (version) VALUES
-    (N'20100301010101'),
-    (N'20100201010101'),
-    (N'20100101010101');
+      INSERT INTO #{quote_table_name("schema_migrations")} (version) VALUES
+      (N'20100301010101'),
+      (N'20100201010101'),
+      (N'20100101010101');
     STR
     assert_equal expected.strip, schema_info
   ensure
@@ -1611,7 +1645,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
   # Fall through false positive with no filter.
   coerce_tests! :test_schema_dumps_partial_indices
   def test_schema_dumps_partial_indices_coerced
-    index_definition = standard_dump.split(/\n/).grep(/t.index.*company_partial_index/).first.strip
+    index_definition = standard_dump.split("\n").grep(/t.index.*company_partial_index/).first.strip
     assert_equal 't.index ["firm_id", "type"], name: "company_partial_index", where: "([rating]>(10))"', index_definition
   end
 
@@ -1628,7 +1662,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
   # SQL Server formats the check constraint expression differently.
   coerce_tests! :test_schema_dumps_check_constraints
   def test_schema_dumps_check_constraints_coerced
-    constraint_definition = dump_table_schema("products").split(/\n/).grep(/t.check_constraint.*products_price_check/).first.strip
+    constraint_definition = dump_table_schema("products").split("\n").grep(/t.check_constraint.*products_price_check/).first.strip
     assert_equal 't.check_constraint "[price]>[discounted_price]", name: "products_price_check"', constraint_definition
   end
 end
@@ -1648,14 +1682,14 @@ class SchemaDumperDefaultsCoerceTest < ActiveRecord::TestCase
   setup do
     @connection = ActiveRecord::Base.lease_connection
     @connection.create_table :dump_defaults, force: true do |t|
-      t.string   :string_with_default,   default: "Hello!"
-      t.date     :date_with_default,     default: "2014-06-05"
+      t.string :string_with_default, default: "Hello!"
+      t.date :date_with_default, default: "2014-06-05"
       t.datetime :datetime_with_default, default: "2014-06-05 07:17:04"
-      t.time     :time_with_default,     default: "07:17:04"
-      t.decimal  :decimal_with_default,  default: "1234567890.0123456789", precision: 20, scale: 10
+      t.time :time_with_default, default: "07:17:04"
+      t.decimal :decimal_with_default, default: "1234567890.0123456789", precision: 20, scale: 10
 
-      t.text     :text_with_default, default: "John' Doe"
-      t.text     :uuid, default: -> { "newid()" }
+      t.text :text_with_default, default: "John' Doe"
+      t.text :uuid, default: -> { "newid()" }
     end
   end
 
@@ -1718,7 +1752,7 @@ class TransactionTest < ActiveRecord::TestCase
       /DELETE/i,
       /^SAVE TRANSACTION/i,
       /DELETE/i,
-      /COMMIT/i,
+      /COMMIT/i
     ]
 
     assert_equal expected_queries.size, actual_queries.size
@@ -1754,7 +1788,7 @@ class TransactionTest < ActiveRecord::TestCase
       /^SAVE TRANSACTION/i,
       /DELETE/i,
       /DELETE/i,
-      /COMMIT/i,
+      /COMMIT/i
     ]
 
     assert_equal expected_queries.size, actual_queries.size
@@ -1857,7 +1891,7 @@ class TimePrecisionTest < ActiveRecord::TestCase
   coerce_tests! :test_time_precision_is_truncated_on_assignment
   def test_time_precision_is_truncated_on_assignment_coerced
     @connection.create_table(:foos, force: true)
-    @connection.add_column :foos, :start,  :time, precision: 0
+    @connection.add_column :foos, :start, :time, precision: 0
     @connection.add_column :foos, :finish, :time, precision: 6
 
     time = ::Time.now.change(nsec: 123456789)
@@ -1893,8 +1927,8 @@ class DefaultNumbersTest < ActiveRecord::TestCase
   coerce_tests! :test_default_negative_integer
   def test_default_negative_integer_coerced
     record = DefaultNumber.new
-    assert_equal (-5), record.negative_integer
-    assert_equal (-5), record.negative_integer_before_type_cast
+    assert_equal(-5, record.negative_integer)
+    assert_equal(-5, record.negative_integer_before_type_cast)
   end
 
   # We do better with native types and do not return strings for everything.
@@ -1936,7 +1970,7 @@ module ActiveRecord
 
       original_test_statement_cache_values_differ
     ensure
-      Book.where(author_id: nil, name: 'my book').delete_all
+      Book.where(author_id: nil, name: "my book").delete_all
       Book.lease_connection.add_index(:books, [:author_id, :name], unique: true)
     end
   end
@@ -1946,7 +1980,7 @@ module ActiveRecord
   module ConnectionAdapters
     class SchemaCacheTest < ActiveRecord::TestCase
       # Tests fail on Windows AppVeyor CI with 'Permission denied' error when renaming file during `File.atomic_write` call.
-      coerce_tests! :test_yaml_dump_and_load, :test_yaml_dump_and_load_with_gzip if RbConfig::CONFIG["host_os"] =~ /mswin|mingw/
+      coerce_tests! :test_yaml_dump_and_load, :test_yaml_dump_and_load_with_gzip if /mswin|mingw/.match?(RbConfig::CONFIG["host_os"])
 
       # Cast type in SQL Server is :varchar rather than Unicode :string.
       coerce_tests! :test_yaml_load_8_0_dump_without_cast_type_still_get_the_right_one
@@ -2100,9 +2134,9 @@ class UnsafeRawSqlTest < ActiveRecord::TestCase
   test "order: allows valid arguments with COLLATE" do
     collation_name = "Latin1_General_CS_AS_WS"
 
-    ids_expected = Post.order(Arel.sql(%Q'author_id, title COLLATE #{collation_name} DESC')).pluck(:id)
+    ids_expected = Post.order(Arel.sql(%(author_id, title COLLATE #{collation_name} DESC))).pluck(:id)
 
-    ids = Post.order(["author_id", %Q'title COLLATE #{collation_name} DESC']).pluck(:id)
+    ids = Post.order(["author_id", %(title COLLATE #{collation_name} DESC)]).pluck(:id)
 
     assert_equal ids_expected, ids
   end
@@ -2183,7 +2217,7 @@ class EnumTest < ActiveRecord::TestCase
   test "enums are distinct per class coerced" do
     Book.lease_connection.remove_index(:books, column: [:author_id, :name])
 
-    send(:'original_enums are distinct per class')
+    send(:"original_enums are distinct per class")
   ensure
     Book.where(author_id: nil, name: nil).delete_all
     Book.lease_connection.add_index(:books, [:author_id, :name], unique: true)
@@ -2194,7 +2228,7 @@ class EnumTest < ActiveRecord::TestCase
   test "creating new objects with enum scopes coerced" do
     Book.lease_connection.remove_index(:books, column: [:author_id, :name])
 
-    send(:'original_creating new objects with enum scopes')
+    send(:"original_creating new objects with enum scopes")
   ensure
     Book.where(author_id: nil, name: nil).delete_all
     Book.lease_connection.add_index(:books, [:author_id, :name], unique: true)
@@ -2205,7 +2239,7 @@ class EnumTest < ActiveRecord::TestCase
   test "enums are inheritable coerced" do
     Book.lease_connection.remove_index(:books, column: [:author_id, :name])
 
-    send(:'original_enums are inheritable')
+    send(:"original_enums are inheritable")
   ensure
     Book.where(author_id: nil, name: nil).delete_all
     Book.lease_connection.add_index(:books, [:author_id, :name], unique: true)
@@ -2216,7 +2250,7 @@ class EnumTest < ActiveRecord::TestCase
   test "serializable? with large number label coerced" do
     Book.lease_connection.remove_index(:books, column: [:author_id, :name])
 
-    send(:'original_serializable\? with large number label')
+    send(:"original_serializable\\? with large number label")
   ensure
     Book.where(author_id: nil, name: nil).delete_all
     Book.lease_connection.add_index(:books, [:author_id, :name], unique: true)
@@ -2258,7 +2292,7 @@ end
 class ReloadModelsTest < ActiveRecord::TestCase
   # Skip test on Windows. The number of arguments passed to `IO.popen` in
   # `activesupport/lib/active_support/testing/isolation.rb` exceeds what Windows can handle.
-  coerce_tests! :test_has_one_with_reload if RbConfig::CONFIG["host_os"] =~ /mswin|mingw/
+  coerce_tests! :test_has_one_with_reload if /mswin|mingw/.match?(RbConfig::CONFIG["host_os"])
 end
 
 class MarshalSerializationTest < ActiveRecord::TestCase
@@ -2354,12 +2388,12 @@ end
 
 class MigratorTest < ActiveRecord::TestCase
   # Test fails on Windows AppVeyor CI for unknown reason.
-  coerce_tests! :test_migrator_db_has_no_schema_migrations_table if RbConfig::CONFIG["host_os"] =~ /mswin|mingw/
+  coerce_tests! :test_migrator_db_has_no_schema_migrations_table if /mswin|mingw/.match?(RbConfig::CONFIG["host_os"])
 end
 
 class MultiDbMigratorTest < ActiveRecord::TestCase
   # Test fails on Windows AppVeyor CI for unknown reason.
-  coerce_tests! :test_migrator_db_has_no_schema_migrations_table if RbConfig::CONFIG["host_os"] =~ /mswin|mingw/
+  coerce_tests! :test_migrator_db_has_no_schema_migrations_table if /mswin|mingw/.match?(RbConfig::CONFIG["host_os"])
 end
 
 require "models/book"
@@ -2429,7 +2463,7 @@ class QueryLogsTest < ActiveRecord::TestCase
 
     ActiveRecord::QueryLogs.tags = [
       :application,
-      { tracestate: "congo=t61rcWkgMzE,rojo=00f067aa0ba902b7", custom_proc: -> { "Joe's Shack" } },
+      {tracestate: "congo=t61rcWkgMzE,rojo=00f067aa0ba902b7", custom_proc: -> { "Joe's Shack" }}
     ]
 
     assert_queries_match(%r{custom_proc=''Joe%27s%20Shack'',tracestate=''congo%3Dt61rcWkgMzE%2Crojo%3D00f067aa0ba902b7''\*/}) do
@@ -2444,7 +2478,7 @@ class QueryLogsTest < ActiveRecord::TestCase
 
     ActiveRecord::QueryLogs.tags = [
       :application,
-      { custom_proc: -> { 1234 } },
+      {custom_proc: -> { 1234 }}
     ]
 
     assert_queries_match(%r{custom_proc=''1234''\*/}) do
@@ -2461,9 +2495,9 @@ class QueryLogsTest < ActiveRecord::TestCase
       :application,
       {
         "string" => "value",
-        tracestate: "congo=t61rcWkgMzE,rojo=00f067aa0ba902b7",
-        custom_proc: -> { "Joe's Shack" }
-      },
+        :tracestate => "congo=t61rcWkgMzE,rojo=00f067aa0ba902b7",
+        :custom_proc => -> { "Joe's Shack" }
+      }
     ]
 
     assert_queries_match(%r{custom_proc=''Joe%27s%20Shack'',string=''value'',tracestate=''congo%3Dt61rcWkgMzE%2Crojo%3D00f067aa0ba902b7''\*/}) do
@@ -2474,7 +2508,7 @@ class QueryLogsTest < ActiveRecord::TestCase
   # Invalid character encoding causes `ActiveRecord::StatementInvalid` error similar to Postgres.
   coerce_tests! :test_invalid_encoding_query
   def test_invalid_encoding_query_coerced
-    ActiveRecord::QueryLogs.tags = [ :application ]
+    ActiveRecord::QueryLogs.tags = [:application]
     assert_raises ActiveRecord::StatementInvalid do
       ActiveRecord::Base.lease_connection.execute "select 1 as '\xFF'"
     end
@@ -2487,8 +2521,8 @@ class InsertAllTest < ActiveRecord::TestCase
   def test_insert_all_returns_requested_sql_fields_coerced
     skip unless supports_insert_returning?
 
-    result = Book.insert_all! [{ name: "Rework", author_id: 1 }], returning: Arel.sql("UPPER(INSERTED.name) as name")
-    assert_equal %w[ REWORK ], result.pluck("name")
+    result = Book.insert_all! [{name: "Rework", author_id: 1}], returning: Arel.sql("UPPER(INSERTED.name) as name")
+    assert_equal %w[REWORK], result.pluck("name")
   end
 
   # Need to remove index as SQL Server considers NULLs on a unique-index to be equal unlike PostgreSQL/MySQL/SQLite.
@@ -2538,6 +2572,7 @@ end
 # can read and write `ActiveRecord::ConnectionAdapters::SQLServer::Type::Data` objects.
 class ActiveRecordMessagePackTest < ActiveRecord::TestCase
   private
+
   undef_method :serializer
   def serializer
     @serializer ||= ::MessagePack::Factory.new.tap do |factory|
@@ -2560,7 +2595,7 @@ end
 
 module ActiveRecord
   module ConnectionAdapters
-    class ConnectionHandlersShardingDbTest  < ActiveRecord::TestCase
+    class ConnectionHandlersShardingDbTest < ActiveRecord::TestCase
       # Tests are not about a specific adapter.
       coerce_all_tests!
     end
@@ -2684,7 +2719,6 @@ module ActiveRecord
   end
 end
 
-
 module ActiveRecord
   class TableMetadataTest < ActiveSupport::TestCase
     # Adapter returns an object that is subclass of what is expected in the original test.
@@ -2778,7 +2812,7 @@ module ActiveRecord
       relation = Company.with_recursive(
         top_companies_and_children: [
           Company.where(firm_id: nil),
-          Company.joins("JOIN top_companies_and_children ON companies.firm_id = top_companies_and_children.id"),
+          Company.joins("JOIN top_companies_and_children ON companies.firm_id = top_companies_and_children.id")
         ]
       ).from("top_companies_and_children AS companies")
 
