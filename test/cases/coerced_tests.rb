@@ -1948,19 +1948,6 @@ module ActiveRecord
       # Tests fail on Windows AppVeyor CI with 'Permission denied' error when renaming file during `File.atomic_write` call.
       coerce_tests! :test_yaml_dump_and_load, :test_yaml_dump_and_load_with_gzip if RbConfig::CONFIG["host_os"] =~ /mswin|mingw/
 
-      # Ruby 2.5 and 2.6 have issues to marshal Time before 1900. 2012.sql has one column with default value 1753
-      coerce_tests! :test_marshal_dump_and_load_with_gzip, :test_marshal_dump_and_load_via_disk
-
-      # Tests fail on Windows AppVeyor CI with 'Permission denied' error when renaming file during `File.atomic_write` call.
-      unless RbConfig::CONFIG["host_os"] =~ /mswin|mingw/
-        def test_marshal_dump_and_load_with_gzip_coerced
-          with_marshable_time_defaults { original_test_marshal_dump_and_load_with_gzip }
-        end
-        def test_marshal_dump_and_load_via_disk_coerced
-          with_marshable_time_defaults { original_test_marshal_dump_and_load_via_disk }
-        end
-      end
-
       # Cast type in SQL Server is :varchar rather than Unicode :string.
       coerce_tests! :test_yaml_load_8_0_dump_without_cast_type_still_get_the_right_one
       def test_yaml_load_8_0_dump_without_cast_type_still_get_the_right_one
@@ -1976,25 +1963,6 @@ module ActiveRecord
       end
 
       private
-
-      def with_marshable_time_defaults
-        # Detect problems
-        if Gem::Version.new(RUBY_VERSION) < Gem::Version.new("2.7")
-          column = @connection.columns(:sst_datatypes).find { |c| c.name == "datetime" }
-          current_default = column.default if column.default.is_a?(Time) && column.default.year < 1900
-        end
-
-        # Correct problems
-        if current_default.present?
-          @connection.change_column_default(:sst_datatypes, :datetime, current_default.dup.change(year: 1900))
-        end
-
-        # Run original test
-        yield
-      ensure
-        # Revert changes
-        @connection.change_column_default(:sst_datatypes, :datetime, current_default) if current_default.present?
-      end
 
       # We need to give the full paths for this to work.
       undef_method :schema_dump_5_1_path
