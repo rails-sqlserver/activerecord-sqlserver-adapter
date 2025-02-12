@@ -1948,6 +1948,20 @@ module ActiveRecord
       # Tests fail on Windows AppVeyor CI with 'Permission denied' error when renaming file during `File.atomic_write` call.
       coerce_tests! :test_yaml_dump_and_load, :test_yaml_dump_and_load_with_gzip if RbConfig::CONFIG["host_os"] =~ /mswin|mingw/
 
+      # Cast type in SQL Server is :varchar rather than Unicode :string.
+      coerce_tests! :test_yaml_load_8_0_dump_without_cast_type_still_get_the_right_one
+      def test_yaml_load_8_0_dump_without_cast_type_still_get_the_right_one
+        cache = load_bound_reflection(schema_dump_8_0_path)
+
+        assert_no_queries do
+          columns = cache.columns_hash("courses")
+          assert_equal 3, columns.size
+          cast_type = columns["name"].fetch_cast_type(@connection)
+          assert_not_nil cast_type, "expected cast_type to be present"
+          assert_equal :varchar, cast_type.type
+        end
+      end
+
       private
 
       # We need to give the full paths for this to work.
