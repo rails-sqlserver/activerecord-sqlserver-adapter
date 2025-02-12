@@ -33,3 +33,18 @@ jobs:
 
       - name: Run tests
         run: docker compose run ci
+
+  standardrb:
+    name: standardrb
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.4.1"
+          bundler-cache: true
+
+      - name: Check standardrb
+        shell: bash
+        run: bundle exec standardrb
