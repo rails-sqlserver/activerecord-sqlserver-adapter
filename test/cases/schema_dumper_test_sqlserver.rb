@@ -283,7 +283,7 @@ class SchemaDumperTestSQLServer < ActiveRecord::TestCase
 
     def parse_options(opts)
       if opts.present?
-        eval "{#{opts}}"
+        eval("{#{opts}}", binding, __FILE__, __LINE__) # standard:disable Security/Eval
       else
         {}
       end
