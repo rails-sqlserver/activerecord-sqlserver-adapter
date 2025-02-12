@@ -58,12 +58,7 @@ module ActiveRecord
         alias_method :eql?, :==
 
         def hash
-          Column.hash ^
-            super.hash ^
-            is_identity?.hash ^
-            is_primary?.hash ^
-            table_name.hash ^
-            ordinal_position.hash
+          [Column, super, is_identity?, is_primary?, table_name, ordinal_position].hash
         end
 
         private

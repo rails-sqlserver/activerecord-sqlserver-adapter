@@ -20,11 +20,11 @@ module ARTest
 
         def coerce_all_tests!
           instance_methods(false).each do |method|
-            next unless /\Atest/.match?(method.to_s)
+            next unless method.to_s.start_with?("test")
 
             undef_method(method)
           end
-          STDOUT.puts "🙉 🙈 🙊  Undefined all tests: #{name}"
+          $stdout.puts "🙉 🙈 🙊  Undefined all tests: #{name}"
         end
 
         private
@@ -43,9 +43,9 @@ module ARTest
             end
 
             if result.blank?
-              STDOUT.puts "🐳  Unfound coerced test: #{name}##{m}"
+              $stdout.puts "🐳  Unfound coerced test: #{name}##{m}"
             else
-              STDOUT.puts "🐵  Undefined coerced test: #{name}##{m}"
+              $stdout.puts "🐵  Undefined coerced test: #{name}##{m}"
             end
           end
         end

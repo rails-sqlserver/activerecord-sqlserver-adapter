@@ -11,13 +11,12 @@ module ActiveRecord
             "datetime"
           end
 
-          def serialize(value)
+          def serialize(_value)
             value = super
             return value unless value.acts_like?(:time)
 
             datetime = "#{value.to_formatted_s(:_sqlserver_datetime)}.#{quote_fractional(value)}"
-
-            Data.new datetime, self
+            Data.new(datetime, self)
           end
 
           def deserialize(value)
