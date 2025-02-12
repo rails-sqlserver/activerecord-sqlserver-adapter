@@ -27,7 +27,7 @@ else
     require "net/http"
     require "yaml"
 
-    spec = eval(File.read("activerecord-sqlserver-adapter.gemspec"))
+    spec = Gem::Specification.load("activerecord-sqlserver-adapter.gemspec")
     ver = spec.dependencies.detect { |d| d.name == "activerecord" }.requirement.requirements.first.last.version
     major, minor, _tiny, pre = ver.split(".")
 
