@@ -7,7 +7,7 @@ require "models/author"
 class LateralTestSQLServer < ActiveRecord::TestCase
   fixtures :posts, :authors
 
-  it 'uses OUTER APPLY for OUTER JOIN LATERAL' do
+  it "uses OUTER APPLY for OUTER JOIN LATERAL" do
     post = Arel::Table.new(:posts)
     author = Arel::Table.new(:authors)
     subselect = post.project(Arel.star).take(1).where(post[:author_id].eq(author[:id])).where(post[:id].eq(42))
@@ -21,7 +21,7 @@ class LateralTestSQLServer < ActiveRecord::TestCase
     assert_equal results.length, 1
   end
 
-  it 'uses CROSS APPLY for INNER JOIN LATERAL' do
+  it "uses CROSS APPLY for INNER JOIN LATERAL" do
     post = Arel::Table.new(:posts)
     author = Arel::Table.new(:authors)
     subselect = post.project(Arel.star).take(1).where(post[:author_id].eq(author[:id])).where(post[:id].eq(42))

@@ -15,7 +15,7 @@ module ActiveRecord
 
               super(attribute_names).reject do |name|
                 column = self.class.columns_hash[name]
-                column && column.respond_to?(:is_identity?) && column.is_identity?
+                column&.respond_to?(:is_identity?) && column.is_identity?
               end
             end
           end

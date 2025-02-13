@@ -32,20 +32,19 @@ module ActiveRecord
         private
 
         def create_database_options(options = {})
-          keys  = [:collate]
+          keys = [:collate]
           copts = @connection_parameters
-          options = {
+          {
             collate: copts[:collation]
           }.merge(options.symbolize_keys).select { |_, v|
             v.present?
           }.slice(*keys).map { |k, v|
             "#{k.to_s.upcase} #{v}"
           }.join(" ")
-          options
         end
 
         def create_database_edition_options(options = {})
-          keys  = [:maxsize, :edition, :service_objective]
+          keys = [:maxsize, :edition, :service_objective]
           copts = @connection_parameters
           edition_options = {
             maxsize: copts[:azure_maxsize],

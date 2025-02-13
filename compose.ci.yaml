@@ -12,3 +12,10 @@ services:
     command: wait-for sqlserver:1433 -- bundle exec rake test
     depends_on:
       - "sqlserver"
+  standardrb:
+    environment:
+      - RAILS_BRANCH=main
+    build:
+      context: .
+      dockerfile: Dockerfile.ci
+    command: bundle exec standardrb

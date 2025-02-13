@@ -41,21 +41,19 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
   end
 
   it "table exists works if table name prefixed by schema and owner" do
-    begin
-      assert_equal "topics", Topic.table_name
-      assert Topic.table_exists?
+    assert_equal "topics", Topic.table_name
+    assert Topic.table_exists?
 
-      # Test when owner included in table name.
-      Topic.table_name = "dbo.topics"
-      assert Topic.table_exists?, "Topics table name of 'dbo.topics' should return true for exists."
+    # Test when owner included in table name.
+    Topic.table_name = "dbo.topics"
+    assert Topic.table_exists?, "Topics table name of 'dbo.topics' should return true for exists."
 
-      # Test when database and owner included in table name.
-      db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
-      Topic.table_name = "#{db_config.database}.dbo.topics"
-      assert Topic.table_exists?, "Topics table name of '[DATABASE].dbo.topics' should return true for exists."
-    ensure
-      Topic.table_name = "topics"
-    end
+    # Test when database and owner included in table name.
+    db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
+    Topic.table_name = "#{db_config.database}.dbo.topics"
+    assert Topic.table_exists?, "Topics table name of '[DATABASE].dbo.topics' should return true for exists."
+  ensure
+    Topic.table_name = "topics"
   end
 
   it "test table existence across database schemas" do
@@ -69,18 +67,18 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
     assert_not_equal arunit_database, arunit2_database
 
     # Assert that the Topics table exists when using the Topics connection.
-    assert arunit_connection.table_exists?('topics'), 'Topics table exists using table name'
-    assert arunit_connection.table_exists?('dbo.topics'), 'Topics table exists using owner and table name'
-    assert arunit_connection.table_exists?("#{arunit_database}.dbo.topics"), 'Topics table exists using database, owner and table name'
+    assert arunit_connection.table_exists?("topics"), "Topics table exists using table name"
+    assert arunit_connection.table_exists?("dbo.topics"), "Topics table exists using owner and table name"
+    assert arunit_connection.table_exists?("#{arunit_database}.dbo.topics"), "Topics table exists using database, owner and table name"
 
     # Assert that the Colleges table exists when using the Colleges connection.
-    assert arunit2_connection.table_exists?('colleges'), 'College table exists using table name'
-    assert arunit2_connection.table_exists?('dbo.colleges'), 'College table exists using owner and table name'
-    assert arunit2_connection.table_exists?("#{arunit2_database}.dbo.colleges"), 'College table exists using database, owner and table name'
+    assert arunit2_connection.table_exists?("colleges"), "College table exists using table name"
+    assert arunit2_connection.table_exists?("dbo.colleges"), "College table exists using owner and table name"
+    assert arunit2_connection.table_exists?("#{arunit2_database}.dbo.colleges"), "College table exists using database, owner and table name"
 
     # Assert that the tables exist when using each others connection.
-    assert arunit_connection.table_exists?("#{arunit2_database}.dbo.colleges"), 'Colleges table exists using Topics connection'
-    assert arunit2_connection.table_exists?("#{arunit_database}.dbo.topics"), 'Topics table exists using Colleges connection'
+    assert arunit_connection.table_exists?("#{arunit2_database}.dbo.colleges"), "Colleges table exists using Topics connection"
+    assert arunit2_connection.table_exists?("#{arunit_database}.dbo.topics"), "Topics table exists using Colleges connection"
   end
 
   it "return true to insert sql query for inserts only" do
@@ -109,20 +107,20 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
     db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
     configuration = db_config.configuration_hash.merge(database: "nonexistent_activerecord_unittest")
     assert_not ActiveRecord::ConnectionAdapters::SQLServerAdapter.database_exists?(configuration),
-               "expected database #{configuration[:database]} to not exist"
+      "expected database #{configuration[:database]} to not exist"
   end
 
   it "test database exists returns true when the database exists" do
     db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
     assert ActiveRecord::ConnectionAdapters::SQLServerAdapter.database_exists?(db_config.configuration_hash),
-           "expected database #{db_config.database} to exist"
+      "expected database #{db_config.database} to exist"
   end
 
   it "test primary key violation" do
-    Post.create!(id: 0, title: 'Setup', body: 'Create post with primary key of zero')
+    Post.create!(id: 0, title: "Setup", body: "Create post with primary key of zero")
 
     assert_raise ActiveRecord::RecordNotUnique do
-      Post.create!(id: 0, title: 'Test', body: 'Try to create another post with primary key of zero')
+      Post.create!(id: 0, title: "Test", body: "Try to create another post with primary key of zero")
     end
   end
 
@@ -132,12 +130,20 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
     end
 
     after do
-      connection.execute("SET LANGUAGE #{@default_language}") rescue nil
+      begin
+        connection.execute("SET LANGUAGE #{@default_language}")
+      rescue
+        nil
+      end
       connection.send :initialize_dateformatter
     end
 
     it "memos users dateformat" do
-      connection.execute("SET LANGUAGE us_english") rescue nil
+      begin
+        connection.execute("SET LANGUAGE us_english")
+      rescue
+        nil
+      end
       dateformat = connection.instance_variable_get(:@database_dateformat)
       assert_equal "mdy", dateformat
     end
@@ -203,12 +209,12 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
     end
 
     it "return quoted table_name to #query_requires_identity_insert? when INSERT sql contains id column" do
-      assert_equal "[funny_jokes]",   connection.send(:query_requires_identity_insert?, @identity_insert_sql)
-      assert_equal "[funny_jokes]",   connection.send(:query_requires_identity_insert?, @identity_insert_sql_unquoted)
-      assert_equal "[funny_jokes]",   connection.send(:query_requires_identity_insert?, @identity_insert_sql_unordered)
-      assert_equal "[funny_jokes]",   connection.send(:query_requires_identity_insert?, @identity_insert_sql_sp)
-      assert_equal "[funny_jokes]",   connection.send(:query_requires_identity_insert?, @identity_insert_sql_unquoted_sp)
-      assert_equal "[funny_jokes]",   connection.send(:query_requires_identity_insert?, @identity_insert_sql_unordered_sp)
+      assert_equal "[funny_jokes]", connection.send(:query_requires_identity_insert?, @identity_insert_sql)
+      assert_equal "[funny_jokes]", connection.send(:query_requires_identity_insert?, @identity_insert_sql_unquoted)
+      assert_equal "[funny_jokes]", connection.send(:query_requires_identity_insert?, @identity_insert_sql_unordered)
+      assert_equal "[funny_jokes]", connection.send(:query_requires_identity_insert?, @identity_insert_sql_sp)
+      assert_equal "[funny_jokes]", connection.send(:query_requires_identity_insert?, @identity_insert_sql_unquoted_sp)
+      assert_equal "[funny_jokes]", connection.send(:query_requires_identity_insert?, @identity_insert_sql_unordered_sp)
 
       assert_equal "[test].[aliens]", connection.send(:query_requires_identity_insert?, @identity_insert_sql_non_dbo)
       assert_equal "[test].[aliens]", connection.send(:query_requires_identity_insert?, @identity_insert_sql_non_dbo_unquoted)
@@ -276,7 +282,10 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
 
   describe "disabling referential integrity" do
     before do
-      connection.disable_referential_integrity { SSTestHasPk.delete_all; SSTestHasFk.delete_all }
+      connection.disable_referential_integrity {
+        SSTestHasPk.delete_all
+        SSTestHasFk.delete_all
+      }
       @parent = SSTestHasPk.create!
       @member = SSTestHasFk.create!(fk_id: @parent.id)
     end
@@ -417,8 +426,8 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
       assert_equal columns.size, SSTestCustomersView.columns.size
       columns.each do |colname|
         assert_instance_of ActiveRecord::ConnectionAdapters::SQLServer::Column,
-                           SSTestCustomersView.columns_hash[colname],
-                           "Column name #{colname.inspect} was not found in these columns #{SSTestCustomersView.columns.map(&:name).inspect}"
+          SSTestCustomersView.columns_hash[colname],
+          "Column name #{colname.inspect} was not found in these columns #{SSTestCustomersView.columns.map(&:name).inspect}"
       end
     end
 
@@ -444,8 +453,8 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
       assert_equal columns.size, SSTestStringDefaultsView.columns.size
       columns.each do |colname|
         assert_instance_of ActiveRecord::ConnectionAdapters::SQLServer::Column,
-                           SSTestStringDefaultsView.columns_hash[colname],
-                           "Column name #{colname.inspect} was not found in these columns #{SSTestStringDefaultsView.columns.map(&:name).inspect}"
+          SSTestStringDefaultsView.columns_hash[colname],
+          "Column name #{colname.inspect} was not found in these columns #{SSTestStringDefaultsView.columns.map(&:name).inspect}"
       end
     end
 
@@ -457,7 +466,7 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
 
     it "find default values" do
       assert_equal "null", SSTestStringDefaultsView.new.pretend_null,
-                   SSTestStringDefaultsView.columns_hash["pretend_null"].inspect
+        SSTestStringDefaultsView.columns_hash["pretend_null"].inspect
     end
 
     it "respond true to data_source_exists?" do
@@ -467,12 +476,12 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
     # That have more than 4000 chars for their definition
 
     it "cope with null returned for the definition" do
-      assert_nothing_raised() { SSTestStringDefaultsBigView.columns }
+      assert_nothing_raised { SSTestStringDefaultsBigView.columns }
     end
 
     it "using alternate view definition still be able to find real default" do
       assert_equal "null", SSTestStringDefaultsBigView.new.pretend_null,
-                   SSTestStringDefaultsBigView.columns_hash["pretend_null"].inspect
+        SSTestStringDefaultsBigView.columns_hash["pretend_null"].inspect
     end
   end
 
@@ -547,30 +556,30 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
     end
   end
 
-  describe 'table is in non-dbo schema' do
+  describe "table is in non-dbo schema" do
     it "records can be created successfully" do
       assert_difference("Alien.count", 1) do
-        Alien.create!(name: 'Trisolarans')
+        Alien.create!(name: "Trisolarans")
       end
     end
 
-    it 'records can be inserted using SQL' do
+    it "records can be inserted using SQL" do
       assert_difference("Alien.count", 2) do
         Alien.lease_connection.exec_insert("insert into [test].[aliens] (id, name) VALUES(1, 'Trisolarans'), (2, 'Xenomorph')")
       end
     end
   end
 
-  describe 'table names contains spaces' do
-    it 'records can be created successfully' do
+  describe "table names contains spaces" do
+    it "records can be created successfully" do
       assert_difference("TableWithSpaces.count", 1) do
-        TableWithSpaces.create!(name: 'Bob')
+        TableWithSpaces.create!(name: "Bob")
       end
     end
   end
 
   describe "exec_insert" do
-    it 'values clause should be case-insensitive' do
+    it "values clause should be case-insensitive" do
       assert_difference("Post.count", 4) do
         first_insert = connection.exec_insert("INSERT INTO [posts] ([id],[title],[body]) VALUES(100, 'Title', 'Body'), (102, 'Title', 'Body')")
         second_insert = connection.exec_insert("INSERT INTO [posts] ([id],[title],[body]) values(113, 'Body', 'Body'), (114, 'Body', 'Body')")
@@ -586,33 +595,37 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
       @conn = ActiveRecord::Base.lease_connection
     end
 
-    it 'raises an error when the foreign key is mismatched' do
-     error = assert_raises(ActiveRecord::MismatchedForeignKey) do
+    it "raises an error when the foreign key is mismatched" do
+      error = assert_raises(ActiveRecord::MismatchedForeignKey) do
         @conn.add_reference :engines, :old_car
         @conn.add_foreign_key :engines, :old_cars
       end
 
       assert_match(
-        %r/Column 'old_cars\.id' is not the same data type as referencing column 'engines\.old_car_id' in foreign key '.*'/,
+        %r{Column 'old_cars\.id' is not the same data type as referencing column 'engines\.old_car_id' in foreign key '.*'},
         error.message
       )
       assert_not_nil error.cause
       assert_equal @conn.pool, error.connection_pool
     ensure
-      @conn.execute("ALTER TABLE engines DROP COLUMN old_car_id") rescue nil
+      begin
+        @conn.execute("ALTER TABLE engines DROP COLUMN old_car_id")
+      rescue
+        nil
+      end
     end
   end
 
   describe "placeholder conditions" do
-    it 'using time placeholder' do
+    it "using time placeholder" do
       assert_equal Task.where("starting < ?", Time.now).count, 1
     end
 
-    it 'using date placeholder' do
+    it "using date placeholder" do
       assert_equal Task.where("starting < ?", Date.today).count, 1
     end
 
-    it 'using date-time placeholder' do
+    it "using date-time placeholder" do
       assert_equal Task.where("starting < ?", DateTime.current).count, 1
     end
   end

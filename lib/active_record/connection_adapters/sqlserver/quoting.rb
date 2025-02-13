@@ -55,11 +55,11 @@ module ActiveRecord
           cast_type = lookup_cast_type(sql_type)
 
           simple_type = SqlTypeMetadata.new(
-            sql_type:  sql_type,
-            type:      cast_type.type,
-            limit:     cast_type.limit,
+            sql_type: sql_type,
+            type: cast_type.type,
+            limit: cast_type.limit,
             precision: cast_type.precision,
-            scale:     cast_type.scale
+            scale: cast_type.scale
           )
 
           SQLServer::TypeMetadata.new(simple_type, **sqlserver_options)
@@ -79,7 +79,7 @@ module ActiveRecord
 
         def quote_default_expression(value, column)
           cast_type = lookup_cast_type(column.sql_type)
-          if cast_type.type == :uuid && value.is_a?(String) && value.include?('()')
+          if cast_type.type == :uuid && value.is_a?(String) && value.include?("()")
             value
           else
             super
@@ -87,7 +87,7 @@ module ActiveRecord
         end
 
         def quoted_true
-          '1'
+          "1"
         end
 
         def unquoted_true
@@ -95,7 +95,7 @@ module ActiveRecord
         end
 
         def quoted_false
-          '0'
+          "0"
         end
 
         def unquoted_false

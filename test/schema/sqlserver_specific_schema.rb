@@ -7,36 +7,36 @@ ActiveRecord::Schema.define do
 
   create_table :sst_datatypes_migration, force: true do |t|
     # Simple Rails conventions.
-    t.integer   :integer_col
-    t.bigint    :bigint_col
-    t.boolean   :boolean_col
-    t.decimal   :decimal_col
-    t.float     :float_col
-    t.string    :string_col
-    t.text      :text_col
-    t.datetime  :datetime_nil_precision_col, precision: nil
-    t.datetime  :datetime_col  # Precision defaults to 6
+    t.integer :integer_col
+    t.bigint :bigint_col
+    t.boolean :boolean_col
+    t.decimal :decimal_col
+    t.float :float_col
+    t.string :string_col
+    t.text :text_col
+    t.datetime :datetime_nil_precision_col, precision: nil
+    t.datetime :datetime_col  # Precision defaults to 6
     t.timestamp :timestamp_col # Precision defaults to 6
-    t.time      :time_col
-    t.date      :date_col
-    t.binary    :binary_col
+    t.time :time_col
+    t.date :date_col
+    t.binary :binary_col
     # Our type methods.
-    t.real           :real_col
-    t.money          :money_col
-    t.smalldatetime  :smalldatetime_col
-    t.datetime2      :datetime2_col
+    t.real :real_col
+    t.money :money_col
+    t.smalldatetime :smalldatetime_col
+    t.datetime2 :datetime2_col
     t.datetimeoffset :datetimeoffset
-    t.smallmoney     :smallmoney_col
-    t.char           :char_col
-    t.varchar        :varchar_col
-    t.text_basic     :text_basic_col
-    t.nchar          :nchar_col
-    t.ntext          :ntext_col
-    t.binary_basic   :binary_basic_col
-    t.binary_basic   :binary_basic_16_col, limit: 16
-    t.varbinary      :varbinary_col
-    t.uuid           :uuid_col
-    t.ss_timestamp   :sstimestamp_col
+    t.smallmoney :smallmoney_col
+    t.char :char_col
+    t.varchar :varchar_col
+    t.text_basic :text_basic_col
+    t.nchar :nchar_col
+    t.ntext :ntext_col
+    t.binary_basic :binary_basic_col
+    t.binary_basic :binary_basic_16_col, limit: 16
+    t.varbinary :varbinary_col
+    t.uuid :uuid_col
+    t.ss_timestamp :sstimestamp_col
     if supports_json?
       t.json :json_col
     else
@@ -48,7 +48,7 @@ ActiveRecord::Schema.define do
 
   if ENV["IN_MEMORY_OLTP"] && supports_in_memory_oltp?
     create_table "sst_memory", force: true, id: false,
-                               options: "WITH (MEMORY_OPTIMIZED = ON, DURABILITY = SCHEMA_AND_DATA)" do |t|
+      options: "WITH (MEMORY_OPTIMIZED = ON, DURABILITY = SCHEMA_AND_DATA)" do |t|
       t.primary_key_nonclustered :id
       t.string :name
       t.timestamps
@@ -63,8 +63,8 @@ ActiveRecord::Schema.define do
 
   create_table "sst_uuids", force: true, id: :uuid do |t|
     t.string :name
-    t.uuid   :other_uuid, default: "NEWID()"
-    t.uuid   :uuid_nil_default, default: nil
+    t.uuid :other_uuid, default: "NEWID()"
+    t.uuid :uuid_nil_default, default: nil
   end
 
   create_table "sst_my$strange_table", force: true do |t|
@@ -85,7 +85,7 @@ ActiveRecord::Schema.define do
   execute "IF EXISTS (SELECT TABLE_NAME FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_NAME = 'sst_quoted-view1') DROP VIEW [sst_quoted-view1]"
   execute "CREATE VIEW [sst_quoted-view1] AS SELECT * FROM [sst_quoted-table]"
   execute "IF EXISTS (SELECT TABLE_NAME FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_NAME = 'sst_quoted-view2') DROP VIEW [sst_quoted-view2]"
-  execute "CREATE VIEW [sst_quoted-view2] AS \n /*#{'x' * 4000}}*/ \n SELECT * FROM [sst_quoted-table]"
+  execute "CREATE VIEW [sst_quoted-view2] AS \n /*#{"x" * 4000}}*/ \n SELECT * FROM [sst_quoted-table]"
 
   create_table :sst_string_defaults, force: true do |t|
     t.column :string_with_null_default, :string, default: nil
@@ -138,21 +138,33 @@ ActiveRecord::Schema.define do
     )
   TINYITPKTABLE
 
-  execute "DROP DEFAULT [sst_getdateobject];" rescue nil
-  execute "CREATE DEFAULT [sst_getdateobject] AS getdate();" rescue nil
+  begin
+    execute "DROP DEFAULT [sst_getdateobject];"
+  rescue
+    nil
+  end
+  begin
+    execute "CREATE DEFAULT [sst_getdateobject] AS getdate();"
+  rescue
+    nil
+  end
   create_table "sst_defaultobjects", force: true do |t|
     t.string :name
-    t.date   :date
+    t.date :date
   end
   execute "sp_bindefault 'sst_getdateobject', 'sst_defaultobjects.date'"
 
-  execute "DROP PROCEDURE my_getutcdate" rescue nil
+  begin
+    execute "DROP PROCEDURE my_getutcdate"
+  rescue
+    nil
+  end
   execute <<-SQL
     CREATE PROCEDURE my_getutcdate AS
     SELECT GETUTCDATE() utcdate
   SQL
 
-  create_table 'A Table With Spaces', force: true do |t|
+  create_table "A Table With Spaces", force: true do |t|
     t.string :name
   end
 
@@ -195,7 +207,7 @@ ActiveRecord::Schema.define do
   execute <<-STRINGDEFAULTSBIGVIEW
     CREATE VIEW sst_string_defaults_big_view AS
       SELECT id, string_with_pretend_null_one as pretend_null
-      /*#{'x' * 4000}}*/
+      /*#{"x" * 4000}}*/
       FROM sst_string_defaults
   STRINGDEFAULTSBIGVIEW
 

@@ -36,7 +36,7 @@ module ActiveRecord
               result.columns.each_with_index do |column, i|
                 cells_in_column = [column] + result.rows.map { |r| cast_item(r[i]) }
                 computed_width = cells_in_column.map(&:length).max
-                final_width = computed_width > max_column_width ? max_column_width : computed_width
+                final_width = (computed_width > max_column_width) ? max_column_width : computed_width
                 computed_widths << final_width
               end
             end
@@ -51,7 +51,7 @@ module ActiveRecord
             items.each_with_index do |item, i|
               cells << cast_item(item).ljust(@widths[i])
             end
-            "| #{cells.join(' | ')} |"
+            "| #{cells.join(" | ")} |"
           end
 
           def cast_item(item)

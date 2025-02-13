@@ -7,13 +7,12 @@ module ActiveRecord
         class Time < ActiveRecord::Type::Time
           include TimeValueFractional2
 
-          def serialize(value)
+          def serialize(_value)
             value = super
             return value unless value.acts_like?(:time)
 
             time = "#{value.to_formatted_s(:_sqlserver_time)}.#{quote_fractional(value)}"
-
-            Data.new time, self
+            Data.new(time, self)
           end
 
           def deserialize(value)
@@ -34,12 +33,11 @@ module ActiveRecord
 
           private
 
-          def cast_value(value)
+          def cast_value(_value)
             value = super
-
             return value unless value.is_a?(::Time)
 
-            value = value.change(year: 2000, month: 01, day: 01)
+            value = value.change(year: 2000, month: 0o1, day: 0o1)
             apply_seconds_precision(value)
           end
 

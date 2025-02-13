@@ -36,16 +36,16 @@ module ActiveRecord
     register "sqlserver", "ActiveRecord::ConnectionAdapters::SQLServerAdapter", "active_record/connection_adapters/sqlserver_adapter"
 
     class SQLServerAdapter < AbstractAdapter
-      include SQLServer::Version,
-              SQLServer::Quoting,
-              SQLServer::DatabaseStatements,
-              SQLServer::Showplan,
-              SQLServer::SchemaStatements,
-              SQLServer::DatabaseLimits,
-              SQLServer::DatabaseTasks,
-              SQLServer::Savepoints
+      include SQLServer::Savepoints
+      include SQLServer::DatabaseTasks
+      include SQLServer::DatabaseLimits
+      include SQLServer::SchemaStatements
+      include SQLServer::Showplan
+      include SQLServer::DatabaseStatements
+      include SQLServer::Quoting
+      include SQLServer::Version
 
-      ADAPTER_NAME = "SQLServer".freeze
+      ADAPTER_NAME = "SQLServer"
 
       # Default precision for 'time' (See https://docs.microsoft.com/en-us/sql/t-sql/data-types/time-transact-sql)
       DEFAULT_TIME_PRECISION = 7
@@ -67,12 +67,12 @@ module ActiveRecord
           sqlserver_config = config.configuration_hash
           args = []
 
-          args += ["-d", "#{config.database}"] if config.database
-          args += ["-U", "#{sqlserver_config[:username]}"] if sqlserver_config[:username]
-          args += ["-P", "#{sqlserver_config[:password]}"] if sqlserver_config[:password]
+          args += ["-d", config.database.to_s] if config.database
+          args += ["-U", sqlserver_config[:username].to_s] if sqlserver_config[:username]
+          args += ["-P", sqlserver_config[:password].to_s] if sqlserver_config[:password]
 
           if sqlserver_config[:host]
-            host_arg = +"tcp:#{sqlserver_config[:host]}"
+            host_arg = "tcp:#{sqlserver_config[:host]}"
             host_arg << ",#{sqlserver_config[:port]}" if sqlserver_config[:port]
             args += ["-S", host_arg]
           end
@@ -83,7 +83,7 @@ module ActiveRecord
         def new_client(config)
           TinyTds::Client.new(config)
         rescue TinyTds::Error => error
-          if error.message.match(/database .* does not exist/i)
+          if /database .* does not exist/i.match?(error.message)
             raise ActiveRecord::NoDatabaseError
           else
             raise
@@ -244,7 +244,11 @@ module ActiveRecord
       end
 
       def reconnect
-        @raw_connection&.close rescue nil
+        begin
+          @raw_connection&.close
+        rescue
+          nil
+        end
         @raw_connection = nil
         @spid = nil
         @collation = nil
@@ -255,7 +259,11 @@ module ActiveRecord
       def disconnect!
         super
 
-        @raw_connection&.close rescue nil
+        begin
+          @raw_connection&.close
+        rescue
+          nil
+        end
         @raw_connection = nil
         @spid = nil
         @collation = nil
@@ -338,21 +346,21 @@ module ActiveRecord
         protected
 
         def initialize_type_map(m)
-          m.register_type              %r{.*}, SQLServer::Type::UnicodeString.new
+          m.register_type %r{.*}, SQLServer::Type::UnicodeString.new
 
           # Exact Numerics
-          register_class_with_limit m, "bigint(8)",         SQLServer::Type::BigInteger
-          m.alias_type                 "bigint",            "bigint(8)"
-          register_class_with_limit m, "int(4)",            SQLServer::Type::Integer
-          m.alias_type                 "integer",           "int(4)"
-          m.alias_type                 "int",               "int(4)"
-          register_class_with_limit m, "smallint(2)",       SQLServer::Type::SmallInteger
-          m.alias_type                 "smallint",          "smallint(2)"
-          register_class_with_limit m, "tinyint(1)",        SQLServer::Type::TinyInteger
-          m.alias_type                 "tinyint",           "tinyint(1)"
-          m.register_type              "bit",               SQLServer::Type::Boolean.new
-          m.register_type              %r{\Adecimal}i do |sql_type|
-            scale     = extract_scale(sql_type)
+          register_class_with_limit m, "bigint(8)", SQLServer::Type::BigInteger
+          m.alias_type "bigint", "bigint(8)"
+          register_class_with_limit m, "int(4)", SQLServer::Type::Integer
+          m.alias_type "integer", "int(4)"
+          m.alias_type "int", "int(4)"
+          register_class_with_limit m, "smallint(2)", SQLServer::Type::SmallInteger
+          m.alias_type "smallint", "smallint(2)"
+          register_class_with_limit m, "tinyint(1)", SQLServer::Type::TinyInteger
+          m.alias_type "tinyint", "tinyint(1)"
+          m.register_type "bit", SQLServer::Type::Boolean.new
+          m.register_type %r{\Adecimal}i do |sql_type|
+            scale = extract_scale(sql_type)
             precision = extract_precision(sql_type)
             if scale == 0
               SQLServer::Type::DecimalWithoutScale.new(precision: precision)
@@ -360,17 +368,17 @@ module ActiveRecord
               SQLServer::Type::Decimal.new(precision: precision, scale: scale)
             end
           end
-          m.alias_type                 %r{\Anumeric}i,      "decimal"
-          m.register_type              "money",             SQLServer::Type::Money.new
-          m.register_type              "smallmoney",        SQLServer::Type::SmallMoney.new
+          m.alias_type %r{\Anumeric}i, "decimal"
+          m.register_type "money", SQLServer::Type::Money.new
+          m.register_type "smallmoney", SQLServer::Type::SmallMoney.new
 
           # Approximate Numerics
-          m.register_type              "float",             SQLServer::Type::Float.new
-          m.register_type              "real",              SQLServer::Type::Real.new
+          m.register_type "float", SQLServer::Type::Float.new
+          m.register_type "real", SQLServer::Type::Real.new
 
           # Date and Time
-          m.register_type              "date",              SQLServer::Type::Date.new
-          m.register_type              %r{\Adatetime} do |sql_type|
+          m.register_type "date", SQLServer::Type::Date.new
+          m.register_type %r{\Adatetime} do |sql_type|
             precision = extract_precision(sql_type)
             if precision
               SQLServer::Type::DateTime2.new precision: precision
@@ -382,34 +390,34 @@ module ActiveRecord
             precision = extract_precision(sql_type)
             SQLServer::Type::DateTimeOffset.new precision: precision
           end
-          m.register_type              "smalldatetime", SQLServer::Type::SmallDateTime.new
-          m.register_type              %r{\Atime}i do |sql_type|
+          m.register_type "smalldatetime", SQLServer::Type::SmallDateTime.new
+          m.register_type %r{\Atime}i do |sql_type|
             precision = extract_precision(sql_type) || DEFAULT_TIME_PRECISION
             SQLServer::Type::Time.new precision: precision
           end
 
           # Character Strings
-          register_class_with_limit m, %r{\Achar}i,         SQLServer::Type::Char
-          register_class_with_limit m, %r{\Avarchar}i,      SQLServer::Type::Varchar
-          m.register_type              "varchar(max)",      SQLServer::Type::VarcharMax.new
-          m.register_type              "text",              SQLServer::Type::Text.new
+          register_class_with_limit m, %r{\Achar}i, SQLServer::Type::Char
+          register_class_with_limit m, %r{\Avarchar}i, SQLServer::Type::Varchar
+          m.register_type "varchar(max)", SQLServer::Type::VarcharMax.new
+          m.register_type "text", SQLServer::Type::Text.new
 
           # Unicode Character Strings
-          register_class_with_limit m, %r{\Anchar}i,        SQLServer::Type::UnicodeChar
-          register_class_with_limit m, %r{\Anvarchar}i,     SQLServer::Type::UnicodeVarchar
-          m.alias_type                 "string",            "nvarchar(4000)"
-          m.register_type              "nvarchar(max)",     SQLServer::Type::UnicodeVarcharMax.new
-          m.register_type              "nvarchar(max)",     SQLServer::Type::UnicodeVarcharMax.new
-          m.register_type              "ntext",             SQLServer::Type::UnicodeText.new
+          register_class_with_limit m, %r{\Anchar}i, SQLServer::Type::UnicodeChar
+          register_class_with_limit m, %r{\Anvarchar}i, SQLServer::Type::UnicodeVarchar
+          m.alias_type "string", "nvarchar(4000)"
+          m.register_type "nvarchar(max)", SQLServer::Type::UnicodeVarcharMax.new
+          m.register_type "nvarchar(max)", SQLServer::Type::UnicodeVarcharMax.new
+          m.register_type "ntext", SQLServer::Type::UnicodeText.new
 
           # Binary Strings
-          register_class_with_limit m, %r{\Abinary}i,       SQLServer::Type::Binary
-          register_class_with_limit m, %r{\Avarbinary}i,    SQLServer::Type::Varbinary
-          m.register_type              "varbinary(max)",    SQLServer::Type::VarbinaryMax.new
+          register_class_with_limit m, %r{\Abinary}i, SQLServer::Type::Binary
+          register_class_with_limit m, %r{\Avarbinary}i, SQLServer::Type::Varbinary
+          m.register_type "varbinary(max)", SQLServer::Type::VarbinaryMax.new
 
           # Other Data Types
-          m.register_type              "uniqueidentifier",  SQLServer::Type::Uuid.new
-          m.register_type              "timestamp",         SQLServer::Type::Timestamp.new
+          m.register_type "uniqueidentifier", SQLServer::Type::Uuid.new
+          m.register_type "timestamp", SQLServer::Type::Timestamp.new
         end
       end
 
@@ -464,10 +472,10 @@ module ActiveRecord
 
         [a, b, c].each { |f| f.upcase! if f == "y" }
         dateformat = "%#{a}-%#{b}-%#{c}"
-        ::Date::DATE_FORMATS[:_sqlserver_dateformat]     = dateformat
-        ::Time::DATE_FORMATS[:_sqlserver_dateformat]     = dateformat
-        ::Time::DATE_FORMATS[:_sqlserver_time]           = "%H:%M:%S"
-        ::Time::DATE_FORMATS[:_sqlserver_datetime]       = "#{dateformat} %H:%M:%S"
+        ::Date::DATE_FORMATS[:_sqlserver_dateformat] = dateformat
+        ::Time::DATE_FORMATS[:_sqlserver_dateformat] = dateformat
+        ::Time::DATE_FORMATS[:_sqlserver_time] = "%H:%M:%S"
+        ::Time::DATE_FORMATS[:_sqlserver_datetime] = "#{dateformat} %H:%M:%S"
         ::Time::DATE_FORMATS[:_sqlserver_datetimeoffset] = lambda { |time|
           time.strftime "#{dateformat} %H:%M:%S.%9N #{time.formatted_offset}"
         }
@@ -475,12 +483,12 @@ module ActiveRecord
 
       def version_year
         @version_year ||= begin
-          if sqlserver_version =~ /vNext/
+          if /vNext/.match?(sqlserver_version)
             2016
           else
             /SQL Server (\d+)/.match(sqlserver_version).to_a.last.to_s.to_i
           end
-        rescue StandardError
+        rescue
           2016
         end
       end

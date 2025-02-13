@@ -18,17 +18,15 @@ class TransactionTestSQLServer < ActiveRecord::TestCase
   end
 
   it "allow nested transactions to totally rollback" do
-    begin
+    Ship.transaction do
+      Ship.create! name: "Black Pearl"
       Ship.transaction do
-        Ship.create! name: "Black Pearl"
-        Ship.transaction do
-          Ship.create! name: "Flying Dutchman"
-          raise "HELL"
-        end
+        Ship.create! name: "Flying Dutchman"
+        raise "HELL"
       end
-    rescue Exception
-      assert_no_ships
     end
+  rescue
+    assert_no_ships
   end
 
   it "can use an isolation level and reverts back to starting isolation level" do

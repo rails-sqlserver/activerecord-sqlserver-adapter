@@ -16,7 +16,9 @@ module Arel
       BIND_BLOCK = proc { |i| "@#{i - 1}" }
       private_constant :BIND_BLOCK
 
-      def bind_block; BIND_BLOCK; end
+      def bind_block
+        BIND_BLOCK
+      end
 
       def visit_Arel_Nodes_Bin(o, collector)
         visit o.expr, collector
@@ -86,7 +88,6 @@ module Arel
         end
       end
 
-
       def visit_Arel_Nodes_DeleteStatement(o, collector)
         if has_join_and_composite_primary_key?(o)
           delete_statement_using_join(o, collector)
@@ -110,7 +111,7 @@ module Arel
       end
 
       def visit_Arel_Nodes_Lock(o, collector)
-        o.expr = Arel.sql("WITH(UPDLOCK)") if o.expr.to_s =~ /FOR UPDATE/
+        o.expr = Arel.sql("WITH(UPDLOCK)") if /FOR UPDATE/.match?(o.expr.to_s)
         collector << " "
         visit o.expr, collector
       end
@@ -124,12 +125,11 @@ module Arel
       def visit_Arel_Nodes_Limit(o, collector)
         if node_value(o) == 0
           collector << FETCH0
-          collector << ROWS_ONLY
         else
           collector << FETCH
           visit o.expr, collector
-          collector << ROWS_ONLY
         end
+        collector << ROWS_ONLY
       end
 
       def visit_Arel_Nodes_Grouping(o, collector)
@@ -142,10 +142,10 @@ module Arel
 
         visit o.left, collector
 
-        if o.type == :in
-          collector << " IN ("
+        collector << if o.type == :in
+          " IN ("
         else
-          collector << " NOT IN ("
+          " NOT IN ("
         end
 
         values = o.casted_values
@@ -207,14 +207,14 @@ module Arel
                 quote_table_name(o.name)
               end
             end
-          rescue Exception
+          rescue
             quote_table_name(o.name)
           end
 
-        if o.table_alias
-          collector << "#{table_name} #{quote_table_name o.table_alias}"
+        collector << if o.table_alias
+          "#{table_name} #{quote_table_name o.table_alias}"
         else
-          collector << table_name
+          table_name
         end
       end
 
@@ -334,7 +334,7 @@ module Arel
       end
 
       def select_statement_lock?
-        @select_statement && @select_statement.lock
+        @select_statement&.lock
       end
 
       def make_Fetch_Possible_And_Deterministic(o)
@@ -367,7 +367,7 @@ module Arel
         elsif Arel::Nodes::SqlLiteral === core.from
           Arel::Table.new(core.from)
         elsif Arel::Nodes::JoinSource === core.source
-          Arel::Nodes::SqlLiteral === core.source.left ? Arel::Table.new(core.source.left, @engine) : core.source.left.left
+          (Arel::Nodes::SqlLiteral === core.source.left) ? Arel::Table.new(core.source.left, @engine) : core.source.left.left
         end
       end
 

@@ -25,9 +25,9 @@ module ActiveRecord
   class TestCase < ActiveSupport::TestCase
     SQLServer = ActiveRecord::ConnectionAdapters::SQLServer
 
-    include ARTest::SQLServer::ConnectionReflection,
-            ActiveSupport::Testing::Stream,
-            ARTest::SQLServer::QueryAssertions
+    include ARTest::SQLServer::QueryAssertions
+    include ActiveSupport::Testing::Stream
+    include ARTest::SQLServer::ConnectionReflection
 
     let(:logger) { ActiveRecord::Base.logger }
 

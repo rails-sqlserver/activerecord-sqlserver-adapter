@@ -40,7 +40,7 @@ class SQLServerTriggerTest < ActiveRecord::TestCase
   end
 
   it "can insert into a table with composite pk with different data type with output inserted - with a hash setting for table name" do
-    exclude_output_inserted_table_names["sst_table_with_composite_pk_trigger_with_different_data_type"] = { pk_col_one: "uniqueidentifier", pk_col_two: "int" }
+    exclude_output_inserted_table_names["sst_table_with_composite_pk_trigger_with_different_data_type"] = {pk_col_one: "uniqueidentifier", pk_col_two: "int"}
     assert SSTestTriggerHistory.all.empty?
     obj = SSTestTriggerCompositePkWithDefferentDataType.create! pk_col_two: 123, event_name: "test trigger"
     _(obj.event_name).must_equal "test trigger"

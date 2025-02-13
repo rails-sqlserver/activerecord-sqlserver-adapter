@@ -28,7 +28,7 @@ module ActiveRecord
         end
 
         def case_sensitive?
-          collation && collation.match(/_CS/)
+          collation&.match(/_CS/)
         end
 
         def init_with(coder)
@@ -55,15 +55,10 @@ module ActiveRecord
             table_name == other.table_name &&
             ordinal_position == other.ordinal_position
         end
-        alias :eql? :==
+        alias_method :eql?, :==
 
         def hash
-          Column.hash ^
-            super.hash ^
-            is_identity?.hash ^
-            is_primary?.hash ^
-            table_name.hash ^
-            ordinal_position.hash
+          [Column, super, is_identity?, is_primary?, table_name, ordinal_position].hash
         end
 
         private

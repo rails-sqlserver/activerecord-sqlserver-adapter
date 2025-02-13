@@ -15,7 +15,7 @@ class ConnectionTestSQLServer < ActiveRecord::TestCase
   end
 
   it "affect rows" do
-    topic_data = { 1 => { "content" => "1 updated" }, 2 => { "content" => "2 updated" } }
+    topic_data = {1 => {"content" => "1 updated"}, 2 => {"content" => "2 updated"}}
     updated = Topic.update(topic_data.keys, topic_data.values)
     assert_equal 2, updated.size
     assert_equal "1 updated", Topic.find(1).content
@@ -23,16 +23,18 @@ class ConnectionTestSQLServer < ActiveRecord::TestCase
     assert_equal 2, Topic.delete([1, 2])
   end
 
-  it "allow usage of :database connection option to remove setting from dsn" do
-    assert_equal "activerecord_unittest", connection.current_database
-    begin
-      connection.use_database("activerecord_unittest2")
-      assert_equal "activerecord_unittest2", connection.current_database
-    ensure
-      connection.use_database
-      assert_equal "activerecord_unittest", connection.current_database, "Would default back to connection options"
+  unless connection_sqlserver_azure?
+    it "allow usage of :database connection option to remove setting from dsn" do
+      assert_equal "activerecord_unittest", connection.current_database
+      begin
+        connection.use_database("activerecord_unittest2")
+        assert_equal "activerecord_unittest2", connection.current_database
+      ensure
+        connection.use_database
+        assert_equal "activerecord_unittest", connection.current_database, "Would default back to connection options"
+      end
     end
-  end unless connection_sqlserver_azure?
+  end
 
   describe "Connection management" do
     it "set spid on connect" do
@@ -60,6 +62,8 @@ class ConnectionTestSQLServer < ActiveRecord::TestCase
   private
 
   def disconnect_raw_connection!
-    connection.raw_connection.close rescue nil
+    connection.raw_connection.close
+  rescue
+    nil
   end
 end

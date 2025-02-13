@@ -6,11 +6,9 @@ SQLSERVER_COERCED = "test/cases/coerced_tests.rb"
 def env_ar_test_files
   return unless ENV["TEST_FILES_AR"] && !ENV["TEST_FILES_AR"].empty?
 
-  @env_ar_test_files ||= begin
-    ENV["TEST_FILES_AR"].split(",").map { |file|
-      File.join ARTest::SQLServer.root_activerecord, file.strip
-    }.sort
-  end
+  @env_ar_test_files ||= ENV["TEST_FILES_AR"].split(",").map { |file|
+    File.join ARTest::SQLServer.root_activerecord, file.strip
+  }.sort
 end
 
 def env_test_files
@@ -24,11 +22,9 @@ def sqlserver_cases
 end
 
 def ar_cases
-  @ar_cases ||= begin
-    Dir.glob("#{ARTest::SQLServer.root_activerecord}/test/cases/**/*_test.rb").reject {
-      |x| x.include?("/adapters/") || x.include?("/encryption/performance")
-    }.sort
-  end
+  @ar_cases ||= Dir.glob("#{ARTest::SQLServer.root_activerecord}/test/cases/**/*_test.rb").reject { |x|
+    x.include?("/adapters/") || x.include?("/encryption/performance")
+  }.sort
 end
 
 def test_files

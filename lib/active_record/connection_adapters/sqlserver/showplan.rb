@@ -7,9 +7,9 @@ module ActiveRecord
   module ConnectionAdapters
     module SQLServer
       module Showplan
-        OPTION_ALL  = "SHOWPLAN_ALL"
+        OPTION_ALL = "SHOWPLAN_ALL"
         OPTION_TEXT = "SHOWPLAN_TEXT"
-        OPTION_XML  = "SHOWPLAN_XML"
+        OPTION_XML = "SHOWPLAN_XML"
         OPTIONS = [OPTION_ALL, OPTION_TEXT, OPTION_XML]
 
         def explain(arel, binds = [], options = [])
@@ -30,10 +30,10 @@ module ActiveRecord
         end
 
         def set_showplan_option(enable = true)
-          sql = "SET #{showplan_option} #{enable ? 'ON' : 'OFF'}"
+          sql = "SET #{showplan_option} #{enable ? "ON" : "OFF"}"
           raw_execute(sql, "SCHEMA")
-        rescue Exception
-          raise ActiveRecordError, "#{showplan_option} could not be turned #{enable ? 'ON' : 'OFF'}, perhaps you do not have SHOWPLAN permissions?"
+        rescue
+          raise ActiveRecordError, "#{showplan_option} could not be turned #{enable ? "ON" : "OFF"}, perhaps you do not have SHOWPLAN permissions?"
         end
 
         def showplan_option

@@ -49,7 +49,7 @@ class FetchTestSqlserver < ActiveRecord::TestCase
       query = Book.from(from_sql).order(:id).limit(5)
 
       assert_equal query.to_sql, "SELECT [books].* FROM (SELECT [books].* FROM [books]) [books] ORDER BY [books].[id] ASC OFFSET 0 ROWS FETCH NEXT 5 ROWS ONLY"
-      assert_equal query.to_a.count, 5
+      assert_equal query.to_a.size, 5
     end
 
     it "exception thrown if FROM subquery is provided without an order" do

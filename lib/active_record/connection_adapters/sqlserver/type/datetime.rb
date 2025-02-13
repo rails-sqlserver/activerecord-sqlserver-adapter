@@ -11,13 +11,12 @@ module ActiveRecord
             "datetime"
           end
 
-          def serialize(value)
+          def serialize(_value)
             value = super
             return value unless value.acts_like?(:time)
 
             datetime = "#{value.to_formatted_s(:_sqlserver_datetime)}.#{quote_fractional(value)}"
-
-            Data.new datetime, self
+            Data.new(datetime, self)
           end
 
           def deserialize(value)
@@ -37,7 +36,7 @@ module ActiveRecord
           def fast_string_to_time(string)
             time = ActiveSupport::TimeZone["UTC"].strptime(string, fast_string_to_time_format)
             new_time(time.year, time.month, time.day, time.hour,
-                     time.min, time.sec, Rational(time.nsec, 1_000))
+              time.min, time.sec, Rational(time.nsec, 1_000))
           rescue ArgumentError
             super
           end

@@ -7,7 +7,7 @@ git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 gemspec
 
 gem "bcrypt"
-gem "pg",      ">= 0.18.0"
+gem "pg", ">= 0.18.0"
 gem "sqlite3", ">= 1.6.6"
 gem "tzinfo-data", platforms: [:mingw, :mswin, :x64_mingw, :jruby]
 gem "benchmark-ips"
@@ -27,14 +27,14 @@ else
     require "net/http"
     require "yaml"
 
-    spec = eval(File.read("activerecord-sqlserver-adapter.gemspec"))
-    ver  = spec.dependencies.detect { |d| d.name == "activerecord" }.requirement.requirements.first.last.version
+    spec = Gem::Specification.load("activerecord-sqlserver-adapter.gemspec")
+    ver = spec.dependencies.detect { |d| d.name == "activerecord" }.requirement.requirements.first.last.version
     major, minor, _tiny, pre = ver.split(".")
 
     if pre
       ver
     else
-      uri  = URI.parse("https://rubygems.org/api/v1/versions/activerecord.yaml")
+      uri = URI.parse("https://rubygems.org/api/v1/versions/activerecord.yaml")
       http = Net::HTTP.new(uri.host, uri.port)
       http.use_ssl = true
       http.verify_mode = OpenSSL::SSL::VERIFY_NONE
@@ -68,9 +68,7 @@ end
 group :guard do
   gem "guard"
   gem "guard-minitest"
-  gem "terminal-notifier-guard" if RbConfig::CONFIG["host_os"] =~ /darwin/
+  gem "terminal-notifier-guard" if /darwin/.match?(RbConfig::CONFIG["host_os"])
 end
 
-group :rubocop do
-  gem "rubocop", require: false
-end
+gem "standard", require: false

@@ -26,15 +26,10 @@ module ActiveRecord
             table_name == other.table_name &&
             ordinal_position == other.ordinal_position
         end
-        alias eql? ==
+        alias_method :eql?, :==
 
         def hash
-          TypeMetadata.hash ^
-            __getobj__.hash ^
-            is_identity.hash ^
-            is_primary.hash ^
-            table_name.hash ^
-            ordinal_position.hash
+          [TypeMetadata, __getobj__, is_identity, is_primary, table_name, ordinal_position].hash
         end
 
         private

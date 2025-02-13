@@ -57,7 +57,7 @@ module ActiveRecord
 
           def seconds_precision(value)
             seconds = super
-            seconds > fractional_max ? fractional_scale_max : seconds
+            (seconds > fractional_max) ? fractional_scale_max : seconds
           end
 
           def fractional_property

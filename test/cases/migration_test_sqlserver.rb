@@ -21,8 +21,8 @@ class MigrationTestSQLServer < ActiveRecord::TestCase
       begin
         migrations_dir = File.join ARTest::SQLServer.migrations_root, "transaction_table"
         quietly { ActiveRecord::MigrationContext.new(migrations_dir).up }
-      rescue Exception => e
-        assert_match %r|this and all later migrations canceled|, e.message
+      rescue => e
+        assert_match %r{this and all later migrations canceled}, e.message
       end
       _(connection.tables).wont_include @trans_test_table1
       _(connection.tables).wont_include @trans_test_table2
@@ -45,9 +45,9 @@ class MigrationTestSQLServer < ActiveRecord::TestCase
 
     it "not drop the default constraint if just renaming" do
       find_default = lambda do
-        connection.execute_procedure(:sp_helpconstraint, "sst_string_defaults", "nomsg").select do |row|
+        connection.execute_procedure(:sp_helpconstraint, "sst_string_defaults", "nomsg").reverse.find do |row|
           row["constraint_type"] == "DEFAULT on column string_with_pretend_paren_three"
-        end.last
+        end
       end
       default_before = find_default.call
       connection.change_column :sst_string_defaults, :string_with_pretend_paren_three, :string, limit: 255
@@ -68,7 +68,7 @@ class MigrationTestSQLServer < ActiveRecord::TestCase
       assert_nothing_raised { connection.change_column :sst_string_collation, :string_with_collation, :varchar, collation: :SQL_Latin1_General_CP437_BIN }
 
       SstStringCollation.reset_column_information
-      assert_equal "SQL_Latin1_General_CP437_BIN", SstStringCollation.columns_hash['string_with_collation'].collation
+      assert_equal "SQL_Latin1_General_CP437_BIN", SstStringCollation.columns_hash["string_with_collation"].collation
     end
   end
 
@@ -78,7 +78,7 @@ class MigrationTestSQLServer < ActiveRecord::TestCase
 
       schemas = connection.exec_query("select name from sys.schemas").to_a
 
-      assert_includes schemas, { "name" => "some schema" }
+      assert_includes schemas, {"name" => "some schema"}
     end
 
     it "creates a new schema with an owner" do
@@ -86,7 +86,7 @@ class MigrationTestSQLServer < ActiveRecord::TestCase
 
       schemas = connection.exec_query("select name, principal_id from sys.schemas").to_a
 
-      assert_includes schemas, { "name" => "some schema", "principal_id" => 2 }
+      assert_includes schemas, {"name" => "some schema", "principal_id" => 2}
     end
   end
 
@@ -106,18 +106,18 @@ class MigrationTestSQLServer < ActiveRecord::TestCase
     it "drops a schema" do
       schemas = connection.exec_query("select name from sys.schemas").to_a
 
-      assert_includes schemas, { "name" => "some schema" }
+      assert_includes schemas, {"name" => "some schema"}
 
       connection.drop_schema("some schema")
 
       schemas = connection.exec_query("select name from sys.schemas").to_a
 
-      refute_includes schemas, { "name" => "some schema" }
+      refute_includes schemas, {"name" => "some schema"}
     end
   end
 
-  describe 'creating stored procedure' do
-    it 'stored procedure contains inserts are created successfully' do
+  describe "creating stored procedure" do
+    it "stored procedure contains inserts are created successfully" do
       sql = <<-SQL
           CREATE OR ALTER PROCEDURE do_some_task
           AS
@@ -126,7 +126,7 @@ class MigrationTestSQLServer < ActiveRecord::TestCase
             CREATE TABLE SomeTableName (SomeNum int PRIMARY KEY CLUSTERED);
             INSERT INTO SomeTableName(SomeNum) VALUES(1);
           END
-        SQL
+      SQL
 
       assert_nothing_raised { connection.execute(sql) }
     ensure

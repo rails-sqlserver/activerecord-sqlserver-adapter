@@ -67,7 +67,7 @@ class PrimaryKeyIntegerTest < ActiveRecord::TestCase
     assert_not_predicate column, :bigint?
 
     schema = dump_table_schema "widgets"
-    assert_match %r/create_table "widgets", id: :integer, force: :cascade do/, schema
+    assert_match %r{create_table "widgets", id: :integer, force: :cascade do}, schema
   end
 
   test "bigint primary key without default" do
@@ -79,7 +79,7 @@ class PrimaryKeyIntegerTest < ActiveRecord::TestCase
     assert_predicate column, :bigint?
 
     schema = dump_table_schema "widgets"
-    assert_match %r/create_table "widgets", force: :cascade do/, schema
+    assert_match %r{create_table "widgets", force: :cascade do}, schema
   end
 
   test "don't set identity to integer and bigint when there is a default" do
@@ -91,13 +91,13 @@ class PrimaryKeyIntegerTest < ActiveRecord::TestCase
     assert_not_predicate column, :is_identity?
 
     schema = dump_table_schema "widgets"
-    assert_match %r/create_table "widgets", id: :bigint, default: nil, force: :cascade do/, schema
+    assert_match %r{create_table "widgets", id: :bigint, default: nil, force: :cascade do}, schema
 
     column = @connection.columns(:barcodes).find { |c| c.name == "id" }
     assert_predicate column, :is_primary?
     assert_not_predicate column, :is_identity?
 
     schema = dump_table_schema "barcodes"
-    assert_match %r/create_table "barcodes", id: :integer, default: nil, force: :cascade do/, schema
+    assert_match %r{create_table "barcodes", id: :integer, default: nil, force: :cascade do}, schema
   end
 end

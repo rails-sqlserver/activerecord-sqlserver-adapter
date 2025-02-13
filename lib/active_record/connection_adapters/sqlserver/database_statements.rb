@@ -14,16 +14,18 @@ module ActiveRecord
         end
 
         def perform_query(raw_connection, sql, binds, type_casted_binds, prepare:, notification_payload:, batch:)
-          result, affected_rows = if id_insert_table_name = query_requires_identity_insert?(sql)
-                                    # If the table name is a view, we need to get the base table name for enabling identity insert.
-                                    id_insert_table_name = view_table_name(id_insert_table_name) if view_exists?(id_insert_table_name)
+          id_insert_table_name = query_requires_identity_insert?(sql)
 
-                                    with_identity_insert_enabled(id_insert_table_name, raw_connection) do
-                                      internal_exec_sql_query(sql, raw_connection)
-                                    end
-                                  else
-                                    internal_exec_sql_query(sql, raw_connection)
-                                  end
+          result, affected_rows = if id_insert_table_name
+            # If the table name is a view, we need to get the base table name for enabling identity insert.
+            id_insert_table_name = view_table_name(id_insert_table_name) if view_exists?(id_insert_table_name)
+
+            with_identity_insert_enabled(id_insert_table_name, raw_connection) do
+              internal_exec_sql_query(sql, raw_connection)
+            end
+          else
+            internal_exec_sql_query(sql, raw_connection)
+          end
 
           verified!
           notification_payload[:affected_rows] = affected_rows
@@ -41,16 +43,12 @@ module ActiveRecord
 
         # Returns the affected rows from results.
         def affected_rows(raw_result)
-          raw_result&.first&.fetch('AffectedRows', nil)
+          raw_result&.first&.fetch("AffectedRows", nil)
         end
 
         # Returns the affected rows from results or handle.
         def affected_rows_from_results_or_handle(raw_result, handle)
-          if affected_rows_from_result = affected_rows(raw_result)
-            affected_rows_from_result
-          else
-            handle.affected_rows
-          end
+          affected_rows(raw_result) || handle.affected_rows
         end
 
         def raw_execute(sql, name = nil, binds = [], prepare: false, async: false, allow_retry: false, materialize_transactions: true, batch: false)
@@ -66,19 +64,19 @@ module ActiveRecord
           handle = internal_raw_execute(sql, conn)
           results = handle_to_names_and_values(handle, ar_result: true)
 
-          return results, affected_rows_from_results_or_handle(results, handle)
+          [results, affected_rows_from_results_or_handle(results, handle)]
         ensure
           finish_statement_handle(handle)
         end
 
         def exec_delete(sql, name = nil, binds = [])
           sql = sql.dup << "; SELECT @@ROWCOUNT AS AffectedRows"
-          super(sql, name, binds)
+          super
         end
 
         def exec_update(sql, name = nil, binds = [])
           sql = sql.dup << "; SELECT @@ROWCOUNT AS AffectedRows"
-          super(sql, name, binds)
+          super
         end
 
         def begin_db_transaction
@@ -155,14 +153,16 @@ module ActiveRecord
         private :default_insert_value
 
         def build_insert_sql(insert) # :nodoc:
-          sql = +"INSERT #{insert.into}"
+          sql = "INSERT #{insert.into}"
 
-          if returning = insert.send(:insert_all).returning
+          returning = insert.send(:insert_all).returning
+
+          if returning
             returning_sql = if returning.is_a?(String)
-                              returning
-                            else
-                              Array(returning).map { |column| "INSERTED.#{quote_column_name(column)}" }.join(", ")
-                            end
+              returning
+            else
+              Array(returning).map { |column| "INSERTED.#{quote_column_name(column)}" }.join(", ")
+            end
             sql << " OUTPUT #{returning_sql}"
           end
 
@@ -174,17 +174,17 @@ module ActiveRecord
 
         def execute_procedure(proc_name, *variables)
           vars = if variables.any? && variables.first.is_a?(Hash)
-                   variables.first.map { |k, v| "@#{k} = #{quote(v)}" }
-                 else
-                   variables.map { |v| quote(v) }
-                 end.join(", ")
+            variables.first.map { |k, v| "@#{k} = #{quote(v)}" }
+          else
+            variables.map { |v| quote(v) }
+          end.join(", ")
           sql = "EXEC #{proc_name} #{vars}".strip
 
           log(sql, "Execute Procedure") do |notification_payload|
             with_raw_connection do |conn|
               result = internal_raw_execute(sql, conn)
               verified!
-              options = { as: :hash, cache_rows: true, timezone: ActiveRecord.default_timezone || :utc }
+              options = {as: :hash, cache_rows: true, timezone: ActiveRecord.default_timezone || :utc}
 
               result.each(options) do |row|
                 r = row.with_indifferent_access
@@ -218,7 +218,7 @@ module ActiveRecord
 
           rows = select_rows("DBCC USEROPTIONS WITH NO_INFOMSGS", "SCHEMA")
           rows = rows.first if rows.size == 2 && rows.last.empty?
-          rows.reduce(HashWithIndifferentAccess.new) do |values, row|
+          rows.each_with_object(HashWithIndifferentAccess.new) do |row, values|
             if row.instance_of? Hash
               set_option = row.values[0].gsub(/\s+/, "_")
               user_value = row.values[1]
@@ -227,7 +227,6 @@ module ActiveRecord
               user_value = row[1]
             end
             values[set_option] = user_value
-            values
           end
         end
 
@@ -281,35 +280,35 @@ module ActiveRecord
           end
 
           sql = if pk && use_output_inserted? && !database_prefix_remote_server?
-                  table_name ||= get_table_name(sql)
-                  exclude_output_inserted = exclude_output_inserted_table_name?(table_name, sql)
+            table_name ||= get_table_name(sql)
+            exclude_output_inserted = exclude_output_inserted_table_name?(table_name, sql)
 
-                  if exclude_output_inserted
-                    pk_and_types = Array(pk).map do |subkey|
-                      {
-                        quoted: SQLServer::Utils.extract_identifiers(subkey).quoted,
-                        id_sql_type: exclude_output_inserted_id_sql_type(subkey, exclude_output_inserted)
-                      }
-                    end
+            if exclude_output_inserted
+              pk_and_types = Array(pk).map do |subkey|
+                {
+                  quoted: SQLServer::Utils.extract_identifiers(subkey).quoted,
+                  id_sql_type: exclude_output_inserted_id_sql_type(subkey, exclude_output_inserted)
+                }
+              end
 
-                    <<~SQL.squish
-                      DECLARE @ssaIdInsertTable table (#{pk_and_types.map { |pk_and_type| "#{pk_and_type[:quoted]} #{pk_and_type[:id_sql_type]}"}.join(", ") });
-                      #{sql.dup.insert sql.index(/ (DEFAULT )?VALUES/i), " OUTPUT #{ pk_and_types.map { |pk_and_type| "INSERTED.#{pk_and_type[:quoted]}" }.join(", ") } INTO @ssaIdInsertTable"}
-                      SELECT #{pk_and_types.map {|pk_and_type| "CAST(#{pk_and_type[:quoted]} AS #{pk_and_type[:id_sql_type]}) #{pk_and_type[:quoted]}"}.join(", ")} FROM @ssaIdInsertTable
-                    SQL
-                  else
-                    returning_columns = returning || Array(pk)
+              <<~SQL.squish
+                DECLARE @ssaIdInsertTable table (#{pk_and_types.map { |pk_and_type| "#{pk_and_type[:quoted]} #{pk_and_type[:id_sql_type]}" }.join(", ")});
+                #{sql.dup.insert sql.index(/ (DEFAULT )?VALUES/i), " OUTPUT #{pk_and_types.map { |pk_and_type| "INSERTED.#{pk_and_type[:quoted]}" }.join(", ")} INTO @ssaIdInsertTable"}
+                SELECT #{pk_and_types.map { |pk_and_type| "CAST(#{pk_and_type[:quoted]} AS #{pk_and_type[:id_sql_type]}) #{pk_and_type[:quoted]}" }.join(", ")} FROM @ssaIdInsertTable
+              SQL
+            else
+              returning_columns = returning || Array(pk)
 
-                    if returning_columns.any?
-                      returning_columns_statements = returning_columns.map { |c| " INSERTED.#{SQLServer::Utils.extract_identifiers(c).quoted}" }
-                      sql.dup.insert sql.index(/ (DEFAULT )?VALUES/i), " OUTPUT" + returning_columns_statements.join(",")
-                    else
-                      sql
-                    end
-                  end
-                else
-                  "#{sql}; SELECT CAST(SCOPE_IDENTITY() AS bigint) AS Ident"
-                end
+              if returning_columns.any?
+                returning_columns_statements = returning_columns.map { |c| " INSERTED.#{SQLServer::Utils.extract_identifiers(c).quoted}" }
+                sql.dup.insert sql.index(/ (DEFAULT )?VALUES/i), " OUTPUT" + returning_columns_statements.join(",")
+              else
+                sql
+              end
+            end
+          else
+            "#{sql}; SELECT CAST(SCOPE_IDENTITY() AS bigint) AS Ident"
+          end
 
           [sql, binds]
         end
@@ -317,9 +316,9 @@ module ActiveRecord
         # === SQLServer Specific ======================================== #
 
         def set_identity_insert(table_name, conn, enable)
-          internal_raw_execute("SET IDENTITY_INSERT #{table_name} #{enable ? 'ON' : 'OFF'}", conn , perform_do: true)
-        rescue Exception
-          raise ActiveRecordError, "IDENTITY_INSERT could not be turned #{enable ? 'ON' : 'OFF'} for table #{table_name}"
+          internal_raw_execute("SET IDENTITY_INSERT #{table_name} #{enable ? "ON" : "OFF"}", conn, perform_do: true)
+        rescue
+          raise ActiveRecordError, "IDENTITY_INSERT could not be turned #{enable ? "ON" : "OFF"} for table #{table_name}"
         end
 
         # === SQLServer Specific (Executing) ============================ #
@@ -350,9 +349,9 @@ module ActiveRecord
           value = active_model_attribute?(attr) ? attr.value_for_database : attr
 
           if value.is_a?(Numeric)
-            value > 2_147_483_647 ? "bigint".freeze : "int".freeze
+            (value > 2_147_483_647) ? "bigint" : "int"
           else
-            "nvarchar(max)".freeze
+            "nvarchar(max)"
           end
         end
 
@@ -418,7 +417,7 @@ module ActiveRecord
           raw_table_name = get_raw_table_name(sql)
           id_column = identity_columns(raw_table_name).first
 
-          id_column && sql =~ /^\s*(INSERT|EXEC sp_executesql N'INSERT)[^(]+\([^)]*\b(#{id_column.name})\b,?[^)]*\)/i ? SQLServer::Utils.extract_identifiers(raw_table_name).quoted : false
+          (id_column && sql =~ /^\s*(INSERT|EXEC sp_executesql N'INSERT)[^(]+\([^)]*\b(#{id_column.name})\b,?[^)]*\)/i) ? SQLServer::Utils.extract_identifiers(raw_table_name).quoted : false
         end
 
         def insert_sql?(sql)
@@ -457,7 +456,7 @@ module ActiveRecord
         end
 
         def finish_statement_handle(handle)
-          handle.cancel if handle
+          handle&.cancel
           handle
         end
 

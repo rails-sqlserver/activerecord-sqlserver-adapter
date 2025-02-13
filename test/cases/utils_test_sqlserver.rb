@@ -44,9 +44,9 @@ class UtilsTestSQLServer < ActiveRecord::TestCase
       ]
     }
 
-    let(:server_names)   { valid_names.partition { |name| name =~ /server/ } }
+    let(:server_names) { valid_names.partition { |name| name =~ /server/ } }
     let(:database_names) { valid_names.partition { |name| name =~ /database/ } }
-    let(:schema_names)   { valid_names.partition { |name| name =~ /schema/ } }
+    let(:schema_names) { valid_names.partition { |name| name =~ /schema/ } }
 
     it "extracts and returns #object identifier unquoted by default or quoted as needed" do
       valid_names.each do |n|
@@ -61,7 +61,7 @@ class UtilsTestSQLServer < ActiveRecord::TestCase
         present, blank = send(:"#{part}_names")
         present.each do |n|
           name = extract_identifiers(n)
-          _(name.send(:"#{part}")).must_equal "#{part}", "With #{n.inspect} for ##{part} method"
+          _(name.send(:"#{part}")).must_equal part.to_s, "With #{n.inspect} for ##{part} method"
           _(name.send(:"#{part}_quoted")).must_equal "[#{part}]", "With #{n.inspect} for ##{part}_quoted method"
         end
         blank.each do |n|

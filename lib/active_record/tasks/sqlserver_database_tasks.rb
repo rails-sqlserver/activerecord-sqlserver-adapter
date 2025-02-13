@@ -28,7 +28,7 @@ module ActiveRecord
         end
         establish_connection(configuration)
       rescue ActiveRecord::StatementInvalid => e
-        if /database .* already exists/i === e.message
+        if /database .* already exists/i.match?(e.message)
           raise DatabaseAlreadyExists
         else
           raise
@@ -68,7 +68,7 @@ module ActiveRecord
             "-D #{Shellwords.escape(configuration_hash[:database])}",
             "-U #{Shellwords.escape(configuration_hash[:username])}",
             "-P #{Shellwords.escape(configuration_hash[:password])}",
-            "-o #{Shellwords.escape(filename)}",
+            "-o #{Shellwords.escape(filename)}"
           ]
           table_args = connection.tables.map { |t| Shellwords.escape(t) }
           command.concat(table_args)
@@ -79,8 +79,8 @@ module ActiveRecord
           dump = File.read(filename)
           dump.gsub!(/^USE .*$\nGO\n/, "")                      # Strip db USE statements
           dump.gsub!(/^GO\n/, "")                               # Strip db GO statements
-          dump.gsub!(/nvarchar\(8000\)/, "nvarchar(4000)")      # Fix nvarchar(8000) column defs
-          dump.gsub!(/nvarchar\(-1\)/, "nvarchar(max)")         # Fix nvarchar(-1) column defs
+          dump.gsub!("nvarchar(8000)", "nvarchar(4000)")      # Fix nvarchar(8000) column defs
+          dump.gsub!("nvarchar(-1)", "nvarchar(max)")         # Fix nvarchar(-1) column defs
           dump.gsub!(/text\(\d+\)/, "text")                     # Fix text(16) column defs
           File.open(filename, "w") { |file| file.puts dump }
         end
@@ -124,7 +124,7 @@ module ActiveRecord
         def configuration_host_ip(configuration)
           return nil unless configuration.host
 
-          Socket::getaddrinfo(configuration.host, "echo", Socket::AF_INET)[0][3]
+          Socket.getaddrinfo(configuration.host, "echo", Socket::AF_INET)[0][3]
         end
 
         def local_ipaddr?(host_ip)
