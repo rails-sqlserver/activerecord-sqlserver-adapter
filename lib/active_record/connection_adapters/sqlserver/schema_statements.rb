@@ -49,6 +49,7 @@ module ActiveRecord
               name = index["index_name"]
               unique = index["index_description"].match?(/unique/)
               where = select_value("SELECT [filter_definition] FROM sys.indexes WHERE name = #{quote(name)}", "SCHEMA")
+              include_columns = index_include_columns(table_name, name)
               orders = {}
               columns = []
 
@@ -63,9 +64,29 @@ module ActiveRecord
                 columns << column
               end
 
-              indexes << IndexDefinition.new(table_name, name, unique, columns, where: where, orders: orders)
+              indexes << IndexDefinition.new(table_name, name, unique, columns, where: where, orders: orders, include: include_columns.presence)
             end
           end
+        end
+
+        def index_include_columns(table_name, index_name)
+          sql = <<~SQL
+            SELECT
+                ic.index_id,
+                c.name AS column_name
+            FROM
+                sys.indexes i
+            JOIN
+                sys.index_columns ic ON i.object_id = ic.object_id AND i.index_id = ic.index_id
+            JOIN
+                sys.columns c ON ic.object_id = c.object_id AND ic.column_id = c.column_id
+            WHERE
+                i.object_id = OBJECT_ID('#{table_name}')
+                AND i.name = '#{index_name}'
+                AND ic.is_included_column = 1;
+          SQL
+
+          select_all(sql, "SCHEMA").map { |row| row["column_name"] }
         end
 
         def columns(table_name)
@@ -419,6 +440,15 @@ module ActiveRecord
           SQL
 
           query_values(sql, "SCHEMA")
+        end
+
+        def quoted_include_columns_for_index(column_names) # :nodoc:
+          return quote_column_name(column_names) if column_names.is_a?(Symbol)
+
+          quoted_columns = column_names.each_with_object({}) do |name, result|
+            result[name.to_sym] = quote_column_name(name).dup
+          end
+          add_options_for_index_columns(quoted_columns).values.join(", ")
         end
 
         private
