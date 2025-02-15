@@ -79,7 +79,7 @@ module Arel
 
       # Same as PostgreSQL except we need to add limit if using subquery.
       def prepare_update_statement(o)
-        if has_join_sources?(o) && !has_limit_or_offset_or_orders?(o) && !has_group_by_and_having?(o) && (o.relation.right.first.is_a?(Arel::Nodes::InnerJoin))
+        if has_join_sources?(o) && !has_limit_or_offset_or_orders?(o) && !has_group_by_and_having?(o) && o.relation.right.first.is_a?(Arel::Nodes::InnerJoin)
           o
         else
           o.limit = Nodes::Limit.new(9_223_372_036_854_775_807) if o.orders.any? && o.limit.nil?
