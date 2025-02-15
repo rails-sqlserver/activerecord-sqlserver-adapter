@@ -6,6 +6,8 @@ module ActiveRecord
       class SchemaCreation < SchemaCreation
         private
 
+        delegate :quoted_include_columns_for_index, to: :@conn
+
         def supports_index_using?
           false
         end
@@ -44,9 +46,14 @@ module ActiveRecord
           sql << "INDEX"
           sql << "#{quote_column_name(index.name)} ON #{quote_table_name(index.table)}"
           sql << "(#{quoted_columns(index)})"
+          sql << "INCLUDE (#{quoted_include_columns(index.include)})" if supports_index_include? && index.include
           sql << "WHERE #{index.where}" if index.where
 
           sql.join(" ")
+        end
+
+        def quoted_include_columns(o)
+          (String === o) ? o : quoted_include_columns_for_index(o)
         end
 
         def add_column_options!(sql, options)

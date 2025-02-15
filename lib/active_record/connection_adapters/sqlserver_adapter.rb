@@ -143,6 +143,10 @@ module ActiveRecord
         true
       end
 
+      def supports_index_include?
+        true
+      end
+
       def supports_expression_index?
         false
       end
