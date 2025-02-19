@@ -336,7 +336,7 @@ module ActiveRecord
             else raise(ActiveRecordError, "No integer type has byte size #{limit}. Use a numeric with precision 0 instead.")
             end
           when "time" # https://learn.microsoft.com/en-us/sql/t-sql/data-types/time-transact-sql
-            column_type_sql = type.to_s
+            column_type_sql = type.to_s.dup
             if precision
               if (0..7) === precision
                 column_type_sql << "(#{precision})"
