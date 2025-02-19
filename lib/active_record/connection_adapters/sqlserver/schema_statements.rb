@@ -323,11 +323,13 @@ module ActiveRecord
         end
 
         def type_to_sql(type, limit: nil, precision: nil, scale: nil, **)
-          type_limitable = %w[string integer float char nchar varchar nvarchar binary_basic].include?(type.to_s)
+          type = type.to_sym
+
+          type_limitable = [:string, :integer, :float, :char, :nchar, :varchar, :nvarchar, :binary_basic].include?(type)
           limit = nil unless type_limitable
 
-          case type.to_s
-          when "integer"
+          case type
+          when :integer
             case limit
             when 1 then "tinyint"
             when 2 then "smallint"
@@ -335,8 +337,8 @@ module ActiveRecord
             when 5..8 then "bigint"
             else raise(ActiveRecordError, "No integer type has byte size #{limit}. Use a numeric with precision 0 instead.")
             end
-          when "time" # https://learn.microsoft.com/en-us/sql/t-sql/data-types/time-transact-sql
-            column_type_sql = type.to_s
+          when :time # https://learn.microsoft.com/en-us/sql/t-sql/data-types/time-transact-sql
+            column_type_sql = type.to_s.dup
             if precision
               if (0..7) === precision
                 column_type_sql << "(#{precision})"
@@ -345,7 +347,7 @@ module ActiveRecord
               end
             end
             column_type_sql
-          when "datetime2"
+          when :datetime2
             column_type_sql = super
             if precision
               if (0..7) === precision
@@ -355,7 +357,7 @@ module ActiveRecord
               end
             end
             column_type_sql
-          when "datetimeoffset"
+          when :datetimeoffset
             column_type_sql = super
             if precision
               if (0..7) === precision
