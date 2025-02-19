@@ -389,7 +389,7 @@ module ActiveRecord
     # Fix randomly failing test. The loading of the model's schema was affecting the test.
     coerce_tests! :test_payload_affected_rows
     def test_payload_affected_rows_coerced
-      Book.send(:load_schema!)
+      Book.create!(name: "TEMP RECORD TO RUN SCHEMA QUERIES").destroy!
       original_test_payload_affected_rows
     end
   end
