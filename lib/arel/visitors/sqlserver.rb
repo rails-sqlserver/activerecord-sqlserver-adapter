@@ -57,16 +57,23 @@ module Arel
           collect_nodes_for o.values, collector, " SET "
           collector << " FROM "
           first_join, *remaining_joins = o.relation.right
-          visit first_join.left, collector
+          from_items = remaining_joins.extract! do |join|
+            join.right.expr.right.relation == o.relation.left
+          end
+
+          from_where = [first_join.left] + from_items.map(&:left)
+          collect_nodes_for from_where, collector, " ", ", "
 
           if remaining_joins && !remaining_joins.empty?
             collector << " "
             remaining_joins.each do |join|
               visit join, collector
+              collector << " "
             end
           end
 
-          collect_nodes_for [first_join.right.expr] + o.wheres, collector, " WHERE ", " AND "
+          from_where = [first_join.right.expr] + from_items.map { |i| i.right.expr }
+          collect_nodes_for from_where + o.wheres, collector, " WHERE ", " AND "
         else
           collector = visit o.relation, collector
           collect_nodes_for o.values, collector, " SET "
@@ -77,9 +84,13 @@ module Arel
         maybe_visit o.limit, collector
       end
 
-      # Same as PostgreSQL except we need to add limit if using subquery.
+      # Same as PostgreSQL and SQLite except we need to add limit if using subquery.
       def prepare_update_statement(o)
-        if has_join_sources?(o) && !has_limit_or_offset_or_orders?(o) && !has_group_by_and_having?(o) && o.relation.right.first.is_a?(Arel::Nodes::InnerJoin)
+        if has_join_sources?(o) && !has_limit_or_offset_or_orders?(o) && !has_group_by_and_having?(o) &&
+            # The dialect isn't flexible enough to allow anything other than a inner join
+            # for the first join:
+            #   UPDATE table SET .. FROM joined_table WHERE ...
+            (o.relation.right.all? { |join| join.is_a?(Arel::Nodes::InnerJoin) || join.right.expr.right.relation != o.relation.left })
           o
         else
           o.limit = Nodes::Limit.new(9_223_372_036_854_775_807) if o.orders.any? && o.limit.nil?
