@@ -38,6 +38,7 @@ module ActiveRecord
           end
         end
 
+        # ISSUE 1304
         def affected_rows(raw_result)
           raw_result.first['AffectedRows']
         end
