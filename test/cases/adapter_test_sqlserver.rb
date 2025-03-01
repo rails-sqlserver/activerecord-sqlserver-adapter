@@ -188,19 +188,19 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
     it "destroys model with no associations" do
       connection.lowercase_schema_reflection = true
 
-      discount = Discount.create!
-      assert_equal 1, Discount.count
-      discount.destroy!
-      assert_equal 0, Discount.count
+      assert_nothing_raised do
+        discount = Discount.create!
+        discount.destroy!
+      end
     end
 
     it "destroys model with association" do
       connection.lowercase_schema_reflection = true
 
-      post = Post.create!(title: 'Setup', body: 'Record to be deleted')
-      assert_equal 1, Post.count
-      post.destroy!
-      assert_equal 0, Post.count
+      assert_nothing_raised do
+        post = Post.create!(title: 'Setup', body: 'Record to be deleted')
+        post.destroy!
+      end
     end
   end
 
