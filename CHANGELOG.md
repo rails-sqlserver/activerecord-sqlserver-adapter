@@ -1,3 +1,9 @@
+## Unreleased
+
+#### Fixed
+
+- [#1306](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1306) Fix affected rows count when lowercase schema reflection enabled
+
 ## v8.0.2
 
 #### Fixed

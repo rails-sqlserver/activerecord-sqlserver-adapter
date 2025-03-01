@@ -39,7 +39,8 @@ module ActiveRecord
         end
 
         def affected_rows(raw_result)
-          raw_result.first['AffectedRows']
+          column_name = lowercase_schema_reflection ? 'affectedrows' : 'AffectedRows'
+          raw_result.first[column_name]
         end
 
         def raw_execute(sql, name = nil, binds = [], prepare: false, async: false, allow_retry: false, materialize_transactions: true, batch: false)

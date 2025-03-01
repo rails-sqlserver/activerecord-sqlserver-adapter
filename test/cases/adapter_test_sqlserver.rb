@@ -7,6 +7,7 @@ require "models/post"
 require "models/subscriber"
 require "models/minimalistic"
 require "models/college"
+require "models/discount"
 
 class AdapterTestSQLServer < ActiveRecord::TestCase
   fixtures :tasks
@@ -182,6 +183,24 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
       assert_equal "Got a minute?", SSTestUppered.first.column1
       assert_equal "Favorite number?", SSTestUppered.last.column1
       assert SSTestUppered.columns_hash["column2"]
+    end
+
+    it "destroys model with no associations" do
+      connection.lowercase_schema_reflection = true
+
+      assert_nothing_raised do
+        discount = Discount.create!
+        discount.destroy!
+      end
+    end
+
+    it "destroys model with association" do
+      connection.lowercase_schema_reflection = true
+
+      assert_nothing_raised do
+        post = Post.create!(title: 'Setup', body: 'Record to be deleted')
+        post.destroy!
+      end
     end
   end
 
