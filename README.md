@@ -211,6 +211,12 @@ The adapter has no strict gem dependencies outside of `ActiveRecord` and
 gem 'activerecord-sqlserver-adapter'
 ```
 
+## Reporting an Issue
+
+Having a way to reproduce your issue will help people confirm, investigate, and ultimately fix your issue. You
+can do this by providing an executable test case. To make this process easier, we have prepared a bug report template
+for you to use as a starting point at [How to report a bug](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/wiki/How-to-report-a-bug).
+
 ## Contributing
 
 Please contribute to the project by submitting bug fixes and features. To make sure your fix/feature has
