@@ -631,6 +631,11 @@ module ActiveRecord
         end
 
         def column_definitions_sql(database, identifier)
+          # puts "column_definitions_sql: identifier=#{identifier}"
+          # puts "column_definitions_sql: database=#{database}"
+
+          # database = "TEMPDB" if identifier.temporary_table?
+
           object_name = prepared_statements ? "@0" : quote(identifier.object)
           schema_name = if identifier.schema.blank?
             "schema_name()"
@@ -691,7 +696,7 @@ module ActiveRecord
               AND k.unique_index_id = ic.index_id
               AND c.column_id = ic.column_id
             WHERE
-              o.name = #{object_name}
+              o.Object_ID = Object_ID(#{object_name})
               AND s.name = #{schema_name}
             ORDER BY
               c.column_id
