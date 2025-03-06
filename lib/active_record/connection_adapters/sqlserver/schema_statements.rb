@@ -643,6 +643,12 @@ module ActiveRecord
             prepared_statements ? "@1" : quote(identifier.schema)
           end
 
+          object_id_arg = if identifier.schema.present?
+                            "CONCAT(@1,''.'',@0)"
+                          else
+                            "@0"
+                          end
+
           %{
             SELECT
               #{lowercase_schema_reflection_sql("o.name")} AS [table_name],
@@ -696,7 +702,8 @@ module ActiveRecord
               AND k.unique_index_id = ic.index_id
               AND c.column_id = ic.column_id
             WHERE
-              o.Object_ID = Object_ID(#{object_name})
+              o.name = #{object_name}
+              /* o.Object_ID = Object_ID(#{object_id_arg}) */
               AND s.name = #{schema_name}
             ORDER BY
               c.column_id
@@ -765,6 +772,10 @@ module ActiveRecord
 
         def lowercase_schema_reflection_sql(node)
           lowercase_schema_reflection ? "LOWER(#{node})" : node
+        end
+
+        def lowercase_schema_reflection_string(str)
+          lowercase_schema_reflection ? str.downcase : str
         end
 
         # === SQLServer Specific (View Reflection) ====================== #
