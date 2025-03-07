@@ -81,6 +81,10 @@ module ActiveRecord
             parts.hash
           end
 
+          def temporary_table?
+            object.start_with?("#")
+          end
+
           protected
 
           def parse_raw_name
