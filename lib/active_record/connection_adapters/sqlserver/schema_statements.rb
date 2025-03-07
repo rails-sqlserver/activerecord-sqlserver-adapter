@@ -636,18 +636,19 @@ module ActiveRecord
 
           # database = "TEMPDB" if identifier.temporary_table?
 
-          object_name = prepared_statements ? "@0" : quote(identifier.object)
-          schema_name = if identifier.schema.blank?
-            "schema_name()"
+          schema_name = "schema_name()"
+
+          if prepared_statements
+            object_name = "@0"
+            schema_name = "@1" if identifier.schema.present?
           else
-            prepared_statements ? "@1" : quote(identifier.schema)
+            object_name = quote(identifier.object)
+            schema_name = quote(identifier.schema) if identifier.schema.present?
           end
 
-          object_id_arg = if identifier.schema.present?
-                            "CONCAT(@1,''.'',@0)"
-                          else
-                            "@0"
-                          end
+          object_id_arg = identifier.schema.present? ? "CONCAT(#{schema_name},'.',#{object_name})" : object_name
+
+
 
           %{
             SELECT
@@ -702,8 +703,7 @@ module ActiveRecord
               AND k.unique_index_id = ic.index_id
               AND c.column_id = ic.column_id
             WHERE
-              o.name = #{object_name}
-              /* o.Object_ID = Object_ID(#{object_id_arg}) */
+              o.Object_ID = Object_ID(#{object_id_arg})
               AND s.name = #{schema_name}
             ORDER BY
               c.column_id
