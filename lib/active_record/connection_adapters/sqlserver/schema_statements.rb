@@ -634,7 +634,9 @@ module ActiveRecord
           # puts "column_definitions_sql: identifier=#{identifier}"
           # puts "column_definitions_sql: database=#{database}"
 
-          # database = "TEMPDB" if identifier.temporary_table?
+
+
+
 
           schema_name = "schema_name()"
 
@@ -648,7 +650,10 @@ module ActiveRecord
 
           object_id_arg = identifier.schema.present? ? "CONCAT(#{schema_name},'.',#{object_name})" : object_name
 
-
+          if identifier.temporary_table?
+            database = "TEMPDB"
+            object_id_arg = "CONCAT('#{database}','..',#{object_name})"
+          end
 
           %{
             SELECT

@@ -85,6 +85,10 @@ module ActiveRecord
             object.start_with?("#")
           end
 
+          # def temporary_database
+          #   "TEMPDB"
+          # end
+
           protected
 
           def parse_raw_name
