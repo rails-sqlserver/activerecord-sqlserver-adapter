@@ -43,7 +43,8 @@ module ActiveRecord
 
         # Returns the affected rows from results.
         def affected_rows(raw_result)
-          raw_result&.first&.fetch(lowercase_schema_reflection_string("AffectedRows"), nil)
+          column_name = lowercase_schema_reflection ? "affectedrows" : "AffectedRows"
+          raw_result&.first&.fetch(column_name, nil)
         end
 
         # Returns the affected rows from results or handle.

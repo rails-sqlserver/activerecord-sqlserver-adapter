@@ -772,10 +772,6 @@ module ActiveRecord
           lowercase_schema_reflection ? "LOWER(#{node})" : node
         end
 
-        def lowercase_schema_reflection_string(str)
-          lowercase_schema_reflection ? str.downcase : str
-        end
-
         # === SQLServer Specific (View Reflection) ====================== #
 
         def view_table_name(table_name)
