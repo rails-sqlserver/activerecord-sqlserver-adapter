@@ -631,13 +631,6 @@ module ActiveRecord
         end
 
         def column_definitions_sql(database, identifier)
-          # puts "column_definitions_sql: identifier=#{identifier}"
-          # puts "column_definitions_sql: database=#{database}"
-
-
-
-
-
           schema_name = "schema_name()"
 
           if prepared_statements
@@ -730,7 +723,7 @@ module ActiveRecord
         end
 
         def remove_default_constraint(table_name, column_name)
-          # If their are foreign keys in this table, we could still get back a 2D array, so flatten just in case.
+          # If there are foreign keys in this table, we could still get back a 2D array, so flatten just in case.
           execute_procedure(:sp_helpconstraint, table_name, "nomsg").flatten.select do |row|
             row["constraint_type"] == "DEFAULT on column #{column_name}"
           end.each do |row|
