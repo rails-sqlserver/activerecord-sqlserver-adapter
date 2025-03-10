@@ -1,5 +1,9 @@
 ## Unreleased
 
+#### Fixed
+
+- [#1308](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1308) Fix retrieval of temporary table's column information.
+
 #### Added
 
 - [#1301](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1301) Add support for INDEX INCLUDE.
