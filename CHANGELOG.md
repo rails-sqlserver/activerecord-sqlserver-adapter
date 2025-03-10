@@ -1,3 +1,9 @@
+## Unreleased
+
+#### Fixed
+
+- [#1308](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1308) Fix retrieval of temporary table's column information.
+
 ## v7.2.4
 
 #### Fixed
