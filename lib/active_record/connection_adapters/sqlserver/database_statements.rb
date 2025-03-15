@@ -154,6 +154,73 @@ module ActiveRecord
         private :default_insert_value
 
         def build_insert_sql(insert) # :nodoc:
+          if insert.skip_duplicates?
+            insert_all = insert.send(:insert_all)
+            conflict_columns = get_conflicted_columns(insert_all:, insert:)
+
+            # if we do not have any columns that might have conflicting values, just execute a regular insert
+            return build_sql_for_regular_insert(insert) if conflict_columns.empty?
+
+            make_inserts_unique(insert_all:, conflict_columns:)
+
+            primary_keys_for_insert = insert_all.primary_keys.to_set
+
+            # if we receive a composite primary key, MSSQL will not be happy when we want to call "IDENTITY_INSERT"
+            # as there is likely no IDENTITY column
+            # so we need to check if there is exacty one
+            # TODO: Refactor to use existing "SET IDENTITY_INSERT" settings
+            enable_identity_insert = primary_keys_for_insert.length == 1 &&
+              (insert_all.primary_keys.to_set & insert.keys).present?
+
+            sql = +""
+            sql << "SET IDENTITY_INSERT #{insert.model.quoted_table_name} ON;" if enable_identity_insert
+            sql << "MERGE INTO #{insert.model.quoted_table_name} WITH (UPDLOCK, HOLDLOCK) AS target"
+            sql << " USING (SELECT DISTINCT * FROM (#{insert.values_list}) AS t1 (#{insert.send(:columns_list)})) AS source"
+            sql << " ON (#{conflict_columns.map do |columns|
+              columns.map do |column|
+                "target.#{quote_column_name(column)} = source.#{quote_column_name(column)}"
+              end.join(" AND ")
+            end.join(") OR (")})"
+            sql << " WHEN NOT MATCHED BY TARGET THEN"
+            sql << " INSERT (#{insert.send(:columns_list)}) #{insert.values_list}"
+            if (returning = insert_all.returning)
+              sql << " OUTPUT " << returning.map { |column| "INSERTED.#{quote_column_name(column)}" }.join(", ")
+            end
+            sql << ";"
+            sql << "SET IDENTITY_INSERT #{insert.model.quoted_table_name} OFF;" if enable_identity_insert
+            return sql
+          end
+
+          build_sql_for_regular_insert(insert)
+        end
+
+        # MERGE executes a JOIN between our data we would like to insert and the existing data in the table
+        # but since it is a JOIN, it requires the data in the source also to be unique (aka our values to insert)
+        # here we modify @inserts in place of the "insert_all" object to be unique
+        # keeping the last occurence
+        # note that for other DBMS, this job is usually handed off to them by specifying something like
+        # "ON DUPLICATE SKIP" or "ON DUPLICATE UPDATE"
+        def make_inserts_unique(insert_all:, conflict_columns:)
+          unique_inserts = insert_all.inserts.reverse.uniq { |insert| conflict_columns.map { |column| insert[column] } }.reverse
+          insert_all.instance_variable_set(:@inserts, unique_inserts)
+        end
+        private :make_inserts_unique
+
+        def get_conflicted_columns(insert_all:, insert:)
+          if (unique_by = insert_all.unique_by)
+            [unique_by.columns]
+          else
+            # Compare against every unique constraint (primary key included).
+            # Discard constraints that are not fully included on insert.keys. Prevents invalid queries.
+            # Example: ignore unique index for columns ["name"] if insert keys is ["description"]
+            (insert_all.send(:unique_indexes).map(&:columns) + [insert_all.primary_keys]).select do |columns|
+              columns.to_set.subset?(insert.keys)
+            end
+          end
+        end
+        private :get_conflicted_columns
+
+        def build_sql_for_regular_insert(insert)
           sql = "INSERT #{insert.into}"
 
           returning = insert.send(:insert_all).returning
@@ -170,6 +237,7 @@ module ActiveRecord
           sql << " #{insert.values_list}"
           sql
         end
+        private :build_sql_for_regular_insert
 
         # === SQLServer Specific ======================================== #
 
