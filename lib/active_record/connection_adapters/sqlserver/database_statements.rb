@@ -161,15 +161,6 @@ module ActiveRecord
             # if we do not have any columns that might have conflicting values, just execute a regular insert
             return build_sql_for_regular_insert(insert) if conflict_columns.flatten.empty?
 
-            primary_keys_for_insert = insert_all.primary_keys.to_set
-
-            # if we receive a composite primary key, MSSQL will not be happy when we want to call "IDENTITY_INSERT"
-            # as there is likely no IDENTITY column
-            # so we need to check if there is exacty one
-            # TODO: Refactor to use existing "SET IDENTITY_INSERT" settings
-            enable_identity_insert = primary_keys_for_insert.length == 1 &&
-              (insert_all.primary_keys.to_set & insert.keys).present?
-
             # why is the "PARTITION BY" clause needed?
             # in every DBMS system, insert_all / upsert_all is usually implemented with INSERT, that allows to define what happens
             # when duplicates are found (SKIP OR UPDATE)
@@ -179,7 +170,7 @@ module ActiveRecord
             # this works easiest by using PARTITION and make sure that any record
             # we are trying to insert is "the first one seen across all the potential conflicted columns"
             sql = <<~SQL
-              #{"SET IDENTITY_INSERT #{insert.model.quoted_table_name} ON;" if enable_identity_insert}
+
               MERGE INTO #{insert.model.quoted_table_name} WITH (UPDLOCK, HOLDLOCK) AS target
               USING (
                 SELECT *
@@ -230,7 +221,6 @@ module ActiveRecord
             sql << build_sql_for_returning(insert:, insert_all: insert.send(:insert_all))
 
             sql << ";"
-            sql << "SET IDENTITY_INSERT #{insert.model.quoted_table_name} OFF;" if enable_identity_insert
 
             return sql
           end
@@ -527,11 +517,18 @@ module ActiveRecord
           raw_table_name = get_raw_table_name(sql)
           id_column = identity_columns(raw_table_name).first
 
-          (id_column && sql =~ /^\s*(INSERT|EXEC sp_executesql N'INSERT)[^(]+\([^)]*\b(#{id_column.name})\b,?[^)]*\)/i) ? SQLServer::Utils.extract_identifiers(raw_table_name).quoted : false
+          if id_column && (
+            sql =~ /^\s*(INSERT|EXEC sp_executesql N'INSERT)[^(]+\([^)]*\b(#{id_column.name})\b,?[^)]*\)/i ||
+              sql =~ /^\s*MERGE INTO.+THEN INSERT \([^)]*\b(#{id_column.name})\b,?[^)]*\)/im
+          )
+            SQLServer::Utils.extract_identifiers(raw_table_name).quoted
+          else
+            false
+          end
         end
 
         def insert_sql?(sql)
-          !(sql =~ /\A\s*(INSERT|EXEC sp_executesql N'INSERT)/i).nil?
+          !(sql =~ /\A\s*(INSERT|EXEC sp_executesql N'INSERT|MERGE INTO.+THEN INSERT)/im).nil?
         end
 
         def identity_columns(table_name)
