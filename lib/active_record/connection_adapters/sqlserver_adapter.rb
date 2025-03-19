@@ -492,13 +492,11 @@ module ActiveRecord
           else
             /SQL Server (\d+)/.match(sqlserver_version).to_a.last.to_s.to_i
           end
-        rescue
-          2016
         end
       end
 
       def sqlserver_version
-        @sqlserver_version ||= _raw_select("SELECT @@version", @raw_connection).first.first.to_s
+        @sqlserver_version ||= execute("SELECT @@VERSION").rows.first.first.to_s
       end
 
       private

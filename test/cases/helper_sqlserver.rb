@@ -15,6 +15,14 @@ require "support/connection_reflection"
 require "support/query_assertions"
 require "mocha/minitest"
 
+Minitest.after_run do
+  puts "\n\n"
+  puts "=" * 80
+  puts ActiveRecord::Base.lease_connection.send(:sqlserver_version)
+  puts "\nSQL Server Version Year: #{ActiveRecord::Base.lease_connection.get_database_version}"
+  puts "=" * 80
+end
+
 module ActiveSupport
   class TestCase < ::Minitest::Test
     include ARTest::SQLServer::CoerceableTest
