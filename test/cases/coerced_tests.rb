@@ -2553,12 +2553,18 @@ class InsertAllTest < ActiveRecord::TestCase
     Book.lease_connection.add_index(:books, [:author_id, :name], unique: true)
   end
 
-  # Same as original but using target.status for assignment and GREATEST for operator
+  # Same as original but using target.status for assignment and CASE instead of GREATEST for operator
   coerce_tests! :test_upsert_all_updates_using_provided_sql
   def test_upsert_all_updates_using_provided_sql_coerced
     Book.upsert_all(
       [{id: 1, status: 1}, {id: 2, status: 1}],
-      on_duplicate: Arel.sql("target.status = GREATEST(target.status, 1)")
+      on_duplicate: Arel.sql(<<~SQL
+        target.status = CASE
+          WHEN target.status > 1 THEN target.status
+          ELSE 1
+        END
+      SQL
+                            )
     )
 
     assert_equal "published", Book.find(1).status
