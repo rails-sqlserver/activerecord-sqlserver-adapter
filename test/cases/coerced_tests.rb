@@ -2587,22 +2587,6 @@ module ActiveRecord
   end
 end
 
-# SQL Server does not support upsert. Removed dependency on `insert_all` that uses upsert.
-class ActiveRecord::Encryption::ConcurrencyTest < ActiveRecord::EncryptionTestCase
-  undef_method :thread_encrypting_and_decrypting
-  def thread_encrypting_and_decrypting(thread_label)
-    posts = 100.times.collect { |index| EncryptedPost.create! title: "Article #{index} (#{thread_label})", body: "Body #{index} (#{thread_label})" }
-
-    Thread.new do
-      posts.each.with_index do |article, index|
-        assert_encrypted_attribute article, :title, "Article #{index} (#{thread_label})"
-        article.decrypt
-        assert_not_encrypted_attribute article, :title, "Article #{index} (#{thread_label})"
-      end
-    end
-  end
-end
-
 # Need to use `install_unregistered_type_fallback` instead of `install_unregistered_type_error` so that message-pack
 # can read and write `ActiveRecord::ConnectionAdapters::SQLServer::Type::Data` objects.
 class ActiveRecordMessagePackTest < ActiveRecord::TestCase
