@@ -164,11 +164,11 @@ module ActiveRecord
           if columns_with_uniqueness_constraints.flatten.empty?
             build_sql_for_regular_insert(insert:)
           else
-            build_sql_for_merge_insert(insert:, columns_with_uniqueness_constraints:)
+            build_sql_for_merge_insert(insert:, insert_all:, columns_with_uniqueness_constraints:)
           end
         end
 
-        def build_sql_for_merge_insert(insert:, columns_with_uniqueness_constraints:) # :nodoc:
+        def build_sql_for_merge_insert(insert:, insert_all:, columns_with_uniqueness_constraints:) # :nodoc:
           sql = <<~SQL
             MERGE INTO #{insert.model.quoted_table_name} WITH (UPDLOCK, HOLDLOCK) AS target
             USING (
