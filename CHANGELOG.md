@@ -1,4 +1,4 @@
-## Unreleased
+## v8.0.5
 
 #### Added
 
