@@ -1,3 +1,9 @@
+## Unreleased
+
+#### Added
+
+- [#1312](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1312) Add support for `insert_all` and `upsert_all`
+
 ## v8.0.4
 
 #### Fixed
