@@ -720,6 +720,8 @@ module ActiveRecord
               .match(/\s*([^(]*)/i)[0]
           elsif s.match?(/^\s*UPDATE\s+.*/i)
             s.match(/UPDATE\s+([^\(\s]+)\s*/i)[1]
+          elsif s.match?(/^\s*MERGE INTO.*/i)
+            s.match(/^\s*MERGE\s+INTO\s+(\[?[a-z_ -]+\]?\.?\[?[a-z_ -]+\]?)\s+(AS|WITH|USING)/i)[1]
           else
             s.match(/FROM[\s|\(]+((\[[^\(\]]+\])|[^\(\s]+)\s*/i)[1]
           end.strip

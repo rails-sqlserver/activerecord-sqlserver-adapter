@@ -376,6 +376,22 @@ module ActiveRecord
 end
 
 class CalculationsTest < ActiveRecord::TestCase
+  # SELECT columns must be in the GROUP clause.
+  coerce_tests! :test_should_count_with_group_by_qualified_name_on_loaded
+  def test_should_count_with_group_by_qualified_name_on_loaded_coerced
+    accounts = Account.group("accounts.id").select("accounts.id")
+
+    expected = {1 => 1, 2 => 1, 3 => 1, 4 => 1, 5 => 1, 6 => 1}
+
+    assert_not_predicate accounts, :loaded?
+    assert_equal expected, accounts.count
+
+    accounts.load
+
+    assert_predicate accounts, :loaded?
+    assert_equal expected, accounts.count(:id)
+  end
+  
   # Fix randomly failing test. The loading of the model's schema was affecting the test.
   coerce_tests! :test_offset_is_kept
   def test_offset_is_kept_coerced
@@ -2200,35 +2216,6 @@ class EnumTest < ActiveRecord::TestCase
   end
 end
 
-require "models/task"
-class QueryCacheExpiryTest < ActiveRecord::TestCase
-  # SQL Server does not support skipping or upserting duplicates.
-  coerce_tests! :test_insert_all
-  def test_insert_all_coerced
-    assert_raises(ArgumentError, /does not support skipping duplicates/) do
-      Task.cache { Task.insert({ starting: Time.now }) }
-    end
-
-    assert_raises(ArgumentError, /does not support upsert/) do
-      Task.cache { Task.upsert({ starting: Time.now }) }
-    end
-
-    assert_raises(ArgumentError, /does not support upsert/) do
-      Task.cache { Task.upsert_all([{ starting: Time.now }]) }
-    end
-
-    Task.cache do
-      assert_called(ActiveRecord::Base.connection_pool.query_cache, :clear, times: 1) do
-        Task.insert_all!([ starting: Time.now ])
-      end
-
-      assert_called(ActiveRecord::Base.connection_pool.query_cache, :clear, times: 1) do
-        Task.insert!({ starting: Time.now })
-      end
-    end
-  end
-end
-
 require "models/citation"
 class EagerLoadingTooManyIdsTest < ActiveRecord::TestCase
   fixtures :citations
@@ -2507,6 +2494,24 @@ class InsertAllTest < ActiveRecord::TestCase
     Book.where(author_id: nil, name: '["Array"]').delete_all
     Book.lease_connection.add_index(:books, [:author_id, :name], unique: true)
   end
+
+  # Same as original but using target.status for assignment and CASE instead of GREATEST for operator
+  coerce_tests! :test_upsert_all_updates_using_provided_sql
+  def test_upsert_all_updates_using_provided_sql_coerced
+    Book.upsert_all(
+      [{id: 1, status: 1}, {id: 2, status: 1}],
+      on_duplicate: Arel.sql(<<~SQL
+        target.status = CASE
+          WHEN target.status > 1 THEN target.status
+          ELSE 1
+        END
+      SQL
+                            )
+    )
+
+    assert_equal "published", Book.find(1).status
+    assert_equal "written", Book.find(2).status
+  end
 end
 
 module ActiveRecord
@@ -2524,21 +2529,6 @@ module ActiveRecord
   end
 end
 
-# SQL Server does not support upsert. Removed dependency on `insert_all` that uses upsert.
-class ActiveRecord::Encryption::ConcurrencyTest < ActiveRecord::EncryptionTestCase
-  undef_method :thread_encrypting_and_decrypting
-  def thread_encrypting_and_decrypting(thread_label)
-    posts = 100.times.collect { |index| EncryptedPost.create! title: "Article #{index} (#{thread_label})", body: "Body #{index} (#{thread_label})" }
-
-    Thread.new do
-      posts.each.with_index do |article, index|
-        assert_encrypted_attribute article, :title, "Article #{index} (#{thread_label})"
-        article.decrypt
-        assert_not_encrypted_attribute article, :title, "Article #{index} (#{thread_label})"
-      end
-    end
-  end
-end
 
 # Need to use `install_unregistered_type_fallback` instead of `install_unregistered_type_error` so that message-pack
 # can read and write `ActiveRecord::ConnectionAdapters::SQLServer::Type::Data` objects.

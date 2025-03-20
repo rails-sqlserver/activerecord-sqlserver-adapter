@@ -143,18 +143,54 @@ module ActiveRecord
         private :default_insert_value
 
         def build_insert_sql(insert) # :nodoc:
-          sql = +"INSERT #{insert.into}"
+          # Use regular insert if not skipping/updating duplicates.
+          return build_sql_for_regular_insert(insert:) unless insert.skip_duplicates? || insert.update_duplicates?
 
-          if returning = insert.send(:insert_all).returning
-            returning_sql = if returning.is_a?(String)
-                              returning
-                            else
-                              Array(returning).map { |column| "INSERTED.#{quote_column_name(column)}" }.join(", ")
-                            end
-            sql << " OUTPUT #{returning_sql}"
+          insert_all = insert.send(:insert_all)
+          columns_with_uniqueness_constraints = get_columns_with_uniqueness_constraints(insert_all:, insert:)
+
+          # If we do not have any columns that might have conflicting values just execute a regular insert, else use merge.
+          if columns_with_uniqueness_constraints.flatten.empty?
+            build_sql_for_regular_insert(insert:)
+          else
+            build_sql_for_merge_insert(insert:, insert_all:, columns_with_uniqueness_constraints:)
           end
+        end
 
-          sql << " #{insert.values_list}"
+
+        def build_sql_for_merge_insert(insert:, insert_all:, columns_with_uniqueness_constraints:) # :nodoc:
+          sql = <<~SQL
+            MERGE INTO #{insert.model.quoted_table_name} WITH (UPDLOCK, HOLDLOCK) AS target
+            USING (
+              SELECT *
+              FROM (
+                SELECT #{insert.send(:columns_list)}, #{partition_by_columns_with_uniqueness_constraints(columns_with_uniqueness_constraints:)}
+                FROM (#{insert.values_list})
+                AS t1 (#{insert.send(:columns_list)})
+              ) AS ranked_source
+              WHERE #{is_first_record_across_all_uniqueness_constraints(columns_with_uniqueness_constraints:)}
+            ) AS source
+            ON (#{joining_on_columns_with_uniqueness_constraints(columns_with_uniqueness_constraints:)})
+          SQL
+
+          if insert.update_duplicates?
+            sql << " WHEN MATCHED THEN UPDATE SET "
+
+            if insert.raw_update_sql?
+              sql << insert.raw_update_sql
+            else
+              if insert.record_timestamps?
+                sql << build_sql_for_recording_timestamps_when_updating(insert:)
+              end
+
+              sql << insert.updatable_columns.map { |column| "target.#{quote_column_name(column)}=source.#{quote_column_name(column)}" }.join(",")
+            end
+          end
+          sql << " WHEN NOT MATCHED BY TARGET THEN"
+          sql << " INSERT (#{insert.send(:columns_list)}) VALUES (#{insert_all.keys_including_timestamps.map { |column| "source.#{quote_column_name(column)}" }.join(", ")})"
+          sql << build_sql_for_returning(insert:, insert_all: insert.send(:insert_all))
+          sql << ";"
+
           sql
         end
 
@@ -406,11 +442,18 @@ module ActiveRecord
           raw_table_name = get_raw_table_name(sql)
           id_column = identity_columns(raw_table_name).first
 
-          id_column && sql =~ /^\s*(INSERT|EXEC sp_executesql N'INSERT)[^(]+\([^)]*\b(#{id_column.name})\b,?[^)]*\)/i ? SQLServer::Utils.extract_identifiers(raw_table_name).quoted : false
+          if id_column && (
+            sql =~ /^\s*(INSERT|EXEC sp_executesql N'INSERT)[^(]+\([^)]*\b(#{id_column.name})\b,?[^)]*\)/i ||
+              sql =~ /^\s*MERGE INTO.+THEN INSERT \([^)]*\b(#{id_column.name})\b,?[^)]*\)/im
+          )
+            SQLServer::Utils.extract_identifiers(raw_table_name).quoted
+          else
+            false
+          end
         end
 
         def insert_sql?(sql)
-          !(sql =~ /\A\s*(INSERT|EXEC sp_executesql N'INSERT)/i).nil?
+          !(sql =~ /\A\s*(INSERT|EXEC sp_executesql N'INSERT|MERGE INTO.+THEN INSERT)/im).nil?
         end
 
         def identity_columns(table_name)
@@ -455,6 +498,96 @@ module ActiveRecord
 
           perform_do ? result.do : result
         end
+
+        # === SQLServer Specific (insert_all / upsert_all support) ===================== #
+        def build_sql_for_returning(insert:, insert_all:)
+          return "" unless insert_all.returning
+
+          returning_values_sql = if insert_all.returning.is_a?(String)
+                                   insert_all.returning
+                                 else
+                                   Array(insert_all.returning).map do |attribute|
+                                     if insert.model.attribute_alias?(attribute)
+                                       "INSERTED.#{quote_column_name(insert.model.attribute_alias(attribute))} AS #{quote_column_name(attribute)}"
+                                     else
+                                       "INSERTED.#{quote_column_name(attribute)}"
+                                     end
+                                   end.join(",")
+                                 end
+
+          " OUTPUT #{returning_values_sql}"
+        end
+        private :build_sql_for_returning
+
+        def get_columns_with_uniqueness_constraints(insert_all:, insert:)
+          if (unique_by = insert_all.unique_by)
+            [unique_by.columns]
+          else
+            # Compare against every unique constraint (primary key included).
+            # Discard constraints that are not fully included on insert.keys. Prevents invalid queries.
+            # Example: ignore unique index for columns ["name"] if insert keys is ["description"]
+            (insert_all.send(:unique_indexes).map(&:columns) + [insert_all.primary_keys]).select do |columns|
+              columns.to_set.subset?(insert.keys)
+            end
+          end
+        end
+        private :get_columns_with_uniqueness_constraints
+
+        def build_sql_for_regular_insert(insert:)
+          sql = "INSERT #{insert.into}"
+          sql << build_sql_for_returning(insert:, insert_all: insert.send(:insert_all))
+          sql << " #{insert.values_list}"
+          sql
+        end
+        private :build_sql_for_regular_insert
+
+        # why is the "PARTITION BY" clause needed?
+        # in every DBMS system, insert_all / upsert_all is usually implemented with INSERT, that allows to define what happens
+        # when duplicates are found (SKIP OR UPDATE)
+        # by default rows are considered to be unique by every unique index on the table
+        # but since we have to use MERGE in MSSQL, which in return is a JOIN, we have to perform the "de-duplication" ourselves
+        # otherwise the "JOIN" clause would complain about non-unique values and being unable to JOIN the two tables
+        # this works easiest by using PARTITION and make sure that any record
+        # we are trying to insert is "the first one seen across all the potential columns with uniqueness constraints"
+        def partition_by_columns_with_uniqueness_constraints(columns_with_uniqueness_constraints:)
+          columns_with_uniqueness_constraints.map.with_index do |group_of_columns_with_uniqueness_constraints, index|
+            <<~PARTITION_BY
+              ROW_NUMBER() OVER (
+                PARTITION BY #{group_of_columns_with_uniqueness_constraints.map { |column| quote_column_name(column) }.join(",")}
+                ORDER BY #{group_of_columns_with_uniqueness_constraints.map { |column| "#{quote_column_name(column)} DESC" }.join(",")}
+              ) AS rn_#{index}
+            PARTITION_BY
+          end.join(", ")
+        end
+        private :partition_by_columns_with_uniqueness_constraints
+
+        def is_first_record_across_all_uniqueness_constraints(columns_with_uniqueness_constraints:)
+          columns_with_uniqueness_constraints.map.with_index do |group_of_columns_with_uniqueness_constraints, index|
+            "rn_#{index} = 1"
+          end.join(" AND ")
+        end
+        private :is_first_record_across_all_uniqueness_constraints
+
+        def joining_on_columns_with_uniqueness_constraints(columns_with_uniqueness_constraints:)
+          columns_with_uniqueness_constraints.map do |columns|
+            columns.map do |column|
+              "target.#{quote_column_name(column)} = source.#{quote_column_name(column)}"
+            end.join(" AND ")
+          end.join(") OR (")
+        end
+        private :joining_on_columns_with_uniqueness_constraints
+
+        # normally, generating the CASE SQL is done entirely by Rails
+        # and you would just hook into "touch_model_timestamps_unless" to add your database-specific instructions
+        # however, since we need to have "target." for the assignment, we also generate the CASE switch ourselves
+        def build_sql_for_recording_timestamps_when_updating(insert:)
+          insert.model.timestamp_attributes_for_update_in_model.filter_map do |column_name|
+            if insert.send(:touch_timestamp_attribute?, column_name)
+              "target.#{quote_column_name(column_name)}=CASE WHEN (#{insert.updatable_columns.map { |column| "(COALESCE(target.#{quote_column_name(column)}, 'NULL') = COALESCE(source.#{quote_column_name(column)}, 'NULL'))" }.join(" AND ")}) THEN target.#{quote_column_name(column_name)} ELSE #{high_precision_current_timestamp} END,"
+            end
+          end.join
+        end
+        private :build_sql_for_recording_timestamps_when_updating
       end
     end
   end
