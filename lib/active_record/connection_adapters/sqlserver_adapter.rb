@@ -496,7 +496,7 @@ module ActiveRecord
       end
 
       def sqlserver_version
-        @sqlserver_version ||= execute("SELECT @@VERSION").rows.first.first.to_s
+        @sqlserver_version ||= execute("SELECT @@version").rows.first.first.to_s
       end
 
       private
