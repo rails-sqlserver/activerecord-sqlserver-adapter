@@ -13,6 +13,7 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
   fixtures :tasks
 
   let(:basic_insert_sql) { "INSERT INTO [funny_jokes] ([name]) VALUES('Knock knock')" }
+  let(:basic_merge_sql) { "MERGE INTO [ships] WITH (UPDLOCK, HOLDLOCK) AS target USING ( SELECT * FROM ( SELECT [id], [name], ROW_NUMBER() OVER ( PARTITION BY [id] ORDER BY [id] DESC ) AS rn_0 FROM ( VALUES (101, N'RSS Sir David Attenborough') ) AS t1 ([id], [name]) ) AS ranked_source WHERE rn_0 = 1 ) AS source ON (target.[id] = source.[id]) WHEN MATCHED THEN UPDATE SET target.[name] = source.[name]" }
   let(:basic_update_sql) { "UPDATE [customers] SET [address_street] = NULL WHERE [id] = 2" }
   let(:basic_select_sql) { "SELECT * FROM [customers] WHERE ([customers].[id] = 1)" }
 
@@ -91,6 +92,7 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
 
   it "return unquoted table name object from basic INSERT UPDATE and SELECT statements" do
     assert_equal "funny_jokes", connection.send(:get_table_name, basic_insert_sql)
+    assert_equal "ships", connection.send(:get_table_name, basic_merge_sql)
     assert_equal "customers", connection.send(:get_table_name, basic_update_sql)
     assert_equal "customers", connection.send(:get_table_name, basic_select_sql)
   end
@@ -219,6 +221,10 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
       @identity_insert_sql_unquoted_sp = "EXEC sp_executesql N'INSERT INTO funny_jokes (id, name) VALUES (@0, @1)', N'@0 int, @1 nvarchar(255)', @0 = 420, @1 = N'Knock knock'"
       @identity_insert_sql_unordered_sp = "EXEC sp_executesql N'INSERT INTO [funny_jokes] ([name],[id]) VALUES (@0, @1)', N'@0 nvarchar(255), @1  int', @0 = N'Knock knock', @1 = 420"
 
+      @identity_merge_sql = "MERGE INTO [ships] WITH (UPDLOCK, HOLDLOCK) AS target USING ( SELECT * FROM ( SELECT [id], [name], ROW_NUMBER() OVER ( PARTITION BY [id] ORDER BY [id] DESC ) AS rn_0 FROM ( VALUES (101, N'RSS Sir David Attenborough') ) AS t1 ([id], [name]) ) AS ranked_source WHERE rn_0 = 1 ) AS source ON (target.[id] = source.[id]) WHEN MATCHED THEN UPDATE SET target.[name] = source.[name] WHEN NOT MATCHED BY TARGET THEN INSERT ([id], [name]) VALUES (source.[id], source.[name]) OUTPUT INSERTED.[id]"
+      @identity_merge_sql_unquoted = "MERGE INTO ships WITH (UPDLOCK, HOLDLOCK) AS target USING ( SELECT * FROM ( SELECT id, name, ROW_NUMBER() OVER ( PARTITION BY id ORDER BY id DESC ) AS rn_0 FROM ( VALUES (101, N'RSS Sir David Attenborough') ) AS t1 (id, name) ) AS ranked_source WHERE rn_0 = 1 ) AS source ON (target.id = source.id) WHEN MATCHED THEN UPDATE SET target.name = source.name WHEN NOT MATCHED BY TARGET THEN INSERT (id, name) VALUES (source.id, source.name) OUTPUT INSERTED.id"
+      @identity_merge_sql_unordered = "MERGE INTO [ships] WITH (UPDLOCK, HOLDLOCK) AS target USING ( SELECT * FROM ( SELECT [name], [id], ROW_NUMBER() OVER ( PARTITION BY [id] ORDER BY [id] DESC ) AS rn_0 FROM ( VALUES (101, N'RSS Sir David Attenborough') ) AS t1 ([name], [id]) ) AS ranked_source WHERE rn_0 = 1 ) AS source ON (target.[id] = source.[id]) WHEN MATCHED THEN UPDATE SET target.[name] = source.[name] WHEN NOT MATCHED BY TARGET THEN INSERT ([name], [id]) VALUES (source.[name], source.[id]) OUTPUT INSERTED.[id]"
+
       @identity_insert_sql_non_dbo = "INSERT INTO [test].[aliens] ([id],[name]) VALUES(420,'Mork')"
       @identity_insert_sql_non_dbo_unquoted = "INSERT INTO test.aliens ([id],[name]) VALUES(420,'Mork')"
       @identity_insert_sql_non_dbo_unordered = "INSERT INTO [test].[aliens] ([name],[id]) VALUES('Mork',420)"
@@ -235,6 +241,10 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
       assert_equal "[funny_jokes]", connection.send(:query_requires_identity_insert?, @identity_insert_sql_unquoted_sp)
       assert_equal "[funny_jokes]", connection.send(:query_requires_identity_insert?, @identity_insert_sql_unordered_sp)
 
+      assert_equal "[ships]", connection.send(:query_requires_identity_insert?, @identity_merge_sql)
+      assert_equal "[ships]", connection.send(:query_requires_identity_insert?, @identity_merge_sql_unquoted)
+      assert_equal "[ships]", connection.send(:query_requires_identity_insert?, @identity_merge_sql_unordered)
+
       assert_equal "[test].[aliens]", connection.send(:query_requires_identity_insert?, @identity_insert_sql_non_dbo)
       assert_equal "[test].[aliens]", connection.send(:query_requires_identity_insert?, @identity_insert_sql_non_dbo_unquoted)
       assert_equal "[test].[aliens]", connection.send(:query_requires_identity_insert?, @identity_insert_sql_non_dbo_unordered)
@@ -244,7 +254,7 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
     end
 
     it "return false to #query_requires_identity_insert? for normal SQL" do
-      [basic_insert_sql, basic_update_sql, basic_select_sql].each do |sql|
+      [basic_insert_sql, basic_merge_sql, basic_update_sql, basic_select_sql].each do |sql|
         assert !connection.send(:query_requires_identity_insert?, sql), "SQL was #{sql}"
       end
     end

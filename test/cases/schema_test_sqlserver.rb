@@ -102,6 +102,24 @@ class SchemaTestSQLServer < ActiveRecord::TestCase
       end
     end
 
+    describe "MERGE statements" do
+      it do
+        assert_equal "[dashboards]", connection.send(:get_raw_table_name, "MERGE INTO [dashboards] AS target")
+      end
+
+      it do
+        assert_equal "lock_without_defaults", connection.send(:get_raw_table_name, "MERGE INTO lock_without_defaults AS target")
+      end
+
+      it do
+        assert_equal "[WITH - SPACES]", connection.send(:get_raw_table_name, "MERGE INTO [WITH - SPACES] AS target")
+      end
+
+      it do
+        assert_equal "[with].[select notation]", connection.send(:get_raw_table_name, "MERGE INTO [with].[select notation] AS target")
+      end
+    end
+
     describe "CREATE VIEW statements" do
       it do
         assert_equal "test_table_as", connection.send(:get_raw_table_name, "CREATE VIEW test_views ( test_table_a_id, test_table_b_id ) AS SELECT test_table_as.id as test_table_a_id, test_table_bs.id as test_table_b_id FROM (test_table_as with(nolock) LEFT JOIN test_table_bs with(nolock) ON (test_table_as.id = test_table_bs.test_table_a_id))")

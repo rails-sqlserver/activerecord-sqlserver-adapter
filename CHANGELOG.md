@@ -3,6 +3,7 @@
 #### Added
 
 - [#1301](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1301) Add support for INDEX INCLUDE.
+- [#1312](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1312) Add support for `insert_all` and `upsert_all`
 
 #### Changed
 

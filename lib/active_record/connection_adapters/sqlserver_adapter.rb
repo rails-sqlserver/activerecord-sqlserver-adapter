@@ -216,11 +216,11 @@ module ActiveRecord
       end
 
       def supports_insert_on_duplicate_skip?
-        false
+        true
       end
 
       def supports_insert_on_duplicate_update?
-        false
+        true
       end
 
       def supports_insert_conflict_target?
