@@ -169,6 +169,8 @@ module ActiveRecord
         end
 
         def build_sql_for_merge_insert(insert:, insert_all:, columns_with_uniqueness_constraints:) # :nodoc:
+          insert_all.inserts.reverse! if insert.update_duplicates?
+
           sql = <<~SQL
             MERGE INTO #{insert.model.quoted_table_name} WITH (UPDLOCK, HOLDLOCK) AS target
             USING (
