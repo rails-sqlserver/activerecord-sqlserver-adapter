@@ -13,5 +13,6 @@
 #### Fixed
 
 - [#1313](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1313) Correctly retrieve the SQL Server database version.
+- [#1320](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1320) Fix SQL statement to calculate `updated_at` when upserting
 
 Please check [8-0-stable](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/blob/8-0-stable/CHANGELOG.md) for previous changes.
