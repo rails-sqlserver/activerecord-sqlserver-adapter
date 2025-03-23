@@ -1,3 +1,9 @@
+## Unreleased
+
+#### Fixed
+
+- [#1317](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1317) Reverse order of values when upserting
+
 ## v8.0.5
 
 #### Added
