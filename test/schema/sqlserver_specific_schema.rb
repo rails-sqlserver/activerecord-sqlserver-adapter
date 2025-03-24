@@ -372,4 +372,12 @@ ActiveRecord::Schema.define do
       name varchar(255)
     )
   TABLE_IN_OTHER_SCHEMA_USED_BY_MODEL
+
+  create_table "recurring_tasks", force: true do |t|
+    t.string :key
+    t.integer :priority, default: 0
+
+    t.datetime2 :created_at
+    t.datetime2 :updated_at
+  end
 end
