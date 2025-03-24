@@ -2,6 +2,7 @@
 
 require "cases/helper_sqlserver"
 require "models/book"
+require "models/sqlserver/recurring_task"
 
 class InsertAllTestSQLServer < ActiveRecord::TestCase
   # Test ported from the Rails `main` branch that is not on the `8-0-stable` branch.
@@ -26,5 +27,19 @@ class InsertAllTestSQLServer < ActiveRecord::TestCase
                       { id: 112, name: "expected_new_name" }
                     ]
     assert_equal "expected_new_name", Book.find(112).name
+  end
+
+  test "upsert_all recording of timestamps works with mixed datatypes" do
+    task = RecurringTask.create!(
+      key: "abcdef",
+      priority: 5
+    )
+
+    RecurringTask.upsert_all([{
+                                id: task.id,
+                                priority: nil
+                              }])
+
+    assert_not_equal task.updated_at, RecurringTask.find(task.id).updated_at
   end
 end

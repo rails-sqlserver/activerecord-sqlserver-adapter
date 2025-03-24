@@ -585,7 +585,7 @@ module ActiveRecord
         def build_sql_for_recording_timestamps_when_updating(insert:)
           insert.model.timestamp_attributes_for_update_in_model.filter_map do |column_name|
             if insert.send(:touch_timestamp_attribute?, column_name)
-              "target.#{quote_column_name(column_name)}=CASE WHEN (#{insert.updatable_columns.map { |column| "(COALESCE(target.#{quote_column_name(column)}, 'NULL') = COALESCE(source.#{quote_column_name(column)}, 'NULL'))" }.join(" AND ")}) THEN target.#{quote_column_name(column_name)} ELSE #{high_precision_current_timestamp} END,"
+              "target.#{quote_column_name(column_name)}=CASE WHEN (#{insert.updatable_columns.map { |column| "(source.#{quote_column_name(column)} = target.#{quote_column_name(column)} OR (source.#{quote_column_name(column)} IS NULL AND target.#{quote_column_name(column)} IS NULL))" }.join(" AND ")}) THEN target.#{quote_column_name(column_name)} ELSE #{high_precision_current_timestamp} END,"
             end
           end.join
         end
