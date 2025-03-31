@@ -3,6 +3,7 @@
 #### Fixed
 
 - [#1318](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1318) Reverse order of values when upserting
+- []() When using `LIMIT`/`OFFSET` without ordering try to order using projection rather than with the primary key.
 
 ## v8.0.5
 
