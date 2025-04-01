@@ -343,7 +343,7 @@ module Arel
       def remove_last_AS_from_projection(projection)
         parts = projection.split(/\sAS\s/i)
         parts.pop if parts.length > 1
-        projection.join(" AS ")
+        parts.join(" AS ")
       end
 
       def distinct_One_As_One_Is_So_Not_Fetch(o)
