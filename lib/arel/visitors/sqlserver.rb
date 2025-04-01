@@ -253,7 +253,7 @@ module Arel
         end
         collector
       end
-      
+
       def visit_Orders_And_Let_Fetch_Happen(o, collector)
         make_Fetch_Possible_And_Deterministic o
         if o.orders.any?

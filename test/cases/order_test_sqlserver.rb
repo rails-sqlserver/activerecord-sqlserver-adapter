@@ -153,35 +153,21 @@ class OrderTestSQLServer < ActiveRecord::TestCase
 
   describe "simple query containing limit" do
     it "order by primary key if no projections" do
-      $DEBUG = false
-
       sql = Post.limit(5).to_sql
 
       assert_equal "SELECT [posts].* FROM [posts] ORDER BY [posts].[id] ASC OFFSET 0 ROWS FETCH NEXT 5 ROWS ONLY", sql
-
-      $DEBUG = false
     end
 
     it "use order provided" do
-      # $DEBUG = true
-
       sql = Post.select(:legacy_comments_count).order(:tags_count).limit(5).to_sql
 
       assert_equal "SELECT [posts].[legacy_comments_count] FROM [posts] ORDER BY [posts].[tags_count] ASC OFFSET 0 ROWS FETCH NEXT 5 ROWS ONLY", sql
-
-      # binding.pry
-
     end
 
     it "order by first projection if no order provided" do
-      # $DEBUG = true
-
       sql = Post.select(:legacy_comments_count).limit(5).to_sql
 
       assert_equal "SELECT [posts].[legacy_comments_count] FROM [posts] ORDER BY [posts].[legacy_comments_count] ASC OFFSET 0 ROWS FETCH NEXT 5 ROWS ONLY", sql
-
-      # binding.pry
-
     end
 
     it "order by first projection (when multiple projections) if no order provided" do
@@ -200,11 +186,9 @@ class OrderTestSQLServer < ActiveRecord::TestCase
         assert_equal result, [11, 5, 1]
       end
     end
-    #
+
     it "in the subquery the first projection is used for ordering if none provided" do
       sql = "SELECT sum(legacy_comments_count), count(*), min(legacy_comments_count) FROM (SELECT [posts].[legacy_comments_count], [posts].[tags_count] FROM [posts] ORDER BY [posts].[legacy_comments_count] ASC OFFSET 0 ROWS FETCH NEXT @0 ROWS ONLY) subquery ORDER BY sum(legacy_comments_count) ASC OFFSET 0 ROWS FETCH NEXT @1 ROWS ONLY"
-
-      # binding.pry
 
       assert_queries_match(/#{Regexp.escape(sql)}/) do
         result = Post.from(Post.limit(5).select(:legacy_comments_count, :tags_count)).pick(Arel.sql("sum(legacy_comments_count), count(*), min(legacy_comments_count)"))
