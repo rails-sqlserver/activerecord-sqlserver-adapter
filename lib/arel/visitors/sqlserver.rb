@@ -302,10 +302,8 @@ module Arel
         @select_statement && @select_statement.lock
       end
 
-      # LIMIT/OFFSET cannot be used without an ORDER. This method adds a deterministic ORDER using following rules:
-      #   1. If the query has projections, use the first projection as the ORDER BY clause.
-      #   2. If the query has SQL literal projection, use the first part of the SQL literal as the ORDER BY clause.
-      #   3. If the query has a table with a primary key, use the primary key as the ORDER BY clause.
+      # FETCH cannot be used without an order. If an order is not given then try to use the projections for the ordering.
+      # If no suitable projection are present then fallback to using the primary key of the table.
       def make_Fetch_Possible_And_Deterministic(o)
         return if o.limit.nil? && o.offset.nil?
         return if o.orders.any?
@@ -318,6 +316,8 @@ module Arel
         end
       end
 
+      # Find the first projection or part of projection that can be used for ordering. Cannot use
+      # projections with '*' or '1 AS one' in them.
       def projection_to_order_by_for_fetch(o)
         o.cores.first.projections.each do |projection|
           case projection
@@ -335,8 +335,7 @@ module Arel
         nil
       end
 
-      # Remove last AS from projection that could contain multiple AS clauses.
-      # Examples:
+      # Remove last AS from projection. Example projections:
       #   - 'name'
       #   - 'name AS first_name'
       #   - 'AVG(accounts.credit_limit AS DECIMAL) AS avg_credit_limit)'
