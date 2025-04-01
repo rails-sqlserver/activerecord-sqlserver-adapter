@@ -9,6 +9,8 @@ module Arel
       FETCH0 = " FETCH FIRST (SELECT 0) "
       ROWS_ONLY = " ROWS ONLY"
 
+      ONE_AS_ONE = ActiveRecord::FinderMethods::ONE_AS_ONE
+
       private
 
       # SQLServer ToSql/Visitor (Overrides)
@@ -251,12 +253,8 @@ module Arel
         end
         collector
       end
-
-      # AIDO
+      
       def visit_Orders_And_Let_Fetch_Happen(o, collector)
-
-        # binding.pry if $DEBUG
-
         make_Fetch_Possible_And_Deterministic o
         if o.orders.any?
           collector << " ORDER BY "
@@ -304,8 +302,7 @@ module Arel
         @select_statement && @select_statement.lock
       end
 
-      # If LIMIT/OFFSET is used without ORDER BY, SQLServer will return an error.
-      # This method will add a deterministic ORDER BY clause to the query using following rules:
+      # LIMIT/OFFSET cannot be used without an ORDER. This method adds a deterministic ORDER using following rules:
       #   1. If the query has projections, use the first projection as the ORDER BY clause.
       #   2. If the query has SQL literal projection, use the first part of the SQL literal as the ORDER BY clause.
       #   3. If the query has a table with a primary key, use the primary key as the ORDER BY clause.
@@ -313,36 +310,46 @@ module Arel
         return if o.limit.nil? && o.offset.nil?
         return if o.orders.any?
 
-        # TODO: Refactor to list all projections and then find the first one that looks good.
-
-        projection = o.cores.first.projections.first
-
-
-        binding.pry if $DEBUG
-
-
-        if projection.is_a?(Arel::Attributes::Attribute) && !projection.name.include?("*")
+        if (projection = projection_to_order_by_for_fetch(o))
           o.orders = [projection.asc]
-
-        # TODO: Use better logic to find first projection that is usable for ordering.
-        elsif projection.is_a?(Arel::Nodes::SqlLiteral) && !projection.match?(/^\s*(1 as ONE|\*)(\s|,)*/i)
-
-          first_projection = Arel::Nodes::SqlLiteral.new(projection.split(",").first.split(/\sAS\s/i).first)
-          o.orders = [first_projection.asc]
         else
-
           pk = primary_Key_From_Table(table_From_Statement(o))
           o.orders = [pk.asc] if pk
         end
+      end
 
-      # rescue => e
-      #   binding.pry
+      def projection_to_order_by_for_fetch(o)
+        o.cores.first.projections.each do |projection|
+          case projection
+          when Arel::Attributes::Attribute
+            return projection unless projection.name.include?("*")
+          when Arel::Nodes::SqlLiteral
+            projection.split(",").each do |p|
+              next if p.match?(/#{Regexp.escape(ONE_AS_ONE)}/i) || p.include?("*")
+
+              return Arel::Nodes::SqlLiteral.new(remove_last_AS_from_projection(p))
+            end
+          end
+        end
+
+        nil
+      end
+
+      # Remove last AS from projection that could contain multiple AS clauses.
+      # Examples:
+      #   - 'name'
+      #   - 'name AS first_name'
+      #   - 'AVG(accounts.credit_limit AS DECIMAL) AS avg_credit_limit)'
+      def remove_last_AS_from_projection(projection)
+        parts = projection.split(/\sAS\s/i)
+        parts.pop if parts.length > 1
+        projection.join(" AS ")
       end
 
       def distinct_One_As_One_Is_So_Not_Fetch(o)
         core = o.cores.first
         distinct = Nodes::Distinct === core.set_quantifier
-        one_as_one = core.projections.all? { |x| x == ActiveRecord::FinderMethods::ONE_AS_ONE }
+        one_as_one = core.projections.all? { |x| x == ONE_AS_ONE }
         limit_one = [nil, 0, 1].include? node_value(o.limit)
 
         if distinct && one_as_one && limit_one && !o.offset
