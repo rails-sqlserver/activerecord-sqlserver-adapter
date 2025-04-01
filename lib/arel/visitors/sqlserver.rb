@@ -9,6 +9,8 @@ module Arel
       FETCH0 = " FETCH FIRST (SELECT 0) "
       ROWS_ONLY = " ROWS ONLY"
 
+      ONE_AS_ONE = ActiveRecord::FinderMethods::ONE_AS_ONE
+
       private
 
       # SQLServer ToSql/Visitor (Overrides)
@@ -300,24 +302,56 @@ module Arel
         @select_statement && @select_statement.lock
       end
 
+      # FETCH cannot be used without an order. If an order is not given then try to use the projections for the ordering.
+      # If no suitable projection are present then fallback to using the primary key of the table.
       def make_Fetch_Possible_And_Deterministic(o)
         return if o.limit.nil? && o.offset.nil?
         return if o.orders.any?
 
-        t = table_From_Statement o
-        pk = primary_Key_From_Table t
-        return unless pk
+        if (projection = projection_to_order_by_for_fetch(o))
+          o.orders = [projection.asc]
+        else
+          pk = primary_Key_From_Table(table_From_Statement(o))
+          o.orders = [pk.asc] if pk
+        end
+      end
 
-        # Prefer deterministic vs a simple `(SELECT NULL)` expr.
-        o.orders = [pk.asc]
+      # Find the first projection or part of projection that can be used for ordering. Cannot use
+      # projections with '*' or '1 AS one' in them.
+      def projection_to_order_by_for_fetch(o)
+        o.cores.first.projections.each do |projection|
+          case projection
+          when Arel::Attributes::Attribute
+            return projection unless projection.name.include?("*")
+          when Arel::Nodes::SqlLiteral
+            projection.split(",").each do |p|
+              next if p.match?(/#{Regexp.escape(ONE_AS_ONE)}/i) || p.include?("*")
+
+              return Arel::Nodes::SqlLiteral.new(remove_last_AS_from_projection(p))
+            end
+          end
+        end
+
+        nil
+      end
+
+      # Remove last AS from projection. Example projections:
+      #   - 'name'
+      #   - 'name AS first_name'
+      #   - 'AVG(accounts.credit_limit AS DECIMAL) AS avg_credit_limit)'
+      def remove_last_AS_from_projection(projection)
+        parts = projection.split(/\sAS\s/i)
+        parts.pop if parts.length > 1
+        parts.join(" AS ")
       end
 
       def distinct_One_As_One_Is_So_Not_Fetch(o)
         core = o.cores.first
         distinct = Nodes::Distinct === core.set_quantifier
-        oneasone = core.projections.all? { |x| x == ActiveRecord::FinderMethods::ONE_AS_ONE }
-        limitone = [nil, 0, 1].include? node_value(o.limit)
-        if distinct && oneasone && limitone && !o.offset
+        one_as_one = core.projections.all? { |x| x == ONE_AS_ONE }
+        limit_one = [nil, 0, 1].include? node_value(o.limit)
+
+        if distinct && one_as_one && limit_one && !o.offset
           core.projections = [Arel.sql("TOP(1) 1 AS [one]")]
           o.limit = nil
         end
