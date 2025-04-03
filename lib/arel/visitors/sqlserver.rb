@@ -40,10 +40,10 @@ module Arel
 
         # UPDATE with JOIN is in the form of:
         #
-        #   UPDATE t1 AS __active_record_update_alias
+        #   UPDATE t1
         #   SET ..
         #   FROM t1 JOIN t2 ON t2.join_id = t1.join_id ..
-        #   WHERE t1.id = __active_record_update_alias.id AND ..
+        #   WHERE ..
         if has_join_sources?(o)
           collector = visit o.relation.left, collector
           collect_nodes_for o.values, collector, " SET "
