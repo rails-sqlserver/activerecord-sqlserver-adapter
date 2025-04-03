@@ -42,57 +42,37 @@ module Arel
         #
         #   UPDATE t1
         #   SET ..
-        #   FROM t2
-        #   WHERE t1.join_id = t2.join_id
-        #
-        # Or if more than one join is present:
-        #
-        #   UPDATE t1
-        #   SET ..
-        #   FROM t2
-        #   JOIN t3 ON t2.join_id = t3.join_id
-        #   WHERE t1.join_id = t2.join_id
+        #   FROM t1 JOIN t2 ON t2.join_id = t1.join_id ..
+        #   WHERE ..
         if has_join_sources?(o)
-          visit o.relation.left, collector
+          collector = visit o.relation.left, collector
           collect_nodes_for o.values, collector, " SET "
           collector << " FROM "
-          first_join, *remaining_joins = o.relation.right
-          from_items = remaining_joins.extract! do |join|
-            join.right.expr.right.relation == o.relation.left
-          end
-
-          from_where = [first_join.left] + from_items.map(&:left)
-          collect_nodes_for from_where, collector, " ", ", "
-
-          if remaining_joins && !remaining_joins.empty?
-            collector << " "
-            remaining_joins.each do |join|
-              visit join, collector
-              collector << " "
-            end
-          end
-
-          from_where = [first_join.right.expr] + from_items.map { |i| i.right.expr }
-          collect_nodes_for from_where + o.wheres, collector, " WHERE ", " AND "
+          collector = inject_join o.relation.right, collector, " "
         else
           collector = visit o.relation, collector
           collect_nodes_for o.values, collector, " SET "
-          collect_nodes_for o.wheres, collector, " WHERE ", " AND "
         end
 
+        collect_nodes_for o.wheres, collector, " WHERE ", " AND "
         collect_nodes_for o.orders, collector, " ORDER BY "
         maybe_visit o.limit, collector
       end
 
-      # Same as PostgreSQL and SQLite except we need to add limit if using subquery.
+      # Similar to PostgreSQL and SQLite.
       def prepare_update_statement(o)
-        if has_join_sources?(o) && !has_limit_or_offset_or_orders?(o) && !has_group_by_and_having?(o) &&
-            # The dialect isn't flexible enough to allow anything other than a inner join
-            # for the first join:
-            #   UPDATE table SET .. FROM joined_table WHERE ...
-            (o.relation.right.all? { |join| join.is_a?(Arel::Nodes::InnerJoin) || join.right.expr.right.relation != o.relation.left })
-          o
+        if o.key && has_join_sources?(o) && !has_group_by_and_having?(o) && !has_limit_or_offset_or_orders?(o)
+          # Join clauses cannot reference the target table, so alias the
+          # updated table, place the entire relation in the FROM clause, and
+          # add a self-join (which requires the primary key)
+          stmt = o.clone
+
+          stmt.relation, stmt.wheres = o.relation.clone, o.wheres.clone
+          stmt.relation.right = [stmt.relation.left, *stmt.relation.right]
+          # Don't need to use alias
+          stmt
         else
+          # If using subquery, we need to add limit
           o.limit = Nodes::Limit.new(9_223_372_036_854_775_807) if o.orders.any? && o.limit.nil?
 
           super
