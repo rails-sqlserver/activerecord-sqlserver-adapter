@@ -305,15 +305,23 @@ module Arel
       # FETCH cannot be used without an order. If an order is not given then try to use the projections for the ordering.
       # If no suitable projection are present then fallback to using the primary key of the table.
       def make_Fetch_Possible_And_Deterministic(o)
+        binding.pry if $DEBUG
+
         return if o.limit.nil? && o.offset.nil?
         return if o.orders.any?
 
-        if (projection = projection_to_order_by_for_fetch(o))
+
+
+        if any_groupings?(o) && (projection = projection_to_order_by_for_fetch(o))
           o.orders = [projection.asc]
         else
           pk = primary_Key_From_Table(table_From_Statement(o))
           o.orders = [pk.asc] if pk
         end
+      end
+
+      def any_groupings?(o)
+        o.cores.any? { |core| core.groups.present? }
       end
 
       # Find the first projection or part of projection that can be used for ordering. Cannot use
