@@ -1845,12 +1845,17 @@ class TransactionIsolationTest < ActiveRecord::TestCase
 
   private
 
-  # The isolation level is set twice. Once by the transaction and once when the connection is reset
-  # by `SQLServerRealTransaction#commit`. MySQL & PostgreSQL do not reset the connection and SQLite does support
-  # transaction isolation.
+  # Need to handle the resetting of the isolation level in the adapter by `SQLServerRealTransaction#commit`.
+  # MySQL & PostgreSQL do not reset the connection and SQLite does support transaction isolation. After that we
+  # can assert the number of expected isolation level events.
   undef_method :assert_begin_isolation_level_event
-  def assert_begin_isolation_level_event(events)
-    assert_equal 2, events.select { _1.match(/SET TRANSACTION ISOLATION LEVEL READ COMMITTED/) }.size
+  def assert_begin_isolation_level_event(events, isolation: "READ COMMITTED")
+    isolation_events = events.select { _1.match(/SET TRANSACTION ISOLATION LEVEL/) }
+
+    reset_starting_isolation_level_event = isolation_events.delete("SET TRANSACTION ISOLATION LEVEL READ COMMITTED")
+    assert reset_starting_isolation_level_event.present?
+
+    assert_equal 1, isolation_events.select { _1.match(/SET TRANSACTION ISOLATION LEVEL #{isolation}/) }.size
   end
 end
 
