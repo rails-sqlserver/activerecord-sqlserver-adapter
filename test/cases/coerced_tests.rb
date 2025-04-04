@@ -1852,8 +1852,9 @@ class TransactionIsolationTest < ActiveRecord::TestCase
   def assert_begin_isolation_level_event(events, isolation: "READ COMMITTED")
     isolation_events = events.select { _1.match(/SET TRANSACTION ISOLATION LEVEL/) }
 
-    reset_starting_isolation_level_event = isolation_events.delete("SET TRANSACTION ISOLATION LEVEL READ COMMITTED")
-    assert reset_starting_isolation_level_event.present?
+    index_of_reset_starting_isolation_level_event = isolation_events.index("SET TRANSACTION ISOLATION LEVEL READ COMMITTED")
+    assert index_of_reset_starting_isolation_level_event.present?
+    isolation_events.delete_at(index_of_reset_starting_isolation_level_event)
 
     assert_equal 1, isolation_events.select { _1.match(/SET TRANSACTION ISOLATION LEVEL #{isolation}/) }.size
   end
