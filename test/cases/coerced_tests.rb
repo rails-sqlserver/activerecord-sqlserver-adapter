@@ -1842,6 +1842,22 @@ class TransactionIsolationTest < ActiveRecord::TestCase
 
   # I really need some help understanding this one.
   coerce_tests! %r{repeatable read}
+
+  private
+
+  # Need to handle the resetting of the isolation level in the adapter by `SQLServerRealTransaction#commit`.
+  # MySQL & PostgreSQL do not reset the connection and SQLite does support transaction isolation. After that we
+  # can assert the number of expected isolation level events.
+  undef_method :assert_begin_isolation_level_event
+  def assert_begin_isolation_level_event(events, isolation: "READ COMMITTED")
+    isolation_events = events.select { _1.match(/SET TRANSACTION ISOLATION LEVEL/) }
+
+    index_of_reset_starting_isolation_level_event = isolation_events.index("SET TRANSACTION ISOLATION LEVEL READ COMMITTED")
+    assert index_of_reset_starting_isolation_level_event.present?
+    isolation_events.delete_at(index_of_reset_starting_isolation_level_event)
+
+    assert_equal 1, isolation_events.select { _1.match(/SET TRANSACTION ISOLATION LEVEL #{isolation}/) }.size
+  end
 end
 
 class ViewWithPrimaryKeyTest < ActiveRecord::TestCase
