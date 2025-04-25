@@ -34,26 +34,26 @@ jobs:
       - name: Run tests
         run: docker compose run ci
 
-#
-#  standardrb:
-#    name: Code linting and formatting
-#    runs-on: ubuntu-latest
-#
-#    env:
-#      COMPOSE_FILE: compose.ci.yaml
-#
-#    strategy:
-#      fail-fast: false
-#      matrix:
-#        ruby:
-#          - 3.4.1
-#
-#    steps:
-#      - name: Checkout code
-#        uses: actions/checkout@v2
-#
-#      - name: Build docker images
-#        run: docker compose build --build-arg TARGET_VERSION=${{ matrix.ruby }}
-#
-#      - name: Run standardrb
-#        run: docker compose run standardrb
+
+  standardrb:
+    name: Code linting and formatting
+    runs-on: ubuntu-latest
+
+    env:
+      COMPOSE_FILE: compose.ci.yaml
+
+    strategy:
+      fail-fast: false
+      matrix:
+        ruby:
+          - 3.4.1
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Build docker images
+        run: docker compose build --build-arg TARGET_VERSION=${{ matrix.ruby }}
+
+      - name: Run standardrb
+        run: docker compose run standardrb
