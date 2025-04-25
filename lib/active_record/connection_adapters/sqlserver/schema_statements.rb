@@ -4,10 +4,6 @@ module ActiveRecord
   module ConnectionAdapters
     module SQLServer
       module SchemaStatements
-        def native_database_types
-          @native_database_types ||= initialize_native_database_types.freeze
-        end
-
         def create_table(table_name, **options)
           res = super
           clear_cache!
@@ -487,42 +483,6 @@ module ActiveRecord
         end
 
         # === SQLServer Specific ======================================== #
-
-        def initialize_native_database_types
-          {
-            primary_key: "bigint NOT NULL IDENTITY(1,1) PRIMARY KEY",
-            primary_key_nonclustered: "bigint NOT NULL IDENTITY(1,1) PRIMARY KEY NONCLUSTERED",
-            integer: {name: "int", limit: 4},
-            bigint: {name: "bigint"},
-            boolean: {name: "bit"},
-            decimal: {name: "decimal"},
-            money: {name: "money"},
-            smallmoney: {name: "smallmoney"},
-            float: {name: "float"},
-            real: {name: "real"},
-            date: {name: "date"},
-            datetime: {name: "datetime"},
-            datetime2: {name: "datetime2"},
-            datetimeoffset: {name: "datetimeoffset"},
-            smalldatetime: {name: "smalldatetime"},
-            timestamp: {name: "datetime2(6)"},
-            time: {name: "time"},
-            char: {name: "char"},
-            varchar: {name: "varchar", limit: 8000},
-            varchar_max: {name: "varchar(max)"},
-            text_basic: {name: "text"},
-            nchar: {name: "nchar"},
-            string: {name: "nvarchar", limit: 4000},
-            text: {name: "nvarchar(max)"},
-            ntext: {name: "ntext"},
-            binary_basic: {name: "binary"},
-            varbinary: {name: "varbinary", limit: 8000},
-            binary: {name: "varbinary(max)"},
-            uuid: {name: "uniqueidentifier"},
-            ss_timestamp: {name: "timestamp"},
-            json: {name: "nvarchar(max)"}
-          }
-        end
 
         def column_definitions(table_name)
           identifier = database_prefix_identifier(table_name)

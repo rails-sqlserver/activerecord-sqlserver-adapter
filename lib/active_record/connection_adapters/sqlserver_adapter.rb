@@ -62,6 +62,40 @@ module ActiveRecord
       self.use_output_inserted = true
       self.exclude_output_inserted_table_names = Concurrent::Map.new { false }
 
+      NATIVE_DATABASE_TYPES = {
+        primary_key: "bigint NOT NULL IDENTITY(1,1) PRIMARY KEY",
+        primary_key_nonclustered: "bigint NOT NULL IDENTITY(1,1) PRIMARY KEY NONCLUSTERED",
+        integer: {name: "int", limit: 4},
+        bigint: {name: "bigint"},
+        boolean: {name: "bit"},
+        decimal: {name: "decimal"},
+        money: {name: "money"},
+        smallmoney: {name: "smallmoney"},
+        float: {name: "float"},
+        real: {name: "real"},
+        date: {name: "date"},
+        datetime: {name: "datetime"},
+        datetime2: {name: "datetime2"},
+        datetimeoffset: {name: "datetimeoffset"},
+        smalldatetime: {name: "smalldatetime"},
+        timestamp: {name: "datetime2(6)"},
+        time: {name: "time"},
+        char: {name: "char"},
+        varchar: {name: "varchar", limit: 8000},
+        varchar_max: {name: "varchar(max)"},
+        text_basic: {name: "text"},
+        nchar: {name: "nchar"},
+        string: {name: "nvarchar", limit: 4000},
+        text: {name: "nvarchar(max)"},
+        ntext: {name: "ntext"},
+        binary_basic: {name: "binary"},
+        varbinary: {name: "varbinary", limit: 8000},
+        binary: {name: "varbinary(max)"},
+        uuid: {name: "uniqueidentifier"},
+        ss_timestamp: {name: "timestamp"},
+        json: {name: "nvarchar(max)"}
+      }
+
       class << self
         def dbconsole(config, options = {})
           sqlserver_config = config.configuration_hash
@@ -94,6 +128,10 @@ module ActiveRecord
           Rails.application.class.name.split("::").first
         rescue
           nil # Might not be in a Rails context so we fallback to `nil`.
+        end
+
+        def native_database_types # :nodoc:
+          NATIVE_DATABASE_TYPES
         end
       end
 
