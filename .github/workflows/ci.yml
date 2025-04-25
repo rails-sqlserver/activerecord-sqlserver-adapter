@@ -11,7 +11,7 @@ on:
 jobs:
   test:
     name: Run test suite
-    runs-on: ubuntu-20.04 # TODO: Change back to 'ubuntu-latest' when https://github.com/microsoft/mssql-docker/issues/899 resolved.
+    runs-on: ubuntu-latest
 
     env:
       COMPOSE_FILE: compose.ci.yaml
@@ -37,7 +37,7 @@ jobs:
 
   standardrb:
     name: Code linting and formatting
-    runs-on: ubuntu-20.04 # TODO: Change back to 'ubuntu-latest' when https://github.com/microsoft/mssql-docker/issues/899 resolved.
+    runs-on: ubuntu-latest
 
     env:
       COMPOSE_FILE: compose.ci.yaml
