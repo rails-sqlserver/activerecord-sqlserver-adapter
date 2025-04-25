@@ -1850,13 +1850,13 @@ class TransactionIsolationTest < ActiveRecord::TestCase
   # can assert the number of expected isolation level events.
   undef_method :assert_begin_isolation_level_event
   def assert_begin_isolation_level_event(events, isolation: "READ COMMITTED")
-    isolation_events = events.select { _1.match(/SET TRANSACTION ISOLATION LEVEL/) }
+    isolation_events = events.select { |event| event.match(/SET TRANSACTION ISOLATION LEVEL/) }
 
     index_of_reset_starting_isolation_level_event = isolation_events.index("SET TRANSACTION ISOLATION LEVEL READ COMMITTED")
     assert index_of_reset_starting_isolation_level_event.present?
     isolation_events.delete_at(index_of_reset_starting_isolation_level_event)
 
-    assert_equal 1, isolation_events.select { _1.match(/SET TRANSACTION ISOLATION LEVEL #{isolation}/) }.size
+    assert_equal 1, isolation_events.count { |event| event.match(/SET TRANSACTION ISOLATION LEVEL #{isolation}/) }
   end
 end
 
