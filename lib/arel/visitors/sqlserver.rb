@@ -312,7 +312,7 @@ module Arel
 
 
 
-        if (any_groupings?(o) || has_join_sources?(o)) && (projection = projection_to_order_by_for_fetch(o))
+        if (any_groupings?(o) || xxx_has_join_sources?(o)) && (projection = projection_to_order_by_for_fetch(o))
           o.orders = [projection.asc]
         else
           pk = primary_Key_From_Table(table_From_Statement(o))
@@ -325,7 +325,8 @@ module Arel
       end
 
       # TODO: Need this for "in the subquery the first projection is used for ordering if none provided" test.
-      def has_join_sources?(o)
+      # TODO: rename
+      def xxx_has_join_sources?(o)
         # binding.pry if $DEBUG
 
 
@@ -333,8 +334,8 @@ module Arel
 
         # false
         o.cores.any? { |core| core.source.is_a?(Arel::Nodes::JoinSource) }
-      rescue => e
-        binding.pry
+      # rescue => e
+      #   binding.pry
       end
 
       # Find the first projection or part of projection that can be used for ordering. Cannot use
