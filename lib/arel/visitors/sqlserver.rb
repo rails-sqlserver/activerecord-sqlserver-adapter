@@ -305,14 +305,14 @@ module Arel
       # FETCH cannot be used without an order. If an order is not given then try to use the projections for the ordering.
       # If no suitable projection are present then fallback to using the primary key of the table.
       def make_Fetch_Possible_And_Deterministic(o)
-        binding.pry if $DEBUG
+        # binding.pry if $DEBUG
 
         return if o.limit.nil? && o.offset.nil?
         return if o.orders.any?
 
 
 
-        if any_groupings?(o) && (projection = projection_to_order_by_for_fetch(o))
+        if (any_groupings?(o) || has_join_sources?(o)) && (projection = projection_to_order_by_for_fetch(o))
           o.orders = [projection.asc]
         else
           pk = primary_Key_From_Table(table_From_Statement(o))
@@ -322,6 +322,19 @@ module Arel
 
       def any_groupings?(o)
         o.cores.any? { |core| core.groups.present? }
+      end
+
+      # TODO: Need this for "in the subquery the first projection is used for ordering if none provided" test.
+      def has_join_sources?(o)
+        # binding.pry if $DEBUG
+
+
+        return false unless o.is_a?(Arel::Nodes::SelectStatement)
+
+        # false
+        o.cores.any? { |core| core.source.is_a?(Arel::Nodes::JoinSource) }
+      rescue => e
+        binding.pry
       end
 
       # Find the first projection or part of projection that can be used for ordering. Cannot use
