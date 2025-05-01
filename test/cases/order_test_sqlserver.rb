@@ -252,13 +252,13 @@ class OrderTestSQLServer < ActiveRecord::TestCase
     end
 
     it "in the subquery the first projection is used for ordering if none provided" do
-      sql = "SELECT sum(legacy_comments_count), count(*), min(legacy_comments_count) FROM (SELECT [posts].[legacy_comments_count], [posts].[tags_count] FROM [posts] ORDER BY [posts].[legacy_comments_count] ASC OFFSET 0 ROWS FETCH NEXT @0 ROWS ONLY) subquery ORDER BY sum(legacy_comments_count) ASC OFFSET 0 ROWS FETCH NEXT @1 ROWS ONLY"
+      sql = "SELECT sum(legacy_comments_count), count(*), min(legacy_comments_count) FROM (SELECT [posts].[legacy_comments_count], [posts].[tags_count] FROM [posts] ORDER BY [posts].[id] ASC OFFSET 0 ROWS FETCH NEXT @0 ROWS ONLY) subquery ORDER BY sum(legacy_comments_count) ASC OFFSET 0 ROWS FETCH NEXT @1 ROWS ONLY"
 
       # $DEBUG = true
 
       assert_queries_match(/#{Regexp.escape(sql)}/) do
         result = Post.from(Post.limit(5).select(:legacy_comments_count, :tags_count)).pick(Arel.sql("sum(legacy_comments_count), count(*), min(legacy_comments_count)"))
-        assert_equal result, [0, 5, 0]
+        assert_equal result, [10, 5, 0]
       end
     end
 
