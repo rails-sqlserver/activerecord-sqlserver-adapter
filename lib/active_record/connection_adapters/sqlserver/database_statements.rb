@@ -177,7 +177,7 @@ module ActiveRecord
               SELECT *
               FROM (
                 SELECT #{insert.send(:columns_list)}, #{partition_by_columns_with_uniqueness_constraints(columns_with_uniqueness_constraints:)}
-                FROM (#{insert.values_list})
+                FROM (#{merge_insert_values_list(insert:, insert_all:)})
                 AS t1 (#{insert.send(:columns_list)})
               ) AS ranked_source
               WHERE #{is_first_record_across_all_uniqueness_constraints(columns_with_uniqueness_constraints:)}
@@ -204,6 +204,35 @@ module ActiveRecord
           sql << ";"
 
           sql
+        end
+
+        # For `nil` identity columns we need to ensure that the values do not match so that they are all inserted.
+        # Method is a combination of `ActiveRecord::InsertAll#values_list` and `ActiveRecord::ConnectionAdapters::SQLServer::DatabaseStatements#default_insert_value`.
+        def merge_insert_values_list(insert:, insert_all:)
+          connection = insert.send(:connection)
+          identity_index = 0
+
+          types = insert.send(:extract_types_from_columns_on, insert.model.table_name, keys: insert.keys_including_timestamps)
+
+          values_list = insert_all.map_key_with_value do |key, value|
+            if Arel::Nodes::SqlLiteral === value
+              value
+            elsif insert.primary_keys.include?(key) && value.nil?
+              column = insert.send(:column_from_key, key)
+
+              if column.is_identity?
+                identity_index += 1
+                table_name = quote(quote_table_name(column.table_name))
+                Arel.sql("IDENT_CURRENT(#{table_name}) + IDENT_INCR(#{table_name}) * #{identity_index}")
+              else
+                connection.default_insert_value(column)
+              end
+            else
+              ActiveModel::Type::SerializeCastValue.serialize(type = types[key], type.cast(value))
+            end
+          end
+
+          connection.visitor.compile(Arel::Nodes::ValuesList.new(values_list))
         end
 
         # === SQLServer Specific ======================================== #
