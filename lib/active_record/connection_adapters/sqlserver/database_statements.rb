@@ -223,7 +223,7 @@ module ActiveRecord
               if column.is_identity?
                 identity_index += 1
                 table_name = quote(quote_table_name(column.table_name))
-                Arel.sql("IDENT_CURRENT(#{table_name}) + IDENT_INCR(#{table_name}) * #{identity_index}")
+                Arel.sql("IDENT_CURRENT(#{table_name}) + (IDENT_INCR(#{table_name}) * #{identity_index})")
               else
                 connection.default_insert_value(column)
               end
