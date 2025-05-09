@@ -210,7 +210,7 @@ module ActiveRecord
             with_raw_connection do |conn|
               result = internal_raw_execute(sql, conn)
               verified!
-              options = { as: :hash, cache_rows: true, timezone: ActiveRecord.default_timezone || :utc }
+              options = { as: :hash, cache_rows: true, timezone: @config[:default_timezone]&.to_sym || ActiveRecord.default_timezone || :utc }
 
               result.each(options) do |row|
                 r = row.with_indifferent_access
@@ -473,7 +473,7 @@ module ActiveRecord
 
         def handle_to_names_and_values(handle, options = {})
           query_options = {}.tap do |qo|
-            qo[:timezone] = ActiveRecord.default_timezone || :utc
+            qo[:timezone] = @config[:default_timezone]&.to_sym || ActiveRecord.default_timezone || :utc
             qo[:as] = (options[:ar_result] || options[:fetch] == :rows) ? :array : :hash
           end
           results = handle.each(query_options)
