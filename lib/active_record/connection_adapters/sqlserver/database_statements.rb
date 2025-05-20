@@ -17,9 +17,6 @@ module ActiveRecord
           id_insert_table_name = query_requires_identity_insert?(sql)
 
           result, affected_rows = if id_insert_table_name
-            # If the table name is a view, we need to get the base table name for enabling identity insert.
-            id_insert_table_name = view_table_name(id_insert_table_name) if view_exists?(id_insert_table_name)
-
             with_identity_insert_enabled(id_insert_table_name, raw_connection) do
               internal_exec_sql_query(sql, raw_connection)
             end
@@ -264,11 +261,14 @@ module ActiveRecord
         end
 
         def with_identity_insert_enabled(table_name, conn)
-          table_name = quote_table_name(table_name)
-          set_identity_insert(table_name, conn, true)
+          # If the table name is a view, we need to get the base table name for enabling identity insert.
+          table_name = view_table_name(table_name) if view_exists?(table_name)
+          quoted_table_name = quote_table_name(table_name)
+
+          set_identity_insert(quoted_table_name, conn, true)
           yield
         ensure
-          set_identity_insert(table_name, conn, false)
+          set_identity_insert(quoted_table_name, conn, false)
         end
 
         def use_database(database = nil)
