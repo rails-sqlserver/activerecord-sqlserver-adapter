@@ -30,12 +30,11 @@ module ActiveRecord
           result
         end
 
-        def cast_result(raw_result)
-          if raw_result.columns.empty?
-            ActiveRecord::Result.empty
-          else
-            ActiveRecord::Result.new(raw_result.columns, raw_result.rows)
-          end
+        # Method `perform_query` already returns an `ActiveRecord::Result` so we have nothing to cast here. This is
+        # different to the MySQL/PostgreSQL adapters where the raw result is converted to `ActiveRecord::Result` in
+        # `cast_result`.
+        def cast_result(result)
+          result
         end
 
         # Returns the affected rows from results.
@@ -521,7 +520,7 @@ module ActiveRecord
             columns = columns.last if columns.any? && columns.all? { |e| e.is_a?(Array) } # If query returns multiple result sets, only return the columns of the last one.
             columns = columns.map(&:downcase) if lowercase_schema_reflection
 
-            ActiveRecord::Result.new(columns, results)
+            ActiveRecord::Result.new(columns, results, affected_rows: handle.affected_rows)
           else
             results
           end
