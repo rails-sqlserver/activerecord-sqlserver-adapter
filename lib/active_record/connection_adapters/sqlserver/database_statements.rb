@@ -17,12 +17,12 @@ module ActiveRecord
           id_insert_table_name = query_requires_identity_insert?(sql)
 
           result, affected_rows = if id_insert_table_name
-                                    with_identity_insert_enabled(id_insert_table_name, raw_connection) do
-                                      internal_exec_sql_query(sql, raw_connection)
-                                    end
-                                  else
-                                    internal_exec_sql_query(sql, raw_connection)
-                                  end
+            with_identity_insert_enabled(id_insert_table_name, raw_connection) do
+              internal_exec_sql_query(sql, raw_connection)
+            end
+          else
+            internal_exec_sql_query(sql, raw_connection)
+          end
 
           verified!
           notification_payload[:affected_rows] = affected_rows
@@ -236,10 +236,10 @@ module ActiveRecord
 
         def execute_procedure(proc_name, *variables)
           vars = if variables.any? && variables.first.is_a?(Hash)
-                   variables.first.map { |k, v| "@#{k} = #{quote(v)}" }
-                 else
-                   variables.map { |v| quote(v) }
-                 end.join(", ")
+            variables.first.map { |k, v| "@#{k} = #{quote(v)}" }
+          else
+            variables.map { |v| quote(v) }
+          end.join(", ")
           sql = "EXEC #{proc_name} #{vars}".strip
 
           log(sql, "Execute Procedure") do |notification_payload|
@@ -345,35 +345,35 @@ module ActiveRecord
           end
 
           sql = if pk && use_output_inserted? && !database_prefix_remote_server?
-                  table_name ||= get_table_name(sql)
-                  exclude_output_inserted = exclude_output_inserted_table_name?(table_name, sql)
+            table_name ||= get_table_name(sql)
+            exclude_output_inserted = exclude_output_inserted_table_name?(table_name, sql)
 
-                  if exclude_output_inserted
-                    pk_and_types = Array(pk).map do |subkey|
-                      {
-                        quoted: SQLServer::Utils.extract_identifiers(subkey).quoted,
-                        id_sql_type: exclude_output_inserted_id_sql_type(subkey, exclude_output_inserted)
-                      }
-                    end
+            if exclude_output_inserted
+              pk_and_types = Array(pk).map do |subkey|
+                {
+                  quoted: SQLServer::Utils.extract_identifiers(subkey).quoted,
+                  id_sql_type: exclude_output_inserted_id_sql_type(subkey, exclude_output_inserted)
+                }
+              end
 
-                    <<~SQL.squish
+              <<~SQL.squish
                 DECLARE @ssaIdInsertTable table (#{pk_and_types.map { |pk_and_type| "#{pk_and_type[:quoted]} #{pk_and_type[:id_sql_type]}" }.join(", ")});
                 #{sql.dup.insert sql.index(/ (DEFAULT )?VALUES/i), " OUTPUT #{pk_and_types.map { |pk_and_type| "INSERTED.#{pk_and_type[:quoted]}" }.join(", ")} INTO @ssaIdInsertTable"}
                 SELECT #{pk_and_types.map { |pk_and_type| "CAST(#{pk_and_type[:quoted]} AS #{pk_and_type[:id_sql_type]}) #{pk_and_type[:quoted]}" }.join(", ")} FROM @ssaIdInsertTable
               SQL
-                  else
-                    returning_columns = returning || Array(pk)
+            else
+              returning_columns = returning || Array(pk)
 
-                    if returning_columns.any?
-                      returning_columns_statements = returning_columns.map { |c| " INSERTED.#{SQLServer::Utils.extract_identifiers(c).quoted}" }
-                      sql.dup.insert sql.index(/ (DEFAULT )?VALUES/i), " OUTPUT" + returning_columns_statements.join(",")
-                    else
-                      sql
-                    end
-                  end
-                else
-                  "#{sql}; SELECT CAST(SCOPE_IDENTITY() AS bigint) AS Ident"
-                end
+              if returning_columns.any?
+                returning_columns_statements = returning_columns.map { |c| " INSERTED.#{SQLServer::Utils.extract_identifiers(c).quoted}" }
+                sql.dup.insert sql.index(/ (DEFAULT )?VALUES/i), " OUTPUT" + returning_columns_statements.join(",")
+              else
+                sql
+              end
+            end
+          else
+            "#{sql}; SELECT CAST(SCOPE_IDENTITY() AS bigint) AS Ident"
+          end
 
           [sql, binds]
         end
@@ -542,16 +542,16 @@ module ActiveRecord
           return "" unless insert_all.returning
 
           returning_values_sql = if insert_all.returning.is_a?(String)
-                                   insert_all.returning
-                                 else
-                                   Array(insert_all.returning).map do |attribute|
-                                     if insert.model.attribute_alias?(attribute)
-                                       "INSERTED.#{quote_column_name(insert.model.attribute_alias(attribute))} AS #{quote_column_name(attribute)}"
-                                     else
-                                       "INSERTED.#{quote_column_name(attribute)}"
-                                     end
-                                   end.join(",")
-                                 end
+            insert_all.returning
+          else
+            Array(insert_all.returning).map do |attribute|
+              if insert.model.attribute_alias?(attribute)
+                "INSERTED.#{quote_column_name(insert.model.attribute_alias(attribute))} AS #{quote_column_name(attribute)}"
+              else
+                "INSERTED.#{quote_column_name(attribute)}"
+              end
+            end.join(",")
+          end
 
           " OUTPUT #{returning_values_sql}"
         end
