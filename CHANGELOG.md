@@ -1,3 +1,9 @@
+## Unreleased
+
+#### Fixed
+
+- [#1334](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1334) Enable identity insert on view's base table for fixtures.
+
 ## v8.0.6
 
 #### Fixed
