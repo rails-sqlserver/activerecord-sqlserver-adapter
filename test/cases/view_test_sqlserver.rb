@@ -53,10 +53,16 @@ class ViewTestSQLServer < ActiveRecord::TestCase
   end
 
   describe "identity insert" do
-    it "identity insert works with views" do
-      assert_difference("SSTestCustomersView.count", 1) do
+    it "creates table record through a view" do
+      assert_difference("SSTestCustomersView.count", 2) do
         SSTestCustomersView.create!(id: 5, name: "Bob")
+        SSTestCustomersView.create!(id: 6, name: "Tim")
       end
+    end
+
+    it "creates table records through a view using fixtures" do
+      ActiveRecord::FixtureSet.create_fixtures(File.join(ARTest::SQLServer.test_root_sqlserver, "fixtures"), ["sst_customers_view"])
+      assert_equal SSTestCustomersView.all.count, 2
     end
   end
 end
