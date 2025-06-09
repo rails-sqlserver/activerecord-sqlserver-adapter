@@ -118,6 +118,10 @@ class SchemaTestSQLServer < ActiveRecord::TestCase
       it do
         assert_equal "[with].[select notation]", connection.send(:get_raw_table_name, "MERGE INTO [with].[select notation] AS target")
       end
+
+      it do
+        assert_equal "[with_numbers_1234]", connection.send(:get_raw_table_name, "MERGE INTO [with_numbers_1234] AS target")
+      end
     end
 
     describe "CREATE VIEW statements" do
