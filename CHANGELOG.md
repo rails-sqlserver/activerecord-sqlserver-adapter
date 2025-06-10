@@ -3,6 +3,7 @@
 #### Fixed
 
 - [#1334](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1334) Enable identity insert on view's base table for fixtures.
+- [#1339](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1339) Fix `insert_all`/`upsert_all` for table names containing numbers.
 
 ## v8.0.6
 
