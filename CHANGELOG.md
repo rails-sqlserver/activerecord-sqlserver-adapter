@@ -1,3 +1,9 @@
+## Unreleased
+
+#### Changed
+
+- [#1342](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1342) Support more Azure services by changing language source.
+
 ## v8.0.7
 
 #### Fixed
