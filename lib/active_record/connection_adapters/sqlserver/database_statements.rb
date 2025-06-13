@@ -296,7 +296,7 @@ module ActiveRecord
 
         def user_options_dateformat
           if sqlserver_azure?
-            select_value "SELECT [dateformat] FROM [sys].[syslanguages] WHERE [langid] = @@LANGID", "SCHEMA"
+            select_value "SELECT [dateformat] FROM [sys].[syslanguages] WHERE [name] = @@LANGUAGE", "SCHEMA"
           else
             user_options["dateformat"]
           end
