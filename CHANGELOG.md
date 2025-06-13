@@ -9,6 +9,7 @@
 #### Changed
 
 - [#1273](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1273) TinyTDS v3+ is now required.
+- [#1343](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1343) Support more Azure services by changing language source.
 
 #### Fixed
 
