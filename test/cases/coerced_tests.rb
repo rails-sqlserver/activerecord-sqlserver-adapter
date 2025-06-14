@@ -1845,18 +1845,21 @@ class TransactionIsolationTest < ActiveRecord::TestCase
 
   private
 
-  # Need to handle the resetting of the isolation level in the adapter by `SQLServerRealTransaction#commit`.
-  # MySQL & PostgreSQL do not reset the connection and SQLite does support transaction isolation. After that we
-  # can assert the number of expected isolation level events.
+  # Need to handle the resetting of the isolation level in the adapter by `SQLServerRealTransaction#commit` for each
+  # connection pool. After the resetting events have been removed we can assert the number of expected isolation level
+  # events. This workaround assumes that the `count` also matches the number of connection pools used in the test.
+  # Note: MySQL & PostgreSQL do not reset the connection and SQLite does support transaction isolation.
   undef_method :assert_begin_isolation_level_event
-  def assert_begin_isolation_level_event(events, isolation: "READ COMMITTED")
+  def assert_begin_isolation_level_event(events, isolation: "READ COMMITTED", count: 1)
     isolation_events = events.select { |event| event.match(/SET TRANSACTION ISOLATION LEVEL/) }
 
-    index_of_reset_starting_isolation_level_event = isolation_events.index("SET TRANSACTION ISOLATION LEVEL READ COMMITTED")
-    assert index_of_reset_starting_isolation_level_event.present?
-    isolation_events.delete_at(index_of_reset_starting_isolation_level_event)
+    count.times do
+      index_of_reset_starting_isolation_level_event = isolation_events.index("SET TRANSACTION ISOLATION LEVEL READ COMMITTED")
+      assert index_of_reset_starting_isolation_level_event.present?
+      isolation_events.delete_at(index_of_reset_starting_isolation_level_event)
+    end
 
-    assert_equal 1, isolation_events.count { |event| event.match(/SET TRANSACTION ISOLATION LEVEL #{isolation}/) }
+    assert_equal count, isolation_events.count { |event| event.match(/SET TRANSACTION ISOLATION LEVEL #{isolation}/) }
   end
 end
 
