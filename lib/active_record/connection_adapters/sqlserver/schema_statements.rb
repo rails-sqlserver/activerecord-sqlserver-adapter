@@ -210,12 +210,14 @@ module ActiveRecord
             sql_commands << "ALTER TABLE #{quote_table_name(table_name)} ADD CONSTRAINT #{default_constraint_name(table_name, column_name)} DEFAULT #{default} FOR #{quote_column_name(column_name)}"
           end
 
+          sql_commands.each { |c| execute(c) }
+
           # Add any removed indexes back
           indexes.each do |index|
-            sql_commands << "CREATE INDEX #{quote_table_name(index.name)} ON #{quote_table_name(table_name)} (#{index.columns.map { |c| quote_column_name(c) }.join(", ")})"
+            create_index_def = CreateIndexDefinition.new(index)
+            execute schema_creation.accept(create_index_def)
           end
 
-          sql_commands.each { |c| execute(c) }
           clear_cache!
         end
 
