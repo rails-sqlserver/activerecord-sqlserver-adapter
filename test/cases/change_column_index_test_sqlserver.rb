@@ -90,9 +90,7 @@ class ChangeColumnIndexTestSqlServer < ActiveRecord::TestCase
     index_2 = indexes.find { |index| index.columns == ["title", "subtitle"] }
     assert index_2.unique
 
-
     ChangeBlogPostsTitleLength.new.up
-
 
     indexes = ActiveRecord::Base.connection.indexes("blog_posts")
     columns = ActiveRecord::Base.connection.columns("blog_posts")
