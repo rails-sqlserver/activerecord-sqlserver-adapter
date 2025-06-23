@@ -5,7 +5,7 @@
 - [#1342](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1342) Support more Azure services by changing language source.
 
 #### Fixed
-- [#1346](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1346) Maintain index options during `change_column` operations.
+- [#1345](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1345) Maintain index options during `change_column` operations.
 
 ## v8.0.7
 
