@@ -844,7 +844,7 @@ module ActiveRecord
       def test_remove_foreign_key_on_8_0_coerced
         connection.create_table(:sub_testings) do |t|
           t.references :testing, foreign_key: true, type: :bigint
-          t.references :experiment, foreign_key: { to_table: :testings }, type: :bigint
+          t.references :experiment, foreign_key: {to_table: :testings}, type: :bigint
         end
 
         migration = Class.new(ActiveRecord::Migration[8.0]) do
