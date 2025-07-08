@@ -269,7 +269,7 @@ module ActiveRecord
           identifier = SQLServer::Utils.extract_identifiers(table_name)
           fk_info = execute_procedure :sp_fkeys, nil, identifier.schema, nil, identifier.object, identifier.schema
 
-          grouped_fk = fk_info.group_by { |row| row["FK_NAME"] }.values.each { |group| group.sort_by! { |row| row["KEY_SEQ"] } }
+          grouped_fk = fk_info.group_by { |row| row["FK_NAME"] }.values.each { |group| group.sort_by! { |row| row["KEY_SEQ"] } }.reverse
           grouped_fk.map do |group|
             row = group.first
             options = {

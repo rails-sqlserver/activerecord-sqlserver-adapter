@@ -838,6 +838,34 @@ module ActiveRecord
           nil
         end
       end
+
+      # Foreign key count is the same as PostgreSQL/SQLite.
+      coerce_tests! :test_remove_foreign_key_on_8_0
+      def test_remove_foreign_key_on_8_0_coerced
+        connection.create_table(:sub_testings) do |t|
+          t.references :testing, foreign_key: true, type: :bigint
+          t.references :experiment, foreign_key: {to_table: :testings}, type: :bigint
+        end
+
+        migration = Class.new(ActiveRecord::Migration[8.0]) do
+          def up
+            change_table(:sub_testings) do |t|
+              t.remove_foreign_key :testings
+              t.remove_foreign_key :testings, column: :experiment_id
+            end
+          end
+        end
+
+        assert_raise(StandardError, match: /Table 'sub_testings' has no foreign key for testings$/) {
+          ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
+        }
+
+        foreign_keys = @connection.foreign_keys("sub_testings")
+        assert_equal 2, foreign_keys.size
+      ensure
+        connection.drop_table(:sub_testings, if_exists: true)
+        ActiveRecord::Base.clear_cache!
+      end
     end
   end
 end
