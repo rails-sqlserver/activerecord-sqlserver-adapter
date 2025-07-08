@@ -5,6 +5,7 @@ require "bundler/setup"
 Bundler.require :default, :development
 require "pry"
 require "support/core_ext/query_cache"
+require "support/core_ext/backtrace_cleaner"
 require "support/minitest_sqlserver"
 require "support/test_in_memory_oltp"
 require "support/table_definition_sqlserver"
