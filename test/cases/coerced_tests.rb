@@ -2898,3 +2898,65 @@ module ActiveRecord
     end
   end
 end
+
+class EachTest < ActiveRecord::TestCase
+  # Match SQL Server limit implementation.
+  coerce_tests! :test_in_batches_executes_range_queries_when_unconstrained
+  def test_in_batches_executes_range_queries_when_unconstrained_coerced
+    quoted_posts_id = Regexp.escape(quote_table_name("posts.id"))
+
+    relations = assert_queries_match(/ORDER BY #{quoted_posts_id} ASC OFFSET @\S ROWS FETCH NEXT @\S ROWS ONLY/i, count: 6) do
+      assert_queries_match(/ORDER BY #{quoted_posts_id} ASC OFFSET 0 ROWS FETCH NEXT @\S ROWS ONLY/i, count: 1) do
+        Post.in_batches(of: 2).to_a
+      end
+    end
+
+    assert_queries_match(/WHERE #{quoted_posts_id} > .+ AND #{quoted_posts_id} <= .+/i) do
+      relations.each { |relation| assert_kind_of Post, relation.first }
+    end
+  end
+
+  # Match SQL Server limit implementation.
+  coerce_tests! :test_in_batches_executes_in_queries_when_unconstrained_and_opted_out_of_ranges
+  def test_in_batches_executes_in_queries_when_unconstrained_and_opted_out_of_ranges_coerced
+    quoted_posts_id = Regexp.escape(quote_table_name("posts.id"))
+
+    relations = assert_queries_match(/ORDER BY #{quoted_posts_id} ASC OFFSET 0 ROWS FETCH NEXT @\S ROWS ONLY/i, count: 6) do
+      Post.in_batches(of: 2, use_ranges: false).to_a
+    end
+
+    assert_queries_match(/#{quoted_posts_id} IN \(.+\)/i) do
+      relations.each { |relation| assert_kind_of Post, relation.first }
+    end
+  end
+
+  # Match SQL Server limit implementation.
+  coerce_tests! :test_in_batches_executes_in_queries_when_constrained
+  def test_in_batches_executes_in_queries_when_constrained_coerced
+    quoted_posts_id = Regexp.escape(quote_table_name("posts.id"))
+
+    relations = assert_queries_match(/ORDER BY #{quoted_posts_id} ASC OFFSET 0 ROWS FETCH NEXT @\S ROWS ONLY/i, count: 3) do
+      Post.where("id < ?", 5).in_batches(of: 2).to_a
+    end
+
+    assert_queries_match(/#{quoted_posts_id} IN \(.+\)/i) do
+      relations.each { |relation| assert_kind_of Post, relation.first }
+    end
+  end
+
+  # Match SQL Server limit implementation.
+  coerce_tests! :test_in_batches_executes_range_queries_when_constrained_and_opted_in_into_ranges
+  def test_in_batches_executes_range_queries_when_constrained_and_opted_in_into_ranges_coerced
+    quoted_posts_id = Regexp.escape(quote_table_name("posts.id"))
+
+    relations = assert_queries_match(/ORDER BY #{quoted_posts_id} ASC OFFSET @\S ROWS FETCH NEXT @\S ROWS ONLY/i, count: 3) do
+      assert_queries_match(/ORDER BY #{quoted_posts_id} ASC OFFSET 0 ROWS FETCH NEXT @\S ROWS ONLY/i, count: 1) do
+        Post.where("id < ?", 5).in_batches(of: 2, use_ranges: true).to_a
+      end
+    end
+
+    assert_queries_match(/#{quoted_posts_id} > .+ AND #{quoted_posts_id} <= .+/i) do
+      relations.each { |relation| assert_kind_of Post, relation.first }
+    end
+  end
+end
