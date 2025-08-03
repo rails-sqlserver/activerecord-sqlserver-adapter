@@ -7,7 +7,7 @@ git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 gemspec
 
 gem "bcrypt"
-gem "pg", "~> 1.3"
+gem "pg", "1.5.9"
 gem "sqlite3", ">= 2.1"
 gem "tzinfo-data", platforms: [:mingw, :mswin, :x64_mingw, :jruby]
 gem "benchmark-ips"
