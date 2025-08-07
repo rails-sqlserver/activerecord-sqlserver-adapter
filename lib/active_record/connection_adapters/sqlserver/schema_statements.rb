@@ -98,7 +98,7 @@ module ActiveRecord
 
         def primary_keys(table_name)
           primaries = primary_keys_select(table_name)
-          primaries.present? ? primaries : identity_columns(table_name).map(&:name)
+          primaries.present? ? primaries : identity_columns(table_name)
         end
 
         def primary_keys_select(table_name)

@@ -407,9 +407,9 @@ module ActiveRecord
           return false unless insert_sql?(sql)
 
           raw_table_name = get_raw_table_name(sql)
-          id_column = identity_columns(raw_table_name).first
+          id_column_name = identity_columns(raw_table_name).first
 
-          id_column && sql =~ /^\s*(INSERT|EXEC sp_executesql N'INSERT)[^(]+\([^)]*\b(#{id_column.name})\b,?[^)]*\)/i ? SQLServer::Utils.extract_identifiers(raw_table_name).quoted : false
+          id_column_name && sql =~ /^\s*(INSERT|EXEC sp_executesql N'INSERT)[^(]+\([^)]*\b(#{id_column_name})\b,?[^)]*\)/i ? SQLServer::Utils.extract_identifiers(raw_table_name).quoted : false
         end
 
         def insert_sql?(sql)
@@ -417,7 +417,46 @@ module ActiveRecord
         end
 
         def identity_columns(table_name)
-          schema_cache.columns(table_name).select(&:is_identity?)
+          identifier = database_prefix_identifier(table_name)
+          database = identifier.fully_qualified_database_quoted
+
+          # if database is specified in the query we may be doing
+          # a cross database query and cannot rely on schema_cache.
+          # schema_cache would only be populated if the database
+          # exists in rails database.yml
+          # We bother to check and use schema_cache if possible because
+          # AR core has some tests that audit the number of queries performed
+          if database.blank?
+            schema_cache.columns(table_name).select(&:is_identity?).map(&:name)
+          else
+            identity_columns_select(table_name)
+          end
+        end
+
+        def identity_columns_select(table_name)
+          identifier = database_prefix_identifier(table_name)
+          database = identifier.fully_qualified_database_quoted
+          database += "." unless database.blank?
+
+          schema_name = "schema_name()"
+          object_name = quote(identifier.object)
+
+          if identifier.schema.present?
+            schema_name = quote(identifier.schema)
+          end
+
+          sql = <<~SQL
+            SELECT
+              #{lowercase_schema_reflection_sql('c.name')} AS [name]
+            FROM #{database}sys.columns c
+            INNER JOIN #{database}sys.objects o ON c.object_id = o.object_id --poop
+            INNER JOIN #{database}sys.schemas s ON o.schema_id = s.schema_id
+            WHERE o.name = #{object_name} AND s.name = #{schema_name} AND c.is_identity = 1
+            ORDER BY c.column_id
+          SQL
+
+          results = internal_exec_query(sql, "SCHEMA")
+          results.map { |row| row["name"] }
         end
 
         # === SQLServer Specific (Selecting) ============================ #
