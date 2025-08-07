@@ -92,21 +92,6 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
     assert arunit2_connection.table_exists?("#{arunit_database}.dbo.topics"), 'Topics table exists using Colleges connection'
   end
 
-  # it "test sql insert across databases" do
-  #   arunit_connection = Topic.lease_connection
-  #   arunit2_connection = College.lease_connection
-  #
-  #   arunit_database = arunit_connection.pool.db_config.database
-  #   arunit2_database = arunit2_connection.pool.db_config.database
-  #
-  #   sql = <<~SQL
-  #     INSERT INTO #{arunit2_database}.dbo.dogs SELECT * FROM #{arunit_database}.dbo.dogs
-  #   SQL
-  #
-  #   arunit_connection.exec_insert sql
-  #   assert arunit_connection.send(:query_requires_identity_insert?, sql)
-  #
-  # end
   it "return true to insert sql query for inserts only" do
     assert connection.send(:insert_sql?, "INSERT...")
     assert connection.send(:insert_sql?, "EXEC sp_executesql N'INSERT INTO [fk_test_has_fks] ([fk_id]) VALUES (@0); SELECT CAST(SCOPE_IDENTITY() AS bigint) AS Ident', N'@0 int', @0 = 0")
