@@ -233,6 +233,31 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
     it "return an empty array when calling #identity_columns for a table_name with no identity" do
       _(connection.send(:identity_columns, Subscriber.table_name)).must_equal []
     end
+
+    it "identity insert enabled for cross database insert" do
+      arunit_connection = Dog.lease_connection
+      arunit2_connection = OtherDog.lease_connection
+
+      arunit_database = arunit_connection.pool.db_config.database
+      arunit2_database = arunit2_connection.pool.db_config.database
+
+      sql = <<~SQL
+        INSERT INTO #{arunit2_database}.dbo.dogs(id) SELECT id FROM #{arunit_database}.dbo.dogs
+      SQL
+
+      OtherDog.destroy_all
+      
+      #
+      # assert Dog.count, 1
+      # assert OtherDog.count, 0
+
+      assert_nothing_raised do
+        arunit_connection.execute(sql)
+      end
+
+      # assert Dog.count, 1
+      # assert OtherDog.count, 1
+    end
   end
 
   describe "quoting" do
