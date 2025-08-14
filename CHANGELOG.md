@@ -4,6 +4,10 @@
 
 - [#1341](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1341) Support more Azure services by changing language source.
 
+#### Fixed
+
+- [#1357(https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1357) Support cross database inserts.
+
 ## v7.2.6
 
 #### Fixed
