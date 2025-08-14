@@ -201,6 +201,7 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
       @identity_insert_sql_non_dbo_unquoted_sp = "EXEC sp_executesql N'INSERT INTO test.aliens (id, name) VALUES (@0, @1)', N'@0 int, @1 nvarchar(255)', @0 = 420, @1 = N'Mork'"
       @identity_insert_sql_non_dbo_unordered_sp = "EXEC sp_executesql N'INSERT INTO [test].[aliens] ([name],[id]) VALUES (@0, @1)', N'@0 nvarchar(255), @1  int', @0 = N'Mork', @1 = 420"
 
+      @non_identity_insert_sql_cross_database = "INSERT INTO #{arunit2_database}.dbo.dogs SELECT * FROM #{arunit_database}.dbo.dogs"
       @identity_insert_sql_cross_database = "INSERT INTO #{arunit2_database}.dbo.dogs(id) SELECT id FROM #{arunit_database}.dbo.dogs"
     end
 
@@ -223,7 +224,7 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
     end
 
     it "return false to #query_requires_identity_insert? for normal SQL" do
-      [basic_insert_sql, basic_update_sql, basic_select_sql].each do |sql|
+      [basic_insert_sql, basic_update_sql, basic_select_sql, @non_identity_insert_sql_cross_database].each do |sql|
         assert !connection.send(:query_requires_identity_insert?, sql), "SQL was #{sql}"
       end
     end
@@ -243,8 +244,6 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
       assert_equal id_column.name, arunit_connection.send(:identity_columns, OtherDog.table_name).first.name
       assert_equal id_column.sql_type, arunit_connection.send(:identity_columns, OtherDog.table_name).first.sql_type
     end
-
-
 
     it "return an empty array when calling #identity_columns for a table_name with no identity" do
       _(connection.send(:identity_columns, Subscriber.table_name)).must_equal []
