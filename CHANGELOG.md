@@ -6,7 +6,7 @@
 
 #### Fixed
 
-- [#1357(https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1357) Support cross database inserts.
+- [#1357](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1357) Support cross database inserts.
 
 ## v7.2.6
 
