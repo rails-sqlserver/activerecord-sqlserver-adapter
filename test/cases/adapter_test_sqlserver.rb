@@ -14,10 +14,10 @@ require "models/discount"
 class AdapterTestSQLServer < ActiveRecord::TestCase
   fixtures :tasks
 
-  let(:arunit_connection)  { Topic.lease_connection }
+  let(:arunit_connection) { Topic.lease_connection }
   let(:arunit2_connection) { College.lease_connection }
-  let(:arunit_database)    { arunit_connection.pool.db_config.database }
-  let(:arunit2_database)   { arunit2_connection.pool.db_config.database }
+  let(:arunit_database) { arunit_connection.pool.db_config.database }
+  let(:arunit2_database) { arunit2_connection.pool.db_config.database }
 
   let(:basic_insert_sql) { "INSERT INTO [funny_jokes] ([name]) VALUES('Knock knock')" }
   let(:basic_merge_sql) { "MERGE INTO [ships] WITH (UPDLOCK, HOLDLOCK) AS target USING ( SELECT * FROM ( SELECT [id], [name], ROW_NUMBER() OVER ( PARTITION BY [id] ORDER BY [id] DESC ) AS rn_0 FROM ( VALUES (101, N'RSS Sir David Attenborough') ) AS t1 ([id], [name]) ) AS ranked_source WHERE rn_0 = 1 ) AS source ON (target.[id] = source.[id]) WHEN MATCHED THEN UPDATE SET target.[name] = source.[name]" }
@@ -116,13 +116,13 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
     db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
     configuration = db_config.configuration_hash.merge(database: "nonexistent_activerecord_unittest")
     assert_not ActiveRecord::ConnectionAdapters::SQLServerAdapter.database_exists?(configuration),
-               "expected database #{configuration[:database]} to not exist"
+      "expected database #{configuration[:database]} to not exist"
   end
 
   it "test database exists returns true when the database exists" do
     db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
     assert ActiveRecord::ConnectionAdapters::SQLServerAdapter.database_exists?(db_config.configuration_hash),
-           "expected database #{db_config.database} to exist"
+      "expected database #{db_config.database} to exist"
   end
 
   it "test primary key violation" do
@@ -476,8 +476,8 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
       assert_equal columns.size, SSTestCustomersView.columns.size
       columns.each do |colname|
         assert_instance_of ActiveRecord::ConnectionAdapters::SQLServer::Column,
-                           SSTestCustomersView.columns_hash[colname],
-                           "Column name #{colname.inspect} was not found in these columns #{SSTestCustomersView.columns.map(&:name).inspect}"
+          SSTestCustomersView.columns_hash[colname],
+          "Column name #{colname.inspect} was not found in these columns #{SSTestCustomersView.columns.map(&:name).inspect}"
       end
     end
 
@@ -503,8 +503,8 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
       assert_equal columns.size, SSTestStringDefaultsView.columns.size
       columns.each do |colname|
         assert_instance_of ActiveRecord::ConnectionAdapters::SQLServer::Column,
-                           SSTestStringDefaultsView.columns_hash[colname],
-                           "Column name #{colname.inspect} was not found in these columns #{SSTestStringDefaultsView.columns.map(&:name).inspect}"
+          SSTestStringDefaultsView.columns_hash[colname],
+          "Column name #{colname.inspect} was not found in these columns #{SSTestStringDefaultsView.columns.map(&:name).inspect}"
       end
     end
 
@@ -516,7 +516,7 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
 
     it "find default values" do
       assert_equal "null", SSTestStringDefaultsView.new.pretend_null,
-                   SSTestStringDefaultsView.columns_hash["pretend_null"].inspect
+        SSTestStringDefaultsView.columns_hash["pretend_null"].inspect
     end
 
     it "respond true to data_source_exists?" do
@@ -531,7 +531,7 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
 
     it "using alternate view definition still be able to find real default" do
       assert_equal "null", SSTestStringDefaultsBigView.new.pretend_null,
-                   SSTestStringDefaultsBigView.columns_hash["pretend_null"].inspect
+        SSTestStringDefaultsBigView.columns_hash["pretend_null"].inspect
     end
   end
 
