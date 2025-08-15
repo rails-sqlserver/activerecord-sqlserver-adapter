@@ -571,6 +571,7 @@ module ActiveRecord
         end
 
         def column_definitions_sql(database, identifier)
+          database = "TEMPDB" if identifier.temporary_table?
           schema_name = "schema_name()"
 
           if prepared_statements
@@ -581,12 +582,8 @@ module ActiveRecord
             schema_name = quote(identifier.schema) if identifier.schema.present?
           end
 
-          object_id_arg = identifier.schema.present? ? "CONCAT(#{schema_name},'.',#{object_name})" : object_name
-
-          if identifier.temporary_table?
-            database = "TEMPDB"
-            object_id_arg = "CONCAT('#{database}','..',#{object_name})"
-          end
+          object_id_arg = identifier.schema.present? ? "CONCAT('.',#{schema_name},'.',#{object_name})" : "CONCAT('..',#{object_name})"
+          object_id_arg = "CONCAT('#{database}',#{object_id_arg})"
 
           %{
             SELECT

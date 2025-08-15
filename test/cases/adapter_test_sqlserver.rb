@@ -7,9 +7,16 @@ require "models/post"
 require "models/subscriber"
 require "models/minimalistic"
 require "models/college"
+require "models/dog"
+require "models/other_dog"
 
 class AdapterTestSQLServer < ActiveRecord::TestCase
   fixtures :tasks
+
+  let(:arunit_connection)  { Topic.lease_connection }
+  let(:arunit2_connection) { College.lease_connection }
+  let(:arunit_database)    { arunit_connection.pool.db_config.database }
+  let(:arunit2_database)   { arunit2_connection.pool.db_config.database }
 
   let(:basic_insert_sql) { "INSERT INTO [funny_jokes] ([name]) VALUES('Knock knock')" }
   let(:basic_update_sql) { "UPDATE [customers] SET [address_street] = NULL WHERE [id] = 2" }
@@ -50,8 +57,7 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
       assert Topic.table_exists?, "Topics table name of 'dbo.topics' should return true for exists."
 
       # Test when database and owner included in table name.
-      db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
-      Topic.table_name = "#{db_config.database}.dbo.topics"
+      Topic.table_name = "#{arunit_database}.dbo.topics"
       assert Topic.table_exists?, "Topics table name of '[DATABASE].dbo.topics' should return true for exists."
     ensure
       Topic.table_name = "topics"
@@ -59,12 +65,6 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
   end
 
   it "test table existence across database schemas" do
-    arunit_connection = Topic.lease_connection
-    arunit2_connection = College.lease_connection
-
-    arunit_database = arunit_connection.pool.db_config.database
-    arunit2_database = arunit2_connection.pool.db_config.database
-
     # Assert that connections use different default databases schemas.
     assert_not_equal arunit_database, arunit2_database
 
@@ -200,6 +200,9 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
       @identity_insert_sql_non_dbo_sp = "EXEC sp_executesql N'INSERT INTO [test].[aliens] ([id],[name]) VALUES (@0, @1)', N'@0 int, @1 nvarchar(255)', @0 = 420, @1 = N'Mork'"
       @identity_insert_sql_non_dbo_unquoted_sp = "EXEC sp_executesql N'INSERT INTO test.aliens (id, name) VALUES (@0, @1)', N'@0 int, @1 nvarchar(255)', @0 = 420, @1 = N'Mork'"
       @identity_insert_sql_non_dbo_unordered_sp = "EXEC sp_executesql N'INSERT INTO [test].[aliens] ([name],[id]) VALUES (@0, @1)', N'@0 nvarchar(255), @1  int', @0 = N'Mork', @1 = 420"
+
+      @non_identity_insert_sql_cross_database = "INSERT INTO #{arunit2_database}.dbo.dogs SELECT * FROM #{arunit_database}.dbo.dogs"
+      @identity_insert_sql_cross_database = "INSERT INTO #{arunit2_database}.dbo.dogs(id) SELECT id FROM #{arunit_database}.dbo.dogs"
     end
 
     it "return quoted table_name to #query_requires_identity_insert? when INSERT sql contains id column" do
@@ -216,18 +219,30 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
       assert_equal "[test].[aliens]", connection.send(:query_requires_identity_insert?, @identity_insert_sql_non_dbo_sp)
       assert_equal "[test].[aliens]", connection.send(:query_requires_identity_insert?, @identity_insert_sql_non_dbo_unquoted_sp)
       assert_equal "[test].[aliens]", connection.send(:query_requires_identity_insert?, @identity_insert_sql_non_dbo_unordered_sp)
+
+      assert_equal "[#{arunit2_database}].[dbo].[dogs]", connection.send(:query_requires_identity_insert?, @identity_insert_sql_cross_database)
     end
 
     it "return false to #query_requires_identity_insert? for normal SQL" do
-      [basic_insert_sql, basic_update_sql, basic_select_sql].each do |sql|
+      [basic_insert_sql, basic_update_sql, basic_select_sql, @non_identity_insert_sql_cross_database].each do |sql|
         assert !connection.send(:query_requires_identity_insert?, sql), "SQL was #{sql}"
       end
     end
 
-    it "find identity column using #identity_columns" do
+    it "find identity column" do
       task_id_column = Task.columns_hash["id"]
       assert_equal task_id_column.name, connection.send(:identity_columns, Task.table_name).first.name
       assert_equal task_id_column.sql_type, connection.send(:identity_columns, Task.table_name).first.sql_type
+    end
+
+    it "find identity column cross database" do
+      id_column = Dog.columns_hash["id"]
+      assert_equal id_column.name, arunit2_connection.send(:identity_columns, Dog.table_name).first.name
+      assert_equal id_column.sql_type, arunit2_connection.send(:identity_columns, Dog.table_name).first.sql_type
+
+      id_column = OtherDog.columns_hash["id"]
+      assert_equal id_column.name, arunit_connection.send(:identity_columns, OtherDog.table_name).first.name
+      assert_equal id_column.sql_type, arunit_connection.send(:identity_columns, OtherDog.table_name).first.sql_type
     end
 
     it "return an empty array when calling #identity_columns for a table_name with no identity" do
