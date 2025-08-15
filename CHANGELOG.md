@@ -6,6 +6,7 @@
 
 #### Fixed
 - [#1345](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1345) Maintain index options during `change_column` operations.
+- [#1357](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1357) Support cross database inserts.
 
 ## v8.0.7
 

@@ -6,6 +6,7 @@ jobs:
   test:
     name: Run test suite
     runs-on: ubuntu-latest
+    timeout-minutes: 10
 
     env:
       COMPOSE_FILE: compose.ci.yaml
