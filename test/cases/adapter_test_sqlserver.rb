@@ -7,10 +7,17 @@ require "models/post"
 require "models/subscriber"
 require "models/minimalistic"
 require "models/college"
+require "models/dog"
+require "models/other_dog"
 require "models/discount"
 
 class AdapterTestSQLServer < ActiveRecord::TestCase
   fixtures :tasks
+
+  let(:arunit_connection)  { Topic.lease_connection }
+  let(:arunit2_connection) { College.lease_connection }
+  let(:arunit_database)    { arunit_connection.pool.db_config.database }
+  let(:arunit2_database)   { arunit2_connection.pool.db_config.database }
 
   let(:basic_insert_sql) { "INSERT INTO [funny_jokes] ([name]) VALUES('Knock knock')" }
   let(:basic_merge_sql) { "MERGE INTO [ships] WITH (UPDLOCK, HOLDLOCK) AS target USING ( SELECT * FROM ( SELECT [id], [name], ROW_NUMBER() OVER ( PARTITION BY [id] ORDER BY [id] DESC ) AS rn_0 FROM ( VALUES (101, N'RSS Sir David Attenborough') ) AS t1 ([id], [name]) ) AS ranked_source WHERE rn_0 = 1 ) AS source ON (target.[id] = source.[id]) WHEN MATCHED THEN UPDATE SET target.[name] = source.[name]" }
@@ -51,8 +58,7 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
     assert Topic.table_exists?, "Topics table name of 'dbo.topics' should return true for exists."
 
     # Test when database and owner included in table name.
-    db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
-    Topic.table_name = "#{db_config.database}.dbo.topics"
+    Topic.table_name = "#{arunit_database}.dbo.topics"
     assert Topic.table_exists?, "Topics table name of '[DATABASE].dbo.topics' should return true for exists."
   ensure
     Topic.table_name = "topics"
@@ -110,13 +116,13 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
     db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
     configuration = db_config.configuration_hash.merge(database: "nonexistent_activerecord_unittest")
     assert_not ActiveRecord::ConnectionAdapters::SQLServerAdapter.database_exists?(configuration),
-      "expected database #{configuration[:database]} to not exist"
+               "expected database #{configuration[:database]} to not exist"
   end
 
   it "test database exists returns true when the database exists" do
     db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
     assert ActiveRecord::ConnectionAdapters::SQLServerAdapter.database_exists?(db_config.configuration_hash),
-      "expected database #{db_config.database} to exist"
+           "expected database #{db_config.database} to exist"
   end
 
   it "test primary key violation" do
@@ -231,6 +237,9 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
       @identity_insert_sql_non_dbo_sp = "EXEC sp_executesql N'INSERT INTO [test].[aliens] ([id],[name]) VALUES (@0, @1)', N'@0 int, @1 nvarchar(255)', @0 = 420, @1 = N'Mork'"
       @identity_insert_sql_non_dbo_unquoted_sp = "EXEC sp_executesql N'INSERT INTO test.aliens (id, name) VALUES (@0, @1)', N'@0 int, @1 nvarchar(255)', @0 = 420, @1 = N'Mork'"
       @identity_insert_sql_non_dbo_unordered_sp = "EXEC sp_executesql N'INSERT INTO [test].[aliens] ([name],[id]) VALUES (@0, @1)', N'@0 nvarchar(255), @1  int', @0 = N'Mork', @1 = 420"
+
+      @non_identity_insert_sql_cross_database = "INSERT INTO #{arunit2_database}.dbo.dogs SELECT * FROM #{arunit_database}.dbo.dogs"
+      @identity_insert_sql_cross_database = "INSERT INTO #{arunit2_database}.dbo.dogs(id) SELECT id FROM #{arunit_database}.dbo.dogs"
     end
 
     it "return quoted table_name to #query_requires_identity_insert? when INSERT sql contains id column" do
@@ -251,18 +260,30 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
       assert_equal "[test].[aliens]", connection.send(:query_requires_identity_insert?, @identity_insert_sql_non_dbo_sp)
       assert_equal "[test].[aliens]", connection.send(:query_requires_identity_insert?, @identity_insert_sql_non_dbo_unquoted_sp)
       assert_equal "[test].[aliens]", connection.send(:query_requires_identity_insert?, @identity_insert_sql_non_dbo_unordered_sp)
+
+      assert_equal "[#{arunit2_database}].[dbo].[dogs]", connection.send(:query_requires_identity_insert?, @identity_insert_sql_cross_database)
     end
 
     it "return false to #query_requires_identity_insert? for normal SQL" do
-      [basic_insert_sql, basic_merge_sql, basic_update_sql, basic_select_sql].each do |sql|
+      [basic_insert_sql, basic_merge_sql, basic_update_sql, basic_select_sql, @non_identity_insert_sql_cross_database].each do |sql|
         assert !connection.send(:query_requires_identity_insert?, sql), "SQL was #{sql}"
       end
     end
 
-    it "find identity column using #identity_columns" do
+    it "find identity column" do
       task_id_column = Task.columns_hash["id"]
       assert_equal task_id_column.name, connection.send(:identity_columns, Task.table_name).first.name
       assert_equal task_id_column.sql_type, connection.send(:identity_columns, Task.table_name).first.sql_type
+    end
+
+    it "find identity column cross database" do
+      id_column = Dog.columns_hash["id"]
+      assert_equal id_column.name, arunit2_connection.send(:identity_columns, Dog.table_name).first.name
+      assert_equal id_column.sql_type, arunit2_connection.send(:identity_columns, Dog.table_name).first.sql_type
+
+      id_column = OtherDog.columns_hash["id"]
+      assert_equal id_column.name, arunit_connection.send(:identity_columns, OtherDog.table_name).first.name
+      assert_equal id_column.sql_type, arunit_connection.send(:identity_columns, OtherDog.table_name).first.sql_type
     end
 
     it "return an empty array when calling #identity_columns for a table_name with no identity" do
@@ -455,8 +476,8 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
       assert_equal columns.size, SSTestCustomersView.columns.size
       columns.each do |colname|
         assert_instance_of ActiveRecord::ConnectionAdapters::SQLServer::Column,
-          SSTestCustomersView.columns_hash[colname],
-          "Column name #{colname.inspect} was not found in these columns #{SSTestCustomersView.columns.map(&:name).inspect}"
+                           SSTestCustomersView.columns_hash[colname],
+                           "Column name #{colname.inspect} was not found in these columns #{SSTestCustomersView.columns.map(&:name).inspect}"
       end
     end
 
@@ -482,8 +503,8 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
       assert_equal columns.size, SSTestStringDefaultsView.columns.size
       columns.each do |colname|
         assert_instance_of ActiveRecord::ConnectionAdapters::SQLServer::Column,
-          SSTestStringDefaultsView.columns_hash[colname],
-          "Column name #{colname.inspect} was not found in these columns #{SSTestStringDefaultsView.columns.map(&:name).inspect}"
+                           SSTestStringDefaultsView.columns_hash[colname],
+                           "Column name #{colname.inspect} was not found in these columns #{SSTestStringDefaultsView.columns.map(&:name).inspect}"
       end
     end
 
@@ -495,7 +516,7 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
 
     it "find default values" do
       assert_equal "null", SSTestStringDefaultsView.new.pretend_null,
-        SSTestStringDefaultsView.columns_hash["pretend_null"].inspect
+                   SSTestStringDefaultsView.columns_hash["pretend_null"].inspect
     end
 
     it "respond true to data_source_exists?" do
@@ -510,7 +531,7 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
 
     it "using alternate view definition still be able to find real default" do
       assert_equal "null", SSTestStringDefaultsBigView.new.pretend_null,
-        SSTestStringDefaultsBigView.columns_hash["pretend_null"].inspect
+                   SSTestStringDefaultsBigView.columns_hash["pretend_null"].inspect
     end
   end
 

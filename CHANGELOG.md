@@ -18,5 +18,6 @@
 - [#1327](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1327) Fix multiple `nil` identity columns for merge insert.
 - [#1338](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1338) Fix `insert_all`/`upsert_all` for table names containing numbers.
 - [#1345](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1345) Maintain index options during `change_column` operations.
+- [#1357](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1357) Support cross database inserts.
 
 Please check [8-0-stable](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/blob/8-0-stable/CHANGELOG.md) for previous changes.
