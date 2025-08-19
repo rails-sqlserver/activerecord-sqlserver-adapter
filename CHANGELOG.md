@@ -1,4 +1,4 @@
-## Unreleased
+## v7.2.7
 
 #### Changed
 
