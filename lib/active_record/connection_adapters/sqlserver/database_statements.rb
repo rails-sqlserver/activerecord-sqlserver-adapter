@@ -208,13 +208,13 @@ module ActiveRecord
           connection = insert.send(:connection)
           identity_index = 0
 
-          types = insert.send(:extract_types_from_columns_on, insert.model.table_name, keys: insert.keys_including_timestamps)
+          types = insert.send(:extract_types_for, insert.keys_including_timestamps)
 
           values_list = insert_all.map_key_with_value do |key, value|
             if Arel::Nodes::SqlLiteral === value
               value
             elsif insert.primary_keys.include?(key) && value.nil?
-              column = insert.send(:column_from_key, key)
+              column = insert.model.columns_hash[key]
 
               if column.is_identity?
                 identity_index += 1
