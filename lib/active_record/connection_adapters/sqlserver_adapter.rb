@@ -495,6 +495,8 @@ module ActiveRecord
           NotNullViolation.new(message, sql: sql, binds: binds, connection_pool: @pool)
         when /Arithmetic overflow error/
           RangeError.new(message, sql: sql, binds: binds, connection_pool: @pool)
+        when /statement conflicted with the CHECK constraint/
+          CheckViolation.new(message, sql: sql, binds: binds, connection_pool: @pool)
         else
           super
         end
