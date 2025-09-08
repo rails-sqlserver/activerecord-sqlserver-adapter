@@ -280,7 +280,10 @@ module ActiveRecord
       # === Abstract Adapter (Connection Management) ================== #
 
       def active?
-        @raw_connection&.active?
+        if @raw_connection&.active?
+          verified!
+          true
+        end
       rescue *connection_errors
         false
       end
