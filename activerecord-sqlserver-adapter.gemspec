@@ -26,6 +26,6 @@ Gem::Specification.new do |spec|
   spec.executables = spec.files.grep(%r{^bin/}) { |f| File.basename(f) }
   spec.require_paths = ["lib"]
 
-  spec.add_dependency "activerecord", "~> 8.1.0.alpha"
+  spec.add_dependency "activerecord", "~> 8.1.0.beta1"
   spec.add_dependency "tiny_tds", "~> 3.0"
 end
