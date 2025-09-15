@@ -16,7 +16,7 @@ module ARTest
           if count
             assert_equal count, queries.size, "#{queries.size} instead of #{count} queries were executed. Queries: #{queries.join("\n\n")}"
           else
-            assert_operator queries.size, :>=, 1, "1 or more queries expected, but none were executed.#{queries.empty? ? "" : "\nQueries:\n#{queries.join("\n")}"}"
+            assert_operator queries.size, :>=, 1, "1 or more queries expected, but none were executed.#{"\nQueries:\n#{queries.join("\n")}" unless queries.empty?}"
           end
           result
         end
