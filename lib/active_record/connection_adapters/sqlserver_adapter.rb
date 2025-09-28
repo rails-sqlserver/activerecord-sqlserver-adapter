@@ -107,7 +107,7 @@ module ActiveRecord
 
           if sqlserver_config[:host]
             host_arg = "tcp:#{sqlserver_config[:host]}"
-            host_arg << ",#{sqlserver_config[:port]}" if sqlserver_config[:port]
+            host_arg += ",#{sqlserver_config[:port]}" if sqlserver_config[:port]
             args += ["-S", host_arg]
           end
 
