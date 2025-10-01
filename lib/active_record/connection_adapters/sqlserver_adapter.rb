@@ -505,7 +505,7 @@ module ActiveRecord
       end
 
       def sqlserver_version
-        @sqlserver_version ||= _raw_select("SELECT @@version", @raw_connection).first.first.to_s
+        @sqlserver_version ||= execute("SELECT @@version", "SCHEMA").rows.first.first.to_s
       end
 
       private

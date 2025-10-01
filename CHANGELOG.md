@@ -1,4 +1,8 @@
-## v7.1.11
+## Unreleased
+
+#### Fixed
+
+Correctly retrieve the SQL Server database version.
 
 #### Fixed
 

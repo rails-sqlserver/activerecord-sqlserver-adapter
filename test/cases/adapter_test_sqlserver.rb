@@ -129,6 +129,16 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
     end
   end
 
+  it 'test proper connection before fetching sqlserver_version'
+    connection.disconnect!
+
+    assert_nothing_raised do
+      version = connection.sqlserver_version
+      assert version.is_a?(String)
+      assert version.length > 0
+    end
+  end
+
   describe "with different language" do
     before do
       @default_language = connection.user_options_language
