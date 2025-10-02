@@ -1,3 +1,9 @@
+## Unreleased
+
+#### Fixed
+
+- [#](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/) Verify connection before retrieving the database version.
+
 ## v7.1.11
 
 #### Fixed
