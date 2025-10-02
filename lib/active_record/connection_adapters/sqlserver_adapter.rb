@@ -490,16 +490,16 @@ module ActiveRecord
       end
 
       def sqlserver_version
-        @sqlserver_version ||= _raw_select("SELECT @@version", @raw_connection).first.first.to_s
+        @sqlserver_version ||= begin
+          verify!
+          _raw_select("SELECT @@version", @raw_connection).first.first.to_s
+        end
       end
 
       private
 
       def connect
-        @sqlserver_version ||= begin
-          verify!
-          _raw_select("SELECT @@version", @raw_connection).first.first.to_s
-        end
+        @raw_connection = self.class.new_client(@connection_parameters)
       end
 
       def configure_connection
