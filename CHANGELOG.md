@@ -1,3 +1,9 @@
+## Unreleased
+
+#### Fixed
+
+- [#1366](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1366) Correctly retrieve the SQL Server database version.
+
 ## v8.0.8
 
 #### Changed
