@@ -18,7 +18,7 @@ Minitest.after_run do
   puts "\n\n"
   puts "=" * 80
   puts ActiveRecord::Base.connection.send(:sqlserver_version)
-  puts "\nSQL Server Version Year: #{ActiveRecord::Base.lease_connection.get_database_version}"
+  puts "\nSQL Server Version Year: #{ActiveRecord::Base.connection.get_database_version}"
   puts "=" * 80
 end
 
