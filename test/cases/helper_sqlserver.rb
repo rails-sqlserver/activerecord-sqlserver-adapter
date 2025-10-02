@@ -14,6 +14,14 @@ require "support/sql_counter_sqlserver"
 require "support/connection_reflection"
 require "mocha/minitest"
 
+Minitest.after_run do
+  puts "\n\n"
+  puts "=" * 80
+  puts ActiveRecord::Base.connection.send(:sqlserver_version)
+  puts "\nSQL Server Version Year: #{ActiveRecord::Base.connection.get_database_version}"
+  puts "=" * 80
+end
+
 module ActiveRecord
   class TestCase < ActiveSupport::TestCase
     SQLServer = ActiveRecord::ConnectionAdapters::SQLServer

@@ -493,19 +493,19 @@ module ActiveRecord
       end
 
       def version_year
-        @version_year ||= begin
-          if sqlserver_version =~ /vNext/
+        @version_year ||=
+          if /vNext/.match?(sqlserver_version)
             2016
           else
             /SQL Server (\d+)/.match(sqlserver_version).to_a.last.to_s.to_i
           end
-        rescue StandardError
-          2016
-        end
       end
 
       def sqlserver_version
-        @sqlserver_version ||= _raw_select("SELECT @@version", @raw_connection).first.first.to_s
+        @sqlserver_version ||= begin
+          verify!
+          _raw_select("SELECT @@version", @raw_connection).first.first.to_s
+        end
       end
 
       private
