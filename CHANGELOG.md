@@ -2,7 +2,7 @@
 
 #### Fixed
 
-- [#](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/) Verify connection before retrieving the database version.
+- [#1363](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1363) Verify connection before retrieving the database version.
 
 ## v7.1.11
 
