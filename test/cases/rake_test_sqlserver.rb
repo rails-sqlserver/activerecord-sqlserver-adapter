@@ -138,18 +138,22 @@ class SQLServerRakeStructureDumpLoadTest < SQLServerRakeTest
 
   it "dumps structure and accounts for defncopy oddities" do
     skip "debug defncopy on windows later" if host_windows?
+
     quietly { db_tasks.structure_dump configuration, filename }
+
     _(filedata).wont_match %r{\AUSE.*\z}
     _(filedata).wont_match %r{\AGO.*\z}
-    _(filedata).must_match %r{email\s+nvarchar\(4000\)}
-    _(filedata).must_match %r{background1\s+nvarchar\(max\)}
-    _(filedata).must_match %r{background2\s+text\s+}
+    _(filedata).must_match %r{\[?email\]?\s+nvarchar\(4000\)}
+    _(filedata).must_match %r{\[?background1\]?\s+nvarchar\(max\)}
+    _(filedata).must_match %r{\[?background2\]?\s+text\s+}
   end
 
   it "can load dumped structure" do
     skip "debug defncopy on windows later" if host_windows?
+
     quietly { db_tasks.structure_dump configuration, filename }
-    _(filedata).must_match %r{CREATE TABLE dbo\.users}
+
+    _(filedata).must_match %r{CREATE TABLE \[?dbo\]?\.\[?users\]?}
     db_tasks.purge(configuration)
     _(connection.tables).wont_include "users"
     db_tasks.load_schema db_config, :sql, filename
