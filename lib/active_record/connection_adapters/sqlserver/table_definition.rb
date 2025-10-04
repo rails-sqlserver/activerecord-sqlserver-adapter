@@ -109,6 +109,8 @@ module ActiveRecord
             type = :datetime2 unless options[:precision].nil?
           when :primary_key
             options[:is_identity] = true
+          when :virtual
+            type = options[:type]
           end
 
           super
@@ -117,7 +119,7 @@ module ActiveRecord
         private
 
         def valid_column_definition_options
-          super + [:is_identity]
+          super + [:is_identity, :as, :type, :stored]
         end
       end
 

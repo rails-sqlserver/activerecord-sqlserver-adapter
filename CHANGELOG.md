@@ -4,11 +4,12 @@
 
 - [#1301](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1301) Add support for `INDEX INCLUDE`.
 - [#1312](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1312) Add support for `insert_all` and `upsert_all`.
-- [#1317](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1317) Reverse order of values when upserting.
+- [#](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/) Added support for computed columns.
 
 #### Changed
 
 - [#1273](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1273) TinyTDS v3+ is now required.
+- [#1317](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1317) Reverse order of values when upserting.
 - [#1343](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1343) Support more Azure services by changing language source.
 
 #### Fixed
