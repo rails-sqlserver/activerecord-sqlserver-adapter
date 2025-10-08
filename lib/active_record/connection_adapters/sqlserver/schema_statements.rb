@@ -521,18 +521,6 @@ module ActiveRecord
           raise ActiveRecord::StatementInvalid, "Table '#{table_name}' doesn't exist" if results.empty?
 
           results.map do |ci|
-            # col = {
-            #   name:               ci["name"],
-            #   numeric_scale:      ci["numeric_scale"],
-            #   numeric_precision:  ci["numeric_precision"],
-            #   datetime_precision: ci["datetime_precision"],
-            #   collation:          ci["collation"],
-            #   ordinal_position:   ci["ordinal_position"],
-            #   length:             ci["length"],
-            #   is_computed:        ci["is_computed"],
-            #   is_persisted:       ci["is_persisted"]
-            # }
-
             col = ci.slice("name", "numeric_scale", "numeric_precision", "datetime_precision", "collation", "ordinal_position", "length", "is_computed", "is_persisted", "computed_formula").symbolize_keys
 
             col[:table_name] = view_exists ? view_table_name(table_name) : table_name
