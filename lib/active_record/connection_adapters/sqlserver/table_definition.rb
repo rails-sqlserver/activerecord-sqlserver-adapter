@@ -119,7 +119,7 @@ module ActiveRecord
         private
 
         def valid_column_definition_options
-          super + [:is_identity, :as, :type, :stored]
+          super + [:is_identity, :as, :stored]
         end
       end
 
