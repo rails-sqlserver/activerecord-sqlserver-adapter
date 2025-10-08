@@ -13,10 +13,10 @@ class VirtualColumnTestSQLServer < ActiveRecord::TestCase
     @connection = ActiveRecord::Base.lease_connection
     @connection.create_table :virtual_columns, force: true do |t|
       t.string :name
-      t.virtual :upper_name, type: :string, as: "UPPER(name)", stored: true
-      t.virtual :lower_name, type: :string, as: "LOWER(name)", stored: false
-      t.virtual :octet_name, type: :integer, as: "LEN(name)"
-      t.virtual :mutated_name, type: :string, as: "REPLACE(name, 'l', 'L')"
+      t.virtual :upper_name, as: "UPPER(name)", stored: true
+      t.virtual :lower_name, as: "LOWER(name)", stored: false
+      t.virtual :octet_name, as: "LEN(name)"
+      t.virtual :mutated_name, as: "REPLACE(name, 'l', 'L')"
       t.integer :column1
     end
     VirtualColumn.create(name: "Rails", column1: 10)
@@ -68,7 +68,7 @@ class VirtualColumnTestSQLServer < ActiveRecord::TestCase
 
   def test_change_table_with_stored_generated_column
     @connection.change_table :virtual_columns do |t|
-      t.virtual :decr_column1, type: :integer, as: "column1 - 1", stored: true
+      t.virtual :decr_column1, as: "column1 - 1", stored: true
     end
     VirtualColumn.reset_column_information
     column = VirtualColumn.columns_hash["decr_column1"]
@@ -79,7 +79,7 @@ class VirtualColumnTestSQLServer < ActiveRecord::TestCase
 
   def test_change_table_with_explicit_virtual_generated_column
     @connection.change_table :virtual_columns do |t|
-      t.virtual :incr_column1, type: :integer, as: "column1 + 1", stored: false
+      t.virtual :incr_column1, as: "column1 + 1", stored: false
     end
     VirtualColumn.reset_column_information
     column = VirtualColumn.columns_hash["incr_column1"]
@@ -90,7 +90,7 @@ class VirtualColumnTestSQLServer < ActiveRecord::TestCase
 
   def test_change_table_with_implicit_virtual_generated_column
     @connection.change_table :virtual_columns do |t|
-      t.virtual :sqr_column1, type: :integer, as: "power(column1, 2)"
+      t.virtual :sqr_column1, as: "power(column1, 2)"
     end
     VirtualColumn.reset_column_information
     column = VirtualColumn.columns_hash["sqr_column1"]
@@ -101,8 +101,8 @@ class VirtualColumnTestSQLServer < ActiveRecord::TestCase
 
   def test_schema_dumping
     output = dump_table_schema("virtual_columns")
-    assert_match(/t\.virtual\s+"lower_name",\s+type: :string,\s+as: "\(lower\(\[name\]\)\)", stored: false$/i, output)
-    assert_match(/t\.virtual\s+"upper_name",\s+type: :string,\s+as: "\(upper\(\[name\]\)\)", stored: true$/i, output)
+    assert_match(/t\.virtual\s+"lower_name",\s+as: "\(lower\(\[name\]\)\)", stored: false$/i, output)
+    assert_match(/t\.virtual\s+"upper_name",\s+as: "\(upper\(\[name\]\)\)", stored: true$/i, output)
   end
 
   def test_build_fixture_sql
