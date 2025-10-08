@@ -2626,7 +2626,7 @@ module ActiveRecord
       undef_method :invalid_add_column_option_exception_message
       def invalid_add_column_option_exception_message(key)
         default_keys = [":limit", ":precision", ":scale", ":default", ":null", ":collation", ":comment", ":primary_key", ":if_exists", ":if_not_exists"]
-        default_keys.concat([":is_identity"]) # SQL Server additional valid keys
+        default_keys.concat([":is_identity", ":as", ":stored"]) # SQL Server additional valid keys
 
         "Unknown key: :#{key}. Valid keys are: #{default_keys.join(", ")}"
       end
