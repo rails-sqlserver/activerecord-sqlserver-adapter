@@ -85,33 +85,25 @@ module ActiveRecord
           select_all(sql, "SCHEMA").map { |row| row["column_name"] }
         end
 
+        def columns(table_name)
+          return [] if table_name.blank?
 
-        # def columns(table_name)
-        #   return [] if table_name.blank?
-        #
-        #   definitions = column_definitions(table_name)
-        #   definitions.map do |field|
-        #     new_column_from_field(table_name, field, definitions)
-        #   end
-        # end
+          definitions = column_definitions(table_name)
+          definitions.map do |field|
+            new_column_from_field(table_name, field, definitions)
+          end
+        end
 
         def new_column_from_field(table_name, field, definitions)
           sqlserver_options = field.slice(:ordinal_position, :is_primary, :is_identity, :table_name)
           sql_type_metadata = fetch_type_metadata(field[:type], sqlserver_options)
           generated_type = extract_generated_type(field)
 
-
-
-
-          if generated_type.present?
-            # binding.pry if field[:name] == "mutated_name"
-
-
-            default_function = field[:computed_formula]
+          default_function = if generated_type.present?
+            field[:computed_formula]
           else
-            default_function = field[:default_function]
+            field[:default_function]
           end
-
 
           SQLServer::Column.new(
             field[:name],

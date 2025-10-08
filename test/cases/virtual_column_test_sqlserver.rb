@@ -12,7 +12,7 @@ class VirtualColumnTestSQLServer < ActiveRecord::TestCase
   def setup
     @connection = ActiveRecord::Base.lease_connection
     @connection.create_table :virtual_columns, force: true do |t|
-      t.string  :name
+      t.string :name
       t.virtual :upper_name, type: :string, as: "UPPER(name)", stored: true
       t.virtual :lower_name, type: :string, as: "LOWER(name)", stored: false
       t.virtual :octet_name, type: :integer, as: "LEN(name)"
@@ -110,4 +110,3 @@ class VirtualColumnTestSQLServer < ActiveRecord::TestCase
     assert_equal 2, fixtures.size
   end
 end
-

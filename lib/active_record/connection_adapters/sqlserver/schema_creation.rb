@@ -66,11 +66,11 @@ module ActiveRecord
           sql << " DEFAULT #{quote_default_expression_for_column_definition(options[:default], options[:column])}" if options_include_default?(options)
 
           sql << " COLLATE #{options[:collation]}" if options[:collation].present?
-          sql << " NOT NULL"                       if options[:null] == false
-          sql << " IDENTITY(1,1)"                  if options[:is_identity] == true
-          sql << " PRIMARY KEY"                    if options[:primary_key] == true
+          sql << " NOT NULL" if options[:null] == false
+          sql << " IDENTITY(1,1)" if options[:is_identity] == true
+          sql << " PRIMARY KEY" if options[:primary_key] == true
 
-          if as = options[:as]
+          if (as = options[:as])
             sql << " AS #{as}"
             sql << " PERSISTED" if options[:stored]
           end

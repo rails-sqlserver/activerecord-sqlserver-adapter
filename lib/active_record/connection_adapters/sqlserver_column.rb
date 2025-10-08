@@ -33,9 +33,6 @@ module ActiveRecord
         end
 
         def virtual?
-
-          # binding.pry
-
           @generated_type.present?
         end
 

@@ -14,7 +14,7 @@ module ActiveRecord
           if @connection.supports_virtual_columns? && column.virtual?
             spec[:as] = extract_expression_for_virtual_column(column)
             spec[:stored] = column.virtual_stored?
-            spec = { type: schema_type(column).inspect }.merge!(spec)
+            spec = {type: schema_type(column).inspect}.merge!(spec)
           end
 
           spec
