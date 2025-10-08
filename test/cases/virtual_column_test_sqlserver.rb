@@ -103,6 +103,7 @@ class VirtualColumnTestSQLServer < ActiveRecord::TestCase
     output = dump_table_schema("virtual_columns")
     assert_match(/t\.virtual\s+"lower_name",\s+as: "\(lower\(\[name\]\)\)", stored: false$/i, output)
     assert_match(/t\.virtual\s+"upper_name",\s+as: "\(upper\(\[name\]\)\)", stored: true$/i, output)
+    assert_match(/t\.virtual\s+"octet_name",\s+as: "\(len\(\[name\]\)\)", stored: false$/i, output)
   end
 
   def test_build_fixture_sql
