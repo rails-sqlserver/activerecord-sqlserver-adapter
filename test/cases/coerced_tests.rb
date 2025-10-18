@@ -2883,6 +2883,23 @@ module ActiveRecord
       assert_equal top_companies_and_children, relation.order(:id).pluck(:id)
       assert_match "WITH ", relation.to_sql
     end
+
+    # Use truthy condition instead of "WHERE true".
+    # https://github.com/rails/rails/pull/55938
+    coerce_tests! :test_with_when_hash_with_multiple_elements_of_different_type_is_passed_as_an_argument
+    def test_with_when_hash_with_multiple_elements_of_different_type_is_passed_as_an_argument_coerced
+      # standard:disable Style/HashSyntax
+      cte_options = {
+        posts_with_tags: Post.arel_table.project(Arel.star).where(Post.arel_table[:tags_count].gt(0)),
+        posts_with_tags_and_truthy: Arel.sql("SELECT * FROM posts_with_tags WHERE 1=1"),
+        posts_with_tags_and_comments: Arel.sql("SELECT * FROM posts_with_tags_and_truthy WHERE tags_count > ?", 0),
+        "posts_with_tags_and_multiple_comments" => Post.where("legacy_comments_count > 1").from("posts_with_tags_and_comments AS posts")
+      }
+      # standard:enable Style/HashSyntax
+      relation = Post.with(cte_options).from("posts_with_tags_and_multiple_comments AS posts")
+
+      assert_equal POSTS_WITH_TAGS_AND_MULTIPLE_COMMENTS, relation.order(:id).pluck(:id)
+    end
   end
 end
 
