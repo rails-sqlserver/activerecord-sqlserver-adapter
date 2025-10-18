@@ -265,6 +265,10 @@ module ActiveRecord
         false
       end
 
+      def supports_virtual_columns?
+        true
+      end
+
       def return_value_after_insert?(column) # :nodoc:
         column.is_primary? || column.is_identity?
       end

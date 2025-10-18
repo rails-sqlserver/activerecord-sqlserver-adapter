@@ -88,36 +88,45 @@ module ActiveRecord
         def columns(table_name)
           return [] if table_name.blank?
 
-          column_definitions(table_name).map do |ci|
-            sqlserver_options = ci.slice :ordinal_position, :is_primary, :is_identity, :table_name
-            sql_type_metadata = fetch_type_metadata ci[:type], sqlserver_options
-
-            new_column(
-              ci[:name],
-              lookup_cast_type(ci[:type]),
-              ci[:default_value],
-              sql_type_metadata,
-              ci[:null],
-              ci[:default_function],
-              ci[:collation],
-              nil,
-              sqlserver_options
-            )
+          definitions = column_definitions(table_name)
+          definitions.map do |field|
+            new_column_from_field(table_name, field, definitions)
           end
         end
 
-        def new_column(name, cast_type, default, sql_type_metadata, null, default_function = nil, collation = nil, comment = nil, sqlserver_options = {})
+        def new_column_from_field(_table_name, field, _definitions)
+          sqlserver_options = field.slice(:ordinal_position, :is_primary, :is_identity, :table_name)
+          sql_type_metadata = fetch_type_metadata(field[:type], sqlserver_options)
+          generated_type = extract_generated_type(field)
+
+          default_function = if generated_type.present?
+            field[:computed_formula]
+          else
+            field[:default_function]
+          end
+
           SQLServer::Column.new(
-            name,
-            cast_type,
-            default,
+            field[:name],
+            lookup_cast_type(field[:type]),
+            field[:default_value],
             sql_type_metadata,
-            null,
+            field[:null],
             default_function,
-            collation: collation,
-            comment: comment,
+            collation: field[:collation],
+            comment: nil,
+            generated_type: generated_type,
             **sqlserver_options
           )
+        end
+
+        def extract_generated_type(field)
+          if field[:is_computed]
+            if field[:is_persisted]
+              :stored
+            else
+              :virtual
+            end
+          end
         end
 
         def primary_keys(table_name)
@@ -512,15 +521,7 @@ module ActiveRecord
           raise ActiveRecord::StatementInvalid, "Table '#{table_name}' doesn't exist" if results.empty?
 
           results.map do |ci|
-            col = {
-              name: ci["name"],
-              numeric_scale: ci["numeric_scale"],
-              numeric_precision: ci["numeric_precision"],
-              datetime_precision: ci["datetime_precision"],
-              collation: ci["collation"],
-              ordinal_position: ci["ordinal_position"],
-              length: ci["length"]
-            }
+            col = ci.slice("name", "numeric_scale", "numeric_precision", "datetime_precision", "collation", "ordinal_position", "length", "is_computed", "is_persisted", "computed_formula").symbolize_keys
 
             col[:table_name] = view_exists ? view_table_name(table_name) : table_name
             col[:type] = column_type(ci: ci)
@@ -640,7 +641,10 @@ module ActiveRecord
                 WHEN ic.object_id IS NOT NULL
                 THEN 1
               END AS [is_primary],
-              c.is_identity AS [is_identity]
+              c.is_identity AS [is_identity],
+              c.is_computed AS [is_computed],
+              cc.is_persisted AS [is_persisted],
+              cc.definition AS [computed_formula]
             FROM #{database}.sys.columns c
             INNER JOIN #{database}.sys.objects o
               ON c.object_id = o.object_id
@@ -659,6 +663,9 @@ module ActiveRecord
               ON k.parent_object_id = ic.object_id
               AND k.unique_index_id = ic.index_id
               AND c.column_id = ic.column_id
+            LEFT OUTER JOIN #{database}.sys.computed_columns cc
+              ON c.object_id = cc.object_id
+              AND c.column_id = cc.column_id
             WHERE
               o.Object_ID = Object_ID(#{object_id_arg})
               AND s.name = #{schema_name}

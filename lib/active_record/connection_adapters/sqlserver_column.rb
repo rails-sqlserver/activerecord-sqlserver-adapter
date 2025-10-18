@@ -6,12 +6,13 @@ module ActiveRecord
       class Column < ConnectionAdapters::Column
         delegate :is_identity, :is_primary, :table_name, :ordinal_position, to: :sql_type_metadata
 
-        def initialize(*, is_identity: nil, is_primary: nil, table_name: nil, ordinal_position: nil, **)
+        def initialize(*, is_identity: nil, is_primary: nil, table_name: nil, ordinal_position: nil, generated_type: nil, **)
           super
           @is_identity = is_identity
           @is_primary = is_primary
           @table_name = table_name
           @ordinal_position = ordinal_position
+          @generated_type = generated_type
         end
 
         def is_identity?
@@ -29,6 +30,18 @@ module ActiveRecord
 
         def case_sensitive?
           collation&.match(/_CS/)
+        end
+
+        def virtual?
+          @generated_type.present?
+        end
+
+        def virtual_stored?
+          @generated_type == :stored
+        end
+
+        def has_default?
+          super && !virtual?
         end
 
         def init_with(coder)

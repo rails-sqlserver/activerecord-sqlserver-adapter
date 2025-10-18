@@ -12,6 +12,12 @@ module ActiveRecord
           false
         end
 
+        def visit_ColumnDefinition(o)
+          column_sql = super
+          column_sql = column_sql.sub(" #{o.sql_type}", "") if o.options[:as].present?
+          column_sql
+        end
+
         def visit_TableDefinition(o)
           if_not_exists = o.if_not_exists
 
@@ -58,18 +64,17 @@ module ActiveRecord
 
         def add_column_options!(sql, options)
           sql << " DEFAULT #{quote_default_expression_for_column_definition(options[:default], options[:column])}" if options_include_default?(options)
-          if options[:collation].present?
-            sql << " COLLATE #{options[:collation]}"
+
+          sql << " COLLATE #{options[:collation]}" if options[:collation].present?
+          sql << " NOT NULL" if options[:null] == false
+          sql << " IDENTITY(1,1)" if options[:is_identity] == true
+          sql << " PRIMARY KEY" if options[:primary_key] == true
+
+          if (as = options[:as])
+            sql << " AS #{as}"
+            sql << " PERSISTED" if options[:stored]
           end
-          if options[:null] == false
-            sql << " NOT NULL"
-          end
-          if options[:is_identity] == true
-            sql << " IDENTITY(1,1)"
-          end
-          if options[:primary_key] == true
-            sql << " PRIMARY KEY"
-          end
+
           sql
         end
 

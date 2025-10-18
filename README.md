@@ -186,6 +186,19 @@ The removal of duplicates happens during the SQL query.
 
 Because of this implementation, if you pass `on_duplicate` to `upsert_all`, make sure to assign your value to `target.[column_name]` (e.g. `target.status = GREATEST(target.status, 1)`). To access the values that you want to upsert, use `source.[column_name]`.
 
+#### Computed Columns
+
+The adapter supports computed columns. They can either be virtual `stored: false` (default) and persisted `stored: true`. You can create a computed column in a migration like so:
+
+```ruby
+create_table :users do |t|
+  t.string :name
+  t.virtual :lower_name, as: "LOWER(name)", stored: false
+  t.virtual :upper_name, as: "UPPER(name)", stored: true
+  t.virtual :name_length, as: "LEN(name)"
+end
+```
+
 ## New Rails Applications
 
 When creating a new Rails application you need to perform the following steps to connect a Rails application to a

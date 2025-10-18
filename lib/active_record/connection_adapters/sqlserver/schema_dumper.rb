@@ -4,22 +4,31 @@ module ActiveRecord
   module ConnectionAdapters
     module SQLServer
       class SchemaDumper < ConnectionAdapters::SchemaDumper
-        SQLSEVER_NO_LIMIT_TYPES = [
-          "text",
-          "ntext",
-          "varchar(max)",
-          "nvarchar(max)",
-          "varbinary(max)"
-        ].freeze
+        SQLSERVER_NO_LIMIT_TYPES = %w[text ntext varchar(max) nvarchar(max) varbinary(max)].freeze
 
         private
+
+        def prepare_column_options(column)
+          spec = super
+
+          if @connection.supports_virtual_columns? && column.virtual?
+            spec[:as] = extract_expression_for_virtual_column(column)
+            spec[:stored] = column.virtual_stored?
+          end
+
+          spec
+        end
+
+        def extract_expression_for_virtual_column(column)
+          column.default_function.inspect
+        end
 
         def explicit_primary_key_default?(column)
           column.type == :integer && !column.is_identity?
         end
 
         def schema_limit(column)
-          return if SQLSEVER_NO_LIMIT_TYPES.include?(column.sql_type)
+          return if SQLSERVER_NO_LIMIT_TYPES.include?(column.sql_type)
 
           super
         end
