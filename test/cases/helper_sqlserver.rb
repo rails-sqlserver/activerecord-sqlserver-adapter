@@ -19,6 +19,9 @@ require "mocha/minitest"
 Minitest.after_run do
   puts "\n\n"
   puts "=" * 80
+  puts "Ruby Version: #{RUBY_VERSION}p#{RUBY_PATCHLEVEL} (#{RUBY_RELEASE_DATE}) [#{RUBY_PLATFORM}]"
+  puts "\n\n"
+  puts "=" * 80
   puts ActiveRecord::Base.lease_connection.send(:sqlserver_version)
   puts "\nSQL Server Version Year: #{ActiveRecord::Base.lease_connection.get_database_version}"
   puts "=" * 80
