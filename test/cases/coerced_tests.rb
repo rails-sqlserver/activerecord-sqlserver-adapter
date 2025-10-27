@@ -285,33 +285,35 @@ module ActiveRecord
 
       # prepared_statements: true
       #
+      #   SQL to database:
       #   EXEC sp_executesql N'SELECT [authors].* FROM [authors] WHERE [authors].[id] IN (@0, @1, @2) OR [authors].[id] IS NULL)', N'@0 bigint, @1 bigint, @2 bigint', @0 = 1, @1 = 2, @2 = 3
       #
       # prepared_statements: false
       #
+      #   SQL to database:
       #   SELECT [authors].* FROM [authors] WHERE ([authors].[id] IN (1, 2, 3) OR [authors].[id] IS NULL)
       #
-      sql_unprepared = "SELECT #{table}.* FROM #{table} WHERE (#{pk} IN (#{bind_params(1..3)}) OR #{pk} IS NULL)"
-      sql_prepared = "SELECT #{table}.* FROM #{table} WHERE (#{pk} IN (#{bind_params(1..3)}) OR #{pk} IS NULL)"
+      expected_logged_sql = "SELECT #{table}.* FROM #{table} WHERE (#{pk} IN (#{bind_params(1..3)}) OR #{pk} IS NULL)"
 
       authors = Author.where(id: [1, 2, 3, nil])
-      assert_equal sql_unprepared, @connection.to_sql(authors.arel)
-      assert_queries_match(prepared ? sql_prepared : sql_unprepared) { assert_equal 3, authors.length }
+      assert_equal expected_logged_sql, @connection.to_sql(authors.arel)
+      assert_queries_match(expected_logged_sql) { assert_equal 3, authors.length }
 
       # prepared_statements: true
       #
+      #   SQL to database:
       #   EXEC sp_executesql N'SELECT [authors].* FROM [authors] WHERE [authors].[id] IN (@0, @1, @2)', N'@0 bigint, @1 bigint, @2 bigint', @0 = 1, @1 = 2, @2 = 3
       #
       # prepared_statements: false
       #
+      #   SQL to database:
       #   SELECT [authors].* FROM [authors] WHERE [authors].[id] IN (1, 2, 3)
       #
-      sql_unprepared = "SELECT #{table}.* FROM #{table} WHERE #{pk} IN (#{bind_params(1..3)})"
-      sql_prepared = "SELECT #{table}.* FROM #{table} WHERE #{pk} IN (#{bind_params(1..3)})"
+      expected_logged_sql = "SELECT #{table}.* FROM #{table} WHERE #{pk} IN (#{bind_params(1..3)})"
 
       authors = Author.where(id: [1, 2, 3, 9223372036854775808])
-      assert_equal sql_unprepared, @connection.to_sql(authors.arel)
-      assert_queries_match(prepared ? sql_prepared : sql_unprepared) { assert_equal 3, authors.length }
+      assert_equal expected_logged_sql, @connection.to_sql(authors.arel)
+      assert_queries_match(expected_logged_sql) { assert_equal 3, authors.length }
     end
   end
 end

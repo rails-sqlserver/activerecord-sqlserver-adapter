@@ -115,10 +115,9 @@ class SpecificSchemaTestSQLServer < ActiveRecord::TestCase
         "'T'"
       end
     end
-    value = value.new
     # Using ActiveRecord's quoted_id feature for objects.
-    assert_queries_and_values_match(/.*/, ["'T'", 1]) { SSTestDatatypeMigration.where(char_col: value).first }
-    assert_queries_and_values_match(/.*/, ["'T'", 1]) { SSTestDatatypeMigration.where(varchar_col: value).first }
+    assert_queries_and_values_match(/.*/, ["'T'", 1]) { SSTestDatatypeMigration.where(char_col: value.new).first }
+    assert_queries_and_values_match(/.*/, ["'T'", 1]) { SSTestDatatypeMigration.where(varchar_col: value.new).first }
     # Using our custom char type data.
     type = ActiveRecord::Type::SQLServer::Char
     data = ActiveRecord::Type::SQLServer::Data
