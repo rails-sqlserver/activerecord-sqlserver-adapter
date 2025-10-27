@@ -14,6 +14,11 @@ module ActiveRecord
         end
 
         def perform_query(raw_connection, sql, binds, type_casted_binds, prepare:, notification_payload:, batch:)
+          unless binds.nil? || binds.empty?
+            types, params = sp_executesql_types_and_parameters(binds)
+            sql = sp_executesql_sql(sql, types, params, notification_payload[:name])
+          end
+
           result = if id_insert_table_name = query_requires_identity_insert?(sql)
                      with_identity_insert_enabled(id_insert_table_name, raw_connection) do
                        internal_exec_sql_query(sql, raw_connection)
@@ -41,11 +46,6 @@ module ActiveRecord
         end
 
         def raw_execute(sql, name = nil, binds = [], prepare: false, async: false, allow_retry: false, materialize_transactions: true, batch: false)
-          unless binds.nil? || binds.empty?
-            types, params = sp_executesql_types_and_parameters(binds)
-            sql = sp_executesql_sql(sql, types, params, name)
-          end
-
           super
         end
 
