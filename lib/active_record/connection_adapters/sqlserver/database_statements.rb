@@ -34,12 +34,13 @@ module ActiveRecord
           check_if_write_query(sql)
           mark_transaction_written_if_write(sql)
 
-          unless without_prepared_statement?(binds)
-            types, params = sp_executesql_types_and_parameters(binds)
-            sql = sp_executesql_sql(sql, types, params, name)
-          end
+          type_casted_binds = type_casted_binds(binds)
+          log(sql, name, binds, type_casted_binds, async: async) do |notification_payload|
+            unless without_prepared_statement?(binds)
+              types, params = sp_executesql_types_and_parameters(binds)
+              sql = sp_executesql_sql(sql, types, params, name)
+            end
 
-          log(sql, name, binds, async: async) do |notification_payload|
             with_raw_connection do |conn|
               result = if id_insert_table_name = query_requires_identity_insert?(sql)
                          with_identity_insert_enabled(id_insert_table_name, conn) do
