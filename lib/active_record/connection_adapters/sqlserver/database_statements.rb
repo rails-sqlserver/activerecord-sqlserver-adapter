@@ -45,10 +45,6 @@ module ActiveRecord
           raw_result.first[column_name]
         end
 
-        def raw_execute(sql, name = nil, binds = [], prepare: false, async: false, allow_retry: false, materialize_transactions: true, batch: false)
-          super
-        end
-
         def internal_exec_sql_query(sql, conn)
           handle = internal_raw_execute(sql, conn)
           handle_to_names_and_values(handle, ar_result: true)
