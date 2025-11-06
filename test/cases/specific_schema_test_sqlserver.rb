@@ -116,16 +116,16 @@ class SpecificSchemaTestSQLServer < ActiveRecord::TestCase
       end
     end
     # Using ActiveRecord's quoted_id feature for objects.
-    assert_queries_match(/@0 = 'T'/) { SSTestDatatypeMigration.where(char_col: value.new).first }
-    assert_queries_match(/@0 = 'T'/) { SSTestDatatypeMigration.where(varchar_col: value.new).first }
+    assert_queries_and_values_match(/.*/, ["'T'", 1]) { SSTestDatatypeMigration.where(char_col: value.new).first }
+    assert_queries_and_values_match(/.*/, ["'T'", 1]) { SSTestDatatypeMigration.where(varchar_col: value.new).first }
     # Using our custom char type data.
     type = ActiveRecord::Type::SQLServer::Char
     data = ActiveRecord::Type::SQLServer::Data
-    assert_queries_match(/@0 = 'T'/) { SSTestDatatypeMigration.where(char_col: data.new("T", type.new)).first }
-    assert_queries_match(/@0 = 'T'/) { SSTestDatatypeMigration.where(varchar_col: data.new("T", type.new)).first }
+    assert_queries_and_values_match(/.*/, ["'T'", 1]) { SSTestDatatypeMigration.where(char_col: data.new("T", type.new)).first }
+    assert_queries_and_values_match(/.*/, ["'T'", 1]) { SSTestDatatypeMigration.where(varchar_col: data.new("T", type.new)).first }
     # Taking care of everything.
-    assert_queries_match(/@0 = 'T'/) { SSTestDatatypeMigration.where(char_col: "T").first }
-    assert_queries_match(/@0 = 'T'/) { SSTestDatatypeMigration.where(varchar_col: "T").first }
+    assert_queries_and_values_match(/.*/, ["'T'", 1]) { SSTestDatatypeMigration.where(char_col: "T").first }
+    assert_queries_and_values_match(/.*/, ["'T'", 1]) { SSTestDatatypeMigration.where(varchar_col: "T").first }
   end
 
   it "can update and hence properly quoted non-national char/varchar columns" do
