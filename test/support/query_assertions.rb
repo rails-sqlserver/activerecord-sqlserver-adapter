@@ -22,6 +22,28 @@ module ARTest
         end
       end
 
+      def assert_queries_and_values_match(match, bound_values=[], count: nil, &block)
+        ActiveRecord::Base.lease_connection.materialize_transactions
+
+        counter = ActiveRecord::Assertions::QueryAssertions::SQLCounter.new
+        ActiveSupport::Notifications.subscribed(counter, "sql.active_record") do
+          result = _assert_nothing_raised_or_warn("assert_queries_match", &block)
+          queries = counter.log_full
+          matched_queries = queries.select do |query, values|
+            values = values.map { |v| v.respond_to?(:quoted) ? v.quoted : v }
+            match === query && bound_values === values
+          end
+
+          if count
+            assert_equal count, matched_queries.size, "#{matched_queries.size} instead of #{count} queries were executed.#{count.log.empty? ? '' : "\nQueries:\n#{counter.log.join("\n")}"}"
+          else
+            assert_operator matched_queries.size, :>=, 1, "1 or more queries expected, but none were executed.#{counter.log.empty? ? '' : "\nQueries:\n#{counter.log.join("\n")}"}"
+          end
+
+          result
+        end
+      end
+
       private
 
       # Rails tests expect a save-point to be created and released. SQL Server does not release
