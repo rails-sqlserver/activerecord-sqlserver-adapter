@@ -261,7 +261,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   def test_belongs_to_coerced
     client = Client.find(3)
     first_firm = companies(:first_firm)
-    assert_queries_and_values_match(/FETCH NEXT @3 ROWS ONLY/, ['Firm', 'Agency', 1, 1]) do
+    assert_queries_and_values_match(/FETCH NEXT @3 ROWS ONLY/, ["Firm", "Agency", 1, 1]) do
       assert_equal first_firm, client.firm
       assert_equal first_firm.name, client.firm.name
     end
@@ -397,11 +397,11 @@ class CalculationsTest < ActiveRecord::TestCase
     rails_core = companies(:rails_core)
 
     account = Account
-                .select(:firm_id, "AVG(CAST(credit_limit AS DECIMAL)) AS avg_credit_limit")
-                .where(firm: rails_core)
-                .group(:firm_id)
-                .order(:firm_id)
-                .take!
+      .select(:firm_id, "AVG(CAST(credit_limit AS DECIMAL)) AS avg_credit_limit")
+      .where(firm: rails_core)
+      .group(:firm_id)
+      .order(:firm_id)
+      .take!
 
     # id was not selected, so it should be nil
     # (cannot select id because it wasn't used in the GROUP BY clause)
@@ -448,11 +448,11 @@ class CalculationsTest < ActiveRecord::TestCase
     rails_core = companies(:rails_core)
 
     firm = DependentFirm
-             .select("companies.*", "AVG(CAST(accounts.credit_limit AS DECIMAL)) AS avg_credit_limit")
-             .where(id: rails_core)
-             .joins(:account)
-             .group(:id, :type, :firm_id, :firm_name, :name, :client_of, :rating, :account_id, :description, :status)
-             .take!
+      .select("companies.*", "AVG(CAST(accounts.credit_limit AS DECIMAL)) AS avg_credit_limit")
+      .where(id: rails_core)
+      .joins(:account)
+      .group(:id, :type, :firm_id, :firm_name, :name, :client_of, :rating, :account_id, :description, :status)
+      .take!
 
     # all the DependentFirm attributes should be present
     assert_equal rails_core, firm
@@ -997,7 +997,7 @@ class FinderTest < ActiveRecord::TestCase
 
   # We have implicit ordering, via FETCH.
   coerce_tests! %r{doesn't have implicit ordering},
-                :test_find_doesnt_have_implicit_ordering
+    :test_find_doesnt_have_implicit_ordering
 
   # Assert SQL Server limit implementation
   coerce_tests! :test_take_and_first_and_last_with_integer_should_use_sql_limit
@@ -1154,7 +1154,8 @@ class FinderTest < ActiveRecord::TestCase
     quoted_color = Regexp.escape(c.quote_table_name("clothing_items.color"))
     quoted_descrption = Regexp.escape(c.quote_table_name("clothing_items.description"))
 
-    assert_queries_match(/ORDER BY #{quoted_descrption} ASC, #{quoted_type} ASC, #{quoted_color} ASC OFFSET 0 ROWS FETCH NEXT @(\d) ROWS ONLY/i) do      assert_kind_of ClothingItem, ClothingItem.first
+    assert_queries_match(/ORDER BY #{quoted_descrption} ASC, #{quoted_type} ASC, #{quoted_color} ASC OFFSET 0 ROWS FETCH NEXT @(\d) ROWS ONLY/i) do
+      assert_kind_of ClothingItem, ClothingItem.first
     end
   ensure
     ClothingItem.implicit_order_column = nil
@@ -1481,7 +1482,7 @@ class RelationTest < ActiveRecord::TestCase
   def test_multiple_where_and_having_clauses_coerced
     post = Post.first
     having_then_where = Post.having(id: post.id).where(title: post.title)
-                            .having(id: post.id).where(title: post.title).group(:id).select(:id)
+      .having(id: post.id).where(title: post.title).group(:id).select(:id)
 
     assert_equal [post], having_then_where
   end
@@ -2486,7 +2487,7 @@ class InsertAllTest < ActiveRecord::TestCase
           ELSE 1
         END
       SQL
-      )
+                            )
     )
 
     assert_equal "published", Book.find(1).status

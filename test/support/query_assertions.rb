@@ -22,7 +22,7 @@ module ARTest
         end
       end
 
-      def assert_queries_and_values_match(match, bound_values=[], count: nil, &block)
+      def assert_queries_and_values_match(match, bound_values = [], count: nil, &block)
         ActiveRecord::Base.lease_connection.materialize_transactions
 
         counter = ActiveRecord::Assertions::QueryAssertions::SQLCounter.new
@@ -35,9 +35,9 @@ module ARTest
           end
 
           if count
-            assert_equal count, matched_queries.size, "#{matched_queries.size} instead of #{count} queries were executed.#{count.log.empty? ? '' : "\nQueries:\n#{counter.log.join("\n")}"}"
+            assert_equal count, matched_queries.size, "#{matched_queries.size} instead of #{count} queries were executed.#{"\nQueries:\n#{counter.log.join("\n")}" unless count.log.empty?}"
           else
-            assert_operator matched_queries.size, :>=, 1, "1 or more queries expected, but none were executed.#{counter.log.empty? ? '' : "\nQueries:\n#{counter.log.join("\n")}"}"
+            assert_operator matched_queries.size, :>=, 1, "1 or more queries expected, but none were executed.#{"\nQueries:\n#{counter.log.join("\n")}" unless counter.log.empty?}"
           end
 
           result
