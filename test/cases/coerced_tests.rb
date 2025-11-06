@@ -264,57 +264,6 @@ module ActiveRecord
     coerce_tests! :test_statement_cache_with_find_by
     coerce_tests! :test_statement_cache_with_in_clause
     coerce_tests! :test_statement_cache_with_sql_string_literal
-
-    # Same as original coerced test except prepared statements include `EXEC sp_executesql` wrapper.
-    coerce_tests! :test_bind_params_to_sql_with_prepared_statements, :test_bind_params_to_sql_with_unprepared_statements
-    def test_bind_params_to_sql_with_prepared_statements_coerced
-      assert_bind_params_to_sql_coerced(prepared: true)
-    end
-
-    def test_bind_params_to_sql_with_unprepared_statements_coerced
-      @connection.unprepared_statement do
-        assert_bind_params_to_sql_coerced(prepared: false)
-      end
-    end
-
-    private
-
-    def assert_bind_params_to_sql_coerced(prepared:)
-      table = Author.quoted_table_name
-      pk = "#{table}.#{Author.quoted_primary_key}"
-
-      # prepared_statements: true
-      #
-      #   SQL to database:
-      #   EXEC sp_executesql N'SELECT [authors].* FROM [authors] WHERE [authors].[id] IN (@0, @1, @2) OR [authors].[id] IS NULL)', N'@0 bigint, @1 bigint, @2 bigint', @0 = 1, @1 = 2, @2 = 3
-      #
-      # prepared_statements: false
-      #
-      #   SQL to database:
-      #   SELECT [authors].* FROM [authors] WHERE ([authors].[id] IN (1, 2, 3) OR [authors].[id] IS NULL)
-      #
-      expected_logged_sql = "SELECT #{table}.* FROM #{table} WHERE (#{pk} IN (#{bind_params(1..3)}) OR #{pk} IS NULL)"
-
-      authors = Author.where(id: [1, 2, 3, nil])
-      assert_equal expected_logged_sql, @connection.to_sql(authors.arel)
-      assert_queries_match(expected_logged_sql) { assert_equal 3, authors.length }
-
-      # prepared_statements: true
-      #
-      #   SQL to database:
-      #   EXEC sp_executesql N'SELECT [authors].* FROM [authors] WHERE [authors].[id] IN (@0, @1, @2)', N'@0 bigint, @1 bigint, @2 bigint', @0 = 1, @1 = 2, @2 = 3
-      #
-      # prepared_statements: false
-      #
-      #   SQL to database:
-      #   SELECT [authors].* FROM [authors] WHERE [authors].[id] IN (1, 2, 3)
-      #
-      expected_logged_sql = "SELECT #{table}.* FROM #{table} WHERE #{pk} IN (#{bind_params(1..3)})"
-
-      authors = Author.where(id: [1, 2, 3, 9223372036854775808])
-      assert_equal expected_logged_sql, @connection.to_sql(authors.arel)
-      assert_queries_match(expected_logged_sql) { assert_equal 3, authors.length }
-    end
   end
 end
 
@@ -2391,66 +2340,6 @@ end
 
 require "models/dashboard"
 class QueryLogsTest < ActiveRecord::TestCase
-  # SQL requires double single-quotes.
-  coerce_tests! :test_sql_commenter_format
-  def test_sql_commenter_format_coerced
-    ActiveRecord::QueryLogs.tags_formatter = :sqlcommenter
-    ActiveRecord::QueryLogs.tags = [:application]
-
-    assert_queries_match(%r{/\*application='active_record'\*/}) do
-      Dashboard.first
-    end
-  end
-
-  # SQL requires double single-quotes.
-  coerce_tests! :test_sqlcommenter_format_value
-  def test_sqlcommenter_format_value_coerced
-    ActiveRecord::QueryLogs.tags_formatter = :sqlcommenter
-
-    ActiveRecord::QueryLogs.tags = [
-      :application,
-      { tracestate: "congo=t61rcWkgMzE,rojo=00f067aa0ba902b7", custom_proc: -> { "Joe's Shack" } },
-    ]
-
-    assert_queries_match(%r{custom_proc='Joe%27s%20Shack',tracestate='congo%3Dt61rcWkgMzE%2Crojo%3D00f067aa0ba902b7'\*/}) do
-      Dashboard.first
-    end
-  end
-
-  # SQL requires double single-quotes.
-  coerce_tests! :test_sqlcommenter_format_value_string_coercible
-  def test_sqlcommenter_format_value_string_coercible_coerced
-    ActiveRecord::QueryLogs.tags_formatter = :sqlcommenter
-
-    ActiveRecord::QueryLogs.tags = [
-      :application,
-      { custom_proc: -> { 1234 } },
-    ]
-
-    assert_queries_match(%r{custom_proc='1234'\*/}) do
-      Dashboard.first
-    end
-  end
-
-  # SQL requires double single-quotes.
-  coerce_tests! :test_sqlcommenter_format_allows_string_keys
-  def test_sqlcommenter_format_allows_string_keys_coerced
-    ActiveRecord::QueryLogs.tags_formatter = :sqlcommenter
-
-    ActiveRecord::QueryLogs.tags = [
-      :application,
-      {
-        "string" => "value",
-        tracestate: "congo=t61rcWkgMzE,rojo=00f067aa0ba902b7",
-        custom_proc: -> { "Joe's Shack" }
-      },
-    ]
-
-    assert_queries_match(%r{custom_proc='Joe%27s%20Shack',string='value',tracestate='congo%3Dt61rcWkgMzE%2Crojo%3D00f067aa0ba902b7'\*/}) do
-      Dashboard.first
-    end
-  end
-
   # Invalid character encoding causes `ActiveRecord::StatementInvalid` error similar to Postgres.
   coerce_tests! :test_invalid_encoding_query
   def test_invalid_encoding_query_coerced
@@ -2696,33 +2585,6 @@ module ActiveRecord
         assert type.is_a?(ActiveRecord::Type::String)
       end
     end
-  end
-end
-
-require "models/car"
-class ExplainTest < ActiveRecord::TestCase
-  # Expected query slightly different from because of 'sp_executesql' and query parameters.
-  coerce_tests! :test_relation_explain_with_first
-  def test_relation_explain_with_first_coerced
-    expected_query = capture_sql {
-      Car.all.first
-    }.first[/(.*?) NEXT/, 1]
-    message = Car.all.explain.first
-    assert_match(/^EXPLAIN/, message)
-    assert_match(expected_query, message)
-  end
-
-  # Expected query slightly different from because of 'sp_executesql' and query parameters.
-  coerce_tests! :test_relation_explain_with_last
-  def test_relation_explain_with_last_coerced
-    expected_query = capture_sql {
-      Car.all.last
-    }.first[/(.*?) NEXT/, 1]
-    expected_query = expected_query
-    message = Car.all.explain.last
-
-    assert_match(/^EXPLAIN/, message)
-    assert_match(expected_query, message)
   end
 end
 
