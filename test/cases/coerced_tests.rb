@@ -1087,7 +1087,7 @@ class FinderTest < ActiveRecord::TestCase
     old_implicit_order_column = Topic.implicit_order_column
     Topic.implicit_order_column = ["title", "author_name"]
 
-    assert_queries_match(/ORDER BY #{Regexp.escape(quote_table_name("topics.title"))} DESC, #{Regexp.escape(quote_table_name("topics.author_name"))} DESC, #{Regexp.escape(quote_table_name("topics.id"))} DESC OFFSET 0 ROWS FETCH NEXT @0 ROWS ONLY.*@0 = 1/i) {
+    assert_queries_and_values_match(/ORDER BY #{Regexp.escape(quote_table_name("topics.title"))} DESC, #{Regexp.escape(quote_table_name("topics.author_name"))} DESC, #{Regexp.escape(quote_table_name("topics.id"))} DESC OFFSET 0 ROWS FETCH NEXT @0 ROWS ONLY/i, [1]) {
       Topic.last
     }
   ensure
@@ -1100,7 +1100,7 @@ class FinderTest < ActiveRecord::TestCase
     old_implicit_order_column = Topic.implicit_order_column
     Topic.implicit_order_column = ["author_name", nil]
 
-    assert_queries_match(/ORDER BY #{Regexp.escape(quote_table_name("topics.author_name"))} DESC OFFSET 0 ROWS FETCH NEXT @0 ROWS ONLY.*@0 = 1/i) {
+    assert_queries_and_values_match(/ORDER BY #{Regexp.escape(quote_table_name("topics.author_name"))} DESC OFFSET 0 ROWS FETCH NEXT @0 ROWS ONLY/i, [1]) {
       Topic.last
     }
   ensure
