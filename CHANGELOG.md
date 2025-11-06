@@ -1,3 +1,9 @@
+## Unreleased
+
+#### Fixed
+
+- [#1371](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1371) Fixed query logging so that filter parameters are respected.
+
 ## v7.2.8
 
 #### Fixed
