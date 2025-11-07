@@ -16,19 +16,20 @@ maintenance group.
 
 See [Rubygems](https://rubygems.org/gems/activerecord-sqlserver-adapter/versions) for the latest version of the adapter for each Rails release.
 
-| Adapter Version | Rails Version | Support        | Branch                                                                                             |
-|-----------------|---------------|----------------|----------------------------------------------------------------------------------------------------|
-| `8.1.x`         | `8.1.x`       | Active [main](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/tree/main)                |
-| `8.0.x`         | `8.0.x`       | Active         | [8-0-stable](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/tree/8-0-stable) |
-| `7.2.x`         | `7.2.x`       | Ended         | [7-2-stable](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/tree/7-2-stable)    |
-| `7.1.x`         | `7.1.x`       | Ended          | [7-1-stable](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/tree/7-1-stable)    |
-| `7.0.x`         | `7.0.x`       | Ended          | [7-0-stable](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/tree/7-0-stable)    |
-| `6.1.x`         | `6.1.x`       | Ended          | [6-1-stable](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/tree/6-1-stable)    |
-| `6.0.x`         | `6.0.x`       | Ended          | [6-0-stable](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/tree/6-0-stable)    |
-| `5.2.x`         | `5.2.x`       | Ended          | [5-2-stable](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/tree/5-2-stable)    |
-| `5.1.x`         | `5.1.x`       | Ended          | [5-1-stable](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/tree/5-1-stable)    |
-| `4.2.x`         | `4.2.x`       | Ended          | [4-2-stable](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/tree/4-2-stable)    |
-| `4.1.x`         | `4.1.x`       | Ended          | [4-1-stable](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/tree/4-1-stable)    |
+| Adapter Version | Rails Version | Support                                                                                                | Branch                                                                                             |
+|-----------------|---------------|--------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------|
+| Unreleased         | `8.2.x`       | In Development [main](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/tree/main)     |
+| `8.1.x`         | `8.1.x`       | Active [8-1-stable](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/tree/8-1-stable) |
+| `8.0.x`         | `8.0.x`       | Active                                                                                                 | [8-0-stable](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/tree/8-0-stable) |
+| `7.2.x`         | `7.2.x`       | Ended                                                                                                  | [7-2-stable](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/tree/7-2-stable)    |
+| `7.1.x`         | `7.1.x`       | Ended                                                                                                  | [7-1-stable](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/tree/7-1-stable)    |
+| `7.0.x`         | `7.0.x`       | Ended                                                                                                  | [7-0-stable](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/tree/7-0-stable)    |
+| `6.1.x`         | `6.1.x`       | Ended                                                                                                  | [6-1-stable](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/tree/6-1-stable)    |
+| `6.0.x`         | `6.0.x`       | Ended                                                                                                  | [6-0-stable](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/tree/6-0-stable)    |
+| `5.2.x`         | `5.2.x`       | Ended                                                                                                  | [5-2-stable](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/tree/5-2-stable)    |
+| `5.1.x`         | `5.1.x`       | Ended                                                                                                  | [5-1-stable](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/tree/5-1-stable)    |
+| `4.2.x`         | `4.2.x`       | Ended                                                                                                  | [4-2-stable](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/tree/4-2-stable)    |
+| `4.1.x`         | `4.1.x`       | Ended                                                                                                  | [4-1-stable](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/tree/4-1-stable)    |
 
 
 #### Native Data Type Support
