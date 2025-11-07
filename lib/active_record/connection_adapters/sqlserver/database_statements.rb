@@ -14,6 +14,11 @@ module ActiveRecord
         end
 
         def perform_query(raw_connection, sql, binds, type_casted_binds, prepare:, notification_payload:, batch:)
+          unless binds.nil? || binds.empty?
+            types, params = sp_executesql_types_and_parameters(binds)
+            sql = sp_executesql_sql(sql, types, params, notification_payload[:name])
+          end
+
           id_insert_table_name = query_requires_identity_insert?(sql)
 
           result, affected_rows = if id_insert_table_name
@@ -46,15 +51,6 @@ module ActiveRecord
         # Returns the affected rows from results or handle.
         def affected_rows_from_results_or_handle(raw_result, handle)
           affected_rows(raw_result) || handle.affected_rows
-        end
-
-        def raw_execute(sql, name = nil, binds = [], prepare: false, async: false, allow_retry: false, materialize_transactions: true, batch: false)
-          unless binds.nil? || binds.empty?
-            types, params = sp_executesql_types_and_parameters(binds)
-            sql = sp_executesql_sql(sql, types, params, name)
-          end
-
-          super
         end
 
         def internal_exec_sql_query(sql, conn)

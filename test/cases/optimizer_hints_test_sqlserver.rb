@@ -29,7 +29,7 @@ class OptimizerHitsTestSQLServer < ActiveRecord::TestCase
   end
 
   it "support subqueries" do
-    assert_queries_match(%r{.*'SELECT COUNT\(count_column\) FROM \(SELECT .*\) subquery_for_count OPTION \(MAXDOP 2\)'.*}) do
+    assert_queries_match(%r{SELECT COUNT\(count_column\) FROM \(SELECT .*\) subquery_for_count OPTION \(MAXDOP 2\)}) do
       companies = Company.optimizer_hints("MAXDOP 2")
       companies = companies.select(:id).where(firm_id: [0, 1]).limit(3)
       assert_equal 3, companies.count
