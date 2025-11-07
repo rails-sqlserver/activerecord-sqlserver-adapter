@@ -1,4 +1,4 @@
-## Unreleased
+## v8.1.1
 
 - [#1376](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1376) Fixed ActiveRecord gemspec dependency.
 
