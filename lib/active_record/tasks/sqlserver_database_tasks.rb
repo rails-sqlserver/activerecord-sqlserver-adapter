@@ -7,7 +7,7 @@ require "socket"
 
 module ActiveRecord
   module Tasks
-    class SQLServerDatabaseTasks
+    class SQLServerDatabaseTasks < AbstractTasks
       DEFAULT_COLLATION = "SQL_Latin1_General_CP1_CI_AS"
 
       delegate :with_connection, :establish_connection, to: ActiveRecord::Base
