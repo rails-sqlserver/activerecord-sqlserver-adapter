@@ -1,7 +1,14 @@
+## Unreleased
+
+#### Fixed
+
+- [#1377](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1377) Make SQLServerDatabaseTasks a subclass of AbstractTasks
+
 ## v8.1.1
 
+#### Fixed
+
 - [#1376](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1376) Fixed ActiveRecord gemspec dependency.
-- [#1377](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1377) Make SQLServerDatabaseTasks a subclass of AbstractTasks
 
 ## v8.1.0
 
