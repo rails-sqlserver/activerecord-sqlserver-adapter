@@ -2,7 +2,7 @@
 
 #### Fixed
 
-- [#1377](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1377) Make SQLServerDatabaseTasks a subclass of AbstractTasks
+- [#1377](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1377) Fixed SQL Server database tasks.
 
 ## v8.1.1
 
