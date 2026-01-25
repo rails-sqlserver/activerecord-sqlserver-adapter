@@ -14,9 +14,9 @@ module ARTest
           # End of monkey-patch
 
           if count
-            assert_equal count, queries.size, "#{queries.size} instead of #{count} queries were executed. Queries: #{queries.join("\n\n")}"
+            assert_equal count, queries.size, "#{queries.size} instead of #{count} queries were executed#{queries.empty? ? '' : ". Queries:\n\n#{queries.join("\n\n")}"}"
           else
-            assert_operator queries.size, :>=, 1, "1 or more queries expected, but none were executed.#{"\nQueries:\n#{queries.join("\n")}" unless queries.empty?}"
+            assert_operator queries.size, :>=, 1, "1 or more queries expected, but none were executed"
           end
           result
         end
