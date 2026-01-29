@@ -18,3 +18,4 @@ coverage/*
 .byebug_history
 tmp/*
 test/storage/test.sqlite3*
+vendor/bundle

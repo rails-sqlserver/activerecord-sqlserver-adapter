@@ -1,4 +1,4 @@
-ARG TARGET_VERSION=3.2.1
+ARG TARGET_VERSION=3.3.0
 
 FROM ghcr.io/rails-sqlserver/activerecord-sqlserver-adapter:${TARGET_VERSION}
 
