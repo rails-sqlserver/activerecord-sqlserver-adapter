@@ -1,0 +1,19 @@
+current directory: /home/runner/work/activerecord-sqlserver-adapter/activerecord-sqlserver-adapter/vendor/bundle/ruby/3.3.0/gems/erb-6.0.1/ext/erb/escape
+/home/runner/.ruby-3.3.0/bin/ruby extconf.rb
+checking for rb_ext_ractor_safe() in ruby.h... yes
+creating Makefile
+
+current directory: /home/runner/work/activerecord-sqlserver-adapter/activerecord-sqlserver-adapter/vendor/bundle/ruby/3.3.0/gems/erb-6.0.1/ext/erb/escape
+make DESTDIR\= sitearchdir\=./.gem.20260129-15970-ydr8df sitelibdir\=./.gem.20260129-15970-ydr8df clean
+
+current directory: /home/runner/work/activerecord-sqlserver-adapter/activerecord-sqlserver-adapter/vendor/bundle/ruby/3.3.0/gems/erb-6.0.1/ext/erb/escape
+make DESTDIR\= sitearchdir\=./.gem.20260129-15970-ydr8df sitelibdir\=./.gem.20260129-15970-ydr8df
+compiling escape.c
+linking shared-object erb/escape.so
+
+current directory: /home/runner/work/activerecord-sqlserver-adapter/activerecord-sqlserver-adapter/vendor/bundle/ruby/3.3.0/gems/erb-6.0.1/ext/erb/escape
+make DESTDIR\= sitearchdir\=./.gem.20260129-15970-ydr8df sitelibdir\=./.gem.20260129-15970-ydr8df install
+/usr/bin/install -c -m 0755 escape.so ./.gem.20260129-15970-ydr8df/erb
+
+current directory: /home/runner/work/activerecord-sqlserver-adapter/activerecord-sqlserver-adapter/vendor/bundle/ruby/3.3.0/gems/erb-6.0.1/ext/erb/escape
+make DESTDIR\= sitearchdir\=./.gem.20260129-15970-ydr8df sitelibdir\=./.gem.20260129-15970-ydr8df clean

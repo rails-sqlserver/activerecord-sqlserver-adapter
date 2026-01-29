@@ -1,0 +1,17 @@
+--- a/srclib/stdio.in.h	2017-01-22 01:23:00.000000000 -0400
++++ b/srclib/stdio.in.h	2017-01-22 01:24:00.000000000 -0400
+@@ -695,8 +695,14 @@
+ /* It is very rare that the developer ever has full control of stdin,
+    so any use of gets warrants an unconditional warning.  Assume it is
+    always declared, since it is required by C89.  */
++#if defined(__GLIBC__) && !defined(__UCLIBC__)
++# ifdef __GLIBC_PREREQ 
++#  if !__GLIBC_PREREQ(2, 16)
+ _GL_WARN_ON_USE (gets, "gets is a security hole - use fgets instead");
++#  endif
++# endif
++#endif
+ #endif
+ 
+ 
+ #if @GNULIB_OBSTACK_PRINTF@ || @GNULIB_OBSTACK_PRINTF_POSIX@

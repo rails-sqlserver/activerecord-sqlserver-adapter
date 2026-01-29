@@ -1,0 +1,40 @@
+version: '3'
+
+services:
+  tiny_tds:
+    build:
+      context: ..
+      dockerfile: .devcontainer/Dockerfile
+
+    volumes:
+      - ../..:/workspaces:cached
+
+    # Overrides default command so things don't shut down after the process ends.
+    command: sleep infinity
+
+    networks:
+      - default
+    depends_on:
+      - sqlserver
+
+  toxiproxy:
+    image: ghcr.io/shopify/toxiproxy:2.5.0
+
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    restart: unless-stopped
+    networks:
+      - default
+    volumes:
+      - sqlserver-data:/var/opt/mssql
+    ports:
+      - "1433:1433"
+    environment:
+      MSSQL_SA_PASSWORD: 'c0MplicatedP@ssword'
+      ACCEPT_EULA: Y
+
+networks:
+  default:
+
+volumes:
+  sqlserver-data:

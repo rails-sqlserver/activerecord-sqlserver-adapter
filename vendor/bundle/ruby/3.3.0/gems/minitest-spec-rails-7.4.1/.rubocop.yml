@@ -1,0 +1,26 @@
+
+Metrics/LineLength:
+  Max: 120
+
+Metrics/MethodLength:
+  Max: 15
+
+Metrics/BlockLength:
+  Exclude:
+    - 'test/dummy_tests/user_mailer_test.rb'
+
+Style/Documentation:
+  Enabled: false
+
+Style/GlobalVars:
+  AllowedVariables:
+    - '$teardown_ran'
+
+Style/FileName:
+  Exclude:
+    - 'lib/minitest-spec-rails.rb'
+    - 'Appraisals'
+
+AllCops:
+  Exclude:
+    - 'gemfiles/*'

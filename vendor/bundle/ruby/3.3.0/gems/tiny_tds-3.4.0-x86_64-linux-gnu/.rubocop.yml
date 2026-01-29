@@ -1,0 +1,31 @@
+
+AllCops:
+  Include:
+    - '**/Rakefile'
+  Exclude:
+    - 'ext/**/*'
+    - 'ports/**/*'
+    - 'test/**/*'
+    - 'tmp/**/*'
+
+# Redefined
+
+Metrics/LineLength:
+  Max: 120
+
+Metrics/ClassLength:
+  Max: 200
+
+# Disabled
+
+Style/Documentation:
+  Enabled: false
+
+Style/EmptyLinesAroundClassBody:
+  Enabled: false
+
+Style/EmptyLinesAroundModuleBody:
+  Enabled: false
+
+Style/EmptyLinesAroundBlockBody:
+  Enabled: false

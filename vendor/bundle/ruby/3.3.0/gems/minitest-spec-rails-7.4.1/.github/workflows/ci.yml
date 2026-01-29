@@ -1,0 +1,36 @@
+name: CI
+on: [push]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        ruby:
+          - "3.0"
+          - "3.1"
+          - "3.2"
+        rails:
+          - "rails_v6.0.x"
+          - "rails_v6.1.x"
+          - "rails_v7.0.x"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Setup System
+        run: |
+          sudo apt-get install libsqlite3-dev
+          echo "MTSR_RAILS_VERSION=${{ matrix.rails }}" >> $GITHUB_ENV
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ matrix.ruby }}
+      - name: Bundle
+        run: |
+          export BUNDLE_GEMFILE="${GITHUB_WORKSPACE}/gemfiles/${MTSR_RAILS_VERSION}.gemfile"
+          gem uninstall -aIx bundler
+          gem install bundler -v 1.17.3
+          bundle install --jobs 4 --retry 3
+      - name: Test
+        run: |
+          export BUNDLE_GEMFILE="${GITHUB_WORKSPACE}/gemfiles/${MTSR_RAILS_VERSION}.gemfile"
+          bundle exec rake

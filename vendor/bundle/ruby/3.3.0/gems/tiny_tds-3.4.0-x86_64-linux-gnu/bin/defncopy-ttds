@@ -1,0 +1,3 @@
+#!/usr/bin/env ruby
+require_relative '../lib/tiny_tds/bin'
+Process.exit TinyTds::Bin.exe('defncopy', *ARGV)
