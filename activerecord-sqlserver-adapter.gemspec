@@ -7,7 +7,7 @@ Gem::Specification.new do |spec|
   spec.platform = Gem::Platform::RUBY
   spec.version = version
 
-  spec.required_ruby_version = ">= 3.2.0"
+  spec.required_ruby_version = ">= 3.3.0"
 
   spec.license = "MIT"
   spec.authors = ["Ken Collins", "Anna Carey", "Will Bond", "Murray Steele", "Shawn Balestracci", "Joe Rafaniello", "Tom Ward", "Aidan Haran"]

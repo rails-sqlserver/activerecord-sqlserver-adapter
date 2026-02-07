@@ -23,7 +23,6 @@ jobs:
         ruby:
           - 3.4.7
           - 3.3.9
-          - 3.2.9
 
     steps:
       - name: Checkout code
