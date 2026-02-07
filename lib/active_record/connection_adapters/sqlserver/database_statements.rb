@@ -66,30 +66,38 @@ module ActiveRecord
 
         # Executes the delete statement and returns the number of rows affected.
         def delete(arel, name = nil, binds = [])
+          # Clear query cache if the connection pool is configured to do so.
+          if pool.dirties_query_cache
+            ActiveRecord::Base.clear_query_caches_for_current_thread
+          end
+
           intent = QueryIntent.new(arel: arel, name: name, binds: binds)
 
           # Compile Arel to get SQL
           compile_arel_in_intent(intent)
 
-          # Start of monkey-patch
+          # Add `SELECT @@ROWCOUNT` to the end of the SQL to get the number of affected rows. This is needed because SQL Server does not return the number of affected rows in the same way as other databases.
           sql = intent.processed_sql.present? ? intent.processed_sql : intent.raw_sql
           intent.processed_sql = "#{sql}; SELECT @@ROWCOUNT AS AffectedRows"
-          # End of monkey-patch
 
           affected_rows(raw_execute(intent))
         end
 
         # Executes the update statement and returns the number of rows affected.
         def update(arel, name = nil, binds = [])
+          # Clear query cache if the connection pool is configured to do so. 
+          if pool.dirties_query_cache
+            ActiveRecord::Base.clear_query_caches_for_current_thread
+          end
+
           intent = QueryIntent.new(arel: arel, name: name, binds: binds)
 
           # Compile Arel to get SQL
           compile_arel_in_intent(intent)
 
-          # Start of monkey-patch
+          # Add `SELECT @@ROWCOUNT` to the end of the SQL to get the number of affected rows. This is needed because SQL Server does not return the number of affected rows in the same way as other databases.
           sql = intent.processed_sql.present? ? intent.processed_sql : intent.raw_sql
           intent.processed_sql = "#{sql}; SELECT @@ROWCOUNT AS AffectedRows"
-          # End of monkey-patch
 
           affected_rows(raw_execute(intent))
         end
