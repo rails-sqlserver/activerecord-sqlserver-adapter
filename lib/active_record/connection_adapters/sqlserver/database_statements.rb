@@ -78,6 +78,7 @@ module ActiveRecord
 
           # Add `SELECT @@ROWCOUNT` to the end of the SQL to get the number of affected rows. This is needed because SQL Server does not return the number of affected rows in the same way as other databases.
           sql = intent.processed_sql.present? ? intent.processed_sql : intent.raw_sql
+          ensure_writes_are_allowed(sql) if write_query?(sql)
           intent.processed_sql = "#{sql}; SELECT @@ROWCOUNT AS AffectedRows"
 
           affected_rows(raw_execute(intent))
@@ -85,7 +86,7 @@ module ActiveRecord
 
         # Executes the update statement and returns the number of rows affected.
         def update(arel, name = nil, binds = [])
-          # Clear query cache if the connection pool is configured to do so. 
+          # Clear query cache if the connection pool is configured to do so.
           if pool.dirties_query_cache
             ActiveRecord::Base.clear_query_caches_for_current_thread
           end
@@ -97,6 +98,7 @@ module ActiveRecord
 
           # Add `SELECT @@ROWCOUNT` to the end of the SQL to get the number of affected rows. This is needed because SQL Server does not return the number of affected rows in the same way as other databases.
           sql = intent.processed_sql.present? ? intent.processed_sql : intent.raw_sql
+          ensure_writes_are_allowed(sql) if write_query?(sql)
           intent.processed_sql = "#{sql}; SELECT @@ROWCOUNT AS AffectedRows"
 
           affected_rows(raw_execute(intent))
