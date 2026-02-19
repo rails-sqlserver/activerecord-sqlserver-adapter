@@ -13,10 +13,12 @@ module ActiveRecord
           !READ_QUERY.match?(sql.b)
         end
 
-        def perform_query(raw_connection, sql, binds, type_casted_binds, prepare:, notification_payload:, batch:)
-          unless binds.nil? || binds.empty?
-            types, params = sp_executesql_types_and_parameters(binds)
-            sql = sp_executesql_sql(sql, types, params, notification_payload[:name])
+        def perform_query(raw_connection, intent)
+          sql = intent.processed_sql
+
+          unless intent.binds.nil? || intent.binds.empty?
+            types, params = sp_executesql_types_and_parameters(intent.binds)
+            sql = sp_executesql_sql(intent.processed_sql, types, params, intent.notification_payload[:name])
           end
 
           id_insert_table_name = query_requires_identity_insert?(sql)
@@ -30,8 +32,8 @@ module ActiveRecord
           end
 
           verified!
-          notification_payload[:affected_rows] = affected_rows
-          notification_payload[:row_count] = result.count
+          intent.notification_payload[:affected_rows] = affected_rows
+          intent.notification_payload[:row_count] = result.count
           result
         end
 
@@ -62,14 +64,44 @@ module ActiveRecord
           finish_statement_handle(handle)
         end
 
-        def exec_delete(sql, name = nil, binds = [])
-          sql = sql.dup << "; SELECT @@ROWCOUNT AS AffectedRows"
-          super
+        # Executes the delete statement and returns the number of rows affected.
+        def delete(arel, name = nil, binds = [])
+          # Clear query cache if the connection pool is configured to do so.
+          if pool.dirties_query_cache
+            ActiveRecord::Base.clear_query_caches_for_current_thread
+          end
+
+          intent = QueryIntent.new(arel: arel, name: name, binds: binds)
+
+          # Compile Arel to get SQL
+          compile_arel_in_intent(intent)
+
+          # Add `SELECT @@ROWCOUNT` to the end of the SQL to get the number of affected rows. This is needed because SQL Server does not return the number of affected rows in the same way as other databases.
+          sql = intent.processed_sql.present? ? intent.processed_sql : intent.raw_sql
+          ensure_writes_are_allowed(sql) if write_query?(sql)
+          intent.processed_sql = "#{sql}; SELECT @@ROWCOUNT AS AffectedRows"
+
+          affected_rows(raw_execute(intent))
         end
 
-        def exec_update(sql, name = nil, binds = [])
-          sql = sql.dup << "; SELECT @@ROWCOUNT AS AffectedRows"
-          super
+        # Executes the update statement and returns the number of rows affected.
+        def update(arel, name = nil, binds = [])
+          # Clear query cache if the connection pool is configured to do so.
+          if pool.dirties_query_cache
+            ActiveRecord::Base.clear_query_caches_for_current_thread
+          end
+
+          intent = QueryIntent.new(arel: arel, name: name, binds: binds)
+
+          # Compile Arel to get SQL
+          compile_arel_in_intent(intent)
+
+          # Add `SELECT @@ROWCOUNT` to the end of the SQL to get the number of affected rows. This is needed because SQL Server does not return the number of affected rows in the same way as other databases.
+          sql = intent.processed_sql.present? ? intent.processed_sql : intent.raw_sql
+          ensure_writes_are_allowed(sql) if write_query?(sql)
+          intent.processed_sql = "#{sql}; SELECT @@ROWCOUNT AS AffectedRows"
+
+          affected_rows(raw_execute(intent))
         end
 
         def begin_db_transaction
@@ -237,9 +269,11 @@ module ActiveRecord
           end.join(", ")
           sql = "EXEC #{proc_name} #{vars}".strip
 
-          log(sql, "Execute Procedure") do |notification_payload|
+          intent = QueryIntent.new(processed_sql: sql)
+
+          log(intent, "Execute Procedure") do |notification_payload|
             with_raw_connection do |conn|
-              result = internal_raw_execute(sql, conn)
+              result = internal_raw_execute(intent.processed_sql, conn)
               verified!
               options = {as: :hash, cache_rows: true, timezone: ActiveRecord.default_timezone || :utc}
 
@@ -615,7 +649,7 @@ module ActiveRecord
         # however, since we need to have "target." for the assignment, we also generate the CASE switch ourselves
         def build_sql_for_recording_timestamps_when_updating(insert:)
           insert.model.timestamp_attributes_for_update_in_model.filter_map do |column_name|
-            if insert.send(:touch_timestamp_attribute?, column_name)
+            if insert.send(:touch_timestamp_attribute?, column_name) && !column_name.to_sym.in?(insert.send(:insert_all).updatable_columns)
               "target.#{quote_column_name(column_name)}=CASE WHEN (#{insert.updatable_columns.map { |column| "(source.#{quote_column_name(column)} = target.#{quote_column_name(column)} OR (source.#{quote_column_name(column)} IS NULL AND target.#{quote_column_name(column)} IS NULL))" }.join(" AND ")}) THEN target.#{quote_column_name(column_name)} ELSE #{high_precision_current_timestamp} END,"
             end
           end.join

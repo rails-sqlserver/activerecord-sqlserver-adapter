@@ -33,7 +33,8 @@ module ActiveRecord
 
         def indexes(table_name)
           data = begin
-            select("EXEC sp_helpindex #{quote(table_name)}", "SCHEMA")
+            intent = QueryIntent.new(raw_sql: "EXEC sp_helpindex #{quote(table_name)}", name: "SCHEMA")
+            select(intent)
           rescue
             []
           end

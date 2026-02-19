@@ -2704,12 +2704,12 @@ module ActiveRecord
         error = assert_raises(Minitest::Assertion) {
           assert_queries_match(/ASC OFFSET 0 ROWS FETCH NEXT @0 ROWS ONLY/i, count: 2) { Post.first }
         }
-        assert_match(/1 instead of 2 queries/, error.message)
+        assert_match(/1 instead of 2 matching queries/, error.message)
 
         error = assert_raises(Minitest::Assertion) {
           assert_queries_match(/ASC OFFSET 0 ROWS FETCH NEXT @0 ROWS ONLY/i, count: 0) { Post.first }
         }
-        assert_match(/1 instead of 0 queries/, error.message)
+        assert_match(/1 instead of 0 matching queries/, error.message)
       end
     end
   end
