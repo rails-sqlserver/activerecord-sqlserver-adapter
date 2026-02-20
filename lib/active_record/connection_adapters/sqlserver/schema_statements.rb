@@ -196,14 +196,16 @@ module ActiveRecord
           end
 
           column_object = schema_cache.columns(table_name).find { |c| c.name.to_s == column_name.to_s }
-          without_constraints = options.key?(:default) || options.key?(:limit)
+          changing_type = column_object && column_object.type != type.to_sym
+          no_constraint_options = options.key?(:default) || options.key?(:limit)
+
           default = if !options.key?(:default) && column_object
             column_object.default
           else
             options[:default]
           end
 
-          if without_constraints || (column_object && column_object.type != type.to_sym)
+          if no_constraint_options || changing_type
             remove_default_constraint(table_name, column_name)
             indexes = indexes(table_name).select { |index| index.columns.include?(column_name.to_s) }
             remove_indexes(table_name, column_name)
@@ -212,10 +214,14 @@ module ActiveRecord
           sql_commands << "UPDATE #{quote_table_name(table_name)} SET #{quote_column_name(column_name)}=#{quote_default_expression(options[:default], column_object)} WHERE #{quote_column_name(column_name)} IS NULL" if !options[:null].nil? && options[:null] == false && !options[:default].nil?
           alter_command = "ALTER TABLE #{quote_table_name(table_name)} ALTER COLUMN #{quote_column_name(column_name)} #{type_to_sql(type, limit: options[:limit], precision: options[:precision], scale: options[:scale])}"
           alter_command += " COLLATE #{options[:collation]}" if options[:collation].present?
-          alter_command += " NOT NULL" if !options[:null].nil? && options[:null] == false
+          if !options[:null].nil?
+            alter_command += " NOT NULL" if options[:null] == false
+          elsif column_object && !column_object.null
+            alter_command += " NOT NULL"
+          end
           sql_commands << alter_command
 
-          if without_constraints
+          if no_constraint_options || (changing_type && default.present?)
             default = quote_default_expression(default, column_object || column_for(table_name, column_name))
             sql_commands << "ALTER TABLE #{quote_table_name(table_name)} ADD CONSTRAINT #{default_constraint_name(table_name, column_name)} DEFAULT #{default} FOR #{quote_column_name(column_name)}"
           end
