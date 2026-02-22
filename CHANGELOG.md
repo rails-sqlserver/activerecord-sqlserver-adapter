@@ -4,7 +4,7 @@
 
 #### Changed
 
-- [#1381](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1381) Fix change column preserve old attributes.
+- [#1381](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1381) Fix `change_column` to preserve old column attributes.
 
 #### Fixed
 
