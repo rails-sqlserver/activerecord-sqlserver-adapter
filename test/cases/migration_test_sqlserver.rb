@@ -34,11 +34,13 @@ class MigrationTestSQLServer < ActiveRecord::TestCase
       lock_version_column = Person.columns_hash["lock_version"]
       assert_equal :integer, lock_version_column.type
       assert lock_version_column.default.present?
+      assert_equal 0, lock_version_column.default
       assert_nothing_raised { connection.change_column "people", "lock_version", :string }
       Person.reset_column_information
       lock_version_column = Person.columns_hash["lock_version"]
       assert_equal :string, lock_version_column.type
-      assert lock_version_column.default.nil?
+      assert lock_version_column.default.present?
+      assert_equal "0", lock_version_column.default
       assert_nothing_raised { connection.change_column "people", "lock_version", :integer }
       Person.reset_column_information
     end
