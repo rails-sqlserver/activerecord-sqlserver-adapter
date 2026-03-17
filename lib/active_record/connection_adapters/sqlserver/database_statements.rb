@@ -54,12 +54,10 @@ module ActiveRecord
         end
 
         def internal_exec_sql_query(sql, conn)
-          handle = internal_raw_execute(sql, conn)
+          handle = internal_raw_execute(sql, conn, as: :array)
           results = handle_to_names_and_values(handle, ar_result: true)
 
           [results, affected_rows_from_results_or_handle(results, handle)]
-        ensure
-          finish_statement_handle(handle)
         end
 
         def exec_delete(sql, name = nil, binds = [])
@@ -241,16 +239,19 @@ module ActiveRecord
             with_raw_connection do |conn|
               result = internal_raw_execute(sql, conn)
               verified!
-              options = {as: :hash, cache_rows: true, timezone: ActiveRecord.default_timezone || :utc}
 
-              result.each(options) do |row|
-                r = row.with_indifferent_access
-                yield(r) if block_given?
+              if block_given?
+                result.rows.flatten.each do |row|
+                  r = row.with_indifferent_access
+                  yield(r)
+                end
               end
 
-              result = result.each.map { |row| row.is_a?(Hash) ? row.with_indifferent_access : row }
               notification_payload[:row_count] = result.count
-              result
+
+              # existing code heavily depends on receiving an array here, and #rows is an array
+              # e.g. #flatten is not something Enumerable provides, which is what TinyTds::Result implements
+              result.rows
             end
           end
         end
@@ -498,20 +499,14 @@ module ActiveRecord
         # === SQLServer Specific (Selecting) ============================ #
 
         def _raw_select(sql, conn)
-          handle = internal_raw_execute(sql, conn)
-          handle_to_names_and_values(handle, fetch: :rows)
-        ensure
-          finish_statement_handle(handle)
+          handle = internal_raw_execute(sql, conn, as: :array)
+          handle_to_names_and_values(handle)
         end
 
-        def handle_to_names_and_values(handle, options = {})
-          query_options = {}.tap do |qo|
-            qo[:timezone] = ActiveRecord.default_timezone || :utc
-            qo[:as] = (options[:ar_result] || options[:fetch] == :rows) ? :array : :hash
-          end
-          results = handle.each(query_options)
+        def handle_to_names_and_values(handle, ar_result: false)
+          results = handle.rows
 
-          if options[:ar_result]
+          if ar_result
             columns = handle.fields
             columns = columns.last if columns.any? && columns.all? { |e| e.is_a?(Array) } # If query returns multiple result sets, only return the columns of the last one.
             columns = columns.map(&:downcase) if lowercase_schema_reflection
@@ -522,14 +517,8 @@ module ActiveRecord
           end
         end
 
-        def finish_statement_handle(handle)
-          handle&.cancel
-          handle
-        end
-
-        def internal_raw_execute(sql, raw_connection, perform_do: false)
-          result = raw_connection.execute(sql)
-          perform_do ? result.do : result
+        def internal_raw_execute(sql, raw_connection, perform_do: false, as: :hash, timezone: ActiveRecord.default_timezone || :utc)
+          perform_do ? raw_connection.do(sql) : raw_connection.execute(sql, as:, timezone:)
         end
 
         # === SQLServer Specific (insert_all / upsert_all support) ===================== #

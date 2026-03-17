@@ -115,7 +115,28 @@ module ActiveRecord
         end
 
         def new_client(config)
-          TinyTds::Client.new(config)
+          # we receive the entire config that is in the database.yml
+          # however, since TinyTDS wants keyword arguments, it will complain if passing unexpected keys
+          # so we map here the config to only the keys that TinyTDS accepts
+          configuration = {
+            app_name: config[:appname] || config[:app_name],
+            azure: config[:azure],
+            charset: config[:charset] || config[:encoding],
+            contained: config[:contained],
+            database: config[:database],
+            dataserver: config[:dataserver],
+            host: config[:host],
+            login_timeout: config[:login_timeout],
+            message_handler: config[:message_handler],
+            password: config[:password],
+            port: config[:port],
+            tds_version: config[:tds_version],
+            timeout: config[:timeout],
+            username: config[:username],
+            use_utf16: config[:use_utf16]
+          }.compact
+
+          TinyTds::Client.new(**configuration)
         rescue TinyTds::Error => error
           if /database .* does not exist/i.match?(error.message)
             raise ActiveRecord::NoDatabaseError
@@ -553,19 +574,19 @@ module ActiveRecord
 
       def configure_connection
         if @config[:azure]
-          @raw_connection.execute("SET ANSI_NULLS ON").do
-          @raw_connection.execute("SET ANSI_NULL_DFLT_ON ON").do
-          @raw_connection.execute("SET ANSI_PADDING ON").do
-          @raw_connection.execute("SET ANSI_WARNINGS ON").do
+          @raw_connection.do("SET ANSI_NULLS ON")
+          @raw_connection.do("SET ANSI_NULL_DFLT_ON ON")
+          @raw_connection.do("SET ANSI_PADDING ON")
+          @raw_connection.do("SET ANSI_WARNINGS ON")
         else
-          @raw_connection.execute("SET ANSI_DEFAULTS ON").do
+          @raw_connection.do("SET ANSI_DEFAULTS ON")
         end
 
-        @raw_connection.execute("SET QUOTED_IDENTIFIER ON").do
-        @raw_connection.execute("SET CURSOR_CLOSE_ON_COMMIT OFF").do
-        @raw_connection.execute("SET IMPLICIT_TRANSACTIONS OFF").do
-        @raw_connection.execute("SET TEXTSIZE 2147483647").do
-        @raw_connection.execute("SET CONCAT_NULL_YIELDS_NULL ON").do
+        @raw_connection.do("SET QUOTED_IDENTIFIER ON")
+        @raw_connection.do("SET CURSOR_CLOSE_ON_COMMIT OFF")
+        @raw_connection.do("SET IMPLICIT_TRANSACTIONS OFF")
+        @raw_connection.do("SET TEXTSIZE 2147483647")
+        @raw_connection.do("SET CONCAT_NULL_YIELDS_NULL ON")
 
         @spid = _raw_select("SELECT @@SPID", @raw_connection).first.first
 
