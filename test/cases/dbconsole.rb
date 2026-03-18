@@ -1,12 +1,14 @@
 # frozen_string_literal: true
 
 class DbConsole < ActiveRecord::TestCase
-  subject { ActiveRecord::ConnectionAdapters::OracleEnhancedAdapter }
+  subject { ActiveRecord::ConnectionAdapters::SQLServerAdapter }
 
-  it "uses sqlplus to connect to database" do
-    subject.expects(:find_cmd_and_exec).with("sqlcmd", "-d", "db", "-U", "user", "-P", "secret", "-S", "tcp:localhost,1433")
+  it "uses sqlcmd to connect to database" do
+    subject.expects(:find_cmd_and_exec).with("sqlcmd", "-d", "db", "-U", "user", "-P", "secret", "-C", "-S",
+                                             "tcp:localhost,1433")
 
-    config = make_db_config(adapter: "sqlserver", database: "db", username: "user", password: "secret", host: "localhost", port: 1433)
+    config = make_db_config(adapter: "sqlserver", database: "db", username: "user", password: "secret",
+                            host: "localhost", port: 1433, trust_server_certificate: true)
 
     subject.dbconsole(config)
   end
