@@ -11,7 +11,7 @@ gem "pg", "1.5.9"
 gem "sqlite3", ">= 2.1"
 gem "tzinfo-data", platforms: [:mingw, :mswin, :x64_mingw, :jruby]
 gem "benchmark-ips"
-gem "minitest", ">= 5.15.0"
+gem "minitest", "< 6.0.0"
 gem "msgpack", ">= 1.7.0"
 
 if ENV["RAILS_SOURCE"]
@@ -54,7 +54,7 @@ group :tinytds do
   elsif ENV["TINYTDS_VERSION"]
     gem "tiny_tds", ENV["TINYTDS_VERSION"]
   else
-    gem "tiny_tds"
+    gem "tiny_tds", github: "rails-sqlserver/tiny_tds", ref: "05ae08"
   end
 end
 # rubocop:enable Bundler/DuplicatedGem
