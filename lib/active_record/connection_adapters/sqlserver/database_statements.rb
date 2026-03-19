@@ -71,7 +71,7 @@ module ActiveRecord
             ActiveRecord::Base.clear_query_caches_for_current_thread
           end
 
-          intent = QueryIntent.new(arel: arel, name: name, binds: binds)
+          intent = QueryIntent.new(adapter: self, arel: arel, name: name, binds: binds)
 
           # Compile Arel to get SQL
           compile_arel_in_intent(intent)
@@ -91,7 +91,7 @@ module ActiveRecord
             ActiveRecord::Base.clear_query_caches_for_current_thread
           end
 
-          intent = QueryIntent.new(arel: arel, name: name, binds: binds)
+          intent = QueryIntent.new(adapter: self, arel: arel, name: name, binds: binds)
 
           # Compile Arel to get SQL
           compile_arel_in_intent(intent)
@@ -269,7 +269,7 @@ module ActiveRecord
           end.join(", ")
           sql = "EXEC #{proc_name} #{vars}".strip
 
-          intent = QueryIntent.new(processed_sql: sql)
+          intent = QueryIntent.new(adapter: self, processed_sql: sql)
 
           log(intent, "Execute Procedure") do |notification_payload|
             with_raw_connection do |conn|
@@ -594,7 +594,7 @@ module ActiveRecord
             # Discard constraints that are not fully included on insert.keys. Prevents invalid queries.
             # Example: ignore unique index for columns ["name"] if insert keys is ["description"]
             (insert_all.send(:unique_indexes).map(&:columns) + [insert_all.primary_keys]).select do |columns|
-              columns.to_set.subset?(insert.keys)
+              columns.to_set.subset?(insert.keys.to_set)
             end
           end
         end

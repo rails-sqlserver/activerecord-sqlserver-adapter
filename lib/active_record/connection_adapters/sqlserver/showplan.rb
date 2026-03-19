@@ -30,7 +30,7 @@ module ActiveRecord
         end
 
         def set_showplan_option(enable = true)
-          intent = QueryIntent.new(raw_sql: "SET #{showplan_option} #{enable ? "ON" : "OFF"}", name: "SCHEMA")
+          intent = QueryIntent.new(adapter: self, raw_sql: "SET #{showplan_option} #{enable ? "ON" : "OFF"}", name: "SCHEMA")
           raw_execute(intent)
         rescue
           raise ActiveRecordError, "#{showplan_option} could not be turned #{enable ? "ON" : "OFF"}, perhaps you do not have SHOWPLAN permissions?"
