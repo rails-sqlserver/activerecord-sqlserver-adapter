@@ -5,10 +5,10 @@ class DbConsole < ActiveRecord::TestCase
 
   it "uses sqlcmd to connect to database" do
     subject.expects(:find_cmd_and_exec).with("sqlcmd", "-d", "db", "-U", "user", "-P", "secret", "-C", "-S",
-                                             "tcp:localhost,1433")
+      "tcp:localhost,1433")
 
     config = make_db_config(adapter: "sqlserver", database: "db", username: "user", password: "secret",
-                            host: "localhost", port: 1433, trust_server_certificate: true)
+      host: "localhost", port: 1433, trust_server_certificate: true)
 
     subject.dbconsole(config)
   end
