@@ -1,3 +1,9 @@
+## Unreleased
+
+#### Added
+
+- [#1383](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1383) Support trust_server_certificate option in dbconsole.
+
 ## v8.1.2
 
 #### Fixed
