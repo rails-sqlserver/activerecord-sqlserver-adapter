@@ -16,7 +16,7 @@ module ActiveRecord
         def perform_query(raw_connection, intent)
           sql = intent.processed_sql
 
-          unless intent.binds.nil? || intent.binds.empty?
+          if intent.has_binds?
             types, params = sp_executesql_types_and_parameters(intent.binds)
             sql = sp_executesql_sql(intent.processed_sql, types, params, intent.notification_payload[:name])
           end
@@ -73,13 +73,10 @@ module ActiveRecord
 
           intent = QueryIntent.new(adapter: self, arel: arel, name: name, binds: binds)
 
-          # Compile Arel to get SQL
-          compile_arel_in_intent(intent)
-
           # Add `SELECT @@ROWCOUNT` to the end of the SQL to get the number of affected rows. This is needed because SQL Server does not return the number of affected rows in the same way as other databases.
           sql = intent.processed_sql.present? ? intent.processed_sql : intent.raw_sql
           ensure_writes_are_allowed(sql) if write_query?(sql)
-          intent.processed_sql = "#{sql}; SELECT @@ROWCOUNT AS AffectedRows"
+          intent.instance_variable_set(:@processed_sql, "#{sql}; SELECT @@ROWCOUNT AS AffectedRows")
 
           affected_rows(raw_execute(intent))
         end
@@ -93,13 +90,10 @@ module ActiveRecord
 
           intent = QueryIntent.new(adapter: self, arel: arel, name: name, binds: binds)
 
-          # Compile Arel to get SQL
-          compile_arel_in_intent(intent)
-
           # Add `SELECT @@ROWCOUNT` to the end of the SQL to get the number of affected rows. This is needed because SQL Server does not return the number of affected rows in the same way as other databases.
           sql = intent.processed_sql.present? ? intent.processed_sql : intent.raw_sql
           ensure_writes_are_allowed(sql) if write_query?(sql)
-          intent.processed_sql = "#{sql}; SELECT @@ROWCOUNT AS AffectedRows"
+          intent.instance_variable_set(:@processed_sql, "#{sql}; SELECT @@ROWCOUNT AS AffectedRows")
 
           affected_rows(raw_execute(intent))
         end
