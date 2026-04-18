@@ -78,7 +78,8 @@ module ActiveRecord
           ensure_writes_are_allowed(sql) if write_query?(sql)
           intent.instance_variable_set(:@processed_sql, "#{sql}; SELECT @@ROWCOUNT AS AffectedRows")
 
-          affected_rows(raw_execute(intent))
+          intent.execute!
+          intent.affected_rows
         end
 
         # Executes the update statement and returns the number of rows affected.
@@ -95,11 +96,12 @@ module ActiveRecord
           ensure_writes_are_allowed(sql) if write_query?(sql)
           intent.instance_variable_set(:@processed_sql, "#{sql}; SELECT @@ROWCOUNT AS AffectedRows")
 
-          affected_rows(raw_execute(intent))
+          intent.execute!
+          intent.affected_rows
         end
 
         def begin_db_transaction
-          internal_execute("BEGIN TRANSACTION", "TRANSACTION", allow_retry: true, materialize_transactions: false)
+          query_command("BEGIN TRANSACTION", "TRANSACTION", allow_retry: true, materialize_transactions: false)
         end
 
         def transaction_isolation_levels
@@ -112,15 +114,15 @@ module ActiveRecord
         end
 
         def set_transaction_isolation_level(isolation_level)
-          internal_execute("SET TRANSACTION ISOLATION LEVEL #{isolation_level}", "TRANSACTION", allow_retry: true, materialize_transactions: false)
+          query_command("SET TRANSACTION ISOLATION LEVEL #{isolation_level}", "TRANSACTION", allow_retry: true, materialize_transactions: false)
         end
 
         def commit_db_transaction
-          internal_execute("COMMIT TRANSACTION", "TRANSACTION", allow_retry: false, materialize_transactions: true)
+          query_command("COMMIT TRANSACTION", "TRANSACTION", allow_retry: false, materialize_transactions: true)
         end
 
         def exec_rollback_db_transaction
-          internal_execute("IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION", "TRANSACTION", allow_retry: false, materialize_transactions: true)
+          query_command("IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION", "TRANSACTION", allow_retry: false, materialize_transactions: true)
         end
 
         def case_sensitive_comparison(attribute, value)

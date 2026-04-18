@@ -9,11 +9,11 @@ module ActiveRecord
         end
 
         def create_savepoint(name = current_savepoint_name)
-          internal_execute("SAVE TRANSACTION #{name}", "TRANSACTION")
+          query_command("SAVE TRANSACTION #{name}", "TRANSACTION")
         end
 
         def exec_rollback_to_savepoint(name = current_savepoint_name)
-          internal_execute("ROLLBACK TRANSACTION #{name}", "TRANSACTION")
+          query_command("ROLLBACK TRANSACTION #{name}", "TRANSACTION")
         end
 
         # SQL Server does require save-points to be explicitly released.
