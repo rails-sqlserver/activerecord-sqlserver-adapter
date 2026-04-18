@@ -161,7 +161,7 @@ module ActiveRecord
           binds << Relation::QueryAttribute.new("TABLE_NAME", identifier.object, nv128)
           binds << Relation::QueryAttribute.new("TABLE_SCHEMA", identifier.schema, nv128) unless identifier.schema.blank?
 
-          internal_exec_query(sql, "SCHEMA", binds).map { |row| row["name"] }
+          select_all(sql, "SCHEMA", binds).map { |row| row["name"] }
         end
 
         def rename_table(table_name, new_name, **options)
@@ -322,7 +322,7 @@ module ActiveRecord
             st.name = '#{table_name}'
           SQL
 
-          chk_info = internal_exec_query(sql, "SCHEMA")
+          chk_info = select_all(sql, "SCHEMA")
 
           chk_info.map do |row|
             options = {
@@ -512,7 +512,7 @@ module ActiveRecord
               FROM #{database}.INFORMATION_SCHEMA.COLUMNS c
               WHERE c.TABLE_NAME = #{quote(view_table_name(table_name))}
             SQL
-            results = internal_exec_query(sql, "SCHEMA")
+            results = select_all(sql, "SCHEMA")
             default_functions = results.each.with_object({}) { |row, out| out[row["name"]] = row["default"] }.compact
           end
 
@@ -523,7 +523,7 @@ module ActiveRecord
           binds << Relation::QueryAttribute.new("TABLE_NAME", identifier.object, nv128)
           binds << Relation::QueryAttribute.new("TABLE_SCHEMA", identifier.schema, nv128) unless identifier.schema.blank?
 
-          results = internal_exec_query(sql, "SCHEMA", binds)
+          results = select_all(sql, "SCHEMA", binds)
           raise ActiveRecord::StatementInvalid, "Table '#{table_name}' doesn't exist" if results.empty?
 
           results.map do |ci|
