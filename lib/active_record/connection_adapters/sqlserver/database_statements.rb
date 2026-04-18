@@ -75,7 +75,6 @@ module ActiveRecord
 
           # Add `SELECT @@ROWCOUNT` to the end of the SQL to get the number of affected rows. This is needed because SQL Server does not return the number of affected rows in the same way as other databases.
           sql = intent.processed_sql.present? ? intent.processed_sql : intent.raw_sql
-          ensure_writes_are_allowed(sql) if write_query?(sql)
           intent.instance_variable_set(:@processed_sql, "#{sql}; SELECT @@ROWCOUNT AS AffectedRows")
 
           intent.execute!
@@ -93,7 +92,6 @@ module ActiveRecord
 
           # Add `SELECT @@ROWCOUNT` to the end of the SQL to get the number of affected rows. This is needed because SQL Server does not return the number of affected rows in the same way as other databases.
           sql = intent.processed_sql.present? ? intent.processed_sql : intent.raw_sql
-          ensure_writes_are_allowed(sql) if write_query?(sql)
           intent.instance_variable_set(:@processed_sql, "#{sql}; SELECT @@ROWCOUNT AS AffectedRows")
 
           intent.execute!
