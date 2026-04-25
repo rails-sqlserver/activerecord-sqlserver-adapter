@@ -615,7 +615,9 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
 
     it "records can be inserted using SQL" do
       assert_difference("Alien.count", 2) do
-        Alien.lease_connection.exec_insert("insert into [test].[aliens] (id, name) VALUES(1, 'Trisolarans'), (2, 'Xenomorph')")
+        assert_deprecated(ActiveRecord.deprecator) do
+          Alien.lease_connection.exec_insert("insert into [test].[aliens] (id, name) VALUES(1, 'Trisolarans'), (2, 'Xenomorph')")
+        end
       end
     end
   end
@@ -630,9 +632,14 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
 
   describe "exec_insert" do
     it "values clause should be case-insensitive" do
+      first_insert = nil
+      second_insert = nil
+
       assert_difference("Post.count", 4) do
-        first_insert = connection.exec_insert("INSERT INTO [posts] ([id],[title],[body]) VALUES(100, 'Title', 'Body'), (102, 'Title', 'Body')")
-        second_insert = connection.exec_insert("INSERT INTO [posts] ([id],[title],[body]) values(113, 'Body', 'Body'), (114, 'Body', 'Body')")
+        assert_deprecated(ActiveRecord.deprecator) do
+          first_insert = connection.exec_insert("INSERT INTO [posts] ([id],[title],[body]) VALUES(100, 'Title', 'Body'), (102, 'Title', 'Body')")
+          second_insert = connection.exec_insert("INSERT INTO [posts] ([id],[title],[body]) values(113, 'Body', 'Body'), (114, 'Body', 'Body')")
+        end
 
         assert_equal first_insert.rows.map(&:first), [100, 102]
         assert_equal second_insert.rows.map(&:first), [113, 114]
