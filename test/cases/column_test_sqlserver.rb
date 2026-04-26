@@ -44,7 +44,7 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       _(col.default).must_equal 42
       _(obj.bigint).must_equal 42
       _(col.default_function).must_be_nil
-      type = col.fetch_cast_type(connection)
+      type = col.cast_type
       _(type).must_be_instance_of ActiveRecord::ConnectionAdapters::SQLServer::Type::BigInteger
       _(type.limit).must_equal 8
       assert_obj_set_and_save :bigint, -9_223_372_036_854_775_808
@@ -59,7 +59,7 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       _(col.default).must_equal 42
       _(obj.int).must_equal 42
       _(col.default_function).must_be_nil
-      type = col.fetch_cast_type(connection)
+      type = col.cast_type
       _(type).must_be_instance_of ActiveRecord::ConnectionAdapters::SQLServer::Type::Integer
       _(type.limit).must_equal 4
       assert_obj_set_and_save :int, -2_147_483_648
@@ -74,7 +74,7 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       _(col.default).must_equal 42
       _(obj.smallint).must_equal 42
       _(col.default_function).must_be_nil
-      type = col.fetch_cast_type(connection)
+      type = col.cast_type
       _(type).must_be_instance_of ActiveRecord::ConnectionAdapters::SQLServer::Type::SmallInteger
       _(type.limit).must_equal 2
       assert_obj_set_and_save :smallint, -32_768
@@ -89,7 +89,7 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       _(col.default).must_equal 42
       _(obj.tinyint).must_equal 42
       _(col.default_function).must_be_nil
-      type = col.fetch_cast_type(connection)
+      type = col.cast_type
       _(type).must_be_instance_of ActiveRecord::ConnectionAdapters::SQLServer::Type::TinyInteger
       _(type.limit).must_equal 1
       assert_obj_set_and_save :tinyint, 0
@@ -104,7 +104,7 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       _(col.default).must_equal true
       _(obj.bit).must_equal true
       _(col.default_function).must_be_nil
-      type = col.fetch_cast_type(connection)
+      type = col.cast_type
       _(type).must_be_instance_of ActiveRecord::ConnectionAdapters::SQLServer::Type::Boolean
       _(type.limit).must_be_nil
       obj.bit = 0
@@ -125,7 +125,7 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       _(col.default).must_equal BigDecimal("12345.01")
       _(obj.decimal_9_2).must_equal BigDecimal("12345.01")
       _(col.default_function).must_be_nil
-      type = col.fetch_cast_type(connection)
+      type = col.cast_type
       _(type).must_be_instance_of ActiveRecord::ConnectionAdapters::SQLServer::Type::Decimal
       _(type.limit).must_be_nil
       _(type.precision).must_equal 9
@@ -142,7 +142,7 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       _(col.default).must_equal BigDecimal("1234567.89")
       _(obj.decimal_16_4).must_equal BigDecimal("1234567.89")
       _(col.default_function).must_be_nil
-      type = col.fetch_cast_type(connection)
+      type = col.cast_type
       _(type.precision).must_equal 16
       _(type.scale).must_equal 4
       obj.decimal_16_4 = "1234567.8901001"
@@ -160,7 +160,7 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       _(obj.numeric_18_0).must_equal BigDecimal(191)
       _(col.default_function).must_be_nil
 
-      type = col.fetch_cast_type(connection)
+      type = col.cast_type
       _(type).must_be_instance_of ActiveRecord::ConnectionAdapters::SQLServer::Type::DecimalWithoutScale
       _(type.limit).must_be_nil
       _(type.precision).must_equal 18
@@ -181,7 +181,7 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       _(col.default).must_equal BigDecimal("12345678901234567890.01")
       _(obj.numeric_36_2).must_equal BigDecimal("12345678901234567890.01")
       _(col.default_function).must_be_nil
-      type = col.fetch_cast_type(connection)
+      type = col.cast_type
       _(type).must_be_instance_of ActiveRecord::ConnectionAdapters::SQLServer::Type::Decimal
       _(type.limit).must_be_nil
       _(type.precision).must_equal 36
@@ -200,7 +200,7 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       _(col.default).must_equal BigDecimal("4.20")
       _(obj.money).must_equal BigDecimal("4.20")
       _(col.default_function).must_be_nil
-      type = col.fetch_cast_type(connection)
+      type = col.cast_type
       _(type).must_be_instance_of ActiveRecord::ConnectionAdapters::SQLServer::Type::Money
       _(type.limit).must_be_nil
       _(type.precision).must_equal 19
@@ -219,7 +219,7 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       _(col.default).must_equal BigDecimal("4.20")
       _(obj.smallmoney).must_equal BigDecimal("4.20")
       _(col.default_function).must_be_nil
-      type = col.fetch_cast_type(connection)
+      type = col.cast_type
       _(type).must_be_instance_of ActiveRecord::ConnectionAdapters::SQLServer::Type::SmallMoney
       _(type.limit).must_be_nil
       _(type.precision).must_equal 10
@@ -242,7 +242,7 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       _(col.default).must_equal 123.00000001
       _(obj.float).must_equal 123.00000001
       _(col.default_function).must_be_nil
-      type = col.fetch_cast_type(connection)
+      type = col.cast_type
       _(type).must_be_instance_of ActiveRecord::ConnectionAdapters::SQLServer::Type::Float
       _(type.limit).must_be_nil
       _(type.precision).must_be_nil
@@ -261,7 +261,7 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       _(col.default).must_be_close_to 123.45, 0.01
       _(obj.real).must_be_close_to 123.45, 0.01
       _(col.default_function).must_be_nil
-      type = col.fetch_cast_type(connection)
+      type = col.cast_type
       _(type).must_be_instance_of ActiveRecord::ConnectionAdapters::SQLServer::Type::Real
       _(type.limit).must_be_nil
       _(type.precision).must_be_nil
@@ -282,7 +282,7 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       _(col.default).must_equal Date.civil(1, 1, 1)
       _(obj.date).must_equal Date.civil(1, 1, 1)
       _(col.default_function).must_be_nil
-      type = col.fetch_cast_type(connection)
+      type = col.cast_type
       _(type).must_be_instance_of ActiveRecord::ConnectionAdapters::SQLServer::Type::Date
       _(type.limit).must_be_nil
       _(type.precision).must_be_nil
@@ -321,7 +321,7 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       _(col.default).must_equal time, "Microseconds were <#{col.default.usec}> vs <123000>"
       _(obj.datetime).must_equal time, "Microseconds were <#{obj.datetime.usec}> vs <123000>"
       _(col.default_function).must_be_nil
-      type = col.fetch_cast_type(connection)
+      type = col.cast_type
       _(type).must_be_instance_of ActiveRecord::ConnectionAdapters::SQLServer::Type::DateTime
       _(type.limit).must_be_nil
       _(type.precision).must_be_nil
@@ -367,7 +367,7 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       _(col.default).must_equal time, "Nanoseconds were <#{col.default.nsec}> vs <999999900>"
       _(obj.datetime2_7).must_equal time, "Nanoseconds were <#{obj.datetime2_7.nsec}> vs <999999900>"
       _(col.default_function).must_be_nil
-      type = col.fetch_cast_type(connection)
+      type = col.cast_type
       _(type).must_be_instance_of ActiveRecord::ConnectionAdapters::SQLServer::Type::DateTime2
       _(type.limit).must_be_nil
       _(type.precision).must_equal 7
@@ -397,7 +397,7 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       # datetime2_3
       time = Time.utc 9999, 12, 31, 23, 59, 59, Rational(123456789, 1000)
       col = column("datetime2_3")
-      _(col.fetch_cast_type(connection).precision).must_equal 3
+      _(col.cast_type.precision).must_equal 3
       obj.datetime2_3 = time
       _(obj.datetime2_3).must_equal time.change(nsec: 123000000), "Nanoseconds were <#{obj.datetime2_3.nsec}> vs <123000000>"
       obj.save!
@@ -406,7 +406,7 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       _(obj).must_equal obj.class.where(datetime2_3: time).first
       # datetime2_1
       col = column("datetime2_1")
-      _(col.fetch_cast_type(connection).precision).must_equal 1
+      _(col.cast_type.precision).must_equal 1
       obj.datetime2_1 = time
       _(obj.datetime2_1).must_equal time.change(nsec: 100000000), "Nanoseconds were <#{obj.datetime2_1.nsec}> vs <100000000>"
       obj.save!
@@ -415,7 +415,7 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       _(obj).must_equal obj.class.where(datetime2_1: time).first
       # datetime2_0
       col = column("datetime2_0")
-      _(col.fetch_cast_type(connection).precision).must_equal 0
+      _(col.cast_type.precision).must_equal 0
       time = Time.utc 2016, 4, 19, 16, 45, 40, 771036
       obj.datetime2_0 = time
       _(obj.datetime2_0).must_equal time.change(nsec: 0), "Nanoseconds were <#{obj.datetime2_0.nsec}> vs <0>"
@@ -433,7 +433,7 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       _(col.default).must_equal Time.new(1984, 1, 24, 4, 20, 0, -28800).change(nsec: 123456700), "Nanoseconds <#{col.default.nsec}> vs <123456700>"
       _(obj.datetimeoffset_7).must_equal Time.new(1984, 1, 24, 4, 20, 0, -28800).change(nsec: 123456700), "Nanoseconds were <#{obj.datetimeoffset_7.nsec}> vs <999999900>"
       _(col.default_function).must_be_nil
-      type = col.fetch_cast_type(connection)
+      type = col.cast_type
       _(type).must_be_instance_of ActiveRecord::ConnectionAdapters::SQLServer::Type::DateTimeOffset
       _(type.limit).must_be_nil
       _(type.precision).must_equal 7
@@ -458,13 +458,13 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       # With other precisions.
       time = ActiveSupport::TimeZone["America/Los_Angeles"].local 2010, 12, 31, 23, 59, 59, Rational(123456755, 1000)
       col = column("datetimeoffset_3")
-      _(col.fetch_cast_type(connection).precision).must_equal 3
+      _(col.cast_type.precision).must_equal 3
       obj.datetimeoffset_3 = time
       _(obj.datetimeoffset_3).must_equal time.change(nsec: 123000000), "Nanoseconds were <#{obj.datetimeoffset_3.nsec}> vs <123000000>"
       obj.save!
       _(obj.datetimeoffset_3).must_equal time.change(nsec: 123000000), "Nanoseconds were <#{obj.datetimeoffset_3.nsec}> vs <123000000>"
       col = column("datetime2_1")
-      _(col.fetch_cast_type(connection).precision).must_equal 1
+      _(col.cast_type.precision).must_equal 1
       obj.datetime2_1 = time
       _(obj.datetime2_1).must_equal time.change(nsec: 100000000), "Nanoseconds were <#{obj.datetime2_1.nsec}> vs <100000000>"
       obj.save!
@@ -479,7 +479,7 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       _(col.default).must_equal Time.utc(1901, 1, 1, 15, 45, 0, 0)
       _(obj.smalldatetime).must_equal Time.utc(1901, 1, 1, 15, 45, 0, 0)
       _(col.default_function).must_be_nil
-      type = col.fetch_cast_type(connection)
+      type = col.cast_type
       _(type).must_be_instance_of ActiveRecord::ConnectionAdapters::SQLServer::Type::SmallDateTime
       _(type.limit).must_be_nil
       _(type.precision).must_be_nil
@@ -500,7 +500,7 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       _(col.null).must_equal true
       _(col.default).must_equal Time.utc(1900, 1, 1, 4, 20, 0, Rational(288321500, 1000)), "Nanoseconds were <#{col.default.nsec}> vs <288321500>"
       _(col.default_function).must_be_nil
-      type = col.fetch_cast_type(connection)
+      type = col.cast_type
       _(type).must_be_instance_of ActiveRecord::ConnectionAdapters::SQLServer::Type::Time
       _(type.limit).must_be_nil
       _(type.precision).must_equal 7
@@ -534,7 +534,7 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       _(col.null).must_equal true
       _(col.default).must_be_nil
       _(col.default_function).must_be_nil
-      type = col.fetch_cast_type(connection)
+      type = col.cast_type
       _(type).must_be_instance_of ActiveRecord::ConnectionAdapters::SQLServer::Type::Time
       _(type.limit).must_be_nil
       _(type.precision).must_equal 2
@@ -566,7 +566,7 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       _(col.null).must_equal true
       _(col.default).must_equal Time.utc(1900, 1, 1, 15, 3, 42, Rational(62197800, 1000)), "Nanoseconds were <#{col.default.nsec}> vs <62197800>"
       _(col.default_function).must_be_nil
-      type = col.fetch_cast_type(connection)
+      type = col.cast_type
       _(type).must_be_instance_of ActiveRecord::ConnectionAdapters::SQLServer::Type::Time
       _(type.limit).must_be_nil
       _(type.precision).must_equal 7
@@ -603,7 +603,7 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       _(col.default).must_equal "1234567890"
       _(obj.char_10).must_equal "1234567890"
       _(col.default_function).must_be_nil
-      type = col.fetch_cast_type(connection)
+      type = col.cast_type
       _(type).must_be_instance_of ActiveRecord::ConnectionAdapters::SQLServer::Type::Char
       _(type.limit).must_equal 10
       _(type.precision).must_be_nil
@@ -623,7 +623,7 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       _(col.default).must_equal "test varchar_50"
       _(obj.varchar_50).must_equal "test varchar_50"
       _(col.default_function).must_be_nil
-      type = col.fetch_cast_type(connection)
+      type = col.cast_type
       _(type).must_be_instance_of ActiveRecord::ConnectionAdapters::SQLServer::Type::Varchar
       _(type.limit).must_equal 50
       _(type.precision).must_be_nil
@@ -640,7 +640,7 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       _(col.default).must_equal "test varchar_max"
       _(obj.varchar_max).must_equal "test varchar_max"
       _(col.default_function).must_be_nil
-      type = col.fetch_cast_type(connection)
+      type = col.cast_type
       _(type).must_be_instance_of ActiveRecord::ConnectionAdapters::SQLServer::Type::VarcharMax
       _(type.limit).must_equal 2_147_483_647
       _(type.precision).must_be_nil
@@ -657,7 +657,7 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       _(col.default).must_equal "test text"
       _(obj.text).must_equal "test text"
       _(col.default_function).must_be_nil
-      type = col.fetch_cast_type(connection)
+      type = col.cast_type
       _(type).must_be_instance_of ActiveRecord::ConnectionAdapters::SQLServer::Type::Text
       _(type.limit).must_equal 2_147_483_647
       _(type.precision).must_be_nil
@@ -676,7 +676,7 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       _(col.default).must_equal "12345678åå"
       _(obj.nchar_10).must_equal "12345678åå"
       _(col.default_function).must_be_nil
-      type = col.fetch_cast_type(connection)
+      type = col.cast_type
       _(type).must_be_instance_of ActiveRecord::ConnectionAdapters::SQLServer::Type::UnicodeChar
       _(type.limit).must_equal 10
       _(type.precision).must_be_nil
@@ -696,7 +696,7 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       _(col.default).must_equal "test nvarchar_50 åå"
       _(obj.nvarchar_50).must_equal "test nvarchar_50 åå"
       _(col.default_function).must_be_nil
-      type = col.fetch_cast_type(connection)
+      type = col.cast_type
       _(type).must_be_instance_of ActiveRecord::ConnectionAdapters::SQLServer::Type::UnicodeVarchar
       _(type.limit).must_equal 50
       _(type.precision).must_be_nil
@@ -713,7 +713,7 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       _(col.default).must_equal "test nvarchar_max åå"
       _(obj.nvarchar_max).must_equal "test nvarchar_max åå"
       _(col.default_function).must_be_nil
-      type = col.fetch_cast_type(connection)
+      type = col.cast_type
       _(type).must_be_instance_of ActiveRecord::ConnectionAdapters::SQLServer::Type::UnicodeVarcharMax
       _(type.limit).must_equal 2_147_483_647
       _(type.precision).must_be_nil
@@ -730,7 +730,7 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       _(col.default).must_equal "test ntext åå"
       _(obj.ntext).must_equal "test ntext åå"
       _(col.default_function).must_be_nil
-      type = col.fetch_cast_type(connection)
+      type = col.cast_type
       _(type).must_be_instance_of ActiveRecord::ConnectionAdapters::SQLServer::Type::UnicodeText
       _(type.limit).must_equal 2_147_483_647
       _(type.precision).must_be_nil
@@ -751,7 +751,7 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       _(col.null).must_equal true
       _(col.default).must_be_nil
       _(col.default_function).must_be_nil
-      type = col.fetch_cast_type(connection)
+      type = col.cast_type
       _(type).must_be_instance_of ActiveRecord::ConnectionAdapters::SQLServer::Type::Binary
       _(type.limit).must_equal 49
       _(type.precision).must_be_nil
@@ -772,7 +772,7 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       _(col.null).must_equal true
       _(col.default).must_be_nil
       _(col.default_function).must_be_nil
-      type = col.fetch_cast_type(connection)
+      type = col.cast_type
       _(type).must_be_instance_of ActiveRecord::ConnectionAdapters::SQLServer::Type::Varbinary
       _(type.limit).must_equal 49
       _(type.precision).must_be_nil
@@ -793,7 +793,7 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       _(col.null).must_equal true
       _(col.default).must_be_nil
       _(col.default_function).must_be_nil
-      type = col.fetch_cast_type(connection)
+      type = col.cast_type
       _(type).must_be_instance_of ActiveRecord::ConnectionAdapters::SQLServer::Type::VarbinaryMax
       _(type.limit).must_equal 2_147_483_647
       _(type.precision).must_be_nil
@@ -812,7 +812,7 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       _(col.null).must_equal true
       _(col.default).must_be_nil
       _(col.default_function).must_equal "newid()"
-      type = col.fetch_cast_type(connection)
+      type = col.cast_type
       _(type).must_be_instance_of ActiveRecord::ConnectionAdapters::SQLServer::Type::Uuid
       _(type.limit).must_be_nil
       _(type.precision).must_be_nil
@@ -837,7 +837,7 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       _(col.null).must_equal true
       _(col.default).must_be_nil
       _(col.default_function).must_be_nil
-      type = col.fetch_cast_type(connection)
+      type = col.cast_type
       _(type).must_be_instance_of ActiveRecord::ConnectionAdapters::SQLServer::Type::Timestamp
       _(type.limit).must_be_nil
       _(type.precision).must_be_nil

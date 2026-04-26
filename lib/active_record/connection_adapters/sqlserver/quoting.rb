@@ -79,6 +79,7 @@ module ActiveRecord
 
         def quote_default_expression(value, column)
           cast_type = lookup_cast_type(column.sql_type)
+
           if cast_type.type == :uuid && value.is_a?(String) && value.include?("()")
             value
           else
@@ -132,6 +133,10 @@ module ActiveRecord
           else
             super
           end
+        end
+
+        def lookup_cast_type(sql_type)
+          type_map.lookup(sql_type)
         end
       end
     end
