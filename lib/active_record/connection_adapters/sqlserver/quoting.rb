@@ -119,7 +119,7 @@ module ActiveRecord
             "0x#{value.hex}"
           when ActiveRecord::Type::SQLServer::Data
             value.quoted
-          when String, ActiveSupport::Multibyte::Chars
+          when String
             "N#{super}"
           else
             super
