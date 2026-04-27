@@ -2824,3 +2824,33 @@ class EachTest < ActiveRecord::TestCase
   end
 end
 
+class TransactionInstrumentationTest < ActiveRecord::TestCase
+  # SQL Server does not have query for release_savepoint.
+  coerce_tests! :test_sql_events_do_not_overlap_with_savepoints
+  def test_sql_events_do_not_overlap_with_savepoints_coerced
+    events = []
+    subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |event|
+      events << event
+    end
+
+    Topic.transaction do
+      Topic.count
+      Topic.transaction(requires_new: true) { Topic.first }
+    end
+
+    assert_equal 5, events.size
+    begin_event, count_event, savepoint_event, select_event, commit_event = events
+
+    assert begin_event.payload[:sql].start_with?("BEGIN")
+    assert count_event.payload[:sql].start_with?("SELECT")
+    assert savepoint_event.payload[:sql].start_with?("SAVE TRANSACTION")
+    assert select_event.payload[:sql].start_with?("SELECT")
+    assert commit_event.payload[:sql].start_with?("COMMIT")
+
+    events.each_cons(2) do |a, b|
+      assert_operator a.end, :<=, b.time
+    end
+  ensure
+    ActiveSupport::Notifications.unsubscribe(subscriber)
+  end
+end
