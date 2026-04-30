@@ -26,10 +26,10 @@ module ActiveRecord
             end
           end
 
-          if if_exists && version_year < 2016
-            sqls << "IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = #{quote(table_name)}) DROP TABLE #{quote_table_name(table_name)}"
+          sqls << if if_exists && version_year < 2016
+            "IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = #{quote(table_name)}) DROP TABLE #{quote_table_name(table_name)}"
           else
-            sqls << super
+            super
           end
 
           sqls.join("; ")
