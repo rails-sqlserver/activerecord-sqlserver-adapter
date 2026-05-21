@@ -4,6 +4,11 @@
 ARG VARIANT="3"
 FROM mcr.microsoft.com/devcontainers/ruby:${VARIANT}
 
+# Update Yarn keys
+RUN mkdir -p /etc/apt/keyrings  \
+    && curl -fsSL https://dl.yarnpkg.com/debian/pubkey.gpg | gpg --dearmor --yes -o /etc/apt/keyrings/yarn-archive-keyring.gpg  \
+    && echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/yarn-archive-keyring.gpg] https://dl.yarnpkg.com/debian/ stable main" > /etc/apt/sources.list.d/yarn.list
+
 # TinyTDS
 RUN apt-get -y install libc6-dev \
     && wget http://www.freetds.org/files/stable/freetds-1.4.14.tar.gz \
