@@ -168,6 +168,10 @@ ActiveRecord::Schema.define do
     t.string :name
   end
 
+  create_table :defaults, force: true do |t|
+    t.column :char1, "char(1)", default: "Y"
+  end
+
   # Constraints
 
   create_table(:sst_has_fks, force: true) do |t|
