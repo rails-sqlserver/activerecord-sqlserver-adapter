@@ -271,6 +271,25 @@ module Arel
         collect_ctes(o.children, collector)
       end
 
+      def visit_Arel_Nodes_NullsFirst(o, collector)
+        collector << sql_to_order_nulls_position(o, is_first: true)
+        collector << ", "
+        visit o.expr, collector
+      end
+
+      def visit_Arel_Nodes_NullsLast(o, collector)
+        collector << sql_to_order_nulls_position(o, is_first: false)
+        collector << ", "
+        visit o.expr, collector
+      end
+
+      def sql_to_order_nulls_position(o, is_first:)
+        order_column = "".dup
+        visit o.expr.expr, order_column
+
+        "(CASE WHEN #{order_column} IS NULL THEN #{is_first ? 0 : 1} ELSE #{is_first ? 1 : 0} END)"
+      end
+
       # SQLServer ToSql/Visitor (Additions)
 
       def visit_Arel_Nodes_SelectStatement_SQLServer_Lock(collector, options = {})

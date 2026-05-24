@@ -2,6 +2,7 @@
 
 require "cases/helper_sqlserver"
 require "models/post"
+require "models/book"
 
 class OrderTestSQLServer < ActiveRecord::TestCase
   fixtures :posts
@@ -149,5 +150,25 @@ class OrderTestSQLServer < ActiveRecord::TestCase
   it "doesn't deduplicate semantically equal orders" do
     sql = Post.order(:id).order("posts.id ASC").to_sql
     assert_equal "SELECT [posts].* FROM [posts] ORDER BY [posts].[id] ASC, posts.id ASC", sql
+  end
+
+  it "support nulls first" do
+    Book.delete_all
+    Book.create!(title: "Hyperion")
+    Book.create!(title: nil)
+    Book.create!(title: "Dune")
+
+    books = Book.order(Book.arel_table[:title].desc.nulls_first)
+    assert_equal([nil, "Hyperion", "Dune"], books.map(&:title))
+  end
+
+  it "support nulls last" do
+    Book.delete_all
+    Book.create!(title: "Hyperion")
+    Book.create!(title: nil)
+    Book.create!(title: "Dune")
+
+    books = Book.order(Book.arel_table[:title].desc.nulls_last)
+    assert_equal(["Hyperion", "Dune", nil], books.map(&:title))
   end
 end
