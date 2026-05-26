@@ -157,9 +157,9 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
       assert_equal "mdy", dateformat
     end
 
-    it "has a dateformatter" do
-      assert Date::DATE_FORMATS[:_sqlserver_dateformat]
-      assert Time::DATE_FORMATS[:_sqlserver_dateformat]
+    it "has a date formatter" do
+      assert ActiveSupport::DateFormats.lookup(:_sqlserver_dateformat)
+      assert ActiveSupport::TimeFormats.lookup(:_sqlserver_dateformat)
     end
 
     it "does a datetime insertion when language is german" do

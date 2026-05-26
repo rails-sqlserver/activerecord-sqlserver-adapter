@@ -38,7 +38,7 @@ module ActiveRecord
           end
 
           def fast_string_to_date_format
-            ::Date::DATE_FORMATS[:_sqlserver_dateformat]
+            ActiveSupport::DateFormats.lookup(:_sqlserver_dateformat)
           end
         end
       end
