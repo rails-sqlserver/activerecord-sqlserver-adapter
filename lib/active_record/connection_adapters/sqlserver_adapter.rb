@@ -521,16 +521,17 @@ module ActiveRecord
       def initialize_dateformatter
         @database_dateformat = user_options_dateformat
         a, b, c = @database_dateformat.each_char.to_a
-
         [a, b, c].each { |f| f.upcase! if f == "y" }
+
         dateformat = "%#{a}-%#{b}-%#{c}"
-        ::Date::DATE_FORMATS[:_sqlserver_dateformat] = dateformat
-        ::Time::DATE_FORMATS[:_sqlserver_dateformat] = dateformat
-        ::Time::DATE_FORMATS[:_sqlserver_time] = "%H:%M:%S"
-        ::Time::DATE_FORMATS[:_sqlserver_datetime] = "#{dateformat} %H:%M:%S"
-        ::Time::DATE_FORMATS[:_sqlserver_datetimeoffset] = lambda { |time|
+
+        ActiveSupport::DateFormats.register(:_sqlserver_dateformat, dateformat)
+        ActiveSupport::TimeFormats.register(:_sqlserver_dateformat, dateformat)
+        ActiveSupport::TimeFormats.register(:_sqlserver_time, "%H:%M:%S")
+        ActiveSupport::TimeFormats.register(:_sqlserver_datetime, "#{dateformat} %H:%M:%S")
+        ActiveSupport::TimeFormats.register(:_sqlserver_datetimeoffset, lambda { |time|
           time.strftime "#{dateformat} %H:%M:%S.%9N #{time.formatted_offset}"
-        }
+        })
       end
 
       def version_year

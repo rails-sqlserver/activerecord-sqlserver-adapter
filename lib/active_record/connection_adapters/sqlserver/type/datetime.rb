@@ -42,7 +42,7 @@ module ActiveRecord
           end
 
           def fast_string_to_time_format
-            "#{::Time::DATE_FORMATS[:_sqlserver_datetime]}.%N"
+            "#{::ActiveSupport::TimeFormats.lookup(:_sqlserver_datetime)}.%N"
           end
         end
       end
