@@ -47,7 +47,7 @@ class MigrationTestSQLServer < ActiveRecord::TestCase
 
     it "not drop the default constraint if just renaming" do
       find_default = lambda do
-        connection.execute_procedure(:sp_helpconstraint, "sst_string_defaults", "nomsg").reverse.find do |row|
+        connection.execute_procedure(:sp_helpconstraint, "sst_string_defaults", "nomsg").reverse.find do |row| # standard:disable Style/ReverseFind
           row["constraint_type"] == "DEFAULT on column string_with_pretend_paren_three"
         end
       end
