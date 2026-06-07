@@ -2059,7 +2059,6 @@ class UnsafeRawSqlTest < ActiveRecord::TestCase
   test "order: allows nested functions" do
     ids_expected = Post.order(Arel.sql("author_id, len(trim(title))")).pluck(:id)
 
-    # $DEBUG = true
     ids = Post.order("author_id, len(trim(title))").pluck(:id)
 
     assert_equal ids_expected, ids
