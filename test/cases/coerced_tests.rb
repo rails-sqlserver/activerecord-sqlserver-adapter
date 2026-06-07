@@ -78,6 +78,26 @@ class UniquenessValidationWithIndexTest < ActiveRecord::TestCase
 end
 
 module ActiveRecord
+  class Migration::IndexTest < ActiveRecord::TestCase
+    # SQL Server requires an explicit truthy comparison for BIT columns.
+    coerce_tests! :test_rename_index_preserves_where_clause
+    def test_rename_index_preserves_where_clause_coerced
+      skip unless connection.supports_partial_index?
+
+      # Keep the names short to make Oracle and similar behave.
+      connection.add_index(table_name, [:foo], name: "old_idx", where: "administrator = 1")
+      old_where = connection.indexes(table_name).find { |i| i.name == "old_idx" }.where
+
+      connection.rename_index(table_name, "old_idx", "new_idx")
+
+      new_index = connection.indexes(table_name).find { |i| i.name == "new_idx" }
+      assert_not_nil new_index
+      assert_equal old_where, new_index.where
+    end
+  end
+end
+
+module ActiveRecord
   class AdapterTest < ActiveRecord::TestCase
     # Legacy binds are not supported.
     coerce_tests! :test_select_all_insert_update_delete_with_casted_binds
@@ -2039,7 +2059,6 @@ class UnsafeRawSqlTest < ActiveRecord::TestCase
   test "order: allows nested functions" do
     ids_expected = Post.order(Arel.sql("author_id, len(trim(title))")).pluck(:id)
 
-    # $DEBUG = true
     ids = Post.order("author_id, len(trim(title))").pluck(:id)
 
     assert_equal ids_expected, ids
