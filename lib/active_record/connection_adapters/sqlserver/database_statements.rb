@@ -44,6 +44,10 @@ module ActiveRecord
           result
         end
 
+        def returning_column_values(result)
+          result.rows.first
+        end
+
         # Returns the affected rows from results.
         def affected_rows(raw_result)
           column_name = lowercase_schema_reflection ? "affectedrows" : "AffectedRows"
