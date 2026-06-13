@@ -2458,6 +2458,39 @@ class FieldOrderedValuesTest < ActiveRecord::TestCase
     Book.where(author_id: nil, name: nil).delete_all
     Book.lease_connection.add_index(:books, [:author_id, :name], unique: true)
   end
+
+  # Need to remove index as SQL Server considers NULLs on a unique-index to be equal unlike PostgreSQL/MySQL/SQLite.
+  coerce_tests! :test_in_order_of_with_out_of_bound_integer_does_not_match_nulls
+  def test_in_order_of_with_out_of_bound_integer_does_not_match_nulls_coerced
+    Book.lease_connection.remove_index(:books, column: [:author_id, :name])
+
+    original_test_in_order_of_with_out_of_bound_integer_does_not_match_nulls
+  ensure
+    Book.where(author_id: nil, name: nil).delete_all
+    Book.lease_connection.add_index(:books, [:author_id, :name], unique: true)
+  end
+
+  # Need to remove index as SQL Server considers NULLs on a unique-index to be equal unlike PostgreSQL/MySQL/SQLite.
+  coerce_tests! :test_in_order_of_with_only_unrepresentable_values_does_not_build_empty_case
+  def test_in_order_of_with_only_unrepresentable_values_does_not_build_empty_case_coerced
+    Book.lease_connection.remove_index(:books, column: [:author_id, :name])
+
+    original_test_in_order_of_with_only_unrepresentable_values_does_not_build_empty_case
+  ensure
+    Book.where(author_id: nil, name: nil).delete_all
+    Book.lease_connection.add_index(:books, [:author_id, :name], unique: true)
+  end
+
+  # Need to remove index as SQL Server considers NULLs on a unique-index to be equal unlike PostgreSQL/MySQL/SQLite.
+  coerce_tests! :test_in_order_of_with_unknown_enum_key_does_not_match_nulls
+  def test_in_order_of_with_unknown_enum_key_does_not_match_nulls_coerced
+    Book.lease_connection.remove_index(:books, column: [:author_id, :name])
+
+    original_test_in_order_of_with_unknown_enum_key_does_not_match_nulls
+  ensure
+    Book.where(author_id: nil, name: nil).delete_all
+    Book.lease_connection.add_index(:books, [:author_id, :name], unique: true)
+  end
 end
 
 class QueryLogsTest < ActiveRecord::TestCase
