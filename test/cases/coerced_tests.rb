@@ -78,6 +78,26 @@ class UniquenessValidationWithIndexTest < ActiveRecord::TestCase
 end
 
 module ActiveRecord
+  class Migration::IndexTest < ActiveRecord::TestCase
+    # SQL Server requires an explicit truthy comparison for BIT columns.
+    coerce_tests! :test_rename_index_preserves_where_clause
+    def test_rename_index_preserves_where_clause_coerced
+      skip unless connection.supports_partial_index?
+
+      # Keep the names short to make Oracle and similar behave.
+      connection.add_index(table_name, [:foo], name: "old_idx", where: "administrator = 1")
+      old_where = connection.indexes(table_name).find { |i| i.name == "old_idx" }.where
+
+      connection.rename_index(table_name, "old_idx", "new_idx")
+
+      new_index = connection.indexes(table_name).find { |i| i.name == "new_idx" }
+      assert_not_nil new_index
+      assert_equal old_where, new_index.where
+    end
+  end
+end
+
+module ActiveRecord
   class AdapterTest < ActiveRecord::TestCase
     # Legacy binds are not supported.
     coerce_tests! :test_select_all_insert_update_delete_with_casted_binds
@@ -163,7 +183,7 @@ module ActiveRecord
     # SQL Server does not allow truncation of tables that are referenced by foreign key
     # constraints. So manually remove/add foreign keys in test.
     coerce_tests! :test_truncate_tables_with_query_cache
-    def test_truncate_tables_with_query_cache
+    def test_truncate_tables_with_query_cache_coerced
       # Remove foreign key constraint to allow truncation.
       @connection.remove_foreign_key :authors, :author_addresses
 
@@ -185,6 +205,11 @@ module ActiveRecord
       # Restore foreign key constraint.
       @connection.add_foreign_key :authors, :author_addresses
     end
+
+    # SQL Server does not allow truncation of tables that are referenced by foreign key
+    # constraints. As this test truncates all tables we would need to remove all foreign
+    # key constraints and then restore them afterwards to get this test to pass.
+    coerce_tests! :test_empty_all_tables, :test_empty_all_tables_with_query_cache
   end
 end
 
@@ -518,8 +543,8 @@ module ActiveRecord
         five = columns.detect { |c| c.name == "five" }
 
         assert_equal "hello", one.default
-        assert_equal true, two.fetch_cast_type(connection).deserialize(two.default)
-        assert_equal false, three.fetch_cast_type(connection).deserialize(three.default)
+        assert_equal true, two.cast_type.deserialize(two.default)
+        assert_equal false, three.cast_type.deserialize(three.default)
         assert_equal 1, four.default
         assert_equal "hello", five.default
       end
@@ -1988,31 +2013,12 @@ module ActiveRecord
       # Tests fail on Windows AppVeyor CI with 'Permission denied' error when renaming file during `File.atomic_write` call.
       coerce_tests! :test_yaml_dump_and_load, :test_yaml_dump_and_load_with_gzip if /mswin|mingw/.match?(RbConfig::CONFIG["host_os"])
 
-      # Cast type in SQL Server is :varchar rather than Unicode :string.
-      coerce_tests! :test_yaml_load_8_0_dump_without_cast_type_still_get_the_right_one
-      def test_yaml_load_8_0_dump_without_cast_type_still_get_the_right_one
-        cache = load_bound_reflection(schema_dump_8_0_path)
-
-        assert_no_queries do
-          columns = cache.columns_hash("courses")
-          assert_equal 3, columns.size
-          cast_type = columns["name"].fetch_cast_type(@connection)
-          assert_not_nil cast_type, "expected cast_type to be present"
-          assert_equal :varchar, cast_type.type
-        end
-      end
-
       private
 
       # We need to give the full paths for this to work.
       undef_method :schema_dump_5_1_path
       def schema_dump_5_1_path
         File.join(ARTest::SQLServer.root_activerecord, "test/assets/schema_dump_5_1.yml")
-      end
-
-      undef_method :schema_dump_8_0_path
-      def schema_dump_8_0_path
-        File.join(ARTest::SQLServer.root_activerecord, "test/assets/schema_dump_8_0.yml")
       end
     end
   end
@@ -2053,7 +2059,6 @@ class UnsafeRawSqlTest < ActiveRecord::TestCase
   test "order: allows nested functions" do
     ids_expected = Post.order(Arel.sql("author_id, len(trim(title))")).pluck(:id)
 
-    # $DEBUG = true
     ids = Post.order("author_id, len(trim(title))").pluck(:id)
 
     assert_equal ids_expected, ids
@@ -2442,6 +2447,50 @@ class FieldOrderedValuesTest < ActiveRecord::TestCase
     Book.where(author_id: nil, name: nil).delete_all
     Book.lease_connection.add_index(:books, [:author_id, :name], unique: true)
   end
+
+  # Need to remove index as SQL Server considers NULLs on a unique-index to be equal unlike PostgreSQL/MySQL/SQLite.
+  coerce_tests! :test_in_order_of_with_array_values_with_nil
+  def test_in_order_of_with_array_values_with_nil_coerced
+    Book.lease_connection.remove_index(:books, column: [:author_id, :name])
+
+    original_test_in_order_of_with_array_values_with_nil
+  ensure
+    Book.where(author_id: nil, name: nil).delete_all
+    Book.lease_connection.add_index(:books, [:author_id, :name], unique: true)
+  end
+
+  # Need to remove index as SQL Server considers NULLs on a unique-index to be equal unlike PostgreSQL/MySQL/SQLite.
+  coerce_tests! :test_in_order_of_with_out_of_bound_integer_does_not_match_nulls
+  def test_in_order_of_with_out_of_bound_integer_does_not_match_nulls_coerced
+    Book.lease_connection.remove_index(:books, column: [:author_id, :name])
+
+    original_test_in_order_of_with_out_of_bound_integer_does_not_match_nulls
+  ensure
+    Book.where(author_id: nil, name: nil).delete_all
+    Book.lease_connection.add_index(:books, [:author_id, :name], unique: true)
+  end
+
+  # Need to remove index as SQL Server considers NULLs on a unique-index to be equal unlike PostgreSQL/MySQL/SQLite.
+  coerce_tests! :test_in_order_of_with_only_unrepresentable_values_does_not_build_empty_case
+  def test_in_order_of_with_only_unrepresentable_values_does_not_build_empty_case_coerced
+    Book.lease_connection.remove_index(:books, column: [:author_id, :name])
+
+    original_test_in_order_of_with_only_unrepresentable_values_does_not_build_empty_case
+  ensure
+    Book.where(author_id: nil, name: nil).delete_all
+    Book.lease_connection.add_index(:books, [:author_id, :name], unique: true)
+  end
+
+  # Need to remove index as SQL Server considers NULLs on a unique-index to be equal unlike PostgreSQL/MySQL/SQLite.
+  coerce_tests! :test_in_order_of_with_unknown_enum_key_does_not_match_nulls
+  def test_in_order_of_with_unknown_enum_key_does_not_match_nulls_coerced
+    Book.lease_connection.remove_index(:books, column: [:author_id, :name])
+
+    original_test_in_order_of_with_unknown_enum_key_does_not_match_nulls
+  ensure
+    Book.where(author_id: nil, name: nil).delete_all
+    Book.lease_connection.add_index(:books, [:author_id, :name], unique: true)
+  end
 end
 
 class QueryLogsTest < ActiveRecord::TestCase
@@ -2704,12 +2753,12 @@ module ActiveRecord
         error = assert_raises(Minitest::Assertion) {
           assert_queries_match(/ASC OFFSET 0 ROWS FETCH NEXT @0 ROWS ONLY/i, count: 2) { Post.first }
         }
-        assert_match(/1 instead of 2 queries/, error.message)
+        assert_match(/1 instead of 2 matching queries/, error.message)
 
         error = assert_raises(Minitest::Assertion) {
           assert_queries_match(/ASC OFFSET 0 ROWS FETCH NEXT @0 ROWS ONLY/i, count: 0) { Post.first }
         }
-        assert_match(/1 instead of 0 queries/, error.message)
+        assert_match(/1 instead of 0 matching queries/, error.message)
       end
     end
   end
@@ -2835,5 +2884,36 @@ class EachTest < ActiveRecord::TestCase
         relation.delete_all
       end
     end
+  end
+end
+
+class TransactionInstrumentationTest < ActiveRecord::TestCase
+  # SQL Server does not have query for release_savepoint.
+  coerce_tests! :test_sql_events_do_not_overlap_with_savepoints
+  def test_sql_events_do_not_overlap_with_savepoints_coerced
+    events = []
+    subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |event|
+      events << event
+    end
+
+    Topic.transaction do
+      Topic.count
+      Topic.transaction(requires_new: true) { Topic.first }
+    end
+
+    assert_equal 5, events.size
+    begin_event, count_event, savepoint_event, select_event, commit_event = events
+
+    assert begin_event.payload[:sql].start_with?("BEGIN")
+    assert count_event.payload[:sql].start_with?("SELECT")
+    assert savepoint_event.payload[:sql].start_with?("SAVE TRANSACTION")
+    assert select_event.payload[:sql].start_with?("SELECT")
+    assert commit_event.payload[:sql].start_with?("COMMIT")
+
+    events.each_cons(2) do |a, b|
+      assert_operator a.end, :<=, b.time
+    end
+  ensure
+    ActiveSupport::Notifications.unsubscribe(subscriber)
   end
 end
