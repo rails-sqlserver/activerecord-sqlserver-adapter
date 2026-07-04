@@ -2491,6 +2491,17 @@ class FieldOrderedValuesTest < ActiveRecord::TestCase
     Book.where(author_id: nil, name: nil).delete_all
     Book.lease_connection.add_index(:books, [:author_id, :name], unique: true)
   end
+
+  # Need to remove index as SQL Server considers NULLs on a unique-index to be equal unlike PostgreSQL/MySQL/SQLite.
+  coerce_tests! :test_in_order_of_with_column_from_cte
+  def test_in_order_of_with_column_from_cte_coerced
+    connection.remove_index(:books, column: [:author_id, :name])
+
+    original_test_in_order_of_with_column_from_cte
+  ensure
+    Book.where(author_id: nil, name: nil).delete_all
+    Book.lease_connection.add_index(:books, [:author_id, :name], unique: true)
+  end
 end
 
 class QueryLogsTest < ActiveRecord::TestCase
@@ -2715,7 +2726,7 @@ module ActiveRecord
     # Adapter returns an object that is subclass of what is expected in the original test.
     coerce_tests! %r{#associated_table creates the right type caster for joined table with different association name}
     def associated_table_creates_the_right_type_caster_for_joined_table_with_different_association_name_coerced
-      base_table_metadata = TableMetadata.new(AuditRequiredDeveloper, Arel::Table.new("developers"))
+      base_table_metadata = TableMetadata.new(AuditRequiredDeveloper, Arel::Table.new(name: "developers"))
 
       associated_table_metadata = base_table_metadata.associated_table("audit_logs")
 

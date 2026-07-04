@@ -376,9 +376,9 @@ module Arel
         if Arel::Table === core.from
           core.from
         elsif Arel::Nodes::SqlLiteral === core.from
-          Arel::Table.new(core.from)
+          Arel::Table.new(name: core.from)
         elsif Arel::Nodes::JoinSource === core.source
-          (Arel::Nodes::SqlLiteral === core.source.left) ? Arel::Table.new(core.source.left, @engine) : core.source.left.left
+          (Arel::Nodes::SqlLiteral === core.source.left) ? Arel::Table.new(name: core.source.left) : core.source.left.left
         end
       end
 
