@@ -62,7 +62,6 @@ end
 
 group :development do
   gem "minitest-spec-rails"
-  gem "mocha"
   gem "pry-byebug", platform: [:mri, :mingw, :x64_mingw]
 end
 
