@@ -8,8 +8,8 @@ class LateralTestSQLServer < ActiveRecord::TestCase
   fixtures :posts, :authors
 
   it "uses OUTER APPLY for OUTER JOIN LATERAL" do
-    post = Arel::Table.new(:posts)
-    author = Arel::Table.new(:authors)
+    post = Arel::Table.new(name: :posts)
+    author = Arel::Table.new(name: :authors)
     subselect = post.project(Arel.star).take(1).where(post[:author_id].eq(author[:id])).where(post[:id].eq(42))
 
     one = Arel::Nodes::Quoted.new(1)
@@ -22,8 +22,8 @@ class LateralTestSQLServer < ActiveRecord::TestCase
   end
 
   it "uses CROSS APPLY for INNER JOIN LATERAL" do
-    post = Arel::Table.new(:posts)
-    author = Arel::Table.new(:authors)
+    post = Arel::Table.new(name: :posts)
+    author = Arel::Table.new(name: :authors)
     subselect = post.project(Arel.star).take(1).where(post[:author_id].eq(author[:id])).where(post[:id].eq(42))
 
     sql = author.project(Arel.star).where(author[:name].matches("David")).join(subselect.lateral.as("bar")).to_sql
