@@ -483,7 +483,7 @@ module ActiveRecord
 
       def translate_exception(exception, message:, sql:, binds:)
         case message
-        when /(SQL Server client is not connected)|(failed to execute statement)/i
+        when /(SQL Server client is not connected)|(failed to execute statement)|(failed dbsqlsend)/i
           ConnectionNotEstablished.new(message, connection_pool: @pool)
         when /(cannot insert duplicate key .* with unique index) | (violation of (unique|primary) key constraint)/i
           RecordNotUnique.new(message, sql: sql, binds: binds, connection_pool: @pool)
