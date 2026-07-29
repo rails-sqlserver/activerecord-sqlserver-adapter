@@ -10,4 +10,6 @@
 
 #### Fixed
 
+- [#1393](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1393) Treat TinyTDS `failed dbsqlsend() function` errors as `ConnectionNotEstablished` so they're retried instead of surfaced as `StatementInvalid`.
+
 Please check [8-1-stable](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/blob/8-1-stable/CHANGELOG.md) for previous changes.
