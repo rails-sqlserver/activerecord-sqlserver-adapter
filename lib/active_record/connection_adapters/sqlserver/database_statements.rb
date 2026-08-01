@@ -364,7 +364,12 @@ module ActiveRecord
         def sql_for_insert(sql, pk, binds, returning)
           if pk.nil?
             table_name = query_requires_identity_insert?(sql)
-            pk = schema_cache.primary_keys(table_name)
+            pk = schema_cache.primary_keys(table_name) if table_name
+          end
+
+          if pk.nil? && use_output_inserted? && !database_prefix_remote_server?
+            table_name ||= get_table_name(sql)
+            pk = schema_cache.primary_keys(table_name) if table_name
           end
 
           sql = if pk && use_output_inserted? && !database_prefix_remote_server?
