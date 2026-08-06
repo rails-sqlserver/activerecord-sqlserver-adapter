@@ -361,9 +361,10 @@ module ActiveRecord
 
         protected
 
+        # TODO: convert to "def apply_returning_to!(intent, returning)".
         def sql_for_insert(sql, pk, binds, returning)
           if pk.nil?
-            table_name = query_requires_identity_insert?(sql)
+            table_name = query_requires_identity_insert?(sql) || get_table_name(sql)
             pk = schema_cache.primary_keys(table_name)
           end
 
