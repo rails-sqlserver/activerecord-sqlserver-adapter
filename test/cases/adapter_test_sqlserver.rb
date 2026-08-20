@@ -41,6 +41,14 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
     assert_raise(ActiveRecord::StatementInvalid) { Topic.lease_connection.update("UPDATE XXX") }
   end
 
+  it "translates a dead DBPROCESS TinyTds error into a connection not established error" do
+    exception = TinyTds::Error.new("DBPROCESS is dead or not enabled")
+    translated = connection.send(
+      :translate_exception, exception, message: exception.message, sql: "SELECT 1", binds: []
+    )
+    assert_kind_of ActiveRecord::ConnectionNotEstablished, translated
+  end
+
   it "is has our adapter_name" do
     assert_equal "SQLServer", connection.adapter_name
   end
