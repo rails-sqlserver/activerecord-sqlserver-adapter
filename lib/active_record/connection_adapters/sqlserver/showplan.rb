@@ -12,8 +12,8 @@ module ActiveRecord
         OPTION_XML = "SHOWPLAN_XML"
         OPTIONS = [OPTION_ALL, OPTION_TEXT, OPTION_XML]
 
-        def explain(arel, binds = [], options = [])
-          sql = to_sql(arel)
+        def explain(arel_or_sql, binds = [], _options = [])
+          sql, binds = to_sql_and_binds(arel_or_sql, binds)
           result = with_showplan_on { select_all(sql, "EXPLAIN", binds) }
           printer = showplan_printer.new(result)
 

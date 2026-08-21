@@ -66,6 +66,17 @@ module ActiveRecord
 
         # Executes the delete statement and returns the number of rows affected.
         def delete(arel, name = nil, binds = [])
+          if binds.any?
+            ActiveRecord.deprecator.warn(<<~MSG.squish)
+              Passing `binds` as a positional argument to `delete` is
+              deprecated and will be removed in Rails 8.3. Use
+              `Arel.sql(sql_with_placeholders, *binds)` to carry bind values
+              inside the arel node instead —
+              `delete(sql, name, binds)` becomes
+              `delete(Arel.sql(sql, *binds), name)`.
+            MSG
+          end
+
           # Clear query cache if the connection pool is configured to do so.
           if pool.dirties_query_cache
             ActiveRecord::Base.clear_query_caches_for_current_thread
@@ -83,6 +94,17 @@ module ActiveRecord
 
         # Executes the update statement and returns the number of rows affected.
         def update(arel, name = nil, binds = [])
+          if binds.any?
+            ActiveRecord.deprecator.warn(<<~MSG.squish)
+              Passing `binds` as a positional argument to `update` is
+              deprecated and will be removed in Rails 8.3. Use
+              `Arel.sql(sql_with_placeholders, *binds)` to carry bind values
+              inside the arel node instead —
+              `update(sql, name, binds)` becomes
+              `update(Arel.sql(sql, *binds), name)`.
+            MSG
+          end
+
           # Clear query cache if the connection pool is configured to do so.
           if pool.dirties_query_cache
             ActiveRecord::Base.clear_query_caches_for_current_thread
@@ -361,44 +383,52 @@ module ActiveRecord
 
         protected
 
-        def sql_for_insert(sql, pk, binds, returning)
-          if pk.nil?
-            table_name = query_requires_identity_insert?(sql) || get_table_name(sql)
-            pk = schema_cache.primary_keys(table_name)
-          end
+        def apply_returning_to!(intent, returning)
+          sql = intent.raw_sql
+          table_ref = query_requires_identity_insert?(sql) || get_table_name(sql)
+          pk = schema_cache.primary_keys(table_ref)
+
+          returning ||= pk
+          returning = Array(returning)
 
           sql = if pk && use_output_inserted? && !database_prefix_remote_server?
-            table_name ||= get_table_name(sql)
-            exclude_output_inserted = exclude_output_inserted_table_name?(table_name, sql)
-
-            if exclude_output_inserted
-              pk_and_types = Array(pk).map do |subkey|
-                {
-                  quoted: SQLServer::Utils.extract_identifiers(subkey).quoted,
-                  id_sql_type: exclude_output_inserted_id_sql_type(subkey, exclude_output_inserted)
-                }
-              end
-
-              <<~SQL.squish
-                DECLARE @ssaIdInsertTable table (#{pk_and_types.map { |pk_and_type| "#{pk_and_type[:quoted]} #{pk_and_type[:id_sql_type]}" }.join(", ")});
-                #{sql.dup.insert sql.index(/ (DEFAULT )?VALUES/i), " OUTPUT #{pk_and_types.map { |pk_and_type| "INSERTED.#{pk_and_type[:quoted]}" }.join(", ")} INTO @ssaIdInsertTable"}
-                SELECT #{pk_and_types.map { |pk_and_type| "CAST(#{pk_and_type[:quoted]} AS #{pk_and_type[:id_sql_type]}) #{pk_and_type[:quoted]}" }.join(", ")} FROM @ssaIdInsertTable
-              SQL
+            if (exclude_output_inserted = exclude_output_inserted_table_name?(table_ref, sql))
+              apply_returning_to_using_temp_table(sql, pk, exclude_output_inserted)
             else
-              returning_columns = returning || Array(pk)
-
-              if returning_columns.any?
-                returning_columns_statements = returning_columns.map { |c| " INSERTED.#{SQLServer::Utils.extract_identifiers(c).quoted}" }
-                sql.dup.insert sql.index(/ (DEFAULT )?VALUES/i), " OUTPUT" + returning_columns_statements.join(",")
-              else
-                sql
-              end
+              apply_returning_to_using_output_inserted(sql, returning)
             end
           else
-            "#{sql}; SELECT CAST(SCOPE_IDENTITY() AS bigint) AS Ident"
+            apply_returning_to_using_scope_identity(sql)
           end
 
-          [sql, binds]
+          intent.raw_sql = sql
+        end
+
+        def apply_returning_to_using_scope_identity(sql)
+          "#{sql}; SELECT CAST(SCOPE_IDENTITY() AS bigint) AS Ident"
+        end
+
+        def apply_returning_to_using_temp_table(sql, pk, exclude_output_inserted)
+          pk_and_types = Array(pk).map do |subkey|
+            {
+              quoted: SQLServer::Utils.extract_identifiers(subkey).quoted,
+              id_sql_type: exclude_output_inserted_id_sql_type(subkey, exclude_output_inserted)
+            }
+          end
+
+          <<~SQL.squish
+            DECLARE @ssaIdInsertTable table (#{pk_and_types.map { |pk_and_type| "#{pk_and_type[:quoted]} #{pk_and_type[:id_sql_type]}" }.join(", ")});
+            #{sql.dup.insert sql.index(/ (DEFAULT )?VALUES/i), " OUTPUT #{pk_and_types.map { |pk_and_type| "INSERTED.#{pk_and_type[:quoted]}" }.join(", ")} INTO @ssaIdInsertTable"}
+            SELECT #{pk_and_types.map { |pk_and_type| "CAST(#{pk_and_type[:quoted]} AS #{pk_and_type[:id_sql_type]}) #{pk_and_type[:quoted]}" }.join(", ")} FROM @ssaIdInsertTable
+          SQL
+        end
+
+        def apply_returning_to_using_output_inserted(sql, returning)
+          returning_statements = returning.map do |c|
+            " INSERTED.#{SQLServer::Utils.extract_identifiers(c).quoted}"
+          end
+
+          sql.dup.insert sql.index(/ (DEFAULT )?VALUES/i), " OUTPUT" + returning_statements.join(",")
         end
 
         # === SQLServer Specific ======================================== #

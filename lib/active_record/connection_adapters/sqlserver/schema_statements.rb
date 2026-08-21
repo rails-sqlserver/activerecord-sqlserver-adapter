@@ -726,6 +726,7 @@ module ActiveRecord
           return if sql.blank?
 
           s = sql.gsub(/^\s*EXEC sp_executesql N'/i, "")
+            .gsub(/\/\*.*?\*\//m, "") # Strip out SQL comments (eg: "SELECT * /* my comment */ FROM books")
 
           if s.match?(/^\s*INSERT INTO.*/i)
             s.split(/INSERT INTO/i)[1]
