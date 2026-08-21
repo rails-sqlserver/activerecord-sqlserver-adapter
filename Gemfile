@@ -11,7 +11,7 @@ gem "pg",      ">= 0.18.0"
 gem "sqlite3", ">= 1.6.6"
 gem "tzinfo-data", platforms: [:mingw, :mswin, :x64_mingw, :jruby]
 gem "benchmark-ips"
-gem "minitest", ">= 5.15.0"
+gem "minitest", "~> 6.0"
 gem "msgpack", ">= 1.7.0"
 
 if ENV["RAILS_SOURCE"]
@@ -61,7 +61,7 @@ end
 
 group :development do
   gem "minitest-spec-rails"
-  gem "mocha"
+  gem "minitest-mock"
   gem "pry-byebug", platform: [:mri, :mingw, :x64_mingw]
 end
 
