@@ -7,6 +7,7 @@
 #### Changed
 
 - [#1393](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1393) Treat TinyTDS `failed dbsqlsend() function` errors as `ConnectionNotEstablished` so they're retried instead of surfaced as `StatementInvalid`.
+- [#1397](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1397) Treat "DBPROCESS is dead or not enabled" as ConnectionNotEstablished.
 
 ## v8.1.2
 
