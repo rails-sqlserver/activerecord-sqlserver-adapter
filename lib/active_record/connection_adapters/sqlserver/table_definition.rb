@@ -126,6 +126,15 @@ module ActiveRecord
       class Table < ActiveRecord::ConnectionAdapters::Table
         include ColumnMethods
       end
+
+      class AlterTable < ActiveRecord::ConnectionAdapters::AlterTable # :nodoc:
+        COMBINABLE_COMMANDS = (superclass::COMBINABLE_COMMANDS + %i[change_column]).freeze
+
+        def change_column(column_name, type, **options)
+          cd = @td.new_column_definition(column_name, type, **options)
+          @operations << ChangeColumnDefinition.new(cd, column_name)
+        end
+      end
     end
   end
 end
