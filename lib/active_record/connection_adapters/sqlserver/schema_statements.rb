@@ -389,9 +389,9 @@ module ActiveRecord
 
         # In SQL Server only the first column added should have the `ADD` keyword.
         def add_timestamps(table_name, **options)
-          fragments = add_timestamps_for_alter(table_name, **options)
-          fragments[1..].each { |fragment| fragment.sub!("ADD ", "") }
-          execute "ALTER TABLE #{quote_table_name(table_name)} #{fragments.join(", ")}"
+          at = create_alter_table(table_name)
+          at.add_timestamps(**options)
+          execute_alter_table(at)
         end
 
         def columns_for_distinct(columns, orders)
@@ -684,13 +684,6 @@ module ActiveRecord
           }.gsub(/[ \t\r\n]+/, " ").strip
         end
 
-        def remove_columns_for_alter(table_name, *column_names, **options)
-          first, *rest = column_names
-
-          # return an array like this [DROP COLUMN col_1, col_2, col_3]. Abstract adapter joins fragments with ", "
-          [remove_column_for_alter(table_name, first)] + rest.map { |column_name| quote_column_name(column_name) }
-        end
-
         def remove_check_constraints(table_name, column_name)
           constraints = select_values "SELECT CONSTRAINT_NAME FROM INFORMATION_SCHEMA.CONSTRAINT_COLUMN_USAGE where TABLE_NAME = '#{quote_string(table_name)}' and COLUMN_NAME = '#{quote_string(column_name)}'", "SCHEMA"
           constraints.each do |constraint|
@@ -793,6 +786,10 @@ module ActiveRecord
 
         def create_table_definition(*args, **options)
           SQLServer::TableDefinition.new(self, *args, **options)
+        end
+
+        def create_alter_table(name)
+          SQLServer::AlterTable.new create_table_definition(name)
         end
       end
     end

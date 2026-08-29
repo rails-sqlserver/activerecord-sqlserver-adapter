@@ -4,6 +4,28 @@ module ActiveRecord
   module ConnectionAdapters
     module SQLServer
       class SchemaCreation < SchemaCreation
+        def visit_AlterTable(o)
+          parts = o.operations.map { |op| accept(op) }
+
+          last_keyword = nil
+          parts = parts.map do |part|
+            keyword = case part
+            when /\A(ADD )/i then $1
+            when /\A(DROP COLUMN )/i then $1
+            end
+
+            # if keyword && keyword.casecmp(last_keyword)&.zero?
+            if keyword&.casecmp?(last_keyword)
+              part.sub(/\A#{Regexp.escape(keyword)}/i, "")
+            else
+              last_keyword = keyword
+              part
+            end
+          end
+
+          "ALTER TABLE #{quote_table_name(o.name)} #{parts.join(", ")}"
+        end
+
         private
 
         delegate :quoted_include_columns_for_index, to: :@conn
