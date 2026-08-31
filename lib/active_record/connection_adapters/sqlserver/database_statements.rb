@@ -66,16 +66,16 @@ module ActiveRecord
 
         # Executes the delete statement and returns the number of rows affected.
         def delete(arel, name = nil, binds = [])
-          # if binds.any?
-          #   ActiveRecord.deprecator.warn(<<~MSG.squish)
-          #     Passing `binds` as a positional argument to `delete` is
-          #     deprecated and will be removed in Rails 8.3. Use
-          #     `Arel.sql(sql_with_placeholders, *binds)` to carry bind values
-          #     inside the arel node instead —
-          #     `delete(sql, name, binds)` becomes
-          #     `delete(Arel.sql(sql, *binds), name)`.
-          #   MSG
-          # end
+          if binds.any?
+            ActiveRecord.deprecator.warn(<<~MSG.squish)
+              Passing `binds` as a positional argument to `delete` is
+              deprecated and will be removed in Rails 8.3. Use
+              `Arel.sql(sql_with_placeholders, *binds)` to carry bind values
+              inside the arel node instead —
+              `delete(sql, name, binds)` becomes
+              `delete(Arel.sql(sql, *binds), name)`.
+            MSG
+          end
 
           # Clear query cache if the connection pool is configured to do so.
           if pool.dirties_query_cache
@@ -94,16 +94,16 @@ module ActiveRecord
 
         # Executes the update statement and returns the number of rows affected.
         def update(arel, name = nil, binds = [])
-          # if binds.any?
-          #   ActiveRecord.deprecator.warn(<<~MSG.squish)
-          #     Passing `binds` as a positional argument to `update` is
-          #     deprecated and will be removed in Rails 8.3. Use
-          #     `Arel.sql(sql_with_placeholders, *binds)` to carry bind values
-          #     inside the arel node instead —
-          #     `update(sql, name, binds)` becomes
-          #     `update(Arel.sql(sql, *binds), name)`.
-          #   MSG
-          # end
+          if binds.any?
+            ActiveRecord.deprecator.warn(<<~MSG.squish)
+              Passing `binds` as a positional argument to `update` is
+              deprecated and will be removed in Rails 8.3. Use
+              `Arel.sql(sql_with_placeholders, *binds)` to carry bind values
+              inside the arel node instead —
+              `update(sql, name, binds)` becomes
+              `update(Arel.sql(sql, *binds), name)`.
+            MSG
+          end
 
           # Clear query cache if the connection pool is configured to do so.
           if pool.dirties_query_cache
