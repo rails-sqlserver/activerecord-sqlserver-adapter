@@ -1057,7 +1057,7 @@ class FinderTest < ActiveRecord::TestCase
     end
   end
 
-  # Check for `FETCH NEXT x ROWS` rather then `LIMIT`.
+  # Check for `FETCH NEXT x ROWS` rather than `LIMIT`.
   coerce_tests! :test_include_on_unloaded_relation_with_match
   def test_include_on_unloaded_relation_with_match_coerced
     assert_queries_match(/1 AS one.*FETCH NEXT @2 ROWS ONLY/) do
@@ -1065,7 +1065,7 @@ class FinderTest < ActiveRecord::TestCase
     end
   end
 
-  # Check for `FETCH NEXT x ROWS` rather then `LIMIT`.
+  # Check for `FETCH NEXT x ROWS` rather than `LIMIT`.
   coerce_tests! :test_include_on_unloaded_relation_without_match
   def test_include_on_unloaded_relation_without_match_coerced
     assert_queries_match(/1 AS one.*FETCH NEXT @2 ROWS ONLY/) do
@@ -1073,7 +1073,7 @@ class FinderTest < ActiveRecord::TestCase
     end
   end
 
-  # Check for `FETCH NEXT x ROWS` rather then `LIMIT`.
+  # Check for `FETCH NEXT x ROWS` rather than `LIMIT`.
   coerce_tests! :test_member_on_unloaded_relation_with_match
   def test_member_on_unloaded_relation_with_match_coerced
     assert_queries_match(/1 AS one.*FETCH NEXT @2 ROWS ONLY/) do
@@ -1081,7 +1081,7 @@ class FinderTest < ActiveRecord::TestCase
     end
   end
 
-  # Check for `FETCH NEXT x ROWS` rather then `LIMIT`.
+  # Check for `FETCH NEXT x ROWS` rather than `LIMIT`.
   coerce_tests! :test_member_on_unloaded_relation_without_match
   def test_member_on_unloaded_relation_without_match_coerced
     assert_queries_match(/1 AS one.*FETCH NEXT @2 ROWS ONLY/) do
@@ -1089,7 +1089,7 @@ class FinderTest < ActiveRecord::TestCase
     end
   end
 
-  # Check for `FETCH NEXT x ROWS` rather then `LIMIT`.
+  # Check for `FETCH NEXT x ROWS` rather than `LIMIT`.
   coerce_tests! :test_implicit_order_column_is_configurable_with_a_single_value
   def test_implicit_order_column_is_configurable_with_a_single_value_coerced
     old_implicit_order_column = Topic.implicit_order_column
@@ -1106,7 +1106,7 @@ class FinderTest < ActiveRecord::TestCase
     Topic.implicit_order_column = old_implicit_order_column
   end
 
-  # Check for `FETCH NEXT x ROWS` rather then `LIMIT`.
+  # Check for `FETCH NEXT x ROWS` rather than `LIMIT`.
   coerce_tests! :test_implicit_order_column_is_configurable_with_multiple_values
   def test_implicit_order_column_is_configurable_with_multiple_values_coerced
     old_implicit_order_column = Topic.implicit_order_column
@@ -1119,7 +1119,7 @@ class FinderTest < ActiveRecord::TestCase
     Topic.implicit_order_column = old_implicit_order_column
   end
 
-  # Check for `FETCH NEXT x ROWS` rather then `LIMIT`.
+  # Check for `FETCH NEXT x ROWS` rather than `LIMIT`.
   coerce_tests! :test_ordering_does_not_append_primary_keys_or_query_constraints_if_passed_an_implicit_order_column_array_ending_in_nil
   def test_ordering_does_not_append_primary_keys_or_query_constraints_if_passed_an_implicit_order_column_array_ending_in_nil_coerced
     old_implicit_order_column = Topic.implicit_order_column
@@ -1132,7 +1132,7 @@ class FinderTest < ActiveRecord::TestCase
     Topic.implicit_order_column = old_implicit_order_column
   end
 
-  # Check for `FETCH NEXT x ROWS` rather then `LIMIT`.
+  # Check for `FETCH NEXT x ROWS` rather than `LIMIT`.
   coerce_tests! :test_implicit_order_set_to_primary_key
   def test_implicit_order_set_to_primary_key_coerced
     old_implicit_order_column = Topic.implicit_order_column
@@ -1146,7 +1146,7 @@ class FinderTest < ActiveRecord::TestCase
     Topic.implicit_order_column = old_implicit_order_column
   end
 
-  # Check for `FETCH NEXT x ROWS` rather then `LIMIT`.
+  # Check for `FETCH NEXT x ROWS` rather than `LIMIT`.
   coerce_tests! :test_implicit_order_for_model_without_primary_key
   def test_implicit_order_for_model_without_primary_key_coerced
     old_implicit_order_column = NonPrimaryKey.implicit_order_column
@@ -1161,7 +1161,7 @@ class FinderTest < ActiveRecord::TestCase
     NonPrimaryKey.implicit_order_column = old_implicit_order_column
   end
 
-  # Check for `FETCH NEXT x ROWS` rather then `LIMIT`.
+  # Check for `FETCH NEXT x ROWS` rather than `LIMIT`.
   coerce_tests! :test_member_on_unloaded_relation_with_composite_primary_key
   def test_member_on_unloaded_relation_with_composite_primary_key_coerced
     assert_queries_match(/1 AS one.* FETCH NEXT @3 ROWS ONLY/) do
@@ -1170,7 +1170,7 @@ class FinderTest < ActiveRecord::TestCase
     end
   end
 
-  # Check for `FETCH NEXT x ROWS` rather then `LIMIT`.
+  # Check for `FETCH NEXT x ROWS` rather than `LIMIT`.
   coerce_tests! :test_implicit_order_column_prepends_query_constraints
   def test_implicit_order_column_prepends_query_constraints_coerced
     c = ClothingItem.lease_connection
@@ -1186,7 +1186,7 @@ class FinderTest < ActiveRecord::TestCase
     ClothingItem.implicit_order_column = nil
   end
 
-  # Check for `FETCH NEXT x ROWS` rather then `LIMIT`.
+  # Check for `FETCH NEXT x ROWS` rather than `LIMIT`.
   coerce_tests! %r{#last for a model with composite query constraints}
   test "#last for a model with composite query constraints coerced" do
     c = ClothingItem.lease_connection
@@ -1198,7 +1198,7 @@ class FinderTest < ActiveRecord::TestCase
     end
   end
 
-  # Check for `FETCH NEXT x ROWS` rather then `LIMIT`.
+  # Check for `FETCH NEXT x ROWS` rather than `LIMIT`.
   coerce_tests! %r{#first for a model with composite query constraints}
   test "#first for a model with composite query constraints coerced" do
     c = ClothingItem.lease_connection
@@ -1210,7 +1210,7 @@ class FinderTest < ActiveRecord::TestCase
     end
   end
 
-  # Check for `FETCH NEXT x ROWS` rather then `LIMIT`.
+  # Check for `FETCH NEXT x ROWS` rather than `LIMIT`.
   coerce_tests! :test_implicit_order_column_reorders_query_constraints
   def test_implicit_order_column_reorders_query_constraints_coerced
     c = ClothingItem.lease_connection
@@ -1225,7 +1225,7 @@ class FinderTest < ActiveRecord::TestCase
     ClothingItem.implicit_order_column = nil
   end
 
-  # Check for `FETCH NEXT x ROWS` rather then `LIMIT`.
+  # Check for `FETCH NEXT x ROWS` rather than `LIMIT`.
   coerce_tests! :test_include_on_unloaded_relation_with_composite_primary_key
   def test_include_on_unloaded_relation_with_composite_primary_key_coerced
     assert_queries_match(/1 AS one.*OFFSET 0 ROWS FETCH NEXT @(\d) ROWS ONLY/) do
@@ -1234,7 +1234,7 @@ class FinderTest < ActiveRecord::TestCase
     end
   end
 
-  # Check for `FETCH NEXT x ROWS` rather then `LIMIT`.
+  # Check for `FETCH NEXT x ROWS` rather than `LIMIT`.
   coerce_tests! :test_nth_to_last_with_order_uses_limit
   def test_nth_to_last_with_order_uses_limit_coerced
     c = Topic.lease_connection
@@ -2927,4 +2927,9 @@ class TransactionInstrumentationTest < ActiveRecord::TestCase
   ensure
     ActiveSupport::Notifications.unsubscribe(subscriber)
   end
+end
+
+class HasManyThroughAssociationsTest < ActiveRecord::TestCase
+  # SQL Server does not support delete based on composite key from another table.
+  coerce_tests! :test_delete_all_nullify_on_through_with_composite_source_foreign_key
 end
