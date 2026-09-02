@@ -1416,24 +1416,36 @@ end
 
 module ActiveRecord
   class PredicateBuilderTest < ActiveRecord::TestCase
-    # Same as original test except string has `N` prefix to indicate unicode string.
+    # Same as original test except string has `N` prefix to indicate Unicode string.
     coerce_tests! :test_registering_new_handlers
     def test_registering_new_handlers_coerced
       assert_match %r{#{Regexp.escape(topic_title)} ~ N'rails'}i, Topic.where(title: /rails/).to_sql
     end
 
-    # Same as original test except string has `N` prefix to indicate unicode string.
+    # Same as original test except string has `N` prefix to indicate Unicode string.
     coerce_tests! :test_registering_new_handlers_for_association
     def test_registering_new_handlers_for_association_coerced
       assert_match %r{#{Regexp.escape(topic_title)} ~ N'rails'}i, Reply.joins(:topic).where(topics: {title: /rails/}).to_sql
     end
 
-    # Same as original test except string has `N` prefix to indicate unicode string.
+    # Same as original test except string has `N` prefix to indicate Unicode string.
     coerce_tests! :test_registering_new_handlers_for_joins
     def test_registering_new_handlers_for_joins_coerced
       Reply.belongs_to :regexp_topic, -> { where(title: /rails/) }, class_name: "Topic", foreign_key: "parent_id"
 
       assert_match %r{#{Regexp.escape(quote_table_name("regexp_topic.title"))} ~ N'rails'}i, Reply.joins(:regexp_topic).references(Arel.sql("regexp_topic")).to_sql
+    end
+
+    # Same as original test except string has `N` prefix to indicate Unicode string.
+    coerce_tests! :test_attribute_type_can_transform_only_query_value
+    def test_attribute_type_can_transform_only_query_value_coerced
+      topic = topic_model_with_title_type(UuidToBinString.new)
+      uuid = "6ccd780c-baba-1026-9564-5b8c656024db"
+      sql = topic.where(title: uuid).to_sql
+      expected_sql = "SELECT #{quoted_topics}.* FROM #{quoted_topics} " \
+        "WHERE #{quote_table_name("topics.title")} = UUID_TO_BIN(N'#{uuid}')"
+
+      assert_equal expected_sql, sql
     end
 
     private
