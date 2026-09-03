@@ -230,6 +230,7 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
       @identity_merge_sql = "MERGE INTO [ships] WITH (UPDLOCK, HOLDLOCK) AS target USING ( SELECT * FROM ( SELECT [id], [name], ROW_NUMBER() OVER ( PARTITION BY [id] ORDER BY [id] DESC ) AS rn_0 FROM ( VALUES (101, N'RSS Sir David Attenborough') ) AS t1 ([id], [name]) ) AS ranked_source WHERE rn_0 = 1 ) AS source ON (target.[id] = source.[id]) WHEN MATCHED THEN UPDATE SET target.[name] = source.[name] WHEN NOT MATCHED BY TARGET THEN INSERT ([id], [name]) VALUES (source.[id], source.[name]) OUTPUT INSERTED.[id]"
       @identity_merge_sql_unquoted = "MERGE INTO ships WITH (UPDLOCK, HOLDLOCK) AS target USING ( SELECT * FROM ( SELECT id, name, ROW_NUMBER() OVER ( PARTITION BY id ORDER BY id DESC ) AS rn_0 FROM ( VALUES (101, N'RSS Sir David Attenborough') ) AS t1 (id, name) ) AS ranked_source WHERE rn_0 = 1 ) AS source ON (target.id = source.id) WHEN MATCHED THEN UPDATE SET target.name = source.name WHEN NOT MATCHED BY TARGET THEN INSERT (id, name) VALUES (source.id, source.name) OUTPUT INSERTED.id"
       @identity_merge_sql_unordered = "MERGE INTO [ships] WITH (UPDLOCK, HOLDLOCK) AS target USING ( SELECT * FROM ( SELECT [name], [id], ROW_NUMBER() OVER ( PARTITION BY [id] ORDER BY [id] DESC ) AS rn_0 FROM ( VALUES (101, N'RSS Sir David Attenborough') ) AS t1 ([name], [id]) ) AS ranked_source WHERE rn_0 = 1 ) AS source ON (target.[id] = source.[id]) WHEN MATCHED THEN UPDATE SET target.[name] = source.[name] WHEN NOT MATCHED BY TARGET THEN INSERT ([name], [id]) VALUES (source.[name], source.[id]) OUTPUT INSERTED.[id]"
+      @identity_merge_sql_aliased_target = @identity_merge_sql.sub(" WITH (UPDLOCK, HOLDLOCK)", "")
 
       @identity_insert_sql_non_dbo = "INSERT INTO [test].[aliens] ([id],[name]) VALUES(420,'Mork')"
       @identity_insert_sql_non_dbo_unquoted = "INSERT INTO test.aliens ([id],[name]) VALUES(420,'Mork')"
@@ -253,6 +254,7 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
       assert_equal "[ships]", connection.send(:query_requires_identity_insert?, @identity_merge_sql)
       assert_equal "[ships]", connection.send(:query_requires_identity_insert?, @identity_merge_sql_unquoted)
       assert_equal "[ships]", connection.send(:query_requires_identity_insert?, @identity_merge_sql_unordered)
+      assert_equal "[ships]", connection.send(:query_requires_identity_insert?, @identity_merge_sql_aliased_target)
 
       assert_equal "[test].[aliens]", connection.send(:query_requires_identity_insert?, @identity_insert_sql_non_dbo)
       assert_equal "[test].[aliens]", connection.send(:query_requires_identity_insert?, @identity_insert_sql_non_dbo_unquoted)
