@@ -524,7 +524,6 @@ end
 module ActiveRecord
   class Migration
     class ChangeSchemaTest < ActiveRecord::TestCase
-      # Integer.default is a number and not a string
       coerce_tests! :test_create_table_with_defaults
       def test_create_table_with_defaults_coerce
         connection.create_table :testings do |t|
@@ -545,7 +544,7 @@ module ActiveRecord
         assert_equal "hello", one.default
         assert_equal true, two.cast_type.deserialize(two.default)
         assert_equal false, three.cast_type.deserialize(three.default)
-        assert_equal 1, four.default
+        assert_equal "1", four.default
         assert_equal "hello", five.default
       end
 
@@ -610,17 +609,16 @@ end
 module ActiveRecord
   class Migration
     class ColumnsTest < ActiveRecord::TestCase
-      # Our defaults are real 70000 integers vs '70000' strings.
       coerce_tests! :test_rename_column_preserves_default_value_not_null
       def test_rename_column_preserves_default_value_not_null_coerced
         add_column "test_models", "salary", :integer, default: 70000
         default_before = connection.columns("test_models").find { |c| c.name == "salary" }.default
-        assert_equal 70000, default_before
+        assert_equal "70000", default_before
         rename_column "test_models", "salary", "annual_salary"
         TestModel.reset_column_information
         assert TestModel.column_names.include?("annual_salary")
         default_after = connection.columns("test_models").find { |c| c.name == "annual_salary" }.default
-        assert_equal 70000, default_after
+        assert_equal "70000", default_after
       end
 
       # Dropping the column removes the single index.
@@ -1964,7 +1962,7 @@ class DefaultNumbersTest < ActiveRecord::TestCase
   def test_default_positive_integer_coerced
     record = DefaultNumber.new
     assert_equal 7, record.positive_integer
-    assert_equal 7, record.positive_integer_before_type_cast
+    assert_equal "7", record.positive_integer_before_type_cast
   end
 
   # We do better with native types and do not return strings for everything.
@@ -1972,7 +1970,7 @@ class DefaultNumbersTest < ActiveRecord::TestCase
   def test_default_negative_integer_coerced
     record = DefaultNumber.new
     assert_equal(-5, record.negative_integer)
-    assert_equal(-5, record.negative_integer_before_type_cast)
+    assert_equal "-5", record.negative_integer_before_type_cast
   end
 
   # We do better with native types and do not return strings for everything.
@@ -1980,7 +1978,7 @@ class DefaultNumbersTest < ActiveRecord::TestCase
   def test_default_decimal_number_coerced
     record = DefaultNumber.new
     assert_equal BigDecimal("2.78"), record.decimal_number
-    assert_equal 2.78, record.decimal_number_before_type_cast
+    assert_equal "2.78", record.decimal_number_before_type_cast
   end
 end
 

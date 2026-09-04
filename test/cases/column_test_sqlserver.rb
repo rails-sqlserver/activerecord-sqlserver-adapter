@@ -41,7 +41,7 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       _(col.sql_type).must_equal "bigint(8)"
       _(col.type).must_equal :integer
       _(col.null).must_equal true
-      _(col.default).must_equal 42
+      _(col.default).must_equal "42"
       _(obj.bigint).must_equal 42
       _(col.default_function).must_be_nil
       type = col.cast_type
@@ -56,7 +56,7 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       _(col.sql_type).must_equal "int(4)"
       _(col.type).must_equal :integer
       _(col.null).must_equal true
-      _(col.default).must_equal 42
+      _(col.default).must_equal "42"
       _(obj.int).must_equal 42
       _(col.default_function).must_be_nil
       type = col.cast_type
@@ -71,7 +71,7 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       _(col.sql_type).must_equal "smallint(2)"
       _(col.type).must_equal :integer
       _(col.null).must_equal true
-      _(col.default).must_equal 42
+      _(col.default).must_equal "42"
       _(obj.smallint).must_equal 42
       _(col.default_function).must_be_nil
       type = col.cast_type
@@ -86,7 +86,7 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       _(col.sql_type).must_equal "tinyint(1)"
       _(col.type).must_equal :integer
       _(col.null).must_equal true
-      _(col.default).must_equal 42
+      _(col.default).must_equal "42"
       _(obj.tinyint).must_equal 42
       _(col.default_function).must_be_nil
       type = col.cast_type
@@ -101,7 +101,7 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       _(col.sql_type).must_equal "bit"
       _(col.type).must_equal :boolean
       _(col.null).must_equal true
-      _(col.default).must_equal true
+      _(col.default).must_equal "1"
       _(obj.bit).must_equal true
       _(col.default_function).must_be_nil
       type = col.cast_type
@@ -122,7 +122,7 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       _(col.sql_type).must_equal "decimal(9,2)"
       _(col.type).must_equal :decimal
       _(col.null).must_equal true
-      _(col.default).must_equal BigDecimal("12345.01")
+      _(col.default).must_equal "12345.01"
       _(obj.decimal_9_2).must_equal BigDecimal("12345.01")
       _(col.default_function).must_be_nil
       type = col.cast_type
@@ -139,7 +139,7 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
     it "decimal(16,4)" do
       col = column("decimal_16_4")
       _(col.sql_type).must_equal "decimal(16,4)"
-      _(col.default).must_equal BigDecimal("1234567.89")
+      _(col.default).must_equal "1234567.89"
       _(obj.decimal_16_4).must_equal BigDecimal("1234567.89")
       _(col.default_function).must_be_nil
       type = col.cast_type
@@ -156,7 +156,7 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       _(col.sql_type).must_equal "numeric(18,0)"
       _(col.type).must_equal :decimal
       _(col.null).must_equal true
-      _(col.default).must_equal BigDecimal(191)
+      _(col.default).must_equal "191"
       _(obj.numeric_18_0).must_equal BigDecimal(191)
       _(col.default_function).must_be_nil
 
@@ -178,7 +178,7 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       _(col.sql_type).must_equal "numeric(36,2)"
       _(col.type).must_equal :decimal
       _(col.null).must_equal true
-      _(col.default).must_equal BigDecimal("12345678901234567890.01")
+      _(col.default).must_equal "12345678901234567890.01"
       _(obj.numeric_36_2).must_equal BigDecimal("12345678901234567890.01")
       _(col.default_function).must_be_nil
       type = col.cast_type
@@ -197,7 +197,7 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       _(col.sql_type).must_equal "money"
       _(col.type).must_equal :money
       _(col.null).must_equal true
-      _(col.default).must_equal BigDecimal("4.20")
+      _(col.default).must_equal "4.20"
       _(obj.money).must_equal BigDecimal("4.20")
       _(col.default_function).must_be_nil
       type = col.cast_type
@@ -216,7 +216,7 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       _(col.sql_type).must_equal "smallmoney"
       _(col.type).must_equal :smallmoney
       _(col.null).must_equal true
-      _(col.default).must_equal BigDecimal("4.20")
+      _(col.default).must_equal "4.20"
       _(obj.smallmoney).must_equal BigDecimal("4.20")
       _(col.default_function).must_be_nil
       type = col.cast_type
@@ -239,7 +239,7 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       _(col.sql_type).must_equal "float"
       _(col.type).must_equal :float
       _(col.null).must_equal true
-      _(col.default).must_equal 123.00000001
+      _(col.default).must_equal "123.00000001"
       _(obj.float).must_equal 123.00000001
       _(col.default_function).must_be_nil
       type = col.cast_type
@@ -258,7 +258,7 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       _(col.sql_type).must_equal "real"
       _(col.type).must_equal :real
       _(col.null).must_equal true
-      _(col.default).must_be_close_to 123.45, 0.01
+      _(col.default).must_equal "123.45"
       _(obj.real).must_be_close_to 123.45, 0.01
       _(col.default_function).must_be_nil
       type = col.cast_type
@@ -279,7 +279,7 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       _(col.sql_type).must_equal "date"
       _(col.type).must_equal :date
       _(col.null).must_equal true
-      _(col.default).must_equal Date.civil(1, 1, 1)
+      _(col.default).must_equal "0001-01-01"
       _(obj.date).must_equal Date.civil(1, 1, 1)
       _(col.default_function).must_be_nil
       type = col.cast_type
@@ -317,8 +317,8 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       _(col.sql_type).must_equal "datetime"
       _(col.type).must_equal :datetime
       _(col.null).must_equal true
+      _(col.default).must_equal "1753-01-01T00:00:00.123"
       time = Time.utc 1753, 1, 1, 0, 0, 0, 123000
-      _(col.default).must_equal time, "Microseconds were <#{col.default.usec}> vs <123000>"
       _(obj.datetime).must_equal time, "Microseconds were <#{obj.datetime.usec}> vs <123000>"
       _(col.default_function).must_be_nil
       type = col.cast_type
@@ -363,8 +363,8 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       _(col.sql_type).must_equal "datetime2(7)"
       _(col.type).must_equal :datetime
       _(col.null).must_equal true
+      _(col.default).must_equal "9999-12-31 23:59:59.9999999"
       time = Time.utc 9999, 12, 31, 23, 59, 59, Rational(999999900, 1000)
-      _(col.default).must_equal time, "Nanoseconds were <#{col.default.nsec}> vs <999999900>"
       _(obj.datetime2_7).must_equal time, "Nanoseconds were <#{obj.datetime2_7.nsec}> vs <999999900>"
       _(col.default_function).must_be_nil
       type = col.cast_type
@@ -430,7 +430,7 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       _(col.sql_type).must_equal "datetimeoffset(7)"
       _(col.type).must_equal :datetimeoffset
       _(col.null).must_equal true
-      _(col.default).must_equal Time.new(1984, 1, 24, 4, 20, 0, -28800).change(nsec: 123456700), "Nanoseconds <#{col.default.nsec}> vs <123456700>"
+      _(col.default).must_equal "1984-01-24 04:20:00.1234567 -08:00"
       _(obj.datetimeoffset_7).must_equal Time.new(1984, 1, 24, 4, 20, 0, -28800).change(nsec: 123456700), "Nanoseconds were <#{obj.datetimeoffset_7.nsec}> vs <999999900>"
       _(col.default_function).must_be_nil
       type = col.cast_type
@@ -476,7 +476,7 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       _(col.sql_type).must_equal "smalldatetime"
       _(col.type).must_equal :smalldatetime
       _(col.null).must_equal true
-      _(col.default).must_equal Time.utc(1901, 1, 1, 15, 45, 0, 0)
+      _(col.default).must_equal "1901-01-01T15:45:00.000Z"
       _(obj.smalldatetime).must_equal Time.utc(1901, 1, 1, 15, 45, 0, 0)
       _(col.default_function).must_be_nil
       type = col.cast_type
@@ -498,7 +498,7 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       _(col.sql_type).must_equal "time(7)"
       _(col.type).must_equal :time
       _(col.null).must_equal true
-      _(col.default).must_equal Time.utc(1900, 1, 1, 4, 20, 0, Rational(288321500, 1000)), "Nanoseconds were <#{col.default.nsec}> vs <288321500>"
+      _(col.default).must_equal "04:20:00.2883215"
       _(col.default_function).must_be_nil
       type = col.cast_type
       _(type).must_be_instance_of ActiveRecord::ConnectionAdapters::SQLServer::Type::Time
@@ -564,7 +564,7 @@ class ColumnTestSQLServer < ActiveRecord::TestCase
       _(col.sql_type).must_equal "time(7)"
       _(col.type).must_equal :time
       _(col.null).must_equal true
-      _(col.default).must_equal Time.utc(1900, 1, 1, 15, 3, 42, Rational(62197800, 1000)), "Nanoseconds were <#{col.default.nsec}> vs <62197800>"
+      _(col.default).must_equal "15:03:42.0621978"
       _(col.default_function).must_be_nil
       type = col.cast_type
       _(type).must_be_instance_of ActiveRecord::ConnectionAdapters::SQLServer::Type::Time
