@@ -524,31 +524,6 @@ end
 module ActiveRecord
   class Migration
     class ChangeSchemaTest < ActiveRecord::TestCase
-      # Integer.default is a number and not a string
-      coerce_tests! :test_create_table_with_defaults
-      def test_create_table_with_defaults_coerce
-        connection.create_table :testings do |t|
-          t.column :one, :string, default: "hello"
-          t.column :two, :boolean, default: true
-          t.column :three, :boolean, default: false
-          t.column :four, :integer, default: 1
-          t.column :five, :text, default: "hello"
-        end
-
-        columns = connection.columns(:testings)
-        one = columns.detect { |c| c.name == "one" }
-        two = columns.detect { |c| c.name == "two" }
-        three = columns.detect { |c| c.name == "three" }
-        four = columns.detect { |c| c.name == "four" }
-        five = columns.detect { |c| c.name == "five" }
-
-        assert_equal "hello", one.default
-        assert_equal true, two.cast_type.deserialize(two.default)
-        assert_equal false, three.cast_type.deserialize(three.default)
-        assert_equal 1, four.default
-        assert_equal "hello", five.default
-      end
-
       # Use precision 6 by default for datetime/timestamp columns. SQL Server uses `datetime2` for date-times with precision.
       coerce_tests! :test_add_column_with_postgresql_datetime_type
       def test_add_column_with_postgresql_datetime_type_coerced
@@ -610,19 +585,6 @@ end
 module ActiveRecord
   class Migration
     class ColumnsTest < ActiveRecord::TestCase
-      # Our defaults are real 70000 integers vs '70000' strings.
-      coerce_tests! :test_rename_column_preserves_default_value_not_null
-      def test_rename_column_preserves_default_value_not_null_coerced
-        add_column "test_models", "salary", :integer, default: 70000
-        default_before = connection.columns("test_models").find { |c| c.name == "salary" }.default
-        assert_equal 70000, default_before
-        rename_column "test_models", "salary", "annual_salary"
-        TestModel.reset_column_information
-        assert TestModel.column_names.include?("annual_salary")
-        default_after = connection.columns("test_models").find { |c| c.name == "annual_salary" }.default
-        assert_equal 70000, default_after
-      end
-
       # Dropping the column removes the single index.
       coerce_tests! :test_remove_column_with_multi_column_index
       def test_remove_column_with_multi_column_index_coerced
@@ -1956,32 +1918,6 @@ class TimePrecisionTest < ActiveRecord::TestCase
 
   # SQL Server accepts precision of 7 for time.
   coerce_tests! :test_invalid_time_precision_raises_error
-end
-
-class DefaultNumbersTest < ActiveRecord::TestCase
-  # We do better with native types and do not return strings for everything.
-  coerce_tests! :test_default_positive_integer
-  def test_default_positive_integer_coerced
-    record = DefaultNumber.new
-    assert_equal 7, record.positive_integer
-    assert_equal 7, record.positive_integer_before_type_cast
-  end
-
-  # We do better with native types and do not return strings for everything.
-  coerce_tests! :test_default_negative_integer
-  def test_default_negative_integer_coerced
-    record = DefaultNumber.new
-    assert_equal(-5, record.negative_integer)
-    assert_equal(-5, record.negative_integer_before_type_cast)
-  end
-
-  # We do better with native types and do not return strings for everything.
-  coerce_tests! :test_default_decimal_number
-  def test_default_decimal_number_coerced
-    record = DefaultNumber.new
-    assert_equal BigDecimal("2.78"), record.decimal_number
-    assert_equal 2.78, record.decimal_number_before_type_cast
-  end
 end
 
 module ActiveRecord

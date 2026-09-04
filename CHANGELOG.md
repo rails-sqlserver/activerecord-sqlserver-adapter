@@ -9,5 +9,6 @@
 - [#1381](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1381) Fix `change_column` to preserve old column attributes.
 - [#1393](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1393) Treat TinyTDS `failed dbsqlsend() function` errors as `ConnectionNotEstablished` so they're retried instead of surfaced as `StatementInvalid`.
 - [#1397](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1397) Treat "DBPROCESS is dead or not enabled" as ConnectionNotEstablished.
+- [#1406](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1406) Stop deserializing column defaults.
 
 Please check [8-1-stable](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/blob/8-1-stable/CHANGELOG.md) for previous changes.

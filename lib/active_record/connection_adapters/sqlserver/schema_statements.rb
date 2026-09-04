@@ -573,13 +573,16 @@ module ActiveRecord
             [string_literal, nil]
           when /CREATE DEFAULT/mi
             [nil, nil]
+          when /\A\(NULL\)\Z/i
+            [nil, nil]
           else
-            type = case type
-            when /smallint|int|bigint/ then original_type
-            else type
-            end
             value = default.match(/\A\((.*)\)\Z/m)[1]
-            value = select_value("SELECT CAST(#{value} AS #{type}) AS value", "SCHEMA")
+            if value.start_with?("(") && value.end_with?(")")
+              value = value[1..-2]
+            end
+            if value.start_with?("'") && value.end_with?("'")
+              value = value[1..-2]
+            end
             [value, nil]
           end
         end
