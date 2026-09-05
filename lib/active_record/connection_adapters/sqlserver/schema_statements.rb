@@ -43,10 +43,11 @@ module ActiveRecord
         def columns(table_name)
           return [] if table_name.blank?
 
-          definitions = column_definitions(table_name)
-          definitions.map do |field|
-            new_column_from_field(table_name, field, definitions)
+          result = fetch_column_definitions(Array(table_name).map(&:to_s)).to_h do |table, definitions|
+            [table, definitions.map { |field| new_column_from_field(table, field, definitions) }]
           end
+
+          table_name.is_a?(Array) ? result : result[table_name.to_s]
         end
 
         def new_column_from_field(_table_name, field, _definitions)
@@ -530,6 +531,26 @@ module ActiveRecord
           end
         end
 
+        def fetch_column_definitions(tables)
+          return {} if tables.empty?
+
+          rows = select_all(column_definitions_sql(tables), "SCHEMA")
+          rows_by_table = rows.group_by { |row| [row["table_schema"].to_s.downcase, row["table_name"].to_s.downcase] }
+          view_tables = rows_by_table.select { |_, group| group.first["object_type"].to_s.strip == "V" }
+
+          tables.index_with do |table|
+            fields = rows_for(rows_by_table, table)
+            next column_definitions(table) if fields.empty?
+
+            view_exists = view_tables.key?(schema_and_name(table))
+            default_functions = default_functions_for_view(table) if view_exists
+
+            fields.map do |ci|
+              build_column_definition(ci, table, view_exists: view_exists, default_functions: default_functions)
+            end
+          end
+        end
+
         def schema_and_name(table)
           scope = quoted_scope(table)
           [scope[:schema].to_s.downcase, scope[:name].to_s.downcase]
@@ -590,18 +611,9 @@ module ActiveRecord
           identifier = database_prefix_identifier(table_name)
           database = identifier.fully_qualified_database_quoted
           view_exists = view_exists?(table_name)
+          default_functions = default_functions_for_view(table_name) if view_exists
 
-          if view_exists
-            sql = <<~SQL
-              SELECT LOWER(c.COLUMN_NAME) AS [name], c.COLUMN_DEFAULT AS [default]
-              FROM #{database}.INFORMATION_SCHEMA.COLUMNS c
-              WHERE c.TABLE_NAME = #{quote(view_table_name(table_name))}
-            SQL
-            results = select_all(sql, "SCHEMA")
-            default_functions = results.each.with_object({}) { |row, out| out[row["name"]] = row["default"] }.compact
-          end
-
-          sql = column_definitions_sql(database, identifier)
+          sql = single_column_definitions_sql(database, identifier)
 
           binds = []
           nv128 = SQLServer::Type::UnicodeVarchar.new(limit: 128)
@@ -612,29 +624,44 @@ module ActiveRecord
           raise ActiveRecord::StatementInvalid, "Table '#{table_name}' doesn't exist" if results.empty?
 
           results.map do |ci|
-            col = ci.slice("name", "numeric_scale", "numeric_precision", "datetime_precision", "collation", "ordinal_position", "length", "is_computed", "is_persisted", "computed_formula").symbolize_keys
-
-            col[:table_name] = view_exists ? view_table_name(table_name) : table_name
-            col[:type] = column_type(ci: ci)
-            col[:default_value], col[:default_function] = default_value_and_function(default: ci["default_value"],
-              name: ci["name"],
-              type: col[:type],
-              original_type: ci["type"],
-              view_exists: view_exists,
-              table_name: table_name,
-              default_functions: default_functions)
-
-            col[:null] = ci["is_nullable"].to_i == 1
-            col[:is_primary] = ci["is_primary"].to_i == 1
-
-            col[:is_identity] = if [true, false].include?(ci["is_identity"])
-              ci["is_identity"]
-            else
-              ci["is_identity"].to_i == 1
-            end
-
-            col
+            build_column_definition(ci, table_name, view_exists: view_exists, default_functions: default_functions)
           end
+        end
+
+        def default_functions_for_view(table_name)
+          identifier = database_prefix_identifier(table_name)
+          database = identifier.fully_qualified_database_quoted
+          sql = <<~SQL
+            SELECT LOWER(c.COLUMN_NAME) AS [name], c.COLUMN_DEFAULT AS [default]
+            FROM #{database}.INFORMATION_SCHEMA.COLUMNS c
+            WHERE c.TABLE_NAME = #{quote(view_table_name(table_name))}
+          SQL
+          select_all(sql, "SCHEMA").each.with_object({}) { |row, out| out[row["name"]] = row["default"] }.compact
+        end
+
+        def build_column_definition(ci, table_name, view_exists:, default_functions:)
+          col = ci.slice("name", "numeric_scale", "numeric_precision", "datetime_precision", "collation", "ordinal_position", "length", "is_computed", "is_persisted", "computed_formula").symbolize_keys
+
+          col[:table_name] = view_exists ? view_table_name(table_name) : table_name
+          col[:type] = column_type(ci: ci)
+          col[:default_value], col[:default_function] = default_value_and_function(default: ci["default_value"],
+            name: ci["name"],
+            type: col[:type],
+            original_type: ci["type"],
+            view_exists: view_exists,
+            table_name: table_name,
+            default_functions: default_functions)
+
+          col[:null] = ci["is_nullable"].to_i == 1
+          col[:is_primary] = ci["is_primary"].to_i == 1
+
+          col[:is_identity] = if [true, false].include?(ci["is_identity"])
+            ci["is_identity"]
+          else
+            ci["is_identity"].to_i == 1
+          end
+
+          col
         end
 
         def default_value_and_function(default:, name:, type:, original_type:, view_exists:, table_name:, default_functions:)
@@ -687,7 +714,7 @@ module ActiveRecord
           end
         end
 
-        def column_definitions_sql(database, identifier)
+        def single_column_definitions_sql(database, identifier)
           database = "TEMPDB" if identifier.temporary_table?
           schema_name = "schema_name()"
 
@@ -765,6 +792,72 @@ module ActiveRecord
               AND s.name = #{schema_name}
             ORDER BY
               c.column_id
+          }.gsub(/[ \t\r\n]+/, " ").strip
+        end
+
+        def column_definitions_sql(tables)
+          %{
+            SELECT
+              #{lowercase_schema_reflection_sql("s.name")} AS [table_schema],
+              #{lowercase_schema_reflection_sql("o.name")} AS [table_name],
+              #{lowercase_schema_reflection_sql("c.name")} AS [name],
+              o.type AS [object_type],
+              t.name AS [type],
+              d.definition AS [default_value],
+              CASE
+                WHEN t.name IN ('decimal', 'bigint', 'int', 'money', 'numeric', 'smallint', 'smallmoney', 'tinyint')
+                THEN c.scale
+              END AS [numeric_scale],
+              CASE
+                WHEN t.name IN ('decimal', 'bigint', 'int', 'money', 'numeric', 'smallint', 'smallmoney', 'tinyint', 'real', 'float')
+                THEN c.precision
+              END AS [numeric_precision],
+              CASE
+                WHEN t.name IN ('date', 'datetime', 'datetime2', 'datetimeoffset', 'smalldatetime', 'time')
+                THEN c.scale
+              END AS [datetime_precision],
+              c.collation_name  AS [collation],
+              ROW_NUMBER() OVER (PARTITION BY o.object_id ORDER BY c.column_id) AS [ordinal_position],
+              CASE
+                WHEN t.name IN ('nchar', 'nvarchar') AND c.max_length > 0
+                THEN c.max_length / 2
+                ELSE c.max_length
+              END AS [length],
+              CASE c.is_nullable
+                WHEN 1
+                THEN 1
+              END AS [is_nullable],
+              CASE
+                WHEN ic.object_id IS NOT NULL
+                THEN 1
+              END AS [is_primary],
+              c.is_identity AS [is_identity],
+              c.is_computed AS [is_computed],
+              cc.is_persisted AS [is_persisted],
+              cc.definition AS [computed_formula]
+            FROM sys.columns c
+            INNER JOIN sys.objects o
+              ON c.object_id = o.object_id
+            INNER JOIN sys.schemas s
+              ON o.schema_id = s.schema_id
+            INNER JOIN sys.types t
+              ON c.system_type_id = t.system_type_id
+              AND c.user_type_id = t.user_type_id
+            LEFT OUTER JOIN sys.default_constraints d
+              ON c.object_id = d.parent_object_id
+              AND c.default_object_id = d.object_id
+            LEFT OUTER JOIN sys.key_constraints k
+              ON c.object_id = k.parent_object_id
+              AND k.type = 'PK'
+            LEFT OUTER JOIN sys.index_columns ic
+              ON k.parent_object_id = ic.object_id
+              AND k.unique_index_id = ic.index_id
+              AND c.column_id = ic.column_id
+            LEFT OUTER JOIN sys.computed_columns cc
+              ON c.object_id = cc.object_id
+              AND c.column_id = cc.column_id
+            WHERE #{schema_and_name_filter(tables)}
+            ORDER BY #{lowercase_schema_reflection_sql("s.name")}, #{lowercase_schema_reflection_sql("o.name")}, c.column_id
           }.gsub(/[ \t\r\n]+/, " ").strip
         end
 
