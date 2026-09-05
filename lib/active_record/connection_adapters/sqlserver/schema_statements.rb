@@ -36,57 +36,8 @@ module ActiveRecord
         end
 
         def indexes(table_name)
-          data = begin
-            select_all("EXEC sp_helpindex #{quote(table_name)}", "SCHEMA")
-          rescue
-            []
-          end
-
-          data.reduce([]) do |indexes, index|
-            if index["index_description"].match?(/primary key/)
-              indexes
-            else
-              name = index["index_name"]
-              unique = index["index_description"].match?(/unique/)
-              where = select_value("SELECT [filter_definition] FROM sys.indexes WHERE name = #{quote(name)}", "SCHEMA")
-              include_columns = index_include_columns(table_name, name)
-              orders = {}
-              columns = []
-
-              index["index_keys"].split(",").each do |column|
-                column.strip!
-
-                if column.end_with?("(-)")
-                  column.gsub! "(-)", ""
-                  orders[column] = :desc
-                end
-
-                columns << column
-              end
-
-              indexes << IndexDefinition.new(table_name, name, unique, columns, where: where, orders: orders, include: include_columns.presence)
-            end
-          end
-        end
-
-        def index_include_columns(table_name, index_name)
-          sql = <<~SQL
-            SELECT
-                ic.index_id,
-                c.name AS column_name
-            FROM
-                sys.indexes i
-            JOIN
-                sys.index_columns ic ON i.object_id = ic.object_id AND i.index_id = ic.index_id
-            JOIN
-                sys.columns c ON ic.object_id = c.object_id AND ic.column_id = c.column_id
-            WHERE
-                i.object_id = OBJECT_ID('#{table_name}')
-                AND i.name = '#{index_name}'
-                AND ic.is_included_column = 1;
-          SQL
-
-          select_all(sql, "SCHEMA").map { |row| row["column_name"] }
+          result = fetch_indexes(Array(table_name).map(&:to_s))
+          table_name.is_a?(Array) ? result : result[table_name.to_s]
         end
 
         def columns(table_name)
@@ -134,38 +85,8 @@ module ActiveRecord
         end
 
         def primary_keys(table_name)
-          primaries = primary_keys_select(table_name)
-          primaries.present? ? primaries : identity_columns(table_name).map(&:name)
-        end
-
-        def primary_keys_select(table_name)
-          identifier = database_prefix_identifier(table_name)
-          database = identifier.fully_qualified_database_quoted
-          sql = %(
-            SELECT #{lowercase_schema_reflection_sql("KCU.COLUMN_NAME")} AS [name]
-            FROM #{database}.INFORMATION_SCHEMA.KEY_COLUMN_USAGE AS KCU
-            LEFT OUTER JOIN #{database}.INFORMATION_SCHEMA.TABLE_CONSTRAINTS AS TC
-              ON KCU.CONSTRAINT_NAME = TC.CONSTRAINT_NAME
-              AND KCU.CONSTRAINT_NAME = TC.CONSTRAINT_NAME
-              AND KCU.CONSTRAINT_CATALOG = TC.CONSTRAINT_CATALOG
-              AND KCU.CONSTRAINT_SCHEMA = TC.CONSTRAINT_SCHEMA
-              AND TC.CONSTRAINT_TYPE = N'PRIMARY KEY'
-            WHERE KCU.TABLE_NAME = #{prepared_statements ? "@0" : quote(identifier.object)}
-            AND KCU.TABLE_SCHEMA = #{if identifier.schema.blank?
-                                       "schema_name()"
-                                     else
-                                       (prepared_statements ? "@1" : quote(identifier.schema))
-                                     end}
-            AND TC.CONSTRAINT_TYPE = N'PRIMARY KEY'
-            ORDER BY KCU.ORDINAL_POSITION ASC
-          ).gsub(/[[:space:]]/, " ")
-
-          binds = []
-          nv128 = SQLServer::Type::UnicodeVarchar.new limit: 128
-          binds << Relation::QueryAttribute.new("TABLE_NAME", identifier.object, nv128)
-          binds << Relation::QueryAttribute.new("TABLE_SCHEMA", identifier.schema, nv128) unless identifier.schema.blank?
-
-          select_all(sql, "SCHEMA", binds).map { |row| row["name"] }
+          result = fetch_primary_keys(Array(table_name).map(&:to_s))
+          table_name.is_a?(Array) ? result : result[table_name.to_s]
         end
 
         def rename_table(table_name, new_name, **options)
@@ -285,58 +206,20 @@ module ActiveRecord
         end
 
         def foreign_keys(table_name)
-          identifier = SQLServer::Utils.extract_identifiers(table_name)
-          fk_info = execute_procedure :sp_fkeys, nil, identifier.schema, nil, identifier.object, identifier.schema
-
-          grouped_fk = fk_info.group_by { |row| row["FK_NAME"] }.values.each { |group| group.sort_by! { |row| row["KEY_SEQ"] } }.reverse
-          grouped_fk.map do |group|
-            row = group.first
-            options = {
-              name: row["FK_NAME"],
-              on_update: extract_foreign_key_action("update", row["FK_NAME"]),
-              on_delete: extract_foreign_key_action("delete", row["FK_NAME"])
-            }
-
-            if group.one?
-              options[:column] = row["FKCOLUMN_NAME"]
-              options[:primary_key] = row["PKCOLUMN_NAME"]
-            else
-              options[:column] = group.map { |row| row["FKCOLUMN_NAME"] }
-              options[:primary_key] = group.map { |row| row["PKCOLUMN_NAME"] }
-            end
-
-            ForeignKeyDefinition.new(identifier.object, row["PKTABLE_NAME"], options)
-          end
+          result = fetch_foreign_keys(Array(table_name).map(&:to_s))
+          table_name.is_a?(Array) ? result : result[table_name.to_s]
         end
 
-        def extract_foreign_key_action(action, fk_name)
-          case select_value("SELECT #{action}_referential_action_desc FROM sys.foreign_keys WHERE name = '#{fk_name}'")
+        def extract_foreign_key_action(action)
+          case action
           when "CASCADE" then :cascade
           when "SET_NULL" then :nullify
           end
         end
 
         def check_constraints(table_name)
-          sql = <<~SQL
-            select chk.name AS 'name',
-                   chk.definition AS 'expression'
-            from sys.check_constraints chk
-            inner join sys.tables st on chk.parent_object_id = st.object_id
-            where
-            st.name = '#{table_name}'
-          SQL
-
-          chk_info = select_all(sql, "SCHEMA")
-
-          chk_info.map do |row|
-            options = {
-              name: row["name"]
-            }
-            expression = row["expression"]
-            expression = expression[1..-2] if expression.start_with?("(") && expression.end_with?(")")
-
-            CheckConstraintDefinition.new(table_name, expression, options)
-          end
+          result = fetch_check_constraints(Array(table_name).map(&:to_s))
+          table_name.is_a?(Array) ? result : result[table_name.to_s]
         end
 
         def type_to_sql(type, limit: nil, precision: nil, scale: nil, **)
@@ -469,6 +352,204 @@ module ActiveRecord
         end
 
         private
+
+        def fetch_indexes(tables)
+          return {} if tables.empty?
+
+          rows = select_all(<<~SQL, "SCHEMA")
+            SELECT
+              s.name AS [table_schema],
+              t.name AS [table_name],
+              i.name AS [index_name],
+              i.is_primary_key AS [is_primary_key],
+              i.is_unique AS [is_unique],
+              i.filter_definition AS [filter_definition],
+              c.name AS [column_name],
+              ic.is_included_column AS [is_included_column],
+              ic.is_descending_key AS [is_descending_key]
+            FROM sys.indexes i
+            INNER JOIN sys.objects t ON i.object_id = t.object_id
+            INNER JOIN sys.schemas s ON t.schema_id = s.schema_id
+            INNER JOIN sys.index_columns ic ON ic.object_id = t.object_id AND ic.index_id = i.index_id
+            INNER JOIN sys.columns c ON c.object_id = t.object_id AND c.column_id = ic.column_id
+            WHERE i.is_hypothetical = 0
+              AND (#{schema_and_name_filter(tables)})
+            ORDER BY t.object_id, i.index_id, ic.index_column_id
+          SQL
+
+          rows_by_table = rows.group_by { |row| [row["table_schema"].to_s.downcase, row["table_name"].to_s.downcase] }
+          tables.index_with { |table| build_indexes(table, rows_for(rows_by_table, table)) }
+        end
+
+        def build_indexes(table_name, index_rows)
+          index_rows.group_by { |row| row["index_name"] }.each_with_object([]) do |(name, rows), indexes|
+            first = rows.first
+            next if sqlserver_boolean?(first["is_primary_key"])
+
+            unique = sqlserver_boolean?(first["is_unique"])
+            where = first["filter_definition"]
+            include_columns = []
+            orders = {}
+            columns = []
+
+            rows.each do |row|
+              column = row["column_name"]
+              if sqlserver_boolean?(row["is_included_column"])
+                include_columns << column
+              else
+                orders[column] = :desc if sqlserver_boolean?(row["is_descending_key"])
+                columns << column
+              end
+            end
+
+            indexes << IndexDefinition.new(table_name, name, unique, columns, where: where, orders: orders, include: include_columns.presence)
+          end
+        end
+
+        def fetch_primary_keys(tables)
+          return {} if tables.empty?
+
+          filter = schema_and_name_filter(tables)
+
+          pk_rows = select_all(<<~SQL, "SCHEMA")
+            SELECT
+              s.name AS [table_schema],
+              t.name AS [table_name],
+              c.name AS [name]
+            FROM sys.tables t
+            INNER JOIN sys.schemas s ON t.schema_id = s.schema_id
+            INNER JOIN sys.indexes i ON i.object_id = t.object_id AND i.is_primary_key = 1
+            INNER JOIN sys.index_columns ic ON ic.object_id = t.object_id AND ic.index_id = i.index_id AND ic.is_included_column = 0
+            INNER JOIN sys.columns c ON c.object_id = t.object_id AND c.column_id = ic.column_id
+            WHERE #{filter}
+            ORDER BY t.object_id, ic.key_ordinal
+          SQL
+
+          identity_rows = select_all(<<~SQL, "SCHEMA")
+            SELECT
+              s.name AS [table_schema],
+              t.name AS [table_name],
+              c.name AS [name]
+            FROM sys.objects t
+            INNER JOIN sys.schemas s ON t.schema_id = s.schema_id
+            INNER JOIN sys.columns c ON c.object_id = t.object_id
+            WHERE c.is_identity = 1
+              AND (#{filter})
+            ORDER BY t.object_id, c.column_id
+          SQL
+
+          pk_by_table = pk_rows.group_by { |row| [row["table_schema"].to_s.downcase, row["table_name"].to_s.downcase] }
+          identity_by_table = identity_rows.group_by { |row| [row["table_schema"].to_s.downcase, row["table_name"].to_s.downcase] }
+
+          tables.index_with do |table|
+            primaries = rows_for(pk_by_table, table).map { |row| row["name"] }
+            primaries.presence || rows_for(identity_by_table, table).map { |row| row["name"] }
+          end
+        end
+
+        def fetch_foreign_keys(tables)
+          return {} if tables.empty?
+
+          rows = select_all(<<~SQL, "SCHEMA")
+            SELECT
+              s.name AS [table_schema],
+              t.name AS [table_name],
+              fk.name AS [name],
+              fk.update_referential_action_desc AS [on_update],
+              fk.delete_referential_action_desc AS [on_delete],
+              pt.name AS [to_table],
+              fkc.constraint_column_id AS [position],
+              fc.name AS [column],
+              pc.name AS [primary_key]
+            FROM sys.foreign_keys fk
+            INNER JOIN sys.foreign_key_columns fkc ON fkc.constraint_object_id = fk.object_id
+            INNER JOIN sys.tables t ON t.object_id = fk.parent_object_id
+            INNER JOIN sys.schemas s ON t.schema_id = s.schema_id
+            INNER JOIN sys.tables pt ON pt.object_id = fk.referenced_object_id
+            INNER JOIN sys.columns fc ON fc.object_id = fk.parent_object_id AND fc.column_id = fkc.parent_column_id
+            INNER JOIN sys.columns pc ON pc.object_id = fk.referenced_object_id AND pc.column_id = fkc.referenced_column_id
+            WHERE #{schema_and_name_filter(tables)}
+            ORDER BY fk.name, fkc.constraint_column_id
+          SQL
+
+          rows_by_table = rows.group_by { |row| [row["table_schema"].to_s.downcase, row["table_name"].to_s.downcase] }
+          tables.index_with { |table| build_foreign_keys(table, rows_for(rows_by_table, table)) }
+        end
+
+        def build_foreign_keys(table_name, fk_info)
+          grouped_fk = fk_info.group_by { |row| row["name"] }.values.each { |group| group.sort_by! { |row| row["position"].to_i } }
+          grouped_fk.map do |group|
+            row = group.first
+            options = {
+              name: row["name"],
+              on_update: extract_foreign_key_action(row["on_update"]),
+              on_delete: extract_foreign_key_action(row["on_delete"])
+            }
+
+            if group.one?
+              options[:column] = row["column"]
+              options[:primary_key] = row["primary_key"]
+            else
+              options[:column] = group.map { |row| row["column"] }
+              options[:primary_key] = group.map { |row| row["primary_key"] }
+            end
+
+            ForeignKeyDefinition.new(table_name, row["to_table"], options)
+          end
+        end
+
+        def fetch_check_constraints(tables)
+          return {} if tables.empty?
+
+          rows = select_all(<<~SQL, "SCHEMA")
+            SELECT
+              s.name AS [table_schema],
+              t.name AS [table_name],
+              chk.name AS [name],
+              chk.definition AS [expression]
+            FROM sys.check_constraints chk
+            INNER JOIN sys.tables t ON chk.parent_object_id = t.object_id
+            INNER JOIN sys.schemas s ON t.schema_id = s.schema_id
+            WHERE #{schema_and_name_filter(tables)}
+            ORDER BY chk.name
+          SQL
+
+          rows_by_table = rows.group_by { |row| [row["table_schema"].to_s.downcase, row["table_name"].to_s.downcase] }
+          tables.index_with { |table| build_check_constraints(table, rows_for(rows_by_table, table)) }
+        end
+
+        def build_check_constraints(table_name, chk_info)
+          chk_info.map do |row|
+            options = {
+              name: row["name"]
+            }
+            expression = row["expression"]
+            expression = expression[1..-2] if expression.start_with?("(") && expression.end_with?(")")
+
+            CheckConstraintDefinition.new(table_name, expression, options)
+          end
+        end
+
+        def schema_and_name(table)
+          scope = quoted_scope(table)
+          [scope[:schema].to_s.downcase, scope[:name].to_s.downcase]
+        end
+
+        def schema_and_name_filter(tables)
+          conditions = tables.map do |table|
+            schema, name = schema_and_name(table)
+            "(#{quote(schema)} = LOWER(s.name) AND #{quote(name)} = LOWER(t.name))"
+          end
+          "(#{conditions.join(" OR ")})"
+        end
+
+        def rows_for(rows_by_name, table)
+          rows_by_name.fetch(schema_and_name(table), [])
+        end
+
+        def sqlserver_boolean?(value)
+          value == true || value == 1
+        end
 
         def data_source_sql(name = nil, type: nil)
           scope = quoted_scope(name, type: type)
