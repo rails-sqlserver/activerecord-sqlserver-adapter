@@ -291,9 +291,11 @@ module ActiveRecord
           end.join(", ")
           sql = "EXEC #{proc_name} #{vars}".strip
 
+          result = nil
           intent = QueryIntent.new(adapter: self, processed_sql: sql)
 
-          log(intent, "Execute Procedure") do |notification_payload|
+          start_intent_log(intent)
+          begin
             with_raw_connection do |conn|
               result = internal_raw_execute(intent.processed_sql, conn)
               verified!
@@ -305,9 +307,15 @@ module ActiveRecord
               end
 
               result = result.each.map { |row| row.is_a?(Hash) ? row.with_indifferent_access : row }
-              notification_payload[:row_count] = result.count
-              result
+              intent.notification_payload[:row_count] = result.count
             end
+
+            finish_intent_log(intent)
+            result
+          rescue => error
+            error.set_query(intent.processed_sql, intent.binds) if error.is_a?(StatementInvalid)
+            finish_intent_log(intent, exception: error)
+            raise
           end
         end
 

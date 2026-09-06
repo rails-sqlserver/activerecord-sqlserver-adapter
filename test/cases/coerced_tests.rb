@@ -286,7 +286,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   def test_belongs_to_coerced
     client = Client.find(3)
     first_firm = companies(:first_firm)
-    assert_queries_and_values_match(/FETCH NEXT @3 ROWS ONLY/, ["Firm", "Agency", 1, 1]) do
+    assert_queries_and_values_match(/FETCH NEXT @. ROWS ONLY/, ["Firm", "Agency", 1, 1]) do
       assert_equal first_firm, client.firm
       assert_equal first_firm.name, client.firm.name
     end
