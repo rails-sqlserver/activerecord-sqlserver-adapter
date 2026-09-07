@@ -1486,7 +1486,7 @@ module ActiveRecord
     def test_comparison_expression_preserves_serialized_values_coerced
       type = MutableSerializedType.new
       topic = topic_model_with_title_type(type)
-      value = { value: "original" }
+      value = {value: "original"}
       relation = topic.where(title: value)
       value[:value] = "changed"
 
@@ -1515,7 +1515,7 @@ module ActiveRecord
       topic = Class.new(ActiveRecord::Base) do
         self.table_name = "topics"
         attribute :title, LowerString.new
-        enum :title, { draft: "PUBLISHED" }
+        enum :title, {draft: "PUBLISHED"}
       end
       sql = topic.where(title: :draft).to_sql
       expected_sql = "SELECT #{quoted_topics}.* FROM #{quoted_topics} " \
