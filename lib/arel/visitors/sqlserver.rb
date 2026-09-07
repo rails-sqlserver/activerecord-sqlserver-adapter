@@ -149,6 +149,12 @@ module Arel
 
         if values.empty?
           collector << @connection.quote(nil)
+        elsif o.attribute.respond_to?(:comparison_expression)
+          # Comparison values need SQL around each bind, so they cannot use
+          # the collector's bulk bind path.
+          binds = values.map(&o.proc_for_binds)
+          expressions = binds.map { |bind| o.attribute.comparison_expression(bind) }
+          collector = inject_join(expressions, collector, ", ")
         elsif @connection.prepared_statements && !column_type.serialized?
           # Add query attribute bindings rather than just values.
           attrs = values.map { |value| ActiveRecord::Relation::QueryAttribute.new(column_name, value, column_type) }

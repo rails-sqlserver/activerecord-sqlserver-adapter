@@ -181,8 +181,8 @@ class SchemaDumperTestSQLServer < ActiveRecord::TestCase
   private
 
   def generate_schema_for_table(*table_names)
-    previous_ignore_tables = ActiveRecord::SchemaDumper.ignore_tables
-    ActiveRecord::SchemaDumper.ignore_tables = all_tables - table_names
+    previous_ignore_tables = ActiveRecord.schema_ignored_tables
+    ActiveRecord.schema_ignored_tables = all_tables - table_names
 
     stream = StringIO.new
     ActiveRecord::SchemaDumper.dump(ActiveRecord::Base.connection_pool, stream)
@@ -198,7 +198,7 @@ class SchemaDumperTestSQLServer < ActiveRecord::TestCase
     end
     @generated_schema
   ensure
-    ActiveRecord::SchemaDumper.ignore_tables = previous_ignore_tables
+    ActiveRecord.schema_ignored_tables = previous_ignore_tables
   end
 
   def line(column_name)
