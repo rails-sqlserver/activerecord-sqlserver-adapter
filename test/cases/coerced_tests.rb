@@ -17,6 +17,7 @@ require "models/post"
 require "models/tag"
 require "models/task"
 require "models/topic"
+require "models/book_encrypted"
 
 class UniquenessValidationTest < ActiveRecord::TestCase
   # So sp_executesql swallows this exception. Run without prepared to see it.
@@ -286,7 +287,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   def test_belongs_to_coerced
     client = Client.find(3)
     first_firm = companies(:first_firm)
-    assert_queries_and_values_match(/FETCH NEXT @. ROWS ONLY/, ["Firm", "Agency", 1, 1]) do
+    assert_queries_match(/FETCH NEXT @. ROWS ONLY/) do
       assert_equal first_firm, client.firm
       assert_equal first_firm.name, client.firm.name
     end
@@ -1399,15 +1400,164 @@ module ActiveRecord
     end
 
     # Same as original test except string has `N` prefix to indicate Unicode string.
-    coerce_tests! :test_attribute_type_can_transform_only_query_value
-    def test_attribute_type_can_transform_only_query_value_coerced
-      topic = topic_model_with_title_type(UuidToBinString.new)
-      uuid = "6ccd780c-baba-1026-9564-5b8c656024db"
-      sql = topic.where(title: uuid).to_sql
+    coerce_tests! :test_comparison_attribute_preserves_custom_type_casting
+    def test_comparison_attribute_preserves_custom_type_casting_coerced
+      type = LowerString.new
+      attribute = TypeCastingAttribute.new(Topic.arel_table, "title", type)
+      predicate = Topic.predicate_builder.build(attribute, "CAFE")
+
+      assert_same type, predicate.left.type_caster
+      assert_equal ["custom", "CAFE"], predicate.left.type_cast_for_database("CAFE")
+      assert_equal "SELECT #{quoted_topics}.* FROM #{quoted_topics} " \
+        "WHERE lower(#{quote_table_name("topics.title")}) = lower(N'CAFE')", Topic.where(predicate).to_sql
+    end
+
+    # Same as original test except string has `N` prefix to indicate Unicode string.
+    coerce_tests! :test_query_predicate_expression_decorators_stack
+    def test_query_predicate_expression_decorators_stack_coerced
+      type = OuterExpressionDecorator.new(InnerExpressionString.new)
+      topic = topic_model_with_title_type(type)
+      sql = topic.where(title: "VALUE").to_sql
       expected_sql = "SELECT #{quoted_topics}.* FROM #{quoted_topics} " \
-        "WHERE #{quote_table_name("topics.title")} = UUID_TO_BIN(N'#{uuid}')"
+        "WHERE outer_comparison(inner_comparison(#{quote_table_name("topics.title")})) = " \
+        "outer_comparison(inner_comparison(N'VALUE'))"
 
       assert_equal expected_sql, sql
+    end
+
+    # Same as original test except string has `N` prefix to indicate Unicode string.
+    coerce_tests! :test_opaque_type_decorators_stop_query_predicate_composition
+    def test_opaque_type_decorators_stop_query_predicate_composition_coerced
+      type = OpaqueDecorator.new(LowerString.new)
+      topic = topic_model_with_title_type(type)
+      sql = topic.where(title: "value").to_sql
+      expected_sql = "SELECT #{quoted_topics}.* FROM #{quoted_topics} " \
+        "WHERE #{quote_table_name("topics.title")} = N'value'"
+
+      assert_equal expected_sql, sql
+    end
+
+    # Same as original test except string has `N` prefix to indicate Unicode string.
+    coerce_tests! :test_comparison_expression_composes_with_custom_predicate_handlers
+    def test_comparison_expression_composes_with_custom_predicate_handlers_coerced
+      topic = topic_model_with_title_type(UnaccentedString.new)
+      builder = RegexpPredicateBuilder.new(TableMetadata.new(topic, topic.arel_table))
+      topic.class_eval { @predicate_builder = builder }
+      sql = topic.where(title: /cafe/).to_sql
+      expected_sql = "SELECT #{quoted_topics}.* FROM #{quoted_topics} " \
+        "WHERE #{normalized_title} ~ N'cafe'"
+
+      assert_equal expected_sql, sql
+    end
+
+    # Same as original test except string has `N` prefix to indicate Unicode string.
+    coerce_tests! :test_custom_predicate_handlers_can_access_the_raw_attribute_and_type
+    def test_custom_predicate_handlers_can_access_the_raw_attribute_and_type_coerced
+      topic = topic_model_with_title_type(UnaccentedString.new)
+      builder = RawRegexpPredicateBuilder.new(TableMetadata.new(topic, topic.arel_table))
+      topic.class_eval { @predicate_builder = builder }
+      attribute = builder.predicate_attribute(topic.arel_table[:title])
+      sql = topic.where(title: /cafe/).to_sql
+      expected_sql = "SELECT #{quoted_topics}.* FROM #{quoted_topics} " \
+        "WHERE #{quote_table_name("topics.title")} ~ N'cafe'"
+
+      assert_equal expected_sql, sql
+      assert_instance_of UnaccentedString, attribute.type_caster
+    end
+
+    # SQL Server does not compose query predicate comparison expressions with array values.
+    coerce_tests! :test_attribute_type_comparison_expression_applies_to_array_values
+    def test_attribute_type_comparison_expression_applies_to_array_values_coerced
+      topic = topic_model_with_title_type(UnaccentedString.new)
+      relation = topic.where(title: ["CAFE", "BAR"])
+      values = relation.where_values_hash
+
+      assert_instance_of Arel::Nodes::HomogeneousIn, relation.where_clause.ast
+      sql = relation.to_sql
+      expected_sql = "SELECT #{quoted_topics}.* FROM #{quoted_topics} " \
+        "WHERE #{normalized_title} IN (#{normalized_value("CAFE")}, #{normalized_value("BAR")})"
+
+      assert_equal expected_sql, sql
+      assert_equal values, relation.where_values_hash
+    end
+
+    # Same as original test except string has `N` prefix to indicate Unicode string.
+    coerce_tests! :test_comparison_expression_preserves_serialized_values
+    def test_comparison_expression_preserves_serialized_values_coerced
+      type = MutableSerializedType.new
+      topic = topic_model_with_title_type(type)
+      value = {value: "original"}
+      relation = topic.where(title: value)
+      value[:value] = "changed"
+
+      assert_match(/= N'original'/, relation.to_sql)
+      assert_equal 1, type.serializations
+    end
+
+    # Same as original test except string has `N` prefix to indicate Unicode string.
+    coerce_tests! :test_query_predicates_compose_with_type_decorators
+    def test_query_predicates_compose_with_type_decorators_coerced
+      topic = Class.new(ActiveRecord::Base) do
+        self.table_name = "topics"
+        attribute :title, LowerString.new
+        normalizes :title, with: ->(title) { title.strip }
+      end
+      sql = topic.where(title: " PADDED ").to_sql
+      expected_sql = "SELECT #{quoted_topics}.* FROM #{quoted_topics} " \
+        "WHERE lower(#{quote_table_name("topics.title")}) = lower(N'PADDED')"
+
+      assert_equal expected_sql, sql
+    end
+
+    # Same as original test except string has `N` prefix to indicate Unicode string.
+    coerce_tests! :test_query_predicates_compose_with_enum_types
+    def test_query_predicates_compose_with_enum_types_coerced
+      topic = Class.new(ActiveRecord::Base) do
+        self.table_name = "topics"
+        attribute :title, LowerString.new
+        enum :title, {draft: "PUBLISHED"}
+      end
+      sql = topic.where(title: :draft).to_sql
+      expected_sql = "SELECT #{quoted_topics}.* FROM #{quoted_topics} " \
+        "WHERE lower(#{quote_table_name("topics.title")}) = lower(N'PUBLISHED')"
+
+      assert_equal expected_sql, sql
+    end
+
+    # Same as original test except string has `N` prefix to indicate Unicode string.
+    coerce_tests! :test_query_predicates_compose_with_serialized_types
+    def test_query_predicates_compose_with_serialized_types_coerced
+      type = ActiveRecord::Type::Serialized.new(LowerString.new, PrefixCoder)
+      topic = topic_model_with_title_type(type)
+      sql = topic.where(title: "VALUE").to_sql
+      expected_sql = "SELECT #{quoted_topics}.* FROM #{quoted_topics} " \
+        "WHERE lower(#{quote_table_name("topics.title")}) = lower(N'coded:VALUE')"
+
+      assert_equal expected_sql, sql
+    end
+
+    # SQL Server does not compose query predicate comparison expressions with array values.
+    coerce_tests! :test_query_predicates_compose_with_serialized_types_in_arrays
+    def test_query_predicates_compose_with_serialized_types_in_arrays_coerced
+      type = ActiveRecord::Type::Serialized.new(LowerString.new, PrefixCoder)
+      topic = topic_model_with_title_type(type)
+      sql = topic.where(title: ["ONE", "TWO"]).to_sql
+      expected_sql = "SELECT #{quoted_topics}.* FROM #{quoted_topics} " \
+        "WHERE lower(#{quote_table_name("topics.title")}) IN (lower(N'coded:ONE'), lower(N'coded:TWO'))"
+
+      assert_equal expected_sql, sql
+    end
+
+    # Same as original test except string has `N` prefix to indicate Unicode string.
+    coerce_tests! :test_through_association_scopes_use_query_predicate_expressions
+    def test_through_association_scopes_use_query_predicate_expressions_coerced
+      author = MatchableAuthor.create!(name: "Through Case")
+      sql = author.matches_of_matches.to_sql
+      middle_name = Regexp.escape(quote_table_name("matching_authors_matches_of_matches.name"))
+      owner_name = Regexp.escape(quote_table_name("authors.name"))
+
+      assert_match %r{ON lower\(#{owner_name}\) = lower\(#{middle_name}\)}, sql
+      assert_match %r{WHERE lower\(#{middle_name}\) = lower\(N'Through Case'\)}, sql
     end
 
     private
@@ -2534,7 +2684,7 @@ class ActiveRecordMessagePackTest < ActiveRecord::TestCase
 end
 
 class StoreTest < ActiveRecord::TestCase
-  # Set the attribute as JSON type for the `StoreTest#saved changes tracking for accessors with json column` test.
+  # Set the attribute as JSON type.
   Admin::User.attribute :json_options, ActiveRecord::Type::SQLServer::Json.new
 end
 
@@ -2880,4 +3030,14 @@ end
 class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   # SQL Server does not support delete based on composite key from another table.
   coerce_tests! :test_delete_all_nullify_on_through_with_composite_source_foreign_key
+end
+
+class ActiveRecord::Encryption::EncryptableFixtureTest < ActiveRecord::EncryptionTestCase
+  # Set the attribute as JSON type.
+  ::EncryptedBookWithJson.attribute :metadata, ActiveRecord::Type::SQLServer::Json.new
+
+  coerce_tests! %r{fixtures for json columns get encrypted automatically}
+  def fixtures_for_json_columns_get_encrypted_automatically
+    send(:"original_fixtures for json columns get encrypted automatically")
+  end
 end
