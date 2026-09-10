@@ -122,6 +122,38 @@ class SchemaTestSQLServer < ActiveRecord::TestCase
       it do
         assert_equal "[with_numbers_1234]", connection.send(:get_raw_table_name, "MERGE INTO [with_numbers_1234] AS target")
       end
+
+      it do
+        assert_equal "[dashboards]", connection.send(:get_raw_table_name, "MERGE INTO [dashboards] AS target USING (VALUES (1)) AS source ([id]) ON (target.[id] = source.[id]) WHEN NOT MATCHED THEN INSERT ([id]) VALUES (source.[id]);")
+      end
+
+      it do
+        assert_equal "lock_without_defaults", connection.send(:get_raw_table_name, "MERGE INTO lock_without_defaults AS target USING (VALUES (1)) AS source ([id]) ON (target.[id] = source.[id]) WHEN NOT MATCHED THEN INSERT ([id]) VALUES (source.[id]);")
+      end
+
+      it do
+        assert_equal "[WITH - SPACES]", connection.send(:get_raw_table_name, "MERGE INTO [WITH - SPACES] AS target USING (VALUES (1)) AS source ([id]) ON (target.[id] = source.[id]) WHEN NOT MATCHED THEN INSERT ([id]) VALUES (source.[id]);")
+      end
+
+      it do
+        assert_equal "[with].[select notation]", connection.send(:get_raw_table_name, "MERGE INTO [with].[select notation] AS target USING (VALUES (1)) AS source ([id]) ON (target.[id] = source.[id]) WHEN NOT MATCHED THEN INSERT ([id]) VALUES (source.[id]);")
+      end
+
+      it do
+        assert_equal "[x]", connection.send(:get_raw_table_name, "MERGE INTO [x] WITH (UPDLOCK, HOLDLOCK) AS target USING (VALUES (1)) AS source ([id]) ON (target.[id] = source.[id]) WHEN NOT MATCHED THEN INSERT ([id]) VALUES (source.[id]);")
+      end
+
+      it do
+        assert_equal "[with].[select notation]", connection.send(:get_raw_table_name, "MERGE INTO [with].[select notation] WITH (UPDLOCK, HOLDLOCK) AS target USING (VALUES (1)) AS source ([id]) ON (target.[id] = source.[id]) WHEN NOT MATCHED THEN INSERT ([id]) VALUES (source.[id]);")
+      end
+
+      it do
+        assert_equal "[a].[dbo].[dashboards]", connection.send(:get_raw_table_name, "MERGE INTO [a].[dbo].[dashboards] WITH (UPDLOCK, HOLDLOCK) AS target USING (VALUES (1)) AS source ([id]) ON (target.[id] = source.[id]) WHEN NOT MATCHED THEN INSERT ([id]) VALUES (source.[id]);")
+      end
+
+      it do
+        assert_equal "with .dashboards", connection.send(:get_raw_table_name, "MERGE INTO with .dashboards WITH (UPDLOCK, HOLDLOCK) AS target USING (VALUES (1)) AS source ([id]) ON (target.[id] = source.[id]) WHEN NOT MATCHED THEN INSERT ([id]) VALUES (source.[id]);")
+      end
     end
 
     describe "CREATE VIEW statements" do

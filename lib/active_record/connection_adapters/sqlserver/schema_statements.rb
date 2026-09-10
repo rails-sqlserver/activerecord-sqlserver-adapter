@@ -4,6 +4,9 @@ module ActiveRecord
   module ConnectionAdapters
     module SQLServer
       module SchemaStatements
+        MERGE_TARGET_IDENTIFIER = /(?:\[[^\]]+\]|[a-z0-9_-]+)/i # :nodoc:
+        MERGE_TARGET_TABLE_NAME = /\A\s*MERGE\s+INTO\s+(#{MERGE_TARGET_IDENTIFIER}(?:\s*\.#{MERGE_TARGET_IDENTIFIER}){0,2})\s+(?:AS|WITH|USING)/i # :nodoc:
+
         def create_table(table_name, **options)
           res = super
           clear_cache!
@@ -907,7 +910,7 @@ module ActiveRecord
           elsif s.match?(/^\s*UPDATE\s+.*/i)
             s.match(/UPDATE\s+([^(\s]+)\s*/i)[1]
           elsif s.match?(/^\s*MERGE INTO.*/i)
-            s.match(/^\s*MERGE\s+INTO\s+(\[?[a-z0-9_ -]+\]?\.?\[?[a-z0-9_ -]+\]?)\s+(AS|WITH|USING)/i)[1]
+            s.match(MERGE_TARGET_TABLE_NAME)[1]
           else
             s.match(/FROM[\s|(]+((\[[^(\]]+\])|[^(\s]+)\s*/i)[1]
           end.strip
