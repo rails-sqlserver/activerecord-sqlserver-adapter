@@ -13,6 +13,7 @@ gem "tzinfo-data", platforms: [:mingw, :mswin, :x64_mingw, :jruby]
 gem "benchmark-ips"
 gem "minitest", "~> 6.0"
 gem "msgpack", ">= 1.7.0"
+gem "json", ">= 2.0.0", "!=2.7.0", "< 2.20"
 
 if ENV["RAILS_SOURCE"]
   gemspec path: ENV["RAILS_SOURCE"]
