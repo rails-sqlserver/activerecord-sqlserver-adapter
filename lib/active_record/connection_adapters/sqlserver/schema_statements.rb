@@ -4,6 +4,9 @@ module ActiveRecord
   module ConnectionAdapters
     module SQLServer
       module SchemaStatements
+        MERGE_TARGET_IDENTIFIER = /(?:\[[^\]]+\]|[a-z0-9_-]+)/i # :nodoc:
+        MERGE_TARGET_TABLE_NAME = /\A\s*MERGE\s+INTO\s+(#{MERGE_TARGET_IDENTIFIER}(?:\s*\.#{MERGE_TARGET_IDENTIFIER}){0,2})\s+(?:AS|WITH|USING)/i # :nodoc:
+
         def native_database_types
           @native_database_types ||= initialize_native_database_types.freeze
         end
@@ -349,12 +352,12 @@ module ActiveRecord
 
         def columns_for_distinct(columns, orders)
           order_columns = orders.reject(&:blank?).map { |s|
-                            s = visitor.compile(s) unless s.is_a?(String)
-                            s.gsub(/\s+(?:ASC|DESC)\b/i, "")
-                             .gsub(/\s+NULLS\s+(?:FIRST|LAST)\b/i, "")
-                            }
-                            .reject(&:blank?)
-                            .reject { |s| columns.include?(s) }
+            s = visitor.compile(s) unless s.is_a?(String)
+            s.gsub(/\s+(?:ASC|DESC)\b/i, "")
+             .gsub(/\s+NULLS\s+(?:FIRST|LAST)\b/i, "")
+          }
+                                .reject(&:blank?)
+                                .reject { |s| columns.include?(s) }
 
           order_columns_aliased = order_columns.map.with_index { |column, i| "#{column} AS alias_#{i}" }
 
@@ -720,7 +723,7 @@ module ActiveRecord
           elsif s.match?(/^\s*UPDATE\s+.*/i)
             s.match(/UPDATE\s+([^\(\s]+)\s*/i)[1]
           elsif s.match?(/^\s*MERGE INTO.*/i)
-            s.match(/^\s*MERGE\s+INTO\s+(\[?[a-z0-9_ -]+\]?\.?\[?[a-z0-9_ -]+\]?)\s+(AS|WITH|USING)/i)[1]
+            s.match(MERGE_TARGET_TABLE_NAME)[1]
           else
             s.match(/FROM[\s|\(]+((\[[^\(\]]+\])|[^\(\s]+)\s*/i)[1]
           end.strip
@@ -745,24 +748,24 @@ module ActiveRecord
           @view_information ||= {}
 
           @view_information[table_name] ||= begin
-            identifier = SQLServer::Utils.extract_identifiers(table_name)
-            information_query_table = identifier.database.present? ? "[#{identifier.database}].[INFORMATION_SCHEMA].[VIEWS]" :  "[INFORMATION_SCHEMA].[VIEWS]"
+                                              identifier = SQLServer::Utils.extract_identifiers(table_name)
+                                              information_query_table = identifier.database.present? ? "[#{identifier.database}].[INFORMATION_SCHEMA].[VIEWS]" :  "[INFORMATION_SCHEMA].[VIEWS]"
 
-            view_info = select_one("SELECT * FROM #{information_query_table} WITH (NOLOCK) WHERE TABLE_NAME = #{quote(identifier.object)}", "SCHEMA").to_h
+                                              view_info = select_one("SELECT * FROM #{information_query_table} WITH (NOLOCK) WHERE TABLE_NAME = #{quote(identifier.object)}", "SCHEMA").to_h
 
-            if view_info.present?
-              if view_info['VIEW_DEFINITION'].blank? || view_info['VIEW_DEFINITION'].length == 4000
-                view_info['VIEW_DEFINITION'] = begin
-                                                 select_values("EXEC sp_helptext #{identifier.object_quoted}", "SCHEMA").join
-                                               rescue
-                                                 warn "No view definition found, possible permissions problem.\nPlease run GRANT VIEW DEFINITION TO your_user;"
-                                                 nil
-                                               end
-              end
-            end
+                                              if view_info.present?
+                                                if view_info['VIEW_DEFINITION'].blank? || view_info['VIEW_DEFINITION'].length == 4000
+                                                  view_info['VIEW_DEFINITION'] = begin
+                                                                                   select_values("EXEC sp_helptext #{identifier.object_quoted}", "SCHEMA").join
+                                                                                 rescue
+                                                                                   warn "No view definition found, possible permissions problem.\nPlease run GRANT VIEW DEFINITION TO your_user;"
+                                                                                   nil
+                                                                                 end
+                                                end
+                                              end
 
-            view_info
-          end
+                                              view_info
+                                            end
         end
 
         def views_real_column_name(table_name, column_name)

@@ -1,3 +1,9 @@
+## Unreleased
+
+#### Changed
+
+- [#1405](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1405) Fix `insert_all`/`upsert_all` for single character, temporary, non-ASCII and three part table names, and stop an aliased target being included in the `MERGE` table name.
+
 ## v8.0.11
 
 #### Changed
