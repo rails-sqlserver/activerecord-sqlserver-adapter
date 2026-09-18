@@ -21,9 +21,9 @@ jobs:
       fail-fast: false
       matrix:
         ruby:
-          - 4.0.5
-          - 3.4.9
-          - 3.3.11
+          - 4.0.7
+          - 3.4.10
+          - 3.3.12
 
     steps:
       - name: Checkout code
@@ -47,7 +47,7 @@ jobs:
       fail-fast: false
       matrix:
         ruby:
-          - 4.0.5
+          - 4.0.7
 
     steps:
       - name: Checkout code
