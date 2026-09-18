@@ -32,6 +32,14 @@ module ActiveRecord
           [TypeMetadata, __getobj__, is_identity, is_primary, table_name, ordinal_position].hash
         end
 
+        def init_from_schema_json(coder, references)
+          @sql_type = coder["sql_type"]
+          @type = coder["type"]&.to_sym
+          @limit = coder["limit"]
+          @precision = coder["precision"]
+          @scale = coder["scale"]
+        end
+
         private
 
         def deduplicated

@@ -29,6 +29,7 @@ require "active_record/connection_adapters/sqlserver/table_definition"
 require "active_record/connection_adapters/sqlserver/quoting"
 require "active_record/connection_adapters/sqlserver/utils"
 require "active_record/connection_adapters/sqlserver_column"
+require "active_record/connection_adapters/sqlserver/json_schema_cache_serializer"
 require "active_record/tasks/sqlserver_database_tasks"
 
 module ActiveRecord
@@ -44,6 +45,7 @@ module ActiveRecord
       include SQLServer::DatabaseStatements
       include SQLServer::Quoting
       include SQLServer::Version
+      include SQLServer::JSONSchemaCacheSerializer
 
       ADAPTER_NAME = "SQLServer"
 
