@@ -52,6 +52,11 @@ module ActiveRecord
       # Default precision for 'time' (See https://docs.microsoft.com/en-us/sql/t-sql/data-types/time-transact-sql)
       DEFAULT_TIME_PRECISION = 7
 
+      # FreeTDS-bounded checkout ping timeout (seconds) when TinyTDS provides
+      # Client#ping. Override with config :ping_timeout (0 disables ping).
+      # See rails-sqlserver/tiny_tds#609 and activerecord-sqlserver-adapter#1396.
+      DEFAULT_PING_TIMEOUT = 2
+
       attr_reader :spid
 
       cattr_accessor :cs_equality_operator, instance_accessor: false
@@ -145,6 +150,13 @@ module ActiveRecord
         @config[:appname] = self.class.rails_application_name unless @config[:appname]
         @config[:login_timeout] = @config[:login_timeout].present? ? @config[:login_timeout].to_i : nil
         @config[:timeout] = @config[:timeout].present? ? @config[:timeout].to_i / 1000 : nil
+        # 0 disables checkout ping; nil uses DEFAULT_PING_TIMEOUT. Avoid .present?
+        # so an explicit 0 is not treated as missing.
+        @config[:ping_timeout] = if @config.key?(:ping_timeout) && !@config[:ping_timeout].nil?
+          @config[:ping_timeout].to_i
+        else
+          DEFAULT_PING_TIMEOUT
+        end
         @config[:encoding] = @config[:encoding].present? ? @config[:encoding] : nil
 
         @connection_parameters ||= @config
@@ -288,7 +300,14 @@ module ActiveRecord
       # === Abstract Adapter (Connection Management) ================== #
 
       def active?
-        if @raw_connection&.active?
+        return false unless @raw_connection
+
+        if raw_connection_ping_enabled?
+          return false unless @raw_connection.ping(timeout: ping_timeout_seconds)
+
+          verified!
+          true
+        elsif @raw_connection.active?
           verified!
           true
         end
@@ -519,6 +538,17 @@ module ActiveRecord
         @raw_connection_errors ||= [].tap do |errors|
           errors << TinyTds::Error if defined?(TinyTds::Error)
         end
+      end
+
+      def raw_connection_ping_enabled?
+        @raw_connection.respond_to?(:ping) && ping_timeout_seconds.positive?
+      end
+
+      def ping_timeout_seconds
+        seconds = @config[:ping_timeout]
+        return DEFAULT_PING_TIMEOUT if seconds.nil?
+
+        seconds.to_i
       end
 
       def initialize_dateformatter
