@@ -215,6 +215,7 @@ module ActiveRecord
       def supports_datetime_with_precision?
         true
       end
+      deprecate :supports_datetime_with_precision?, deprecator: ActiveRecord.deprecator
 
       def supports_check_constraints?
         true
