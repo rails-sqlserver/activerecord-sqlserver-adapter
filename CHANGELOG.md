@@ -1,5 +1,9 @@
 ## Unreleased
 
+#### Fixed
+
+- [#1418](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1418) Fix `change_column_null` to re-declare datetime2 columns correctly.
+
 #### Changed
 
 - [#1405](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1405) Fix `insert_all`/`upsert_all` for single character, temporary, non-ASCII and three part table names, and stop an aliased target being included in the `MERGE` table name.
