@@ -377,7 +377,12 @@ module ActiveRecord
           if !null.nil? && null == false && !default.nil?
             execute("UPDATE #{table_id} SET #{column_id}=#{quote(default)} WHERE #{column_id} IS NULL")
           end
-          sql = "ALTER TABLE #{table_id} ALTER COLUMN #{column_id} #{type_to_sql column.type, limit: column.limit, precision: column.precision, scale: column.scale}"
+
+          # If datetime column has precision then it should be datetime2 column.
+          column_type = column.type
+          column_type = :datetime2 if column.type.to_s == "datetime" && !column.precision.nil?
+
+          sql = "ALTER TABLE #{table_id} ALTER COLUMN #{column_id} #{type_to_sql column_type, limit: column.limit, precision: column.precision, scale: column.scale}"
           sql += " NOT NULL" if !null.nil? && null == false
 
           execute sql
