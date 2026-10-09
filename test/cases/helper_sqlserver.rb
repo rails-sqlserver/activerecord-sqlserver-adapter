@@ -14,7 +14,6 @@ require "support/load_schema_sqlserver"
 require "support/coerceable_test_sqlserver"
 require "support/connection_reflection"
 require "support/query_assertions"
-require "mocha/minitest"
 
 Minitest.after_run do
   puts "\n\n"
