@@ -13,7 +13,7 @@ module Arel
 
       # SQLServer ToSql/Visitor (Overrides)
 
-      BIND_BLOCK = proc { |i| "@#{i - 1}" }
+      BIND_BLOCK = ActiveSupport::Ractors.shareable_proc { |i| "@#{i - 1}" }
       private_constant :BIND_BLOCK
 
       def bind_block
