@@ -509,6 +509,12 @@ module ActiveRecord
               sql = sql.sub substitute_at_finder, param.to_s
             end
           else
+            # sp_executesql uses @n parameters, so translate any ? placeholders
+            # (which other adapters use natively) before wrapping the statement.
+            if params.any?
+              bind_index = -1
+              sql = sql.gsub("?") { bind_index += 1; "@#{bind_index}" }
+            end
             types = quote(types.join(", "))
             params = params.map.with_index { |p, i| "@#{i} = #{p}" }.join(", ") # Only p is needed, but with @i helps explain regexp.
             sql = "EXEC sp_executesql #{quote(sql)}"
