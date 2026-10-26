@@ -550,7 +550,7 @@ module ActiveRecord
           id_column = identity_columns(raw_table_name).first
 
           if id_column && (
-            sql =~ /^\s*(INSERT|EXEC sp_executesql N'INSERT)[^(]+\([^)]*\b(#{id_column.name})\b,?[^)]*\)/i ||
+            sql =~ /^\s*(INSERT|EXEC sp_executesql N'INSERT)[^(]+(?:WITH\s*\([^)]*\)\s*)?\([^)]*\b(#{id_column.name})\b,?[^)]*\)/i ||
               sql =~ /^\s*MERGE INTO.+THEN INSERT \([^)]*\b(#{id_column.name})\b,?[^)]*\)/im
           )
             SQLServer::Utils.extract_identifiers(raw_table_name).quoted
