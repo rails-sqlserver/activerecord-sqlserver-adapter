@@ -3,6 +3,7 @@
 #### Added
 
 - [#1385](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1385) Added support for Nulls first and last.
+- [#1422](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1422) Added ractors support.
 
 #### Changed
 

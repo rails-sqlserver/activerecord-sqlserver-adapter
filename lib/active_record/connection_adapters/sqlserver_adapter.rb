@@ -25,6 +25,7 @@ require "active_record/connection_adapters/sqlserver/schema_dumper"
 require "active_record/connection_adapters/sqlserver/schema_statements"
 require "active_record/connection_adapters/sqlserver/sql_type_metadata"
 require "active_record/connection_adapters/sqlserver/showplan"
+require "active_record/connection_adapters/sqlserver/ractor_proxy_adapter"
 require "active_record/connection_adapters/sqlserver/table_definition"
 require "active_record/connection_adapters/sqlserver/quoting"
 require "active_record/connection_adapters/sqlserver/utils"
@@ -135,6 +136,10 @@ module ActiveRecord
 
         def native_database_types # :nodoc:
           NATIVE_DATABASE_TYPES
+        end
+
+        def ractor_connection_proxy_class # :nodoc:
+          RactorConnectionHandler::SQLServerProxyAdapter
         end
       end
 
@@ -271,6 +276,36 @@ module ActiveRecord
 
       def supports_virtual_columns?
         true
+      end
+
+      def ractor_connection_capabilities # :nodoc:
+        super.merge(
+          supports_advisory_locks?: supports_advisory_locks?,
+          supports_bulk_alter?: supports_bulk_alter?,
+          supports_check_constraints?: supports_check_constraints?,
+          supports_comments?: supports_comments?,
+          supports_comments_in_create?: supports_comments_in_create?,
+          supports_common_table_expressions?: supports_common_table_expressions?,
+          supports_ddl_transactions?: supports_ddl_transactions?,
+          supports_explain?: supports_explain?,
+          supports_expression_index?: supports_expression_index?,
+          supports_foreign_keys?: supports_foreign_keys?,
+          supports_index_include?: supports_index_include?,
+          supports_index_sort_order?: supports_index_sort_order?,
+          supports_indexes_in_create?: supports_indexes_in_create?,
+          supports_insert_conflict_target?: supports_insert_conflict_target?,
+          supports_insert_on_duplicate_skip?: supports_insert_on_duplicate_skip?,
+          supports_insert_on_duplicate_update?: supports_insert_on_duplicate_update?,
+          supports_insert_returning?: supports_insert_returning?,
+          supports_json?: supports_json?,
+          supports_lazy_transactions?: supports_lazy_transactions?,
+          supports_optimizer_hints?: supports_optimizer_hints?,
+          supports_partial_index?: supports_partial_index?,
+          supports_savepoints?: supports_savepoints?,
+          supports_transaction_isolation?: supports_transaction_isolation?,
+          supports_views?: supports_views?,
+          supports_virtual_columns?: supports_virtual_columns?,
+        )
       end
 
       def return_value_after_insert?(column) # :nodoc:
@@ -486,7 +521,7 @@ module ActiveRecord
 
       def translate_exception(exception, message:, sql:, binds:)
         case message
-        when /(SQL Server client is not connected)|(failed to execute statement)|(failed dbsqlsend)|(DBPROCESS is dead or not enabled)/i
+        when /(SQL Server client is not connected)|(failed to execute statement)|(failed dbsqlsend)|(DBPROCESS is dead or not enabled)|(closed connection)/i
           ConnectionNotEstablished.new(message, connection_pool: @pool)
         when /(cannot insert duplicate key .* with unique index) | (violation of (unique|primary) key constraint)/i
           RecordNotUnique.new(message, sql: sql, binds: binds, connection_pool: @pool)
