@@ -103,6 +103,14 @@ class AdapterTestSQLServer < ActiveRecord::TestCase
     assert_equal "customers", connection.send(:get_table_name, basic_select_sql)
   end
 
+  it "execute INSERT statements with table hints" do
+    assert_difference -> { connection.select_value("SELECT COUNT(*) FROM [funny_jokes]") }, 2 do
+      connection.execute("INSERT INTO [funny_jokes] WITH (TABLOCK) ([name]) VALUES ('Knock knock')")
+      connection.execute("INSERT INTO [funny_jokes] WITH (TABLOCK) ([id], [name]) VALUES (420, 'Knock knock')")
+    end
+    assert_equal "Knock knock", connection.select_value("SELECT [name] FROM [funny_jokes] WHERE [id] = 420")
+  end
+
   it "test bad connection" do
     assert_raise ActiveRecord::NoDatabaseError do
       db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")

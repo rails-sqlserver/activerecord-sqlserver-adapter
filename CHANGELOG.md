@@ -1,3 +1,7 @@
+#### Fixed
+
+- [#1424](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1424) Fix table name parsing for `INSERT INTO <table> WITH (<hints>)`.
+
 ## v8.1.4
 
 #### Fixed

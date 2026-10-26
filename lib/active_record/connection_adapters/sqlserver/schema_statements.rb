@@ -730,6 +730,7 @@ module ActiveRecord
               .split(/OUTPUT INSERTED/i)[0]
               .split(/(DEFAULT)?\s+VALUES/i)[0]
               .split(/\bSELECT\b(?![^\[]*\])/i)[0]
+              .split(/\s+WITH\s*\(/i)[0] # Strip table hints (eg: "INSERT INTO books WITH (TABLOCK) (title)")
               .match(/\s*([^(]*)/i)[0]
           elsif s.match?(/^\s*UPDATE\s+.*/i)
             s.match(/UPDATE\s+([^(\s]+)\s*/i)[1]
