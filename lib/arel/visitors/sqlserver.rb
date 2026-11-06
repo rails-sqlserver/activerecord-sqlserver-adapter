@@ -193,19 +193,15 @@ module Arel
       end
 
       def visit_Arel_Table(o, collector)
-        # Apparently, o.engine.connection can actually be a different adapter
-        # than sqlserver. Can be removed if fixed in ActiveRecord. See:
-        # github.com/rails-sqlserver/activerecord-sqlserver-adapter/issues/450
+        # Quoting is always dispatched to the pinned connection, so never check
+        # out a connection here: doing so would check out a second connection
+        # when this visitor runs inside a worker Ractor.
         table_name =
-          begin
-            o.class.engine.with_connection do |connection|
-              if connection.respond_to?(:sqlserver?) && connection.database_prefix_remote_server?
-                remote_server_table_name(o)
-              else
-                quote_table_name(o.name)
-              end
-            end
-          rescue
+          if @connection.database_prefix_remote_server?
+            ActiveRecord::ConnectionAdapters::SQLServer::Utils.extract_identifiers(
+              "#{@connection.database_prefix}#{o.name}"
+            ).quoted
+          else
             quote_table_name(o.name)
           end
 
@@ -407,14 +403,6 @@ module Arel
         end
 
         column_name ? t[column_name] : nil
-      end
-
-      def remote_server_table_name(o)
-        o.class.engine.with_connection do |connection|
-          ActiveRecord::ConnectionAdapters::SQLServer::Utils.extract_identifiers(
-            "#{connection.database_prefix}#{o.name}"
-          ).quoted
-        end
       end
 
       # Need to remove ordering from sub-queries unless TOP/OFFSET also used. Otherwise, SQLServer

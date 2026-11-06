@@ -3041,3 +3041,19 @@ class ActiveRecord::Encryption::EncryptableFixtureTest < ActiveRecord::Encryptio
     send(:"original_fixtures for json columns get encrypted automatically")
   end
 end
+
+class ActiveRecord::ConnectionAdapters::RactorConnectionHandlingTest::ProxyAdapterTest < ActiveRecord::ConnectionAdapters::RactorConnectionHandlingTest
+  # SQL Server adapter converts "FOR UPDATE" locks to "WITH(UPDLOCK)".
+  coerce_tests! :test_arel_compilation_uses_token_pinned_connection
+  def test_arel_compilation_uses_token_pinned_connection_coerced
+    conn = proxy_connection
+    table = Arel::Table.new(name: widgets_table)
+    manager = table.project(table[:id]).lock(Arel.sql("FOR UPDATE"))
+
+    sql = conn.to_sql(manager)
+
+    assert_match(/WITH\(UPDLOCK\)/, sql)
+
+    assert_equal 1, main_pool.connections.size
+  end
+end
