@@ -304,7 +304,7 @@ module ActiveRecord
           supports_savepoints?: supports_savepoints?,
           supports_transaction_isolation?: supports_transaction_isolation?,
           supports_views?: supports_views?,
-          supports_virtual_columns?: supports_virtual_columns?,
+          supports_virtual_columns?: supports_virtual_columns?
         )
       end
 

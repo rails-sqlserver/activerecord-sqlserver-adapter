@@ -299,65 +299,66 @@ module ActiveRecord
         end
 
         private
-          # SCHEMA STATEMENTS =======================================
 
-          def add_options_for_index_columns(...)
-            remote_dispatch(:add_options_for_index_columns, ...)
-          end
+        # SCHEMA STATEMENTS =======================================
 
-          def change_column_comment_sql(...)
-            remote_dispatch(:change_column_comment_sql, ...)
-          end
+        def add_options_for_index_columns(...)
+          remote_dispatch(:add_options_for_index_columns, ...)
+        end
 
-          def change_index_comment_sql(...)
-            remote_dispatch(:change_index_comment_sql, ...)
-          end
+        def change_column_comment_sql(...)
+          remote_dispatch(:change_column_comment_sql, ...)
+        end
 
-          def change_table_comment_sql(...)
-            remote_dispatch(:change_table_comment_sql, ...)
-          end
+        def change_index_comment_sql(...)
+          remote_dispatch(:change_index_comment_sql, ...)
+        end
 
-          def create_alter_table(...)
-            remote_dispatch(:create_alter_table, ...)
-          end
+        def change_table_comment_sql(...)
+          remote_dispatch(:change_table_comment_sql, ...)
+        end
 
-          def data_source_sql(...)
-            remote_dispatch(:data_source_sql, ...)
-          end
+        def create_alter_table(...)
+          remote_dispatch(:create_alter_table, ...)
+        end
 
-          def drop_table_sql(...)
-            remote_dispatch(:drop_table_sql, ...)
-          end
+        def data_source_sql(...)
+          remote_dispatch(:data_source_sql, ...)
+        end
 
-          def extract_foreign_key_action(...)
-            remote_dispatch(:extract_foreign_key_action, ...)
-          end
+        def drop_table_sql(...)
+          remote_dispatch(:drop_table_sql, ...)
+        end
 
-          def fetch_table_options(...)
-            remote_dispatch(:fetch_table_options, ...)
-          end
+        def extract_foreign_key_action(...)
+          remote_dispatch(:extract_foreign_key_action, ...)
+        end
 
-          def fetch_type_metadata(...)
-            remote_dispatch(:fetch_type_metadata, ...)
-          end
+        def fetch_table_options(...)
+          remote_dispatch(:fetch_table_options, ...)
+        end
 
-          def reference_name_for_table(...)
-            remote_dispatch(:reference_name_for_table, ...)
-          end
+        def fetch_type_metadata(...)
+          remote_dispatch(:fetch_type_metadata, ...)
+        end
 
-          def validate_table_length!(...)
-            remote_dispatch(:validate_table_length!, ...)
-          end
+        def reference_name_for_table(...)
+          remote_dispatch(:reference_name_for_table, ...)
+        end
 
-          # ADAPTER SPECIFIC ========================================
+        def validate_table_length!(...)
+          remote_dispatch(:validate_table_length!, ...)
+        end
 
-          def can_perform_case_insensitive_comparison_for?(...)
-            pure_remote_dispatch(:can_perform_case_insensitive_comparison_for?, ...)
-          end
+        # ADAPTER SPECIFIC ========================================
 
-          def warning_ignored?(...)
-            remote_dispatch(:warning_ignored?, ...)
-          end
+        def can_perform_case_insensitive_comparison_for?(...)
+          pure_remote_dispatch(:can_perform_case_insensitive_comparison_for?, ...)
+        end
+
+        def warning_ignored?(...)
+          remote_dispatch(:warning_ignored?, ...)
+        end
       end
     end
   end

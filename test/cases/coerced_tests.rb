@@ -3057,3 +3057,11 @@ class ActiveRecord::ConnectionAdapters::RactorConnectionHandlingTest::ProxyAdapt
     assert_equal 1, main_pool.connections.size
   end
 end
+
+class ActiveRecord::ConnectionAdapters::RactorConnectionHandlingTest::ProxyAdapterTest < ActiveRecord::ConnectionAdapters::RactorConnectionHandlingTest
+  undef_method :bind_placeholder
+
+  def bind_placeholder(position)
+    "@#{position - 1}"
+  end
+end
