@@ -3058,10 +3058,13 @@ class ActiveRecord::ConnectionAdapters::RactorConnectionHandlingTest::ProxyAdapt
   end
 end
 
-class ActiveRecord::ConnectionAdapters::RactorConnectionHandlingTest::ProxyAdapterTest < ActiveRecord::ConnectionAdapters::RactorConnectionHandlingTest
-  undef_method :bind_placeholder
 
-  def bind_placeholder(position)
-    "@#{position - 1}"
+class ActiveRecord::ConnectionAdapters::RactorConnectionHandlingTest::ProxyAdapterTest < ActiveRecord::ConnectionAdapters::RactorConnectionHandlingTest
+  if !in_memory_db? && RUBY_VERSION >= "4.0"
+    undef_method :bind_placeholder
+
+    def bind_placeholder(position)
+      "@#{position - 1}"
+    end
   end
 end
