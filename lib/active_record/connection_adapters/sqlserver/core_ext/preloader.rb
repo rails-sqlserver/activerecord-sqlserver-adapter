@@ -13,19 +13,19 @@ module ActiveRecord
 
               return [] if keys.empty?
 
-              if association_key_name.is_a?(Array)
+              if destination_key_name.is_a?(Array)
                 query_constraints = Hash.new { |hsh, key| hsh[key] = Set.new }
 
                 keys.each_with_object(query_constraints) do |values_set, constraints|
-                  association_key_name.zip(values_set).each do |key_name, value|
-                    constraints[key_name] << value
+                  destination_key_name.each_with_index do |key_name, index|
+                    constraints[key_name] << values_set[index]
                   end
                 end
 
                 scope.where(query_constraints).load(&block)
               else
                 keys.each_slice(in_clause_length).flat_map do |slice|
-                  scope.where(association_key_name => slice).load(&block).records
+                  scope.where(destination_key_name => slice).load(&block).records
                 end
               end
             end
