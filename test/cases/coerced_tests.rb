@@ -2804,6 +2804,41 @@ module ActiveRecord
       assert_equal top_companies_and_children, relation.order(:id).pluck(:id)
       assert_match "WITH ", relation.to_sql
     end
+
+    # SQL contains just 'WITH' instead of 'WITH RECURSIVE' as expected by the original test.
+    coerce_tests! :test_with_recursive_is_kept_by_merge
+    def test_with_recursive_is_kept_by_merge_coerced
+      top_companies = Company.where(firm_id: nil).to_a
+      child_companies = Company.where(firm_id: top_companies).to_a
+      top_companies_and_children = (top_companies.map(&:id) + child_companies.map(&:id)).sort
+
+      recursive = Company.with_recursive(
+        top_companies_and_children: [
+          Company.where(firm_id: nil),
+          Company.joins("JOIN top_companies_and_children ON companies.firm_id = top_companies_and_children.id")
+        ]
+      )
+      relation = Company.from("top_companies_and_children AS companies").merge(recursive)
+
+      assert_equal top_companies_and_children, relation.order(:id).pluck(:id)
+      assert_match "WITH ", relation.to_sql
+      assert_match "WITH ", Company.with(other: Company.all).merge(recursive).to_sql
+      assert_match "WITH ", recursive.merge(Company.with(other: Company.all)).to_sql
+    end
+
+    # SQL contains just 'WITH' instead of 'WITH RECURSIVE' as expected by the original test.
+    coerce_tests! :test_with_recursive_or_relation_without_with_recursive
+    def test_with_recursive_or_relation_without_with_recursive_coerced
+      cte = {posts_with_comments: Post.where("legacy_comments_count > 0")}
+      base = Post.from("posts_with_comments AS posts")
+      relation = base.with_recursive(cte).where(id: 1).or(base.with(cte).where(id: 2))
+
+      assert_match "WITH ", relation.to_sql
+      assert_equal [1, 2], relation.order(:id).pluck(:id)
+      assert_raises(ArgumentError, match: /with_recursive/) do
+        Post.with(cte: Post.all).or(Post.with_recursive(cte: Post.all))
+      end
+    end
   end
 end
 
@@ -2969,7 +3004,6 @@ class ActiveRecord::ConnectionAdapters::RactorConnectionHandlingTest::ProxyAdapt
     assert_equal 1, main_pool.connections.size
   end
 end
-
 
 class ActiveRecord::ConnectionAdapters::RactorConnectionHandlingTest::ProxyAdapterTest < ActiveRecord::ConnectionAdapters::RactorConnectionHandlingTest
   if !in_memory_db? && RUBY_VERSION >= "4.0"
