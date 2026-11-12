@@ -2502,101 +2502,13 @@ class MultiDbMigratorTest < ActiveRecord::TestCase
 end
 
 class FieldOrderedValuesTest < ActiveRecord::TestCase
-  # Need to remove index as SQL Server considers NULLs on a unique-index to be equal unlike PostgreSQL/MySQL/SQLite.
-  coerce_tests! :test_in_order_of_with_enums_values
-  def test_in_order_of_with_enums_values_coerced
+  def setup
+    super
     Book.lease_connection.remove_index(:books, column: [:author_id, :name])
-
-    original_test_in_order_of_with_enums_values
-  ensure
-    Book.where(author_id: nil, name: nil).delete_all
-    Book.lease_connection.add_index(:books, [:author_id, :name], unique: true)
   end
 
-  # Need to remove index as SQL Server considers NULLs on a unique-index to be equal unlike PostgreSQL/MySQL/SQLite.
-  coerce_tests! :test_in_order_of_with_string_column
-  def test_in_order_of_with_string_column_coerced
-    Book.lease_connection.remove_index(:books, column: [:author_id, :name])
-
-    original_test_in_order_of_with_string_column
-  ensure
-    Book.where(author_id: nil, name: nil).delete_all
-    Book.lease_connection.add_index(:books, [:author_id, :name], unique: true)
-  end
-
-  # Need to remove index as SQL Server considers NULLs on a unique-index to be equal unlike PostgreSQL/MySQL/SQLite.
-  coerce_tests! :test_in_order_of_with_enums_keys
-  def test_in_order_of_with_enums_keys_coerced
-    Book.lease_connection.remove_index(:books, column: [:author_id, :name])
-
-    original_test_in_order_of_with_enums_keys
-  ensure
-    Book.where(author_id: nil, name: nil).delete_all
-    Book.lease_connection.add_index(:books, [:author_id, :name], unique: true)
-  end
-
-  # Need to remove index as SQL Server considers NULLs on a unique-index to be equal unlike PostgreSQL/MySQL/SQLite.
-  coerce_tests! :test_in_order_of_with_nil
-  def test_in_order_of_with_nil_coerced
-    Book.lease_connection.remove_index(:books, column: [:author_id, :name])
-
-    original_test_in_order_of_with_nil
-  ensure
-    Book.where(author_id: nil, name: nil).delete_all
-    Book.lease_connection.add_index(:books, [:author_id, :name], unique: true)
-  end
-
-  # Need to remove index as SQL Server considers NULLs on a unique-index to be equal unlike PostgreSQL/MySQL/SQLite.
-  coerce_tests! :test_in_order_of_with_array_values_with_nil
-  def test_in_order_of_with_array_values_with_nil_coerced
-    Book.lease_connection.remove_index(:books, column: [:author_id, :name])
-
-    original_test_in_order_of_with_array_values_with_nil
-  ensure
-    Book.where(author_id: nil, name: nil).delete_all
-    Book.lease_connection.add_index(:books, [:author_id, :name], unique: true)
-  end
-
-  # Need to remove index as SQL Server considers NULLs on a unique-index to be equal unlike PostgreSQL/MySQL/SQLite.
-  coerce_tests! :test_in_order_of_with_out_of_bound_integer_does_not_match_nulls
-  def test_in_order_of_with_out_of_bound_integer_does_not_match_nulls_coerced
-    Book.lease_connection.remove_index(:books, column: [:author_id, :name])
-
-    original_test_in_order_of_with_out_of_bound_integer_does_not_match_nulls
-  ensure
-    Book.where(author_id: nil, name: nil).delete_all
-    Book.lease_connection.add_index(:books, [:author_id, :name], unique: true)
-  end
-
-  # Need to remove index as SQL Server considers NULLs on a unique-index to be equal unlike PostgreSQL/MySQL/SQLite.
-  coerce_tests! :test_in_order_of_with_only_unrepresentable_values_does_not_build_empty_case
-  def test_in_order_of_with_only_unrepresentable_values_does_not_build_empty_case_coerced
-    Book.lease_connection.remove_index(:books, column: [:author_id, :name])
-
-    original_test_in_order_of_with_only_unrepresentable_values_does_not_build_empty_case
-  ensure
-    Book.where(author_id: nil, name: nil).delete_all
-    Book.lease_connection.add_index(:books, [:author_id, :name], unique: true)
-  end
-
-  # Need to remove index as SQL Server considers NULLs on a unique-index to be equal unlike PostgreSQL/MySQL/SQLite.
-  coerce_tests! :test_in_order_of_with_unknown_enum_key_does_not_match_nulls
-  def test_in_order_of_with_unknown_enum_key_does_not_match_nulls_coerced
-    Book.lease_connection.remove_index(:books, column: [:author_id, :name])
-
-    original_test_in_order_of_with_unknown_enum_key_does_not_match_nulls
-  ensure
-    Book.where(author_id: nil, name: nil).delete_all
-    Book.lease_connection.add_index(:books, [:author_id, :name], unique: true)
-  end
-
-  # Need to remove index as SQL Server considers NULLs on a unique-index to be equal unlike PostgreSQL/MySQL/SQLite.
-  coerce_tests! :test_in_order_of_with_column_from_cte
-  def test_in_order_of_with_column_from_cte_coerced
-    connection.remove_index(:books, column: [:author_id, :name])
-
-    original_test_in_order_of_with_column_from_cte
-  ensure
+  def teardown
+    super
     Book.where(author_id: nil, name: nil).delete_all
     Book.lease_connection.add_index(:books, [:author_id, :name], unique: true)
   end
@@ -3039,5 +2951,32 @@ class ActiveRecord::Encryption::EncryptableFixtureTest < ActiveRecord::Encryptio
   coerce_tests! %r{fixtures for json columns get encrypted automatically}
   def fixtures_for_json_columns_get_encrypted_automatically
     send(:"original_fixtures for json columns get encrypted automatically")
+  end
+end
+
+class ActiveRecord::ConnectionAdapters::RactorConnectionHandlingTest::ProxyAdapterTest < ActiveRecord::ConnectionAdapters::RactorConnectionHandlingTest
+  # SQL Server adapter converts "FOR UPDATE" locks to "WITH(UPDLOCK)".
+  coerce_tests! :test_arel_compilation_uses_token_pinned_connection
+  def test_arel_compilation_uses_token_pinned_connection_coerced
+    conn = proxy_connection
+    table = Arel::Table.new(name: widgets_table)
+    manager = table.project(table[:id]).lock(Arel.sql("FOR UPDATE"))
+
+    sql = conn.to_sql(manager)
+
+    assert_match(/WITH\(UPDLOCK\)/, sql)
+
+    assert_equal 1, main_pool.connections.size
+  end
+end
+
+
+class ActiveRecord::ConnectionAdapters::RactorConnectionHandlingTest::ProxyAdapterTest < ActiveRecord::ConnectionAdapters::RactorConnectionHandlingTest
+  if !in_memory_db? && RUBY_VERSION >= "4.0"
+    undef_method :bind_placeholder
+
+    def bind_placeholder(position)
+      "@#{position - 1}"
+    end
   end
 end

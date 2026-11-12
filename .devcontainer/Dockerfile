@@ -1,7 +1,7 @@
 # See here for image contents: https://github.com/microsoft/vscode-dev-containers/tree/v0.191.1/containers/ruby/.devcontainer/base.Dockerfile
 
 # [Choice] Ruby version: 3, 3.0, 2, 2.7, 2.6
-ARG VARIANT="3"
+ARG VARIANT="4"
 FROM mcr.microsoft.com/devcontainers/ruby:${VARIANT}
 
 # Update Yarn keys
@@ -32,4 +32,3 @@ COPY Gemfile VERSION activerecord-sqlserver-adapter.gemspec /tmp/activerecord-sq
 RUN cd /tmp/activerecord-sqlserver-adapter \
     && RAILS_BRANCH=main bundle install \
     && rm -rf /tmp/activerecord-sqlserver-adapter
-RUN chown -R vscode:vscode /usr/local/rvm
