@@ -29,11 +29,11 @@ module ActiveRecord
               if select_values.present?
                 order(*select_values).limit!(1)
               else
-                except(:order).limit!(1)
+                except(:order, :default_order).limit!(1)
               end
               # End of monkey-patch
             else
-              except(:select, :distinct, :order)._select!(Arel.sql(::ActiveRecord::FinderMethods::ONE_AS_ONE, retryable: true)).limit!(1)
+              except(:select, :distinct, :order, :default_order)._select!(Arel.sql(::ActiveRecord::FinderMethods::ONE_AS_ONE, retryable: true)).limit!(1)
             end
 
             case conditions

@@ -504,6 +504,15 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_match(/ORDER BY \[accounts\]\.\[id\] ASC OFFSET @0 ROWS FETCH NEXT @1 ROWS ONLY/, queries.first)
   end
 
+  # Adapter uses default ordering within aggregate calculations.
+  coerce_tests! :test_count_with_default_order_and_limit
+  def test_count_with_default_order_and_limit_coerced
+    queries = capture_sql { assert_equal 4, Account.default_order(:firm_id).limit(4).count }
+
+    assert_equal 1, queries.length
+    assert_match(/ORDER BY/, queries.first)
+  end
+
   # SQL Server needs an alias for the calculated column
   coerce_tests! :test_distinct_count_all_with_custom_select_and_order
   def test_distinct_count_all_with_custom_select_and_order_coerced
@@ -515,7 +524,7 @@ class CalculationsTest < ActiveRecord::TestCase
   # Leave it up to users to format selects/functions so HAVING works correctly.
   coerce_tests! :test_having_with_strong_parameters
 
-  # SELECT columns must be in the GROUP clause. Since since `ids` only selects the primary key you cannot perform this query in SQL Server.
+  # SELECT columns must be in the GROUP clause. Since `ids` only selects the primary key you cannot perform this query in SQL Server.
   coerce_tests! :test_ids_with_includes_and_non_primary_key_order
 
   # To limit the results in SQL Server we use `FETCH NEXT @0 ROWS ONLY` instead of `LIMIT @0`. To use `FETCH NEXT` an order must be provided.
