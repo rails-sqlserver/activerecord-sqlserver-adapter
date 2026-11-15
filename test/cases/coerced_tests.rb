@@ -2999,18 +2999,37 @@ class ActiveRecord::Encryption::EncryptableFixtureTest < ActiveRecord::Encryptio
 end
 
 class ActiveRecord::ConnectionAdapters::RactorConnectionHandlingTest::ProxyAdapterTest < ActiveRecord::ConnectionAdapters::RactorConnectionHandlingTest
-  # SQL Server adapter converts "FOR UPDATE" locks to "WITH(UPDLOCK)".
-  coerce_tests! :test_arel_compilation_uses_token_pinned_connection
-  def test_arel_compilation_uses_token_pinned_connection_coerced
-    conn = proxy_connection
-    table = Arel::Table.new(name: widgets_table)
-    manager = table.project(table[:id]).lock(Arel.sql("FOR UPDATE"))
+  if !in_memory_db? && RUBY_VERSION >= "4.0"
+    # SQL Server uses `execute` method on raw connection.
+    undef_method :with_server_side_deadlock_on_next_query
+    def with_server_side_deadlock_on_next_query(connection, &block)
+      perform_query = connection.method(:perform_query)
+      deadlocked = false
+      deadlock_once = ->(raw_connection, intent) do
+        unless deadlocked
+          deadlocked = true
+          raw_connection.execute("ROLLBACK")
+          raise ActiveRecord::Deadlocked, "made-up deadlock"
+        end
+        perform_query.call(raw_connection, intent)
+      end
 
-    sql = conn.to_sql(manager)
+      connection.stub(:perform_query, deadlock_once, &block)
+    end
 
-    assert_match(/WITH\(UPDLOCK\)/, sql)
+    # SQL Server adapter converts "FOR UPDATE" locks to "WITH(UPDLOCK)".
+    coerce_tests! :test_arel_compilation_uses_token_pinned_connection
+    def test_arel_compilation_uses_token_pinned_connection_coerced
+      conn = proxy_connection
+      table = Arel::Table.new(name: widgets_table)
+      manager = table.project(table[:id]).lock(Arel.sql("FOR UPDATE"))
 
-    assert_equal 1, main_pool.connections.size
+      sql = conn.to_sql(manager)
+
+      assert_match(/WITH\(UPDLOCK\)/, sql)
+
+      assert_equal 1, main_pool.connections.size
+    end
   end
 end
 
