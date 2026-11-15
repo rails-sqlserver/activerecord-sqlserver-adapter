@@ -47,13 +47,13 @@ module ActiveRecord
           return [] if table_name.blank?
 
           result = fetch_column_definitions(Array(table_name).map(&:to_s)).to_h do |table, definitions|
-            [table, definitions.map { |field| new_column_from_field(table, field, definitions) }]
+            [table, definitions.each_with_index.map { |field, slot| new_column_from_field(table, field, definitions, slot) }]
           end
 
           table_name.is_a?(Array) ? result : result[table_name.to_s]
         end
 
-        def new_column_from_field(_table_name, field, _definitions)
+        def new_column_from_field(_table_name, field, _definitions, slot)
           sqlserver_options = field.slice(:ordinal_position, :is_primary, :is_identity, :table_name)
           sql_type_metadata = fetch_type_metadata(field[:type], sqlserver_options)
           generated_type = extract_generated_type(field)
@@ -74,6 +74,7 @@ module ActiveRecord
             collation: field[:collation],
             comment: nil,
             generated_type: generated_type,
+            slot: slot,
             **sqlserver_options
           )
         end
