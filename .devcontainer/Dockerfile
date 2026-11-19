@@ -13,6 +13,10 @@ RUN apt-get -y install libc6-dev \
     && make \
     && make install
 
+# Fix Yarn key (https://classic.yarnpkg.com/en/docs/install#debian-stable)
+RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | gpg --dearmor |  tee /etc/apt/keyrings/yarn-archive-keyring.gpg > /dev/null
+RUN echo "deb [signed-by=/etc/apt/keyrings/yarn-archive-keyring.gpg] https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list
+
 # Install the SQL Server command-line tools
 RUN curl https://packages.microsoft.com/keys/microsoft.asc | sudo tee /etc/apt/trusted.gpg.d/microsoft.asc \
     && curl https://packages.microsoft.com/config/ubuntu/22.04/prod.list | sudo tee /etc/apt/sources.list.d/mssql-release.list \
