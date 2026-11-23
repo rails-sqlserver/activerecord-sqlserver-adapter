@@ -5,6 +5,7 @@ module ActiveRecord
     module SQLServer
       module JSONSchemaCacheSerializer
         ::ActiveRecord::ConnectionAdapters::JSONSchemaCacheSerializer.register("sqlserver_column", ActiveRecord::ConnectionAdapters::SQLServer::Column)
+        ::ActiveRecord::ConnectionAdapters::JSONSchemaCacheSerializer.register("sqlserver_index_definition", ActiveRecord::ConnectionAdapters::SQLServer::IndexDefinition)
         ::ActiveRecord::ConnectionAdapters::JSONSchemaCacheSerializer.register("sqlserver_unicode_varchar", ActiveRecord::ConnectionAdapters::SQLServer::Type::UnicodeVarchar)
         ::ActiveRecord::ConnectionAdapters::JSONSchemaCacheSerializer.register("sqlserver_type_metadata", ActiveRecord::ConnectionAdapters::SQLServer::TypeMetadata)
         ::ActiveRecord::ConnectionAdapters::JSONSchemaCacheSerializer.register("sqlserver_datatime2", ActiveRecord::ConnectionAdapters::SQLServer::Type::DateTime2)

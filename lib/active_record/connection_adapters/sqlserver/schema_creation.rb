@@ -66,6 +66,8 @@ module ActiveRecord
         def visit_CreateIndexDefinition(o)
           index = o.index
 
+          # binding.pry if defined?($aido) && $aido
+
           sql = []
           sql << "IF NOT EXISTS (SELECT name FROM sysindexes WHERE name = '#{o.index.name}')" if o.if_not_exists
           sql << "CREATE"
@@ -74,7 +76,7 @@ module ActiveRecord
           sql << "INDEX"
           sql << "#{quote_column_name(index.name)} ON #{quote_table_name(index.table)}"
           sql << "(#{quoted_columns(index)})"
-          sql << "INCLUDE (#{quoted_include_columns(index.include)})" if supports_index_include? && index.include
+          sql << "INCLUDE (#{quoted_include_columns(index.include)})" if index.include
           sql << "WHERE #{index.where}" if index.where
 
           sql.join(" ")

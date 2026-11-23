@@ -43,6 +43,13 @@ module ActiveRecord
           table_name.is_a?(Array) ? result : result[table_name.to_s]
         end
 
+        def create_index_definition(table_name, name, unique, columns, **options)
+
+          # binding.pry if defined?($aido)
+
+          SQLServer::IndexDefinition.new(table_name, name, unique, columns, **options)
+        end
+
         def columns(table_name)
           return [] if table_name.blank?
 
