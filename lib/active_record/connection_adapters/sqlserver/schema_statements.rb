@@ -51,7 +51,7 @@ module ActiveRecord
           super.merge!(
             type: options[:type],
             include: options[:include]
-            )
+          )
         end
 
         def columns(table_name)
