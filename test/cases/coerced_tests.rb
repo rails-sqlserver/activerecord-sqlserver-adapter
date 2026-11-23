@@ -2921,7 +2921,7 @@ class ActiveRecord::Encryption::EncryptableFixtureTest < ActiveRecord::Encryptio
   end
 end
 
-class ActiveRecord::LoadAsyncMultiThreadPoolExecutorTest  < ActiveRecord::TestCase
+class ActiveRecord::LoadAsyncMultiThreadPoolExecutorTest < ActiveRecord::TestCase
   # The SQL Server `AVG()` function for a list of integers returns an integer (not a decimal).
   coerce_tests! :test_async_queries_from_transaction_run_synchronously
   def test_async_queries_from_transaction_run_synchronously_coerced
@@ -2943,7 +2943,7 @@ class ActiveRecord::LoadAsyncMultiThreadPoolExecutorTest  < ActiveRecord::TestCa
         assert_equal expected_ids.min, scope.order(:id).async_pick(:id).value
         assert_equal expected_ids, scope.order(:id).async_pluck(:id).value
         assert_equal expected_ids, scope.order(:id).async_ids.value
-        assert_equal({ 1 => expected_ids.size }, scope.group(:author_id).async_count.value)
+        assert_equal({1 => expected_ids.size}, scope.group(:author_id).async_count.value)
         assert_equal expected_ids.size, Post.async_count_by_sql("SELECT COUNT(*) FROM posts WHERE title = 'In Transaction'").value
         assert_equal expected_ids, Post.async_find_by_sql("SELECT * FROM posts WHERE title = 'In Transaction' ORDER BY id").value.map(&:id)
         assert_equal expected_ids.size + 1, scope.async_count.then { |count| count + 1 }.value
