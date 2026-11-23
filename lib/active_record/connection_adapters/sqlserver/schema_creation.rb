@@ -66,8 +66,6 @@ module ActiveRecord
         def visit_CreateIndexDefinition(o)
           index = o.index
 
-          # binding.pry if defined?($aido) && $aido
-
           sql = []
           sql << "IF NOT EXISTS (SELECT name FROM sysindexes WHERE name = '#{o.index.name}')" if o.if_not_exists
           sql << "CREATE"

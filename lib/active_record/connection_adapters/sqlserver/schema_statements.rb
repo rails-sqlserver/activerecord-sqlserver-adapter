@@ -44,10 +44,14 @@ module ActiveRecord
         end
 
         def create_index_definition(table_name, name, unique, columns, **options)
-
-          # binding.pry if defined?($aido)
-
           SQLServer::IndexDefinition.new(table_name, name, unique, columns, **options)
+        end
+
+        def index_definition_options(options)
+          super.merge!(
+            type: options[:type],
+            include: options[:include]
+            )
         end
 
         def columns(table_name)
