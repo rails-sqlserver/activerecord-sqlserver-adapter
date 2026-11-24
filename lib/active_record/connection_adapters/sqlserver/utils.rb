@@ -12,6 +12,8 @@ module ActiveRecord
           UNQUOTED_SCANNER = /\]?\./
           QUOTED_SCANNER = /\A\[.*?\]\./
           QUOTED_CHECKER = /\A\[/
+          QUOTED_IDENTIFIER = /\[(?:[^\]]|\]\])*\]/
+          QUOTED_IDENTIFIERS = /\A#{QUOTED_IDENTIFIER}(?:\.+#{QUOTED_IDENTIFIER})*\z/
 
           attr_reader :server, :database, :schema, :object
           attr_reader :raw_name
@@ -113,7 +115,7 @@ module ActiveRecord
           end
 
           def quote(part)
-            /\A\[.*\]\z/.match?(part) ? part : "[#{part.to_s.gsub("]", "]]")}]"
+            QUOTED_IDENTIFIERS.match?(part) ? part : "[#{part.to_s.gsub("]", "]]")}]"
           end
 
           def unquote(part)
