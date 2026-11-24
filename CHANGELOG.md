@@ -1,6 +1,6 @@
 ## v7.2.10
 
-#### Changed
+#### Fixed
 
 - [#1430](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1430) Fix escaping of closing brackets inside identifiers.
 
