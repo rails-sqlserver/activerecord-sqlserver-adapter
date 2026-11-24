@@ -2506,15 +2506,15 @@ class FieldOrderedValuesTest < ActiveRecord::TestCase
     Book.lease_connection.add_index(:books, [:author_id, :name], unique: true)
   end
 
-  coerce_tests! :test_in_order_of_with_column_from_cte_serializes_custom_attribute_values
-  def test_in_order_of_with_column_from_cte_serializes_custom_attribute_values_coerced
-    connection.remove_index(:books, column: [:author_id, :name])
-
-    original_test_in_order_of_with_column_from_cte_serializes_custom_attribute_values
-  ensure
-    Book.where(author_id: nil, name: nil).delete_all
-    Book.lease_connection.add_index(:books, [:author_id, :name], unique: true)
-  end
+  # coerce_tests! :test_in_order_of_with_column_from_cte_serializes_custom_attribute_values
+  # def test_in_order_of_with_column_from_cte_serializes_custom_attribute_values_coerced
+  #   connection.remove_index(:books, column: [:author_id, :name])
+  #
+  #   original_test_in_order_of_with_column_from_cte_serializes_custom_attribute_values
+  # ensure
+  #   Book.where(author_id: nil, name: nil).delete_all
+  #   Book.lease_connection.add_index(:books, [:author_id, :name], unique: true)
+  # end
 end
 
 class QueryLogsTest < ActiveRecord::TestCase
@@ -2921,38 +2921,38 @@ class ActiveRecord::Encryption::EncryptableFixtureTest < ActiveRecord::Encryptio
   end
 end
 
-class ActiveRecord::LoadAsyncMultiThreadPoolExecutorTest < ActiveRecord::TestCase
-  # The SQL Server `AVG()` function for a list of integers returns an integer (not a decimal).
-  coerce_tests! :test_async_queries_from_transaction_run_synchronously
-  def test_async_queries_from_transaction_run_synchronously_coerced
-    events = []
-    Post.transaction do
-      Post.where(author_id: 1).update_all(title: "In Transaction")
-      scope = Post.where(title: "In Transaction")
-      expected_ids = scope.order(:id).ids
-
-      events = capture_notifications("sql.active_record") do
-        assert_equal expected_ids.size, scope.async_count.value
-        assert_equal expected_ids.sum, scope.async_sum(:id).value
-        assert_equal expected_ids.min, scope.async_minimum(:id).value
-        assert_equal expected_ids.max, scope.async_maximum(:id).value
-
-        # Difference between original and coerced test is the use of `div` instead of `fdiv`.
-        assert_in_delta expected_ids.sum.div(expected_ids.size), scope.async_average(:id).value
-
-        assert_equal expected_ids.min, scope.order(:id).async_pick(:id).value
-        assert_equal expected_ids, scope.order(:id).async_pluck(:id).value
-        assert_equal expected_ids, scope.order(:id).async_ids.value
-        assert_equal({1 => expected_ids.size}, scope.group(:author_id).async_count.value)
-        assert_equal expected_ids.size, Post.async_count_by_sql("SELECT COUNT(*) FROM posts WHERE title = 'In Transaction'").value
-        assert_equal expected_ids, Post.async_find_by_sql("SELECT * FROM posts WHERE title = 'In Transaction' ORDER BY id").value.map(&:id)
-        assert_equal expected_ids.size + 1, scope.async_count.then { |count| count + 1 }.value
-      end
-
-      raise ActiveRecord::Rollback
-    end
-
-    assert_not_empty events
-    assert events.none? { |event| event.payload[:async] }
-  end
-end
+# class ActiveRecord::LoadAsyncMultiThreadPoolExecutorTest < ActiveRecord::TestCase
+#   # The SQL Server `AVG()` function for a list of integers returns an integer (not a decimal).
+#   coerce_tests! :test_async_queries_from_transaction_run_synchronously
+#   def test_async_queries_from_transaction_run_synchronously_coerced
+#     events = []
+#     Post.transaction do
+#       Post.where(author_id: 1).update_all(title: "In Transaction")
+#       scope = Post.where(title: "In Transaction")
+#       expected_ids = scope.order(:id).ids
+#
+#       events = capture_notifications("sql.active_record") do
+#         assert_equal expected_ids.size, scope.async_count.value
+#         assert_equal expected_ids.sum, scope.async_sum(:id).value
+#         assert_equal expected_ids.min, scope.async_minimum(:id).value
+#         assert_equal expected_ids.max, scope.async_maximum(:id).value
+#
+#         # Difference between original and coerced test is the use of `div` instead of `fdiv`.
+#         assert_in_delta expected_ids.sum.div(expected_ids.size), scope.async_average(:id).value
+#
+#         assert_equal expected_ids.min, scope.order(:id).async_pick(:id).value
+#         assert_equal expected_ids, scope.order(:id).async_pluck(:id).value
+#         assert_equal expected_ids, scope.order(:id).async_ids.value
+#         assert_equal({1 => expected_ids.size}, scope.group(:author_id).async_count.value)
+#         assert_equal expected_ids.size, Post.async_count_by_sql("SELECT COUNT(*) FROM posts WHERE title = 'In Transaction'").value
+#         assert_equal expected_ids, Post.async_find_by_sql("SELECT * FROM posts WHERE title = 'In Transaction' ORDER BY id").value.map(&:id)
+#         assert_equal expected_ids.size + 1, scope.async_count.then { |count| count + 1 }.value
+#       end
+#
+#       raise ActiveRecord::Rollback
+#     end
+#
+#     assert_not_empty events
+#     assert events.none? { |event| event.payload[:async] }
+#   end
+# end

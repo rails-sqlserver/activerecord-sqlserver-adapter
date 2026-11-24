@@ -1,0 +1,6 @@
+# Auto generated files with errors to ignore.
+# Remove from this list as you refactor files.
+---
+ignore:
+- test/cases/migration_test_sqlserver.rb:
+  - Style/ReverseFind
