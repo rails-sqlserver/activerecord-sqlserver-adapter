@@ -13,6 +13,8 @@ class UtilsTestSQLServer < ActiveRecord::TestCase
 
   it ".quoted_raw" do
     _(SQLServer::Utils.quoted_raw("some.Name")).must_equal "[some.Name]"
+    _(SQLServer::Utils.quoted_raw("[a].[b]")).must_equal "[a].[b]"
+    _(SQLServer::Utils.quoted_raw("[a]; DROP TABLE x; --]")).must_equal "[[a]]; DROP TABLE x; --]]]"
   end
 
   describe ".extract_identifiers constructor and thus SQLServer::Utils::Name value object" do
@@ -90,6 +92,12 @@ class UtilsTestSQLServer < ActiveRecord::TestCase
     it "allows identifiers with periods to work" do
       _(extract_identifiers("[obj.name]").quoted).must_equal "[obj.name]"
       _(extract_identifiers("[obj.name].[foo]").quoted).must_equal "[obj.name].[foo]"
+    end
+
+    it "escapes closing brackets inside identifiers that look already quoted" do
+      name = "[[id]; INSERT INTO table (id, value) VALUES (1, 'test'); -- ]]"
+      _(extract_identifiers(name).quoted).must_equal "[[id]]; INSERT INTO table (id, value) VALUES (1, 'test'); -- ]]]"
+      _(extract_identifiers("[a].[b]").quoted).must_equal "[a].[b]"
     end
 
     it "should indicate if a name is fully qualified" do
