@@ -1,3 +1,9 @@
+#### Unreleased
+
+#### Changed
+
+- [#1430](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1430) Fix escaping of closing brackets inside identifiers.
+
 #### Fixed
 
 - [#1424](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/pull/1424) Fix table name parsing for `INSERT INTO <table> WITH (<hints>)`.
